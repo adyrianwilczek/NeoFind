@@ -7,22 +7,37 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-const REPORTS_FILE = './reports.json';
+const UPDATES_FILE = './updates.json';
+if(!fs.existsSync(UPDATES_FILE)) fs.writeFileSync(UPDATES_FILE,'[]');
 
-app.get('/reports', (req, res) => {
-  if (!fs.existsSync(REPORTS_FILE)) fs.writeFileSync(REPORTS_FILE, '[]');
-  const data = fs.readFileSync(REPORTS_FILE);
-  res.json(JSON.parse(data));
+app.get('/updates', (req,res)=>{
+  const data = JSON.parse(fs.readFileSync(UPDATES_FILE));
+  res.json(data);
 });
 
-app.post('/reports', (req, res) => {
-  const { title, text } = req.body;
-  if (!title || !text) return res.status(400).json({ error: "Fill all fields" });
-  let reports = [];
-  if (fs.existsSync(REPORTS_FILE)) reports = JSON.parse(fs.readFileSync(REPORTS_FILE));
-  reports.push({ id: Date.now(), title, text, date: new Date().toLocaleString() });
-  fs.writeFileSync(REPORTS_FILE, JSON.stringify(reports, null, 2));
-  res.json({ success: true });
+app.post('/updates', (req,res)=>{
+  const {text} = req.body;
+  if(!text) return res.status(400).json({error:"Brak tekstu"});
+  const updates = JSON.parse(fs.readFileSync(UPDATES_FILE));
+  updates.push({text, approved:false});
+  fs.writeFileSync(UPDATES_FILE, JSON.stringify(updates,null,2));
+  res.json({success:true});
 });
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.post('/updates/approve/:index', (req,res)=>{
+  const idx = req.params.index;
+  const updates = JSON.parse(fs.readFileSync(UPDATES_FILE));
+  if(updates[idx]) updates[idx].approved = true;
+  fs.writeFileSync(UPDATES_FILE, JSON.stringify(updates,null,2));
+  res.json({success:true});
+});
+
+app.delete('/updates/:index', (req,res)=>{
+  const idx = req.params.index;
+  let updates = JSON.parse(fs.readFileSync(UPDATES_FILE));
+  updates.splice(idx,1);
+  fs.writeFileSync(UPDATES_FILE, JSON.stringify(updates,null,2));
+  res.json({success:true});
+});
+
+app.listen(PORT,()=>console.log(`Server on port ${PORT}`));
