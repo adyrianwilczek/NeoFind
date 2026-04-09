@@ -2941,6 +2941,37 @@ function exportReports() {
     a.download = "reports.json";
     a.click();
 }
+    // -------------------- EASTER EGG --------------------
+function checkEasterEgg(query){
+  if(query.toLowerCase() === "secret mode"){
+    document.body.style.background = "#696969"; // fioletowo-różowe tło
+    const results = document.getElementById('results');
+    results.innerHTML = "Welcome to secret mode!";
+    
+    // zamieniamy wszystkie teksty w panelu admina na króliczki
+    document.querySelectorAll('.admin-panel, #updateText, #adminUpdates').forEach(el=>{
+      el.innerHTML = el.innerHTML.replace(/\w+/g,"?");
+    });
+    return true;
+  }
+  return false;
+}
+
+// modyfikacja funkcji wyszukiwania
+function doSearch() {
+  const q = document.getElementById('search').value;
+  
+  // sprawdzamy easter egg
+  if(checkEasterEgg(q)) return;
+  
+  const resultsDiv = document.getElementById('results');
+  let results = data.filter(d => d.title.toLowerCase().includes(q.toLowerCase()));
+  if(results.length === 0) {
+    resultsDiv.innerHTML = lang==='pl' ? 'Spróbuj inaczej' : 'Try again';
+    return;
+  }
+  resultsDiv.innerHTML = results.map(r=>`<div><a href="${r.link}" target="_blank">${r.title}</a> - ${r.desc}</div>`).join('');
+}
 
 // 🔄 ZMIANA JĘZYKA W INTERFEJSIE
 function updateLanguage() {
