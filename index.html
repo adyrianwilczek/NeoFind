@@ -91,7 +91,19 @@ button {
 <script>
 
 // 🌍 GLOBAL UPDATE (TU ZMIENIASZ UPDATE)
-const GLOBAL_UPDATE = "NeoFind 1.0 - first release 🚀";
+const GLOBAL_UPDATE = "NeoFind 1.0 - first release";
+
+function showUpdate(){
+    const box = document.getElementById("updates");
+    if(!box) return;
+
+    box.innerHTML = `
+        <div class="result">
+            <h3>${translations[currentLang].whatsNew}</h3>
+            <p>${GLOBAL_UPDATE}</p>
+        </div>
+    `;
+}
 
 // 🌐 DANE
 const data = {
