@@ -2841,6 +2841,7 @@ document.getElementById("langSelect").addEventListener("change", function() {
 // 🔍 SEARCH (FIX)
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
+    saveToHistory(value);
     const results = document.getElementById("results");
 
     if(value === "neo"){
@@ -2884,7 +2885,27 @@ function checkLogin(){
         showReports();
     } else alert("Wrong password");
 }
+    
+<button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">⚙️ Settings</button>
 
+<div id="settingsBox" style="display:none; text-align:center;">
+    <h3>⚙️ Settings</h3>
+
+    <label>Language:</label><br>
+    <select id="settingsLang">
+        <option value="en">EN</option>
+        <option value="pl">PL</option>
+        <option value="easter">🐰</option>
+    </select><br><br>
+
+    <h4>📜 Search History</h4>
+    <div id="historyList"></div><br>
+
+    <button onclick="clearHistory()">🧹 Clear history</button><br><br>
+
+    <button onclick="saveSettings()">Save</button>
+</div>
+    
 // ⚠️ REPORT
 function openReport(){
     document.getElementById("reportBox").style.display = "block";
@@ -2971,6 +2992,72 @@ function spawnNeo(){
     setTimeout(()=> neo.style.left="45%",100);
     setTimeout(()=> alert("hi, im neo im mascot of NeoFind"),2000);
     setTimeout(()=> neo.remove(),5000);
+}
+
+    // ⚙️ SETTINGS
+function openSettings(){
+    document.getElementById("settingsBox").style.display = "block";
+
+    document.getElementById("settingsLang").value = localStorage.getItem("lang") || "en";
+
+    showHistory();
+}
+
+function saveSettings(){
+    const lang = document.getElementById("settingsLang").value;
+
+    localStorage.setItem("lang", lang);
+
+    currentLang = lang;
+    document.getElementById("langSelect").value = lang;
+
+    updateLanguage();
+
+    alert("Saved!");
+}
+
+// 📜 SAVE HISTORY (DODAJEMY DO SEARCH)
+function saveToHistory(query){
+    if(!query) return;
+
+    let history = JSON.parse(localStorage.getItem("history")) || [];
+
+    if(history.includes(query)) return;
+
+    history.unshift(query);
+
+    if(history.length > 10) history.pop();
+
+    localStorage.setItem("history", JSON.stringify(history));
+}
+
+// 📜 SHOW HISTORY
+function showHistory(){
+    const box = document.getElementById("historyList");
+    let history = JSON.parse(localStorage.getItem("history")) || [];
+
+    if(!history.length){
+        box.innerHTML = "No history";
+        return;
+    }
+
+    box.innerHTML = history.map(h => `
+        <div class="result" onclick="useHistory('${h}')">
+            ${h}
+        </div>
+    `).join("");
+}
+
+// 📜 USE HISTORY
+function useHistory(text){
+    document.getElementById("search").value = text;
+    document.getElementById("settingsBox").style.display = "none";
+}
+
+// 🧹 CLEAR
+function clearHistory(){
+    localStorage.removeItem("history");
+    showHistory();
 }
 
 // START
