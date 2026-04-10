@@ -90,20 +90,8 @@ button {
 
 <script>
 
-// 🌍 GLOBAL UPDATE (TU ZMIENIASZ UPDATE)
-const GLOBAL_UPDATE = "NeoFind 1.0 - first release";
-
-function showUpdate(){
-    const box = document.getElementById("updates");
-    if(!box) return;
-
-    box.innerHTML = `
-        <div class="result">
-            <h3>${translations[currentLang].whatsNew}</h3>
-            <p>${GLOBAL_UPDATE}</p>
-        </div>
-    `;
-}
+// 🌍 GLOBAL UPDATE (TY TU ZMIENIASZ)
+const GLOBAL_UPDATE = "NeoFind 1.0 - first release 🚀";
 
 // 🌐 DANE
 const data = {
@@ -2816,15 +2804,7 @@ const translations = {
         titlePlaceholder: "Tytuł",
         descPlaceholder: "Co się stało...",
         noResults: "Spróbuj inaczej 😕",
-        adminPanelTitle: "Panel Admina",
-        adminPass: "Hasło",
-        loginBtn: "Zaloguj",
-        updatePlaceholder: "Co nowego...",
-        updateBtn: "Zapisz update",
-        whatsNew: "🆕 Co nowego",
-        reportsTitle: "Zgłoszenia",
-        exportBtn: "Eksportuj",
-        noReports: "Brak zgłoszeń"
+        whatsNew: "🆕 Co nowego"
     },
     en: {
         search: "Search...",
@@ -2834,37 +2814,21 @@ const translations = {
         titlePlaceholder: "Title",
         descPlaceholder: "What happened...",
         noResults: "Try something else 😕",
-        adminPanelTitle: "Admin Panel",
-        adminPass: "Password",
-        loginBtn: "Login",
-        updatePlaceholder: "What's new...",
-        updateBtn: "Save update",
-        whatsNew: "🆕 What's new",
-        reportsTitle: "Reports",
-        exportBtn: "Export",
-        noReports: "No reports"
+        whatsNew: "🆕 What's new"
     },
     easter: {
         search: "🐰🐰🐰...",
-        report: "🐰 🐰🐰🐰",
-        admin: "🐰 🐰🐰",
-        reportTitle: "🐰🐰🐰 🐰🐰🐰",
-        titlePlaceholder: "🐰🐰🐰",
-        descPlaceholder: "🐰🐰🐰🐰🐰",
-        noResults: "🐰🐰🐰 🐰",
-        adminPanelTitle: "🐰🐰 🐰🐰",
-        adminPass: "🐰🐰🐰",
-        loginBtn: "🐰🐰",
-        updatePlaceholder: "🐰🐰🐰...",
-        updateBtn: "🐰🐰 🐰🐰",
-        whatsNew: "🐰 🐰🐰🐰",
-        reportsTitle: "🐰🐰🐰",
-        exportBtn: "🐰🐰🐰",
-        noReports: "🐰🐰"
+        report: "🐰🐰🐰",
+        admin: "🐰🐰",
+        reportTitle: "🐰🐰🐰",
+        titlePlaceholder: "🐰",
+        descPlaceholder: "🐰🐰🐰",
+        noResults: "🐰🐰",
+        whatsNew: "🐰🐰🐰"
     }
 };
 
-let currentLang = 'en';
+let currentLang = "en";
 
 // 🔄 LANGUAGE
 document.getElementById("langSelect").addEventListener("change", function() {
@@ -2874,24 +2838,29 @@ document.getElementById("langSelect").addEventListener("change", function() {
     updateLanguage();
 });
 
-// 🔍 SEARCH + EASTER EGG
+// 🔍 SEARCH (FIX)
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
+    const results = document.getElementById("results");
 
     if(value === "neo"){
         spawnNeo();
         return;
     }
 
-    const results = document.getElementById("results");
-    if (!value) return results.innerHTML = "";
+    if(!value){
+        results.innerHTML = "";
+        return;
+    }
 
-    const filtered = data[currentLang].filter(item =>
-        item.title.toLowerCase().includes(value) ||
-        item.desc.toLowerCase().includes(value)
+    const list = data[currentLang] || [];
+
+    const filtered = list.filter(item =>
+        (item.title || "").toLowerCase().includes(value) ||
+        (item.desc || "").toLowerCase().includes(value)
     );
 
-    if (!filtered.length) {
+    if(!filtered.length){
         results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
         return;
     }
@@ -2922,16 +2891,16 @@ function openReport(){
 }
 
 function sendReport(){
-    const title = document.getElementById("reportTitle").value;
-    const text = document.getElementById("reportText").value;
-
-    if(!title || !text) return alert("Fill all fields!");
-
     let reports = JSON.parse(localStorage.getItem("reports")) || [];
-    reports.push({id:Date.now(), title, text, date:new Date().toLocaleString()});
+
+    reports.push({
+        id: Date.now(),
+        title: document.getElementById("reportTitle").value,
+        text: document.getElementById("reportText").value,
+        date: new Date().toLocaleString()
+    });
 
     localStorage.setItem("reports", JSON.stringify(reports));
-    alert("Sent!");
 }
 
 // 📋 REPORTS
@@ -2940,7 +2909,7 @@ function showReports(){
     const box = document.getElementById("reportsList");
 
     if(!reports.length){
-        box.innerHTML = translations[currentLang].noReports;
+        box.innerHTML = translations[currentLang].noResults;
         return;
     }
 
@@ -2953,22 +2922,22 @@ function showReports(){
     `).join("");
 }
 
-// 🌍 UPDATE FIX (GLOBAL)
-const GLOBAL_UPDATE = "NeoFind 1.0 - first release 🚀";
-
+// 🆕 UPDATE (FIXED)
 function showUpdate(){
     const box = document.getElementById("updates");
     if(!box) return;
 
+    const t = translations[currentLang] || translations.en;
+
     box.innerHTML = `
         <div class="result">
-            <h3>${translations[currentLang].whatsNew}</h3>
+            <h3>${t.whatsNew}</h3>
             <p>${GLOBAL_UPDATE}</p>
         </div>
     `;
 }
 
-// 🌐 LANGUAGE UPDATE
+// 🌐 UI
 function updateLanguage(){
     const t = translations[currentLang];
 
@@ -2983,7 +2952,7 @@ function updateLanguage(){
     showReports();
 }
 
-// 🧑‍🚀 NEO (NIE ZMIENIŁEM ANI LINII)
+// 🧑‍🚀 NEO (NIE DOTYKAM)
 function spawnNeo(){
     const neo = document.createElement("div");
     neo.style.position = "fixed";
