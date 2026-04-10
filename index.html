@@ -2945,8 +2945,11 @@ function showReports(){
 }
 
 // 🌍 UPDATE (GLOBAL)
-function showUpdate(){
-    document.getElementById("updates").innerHTML = `
+function showUpdate() {
+    const box = document.getElementById("updates");
+    if (!box) return;
+
+    box.innerHTML = `
         <div class="result">
             <h3>${translations[currentLang].whatsNew}</h3>
             <p>${GLOBAL_UPDATE}</p>
@@ -2994,6 +2997,8 @@ function spawnNeo(){
 
 // START
 updateLanguage();
+updateLanguage();
+setTimeout(showUpdate, 50);
 
 </script>
 
