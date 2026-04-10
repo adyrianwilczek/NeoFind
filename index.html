@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>NeoFind</title>
+
 <style>
 body {
     margin: 0;
@@ -44,10 +45,12 @@ button {
 }
 </style>
 </head>
+
 <body>
 
 <div class="container">
     <h1>NeoFind 🔍</h1>
+
     <select id="langSelect">
         <option value="en" selected>EN</option>
         <option value="pl">PL</option>
@@ -88,29 +91,13 @@ button {
 <div id="updates" style="margin:30px; text-align:center;"></div>
 
 <script>
-// 🌐 DANE
+
+// 🌐 DATA
 const data = {
     pl: [
 { title: "Roblox", desc: "Platforma do tworzenia i grania w gry stworzone przez użytkowników. Miliony doświadczeń w jednym miejscu.", link: "https://www.roblox.com/" },
             { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
             { title: "NeoFind", desc: "NeoFind – nowoczesna wyszukiwarka z inteligentnym systemem wyników. Szybkie wyszukiwanie, czytelne opisy i wsparcie wielu języków.", link: "https://adyrianwilczek.github.io/NeoFind/" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
             { title: "League of Legends", desc: "MOBA od Riot Games. Miliony graczy na całym świecie walczą w drużynowych meczach 5v5.", link: "https://www.leagueoflegends.com/pl-pl/" },
             { title: "Valorant", desc: "Taktyczna strzelanka od Riot Games łącząca elementy FPS i hero shooter.", link: "https://playvalorant.com/pl-pl/" },
             { title: "Counter-Strike 2", desc: "Najnowsza wersja legendarnej strzelanki Valve. Klasyczna rozgrywka 5v5 z ulepszoną grafiką.", link: "https://www.counter-strike.net/" },
@@ -1456,8 +1443,8 @@ const data = {
 ],
     en: [
       { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
-{ title: "Grand Theft Auto V", desc: "Iconic action game from Rockstar Games. The open world of Los Santos with GTA Online multiplayer mode.", link: "https://www.rockstargames.com/gta-v" },
-{ title: "NeoFind", desc: "NeoFind – a modern search engine with an intelligent results system. Fast search, clear descriptions and multilingual support.", link: "https://adyrianwilczek.github.io/NeoFind/" },
+{ title: "Grand Theft Auto V", desc: "A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.", link: "https://www.rockstargames.com/gta-v" },
+{ title: "NeoFind", desc: "nowoczesna wyszukiwarka z inteligentnym systemem wyników. Szybkie wyszukiwanie, czytelne opisy i wsparcie wielu języków", link: "https://adyrianwilczek.github.io/NeoFind/" },
 { title: "League of Legends", desc: "MOBA from Riot Games. Millions of players worldwide battle in 5v5 team matches.", link: "https://www.leagueoflegends.com/pl-pl/" },
 { title: "Valorant", desc: "Tactical shooter from Riot Games combining FPS and hero shooter elements.", link: "https://playvalorant.com/pl-pl/" },
 { title: "Counter-Strike 2", desc: "The latest version of Valve's legendary shooter. Classic 5v5 gameplay with improved graphics.", link: "https://www.counter-strike.net/" },
@@ -2802,7 +2789,7 @@ const data = {
 { title: "xAI", desc: "Latest xAI achievements.", link: "https://x.ai/" }
 ],
     easter: [
-        { title: "🐰", desc: "🐰🐰🐰🐰🐰🐰🐰🐰 🐰🐰 🐰🐰🐰🐰🐰🐰 🐰🐰🐰🐰🐰🐰 🐰🐰🐰", link: "🐰🐰🐰🐰🐰🐰🐰" }
+        { title: "🐰", desc: "🐰🐰🐰", link: "#" }
     ]
 };
 
@@ -2864,9 +2851,9 @@ const translations = {
     }
 };
 
-let currentLang = 'en';
+let currentLang = "en";
 
-// 🔄 ZMIANA JĘZYKA
+// 🔄 LANGUAGE
 document.getElementById("langSelect").addEventListener("change", function() {
     currentLang = this.value;
     document.getElementById("search").value = "";
@@ -2874,44 +2861,57 @@ document.getElementById("langSelect").addEventListener("change", function() {
     updateLanguage();
 });
 
-// 🔍 WYSZUKIWANIE + EASTER EGG
-document.getElementById("search").addEventListener("input", function() {
-    const value = this.value.toLowerCase().trim();
+// 🚀 FIXED SEARCH + NEO EASTER EGG
+window.addEventListener("DOMContentLoaded", () => {
 
-    // 🐣 NEO EASTER EGG
-    if(value === "neo"){
-        spawnNeo();
-        return;
-    }
+    document.getElementById("search").addEventListener("input", function() {
+        const value = this.value.toLowerCase().trim();
 
-    const results = document.getElementById("results");
-    if (!value) { results.innerHTML = ""; return; }
+        // 🐣 NEO
+        if (value === "neo") {
+            spawnNeo();
+            return;
+        }
 
-    const filtered = data[currentLang].filter(item =>
-        item.title.toLowerCase().includes(value) ||
-        item.desc.toLowerCase().includes(value)
-    );
+        const results = document.getElementById("results");
 
-    if (filtered.length === 0) {
-        results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
-        return;
-    }
+        if (!value) {
+            results.innerHTML = "";
+            return;
+        }
 
-    results.innerHTML = filtered.map(item => `
-        <div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <p>${item.desc}</p>
-        </div>
-    `).join("");
+        const filtered = data[currentLang].filter(item =>
+            item.title.toLowerCase().includes(value) ||
+            item.desc.toLowerCase().includes(value)
+        );
+
+        if (filtered.length === 0) {
+            results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
+            return;
+        }
+
+        results.innerHTML = filtered.map(item => `
+            <div class="result">
+                <a href="${item.link}" target="_blank">${item.title}</a>
+                <p>${item.desc}</p>
+            </div>
+        `).join("");
+    });
+
 });
 
 // 🔐 ADMIN
-function openAdmin() { document.getElementById("adminPanel").style.display = "block"; }
+function openAdmin() {
+    document.getElementById("adminPanel").style.display = "block";
+}
+
 function checkLogin() {
     if (document.getElementById("adminPass").value === "adminpanel48") {
         document.getElementById("adminContent").style.display = "block";
         showReports();
-    } else { alert("Wrong password"); }
+    } else {
+        alert("Wrong password");
+    }
 }
 
 // 🆕 UPDATE
@@ -2919,6 +2919,7 @@ function saveUpdate() {
     localStorage.setItem("update", document.getElementById("updateText").value);
     showUpdate();
 }
+
 function showUpdate() {
     const u = localStorage.getItem("update");
     if (u) {
@@ -2928,22 +2929,33 @@ function showUpdate() {
 }
 
 // ⚠️ REPORT
-function openReport() { document.getElementById("reportBox").style.display = "block"; }
+function openReport() {
+    document.getElementById("reportBox").style.display = "block";
+}
+
 function sendReport() {
     const title = document.getElementById("reportTitle").value;
     const text = document.getElementById("reportText").value;
+
     if (!title || !text) return alert("Fill all fields!");
+
     let reports = JSON.parse(localStorage.getItem("reports")) || [];
     reports.push({ id: Date.now(), title, text, date: new Date().toLocaleString() });
+
     localStorage.setItem("reports", JSON.stringify(reports));
     alert("Sented📨!");
 }
 
-// 📋 REPORTY
+// 📋 REPORTS
 function showReports() {
     let reports = JSON.parse(localStorage.getItem("reports")) || [];
     const box = document.getElementById("reportsList");
-    if (!reports.length) { box.innerHTML = translations[currentLang].noReports; return; }
+
+    if (!reports.length) {
+        box.innerHTML = translations[currentLang].noReports;
+        return;
+    }
+
     box.innerHTML = reports.map(r => `
         <div class="result">
             <b>${r.title}</b>
@@ -2953,12 +2965,14 @@ function showReports() {
         </div>
     `).join("");
 }
+
 function deleteReport(id) {
     let reports = JSON.parse(localStorage.getItem("reports")) || [];
     reports = reports.filter(r => r.id !== id);
     localStorage.setItem("reports", JSON.stringify(reports));
     showReports();
 }
+
 function exportReports() {
     const blob = new Blob([localStorage.getItem("reports") || "[]"], {type: "application/json"});
     const a = document.createElement("a");
@@ -2967,9 +2981,10 @@ function exportReports() {
     a.click();
 }
 
-// 🌐 UPDATE UI
+// 🌍 UI
 function updateLanguage() {
     const t = translations[currentLang];
+
     document.getElementById("search").placeholder = t.search;
     document.getElementById("reportBtn").innerText = t.report;
     document.getElementById("adminBtn").innerText = t.admin;
@@ -2983,13 +2998,14 @@ function updateLanguage() {
     document.querySelector("#adminContent button").innerText = t.updateBtn;
     document.querySelector("#adminContent h3").innerText = t.reportsTitle;
     document.querySelector("#adminContent button:last-of-type").innerText = t.exportBtn;
+
     showUpdate();
     showReports();
 }
 
-// 🐣 EASTER EGG NEO
-function spawnNeo(){
-    // 🧍‍♂️ POSTAĆ (DIV zamiast emoji)
+// 🐣 NEO EASTER EGG (działa na GitHub)
+function spawnNeo() {
+
     const neo = document.createElement("div");
     neo.style.position = "fixed";
     neo.style.left = "-150px";
@@ -3000,165 +3016,44 @@ function spawnNeo(){
     neo.style.zIndex = "9999";
     neo.style.transition = "left 2s ease-in-out";
 
-    // 🟦 CIAŁO
-neo.innerHTML = `
-<div style="
-    width:100%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-">
+    neo.innerHTML = `
+        <div style="
+            width:100%;
+            height:100%;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+        ">
+            <div style="
+                width:90px;
+                height:90px;
+                background:#4db8ff;
+                border-radius:50%;
+            "></div>
+        </div>
+    `;
 
-    <!-- GŁOWA -->
-    <div style="
-        width:90px;
-        height:90px;
-        background:#4db8ff;
-        border-radius:50%;
-        position:relative;
-        box-shadow:0 8px 20px rgba(0,0,0,0.4);
-    ">
-        <!-- OCZY -->
-        <div style="
-            width:14px;
-            height:14px;
-            background:black;
-            border-radius:50%;
-            position:absolute;
-            top:30px;
-            left:22px;
-        "></div>
-        <div style="
-            width:14px;
-            height:14px;
-            background:black;
-            border-radius:50%;
-            position:absolute;
-            top:30px;
-            right:22px;
-        "></div>
-
-        <!-- UŚMIECH -->
-        <div style="
-            position:absolute;
-            bottom:20px;
-            left:50%;
-            transform:translateX(-50%);
-            width:30px;
-            height:15px;
-            border-bottom:4px solid black;
-            border-radius:0 0 20px 20px;
-        "></div>
-    </div>
-
-    <!-- RĘCE -->
-    <div style="
-        position:relative;
-        width:120px;
-        height:20px;
-        margin-top:5px;
-    ">
-        <div style="
-            position:absolute;
-            left:-25px;
-            top:0;
-            width:40px;
-            height:12px;
-            background:#3aa6ff;
-            border-radius:10px;
-            transform:rotate(-20deg);
-        "></div>
-
-        <div style="
-            position:absolute;
-            right:-25px;
-            top:0;
-            width:40px;
-            height:12px;
-            background:#3aa6ff;
-            border-radius:10px;
-            transform:rotate(20deg);
-        "></div>
-    </div>
-
-    <!-- TUŁÓW -->
-    <div style="
-        width:70px;
-        height:80px;
-        background:#2b8cff;
-        border-radius:25px;
-        margin-top:5px;
-        box-shadow:0 6px 15px rgba(0,0,0,0.3);
-    "></div>
-
-    <!-- NOGI -->
-    <div style="
-        display:flex;
-        gap:12px;
-        margin-top:5px;
-    ">
-        <div style="
-            width:18px;
-            height:55px;
-            background:#2b8cff;
-            border-radius:12px;
-        "></div>
-        <div style="
-            width:18px;
-            height:55px;
-            background:#2b8cff;
-            border-radius:12px;
-        "></div>
-    </div>
-</div>
-`;
     document.body.appendChild(neo);
 
-    // 🚶‍♂️ wejście
-    setTimeout(()=>{
+    setTimeout(() => {
         neo.style.left = "45%";
     }, 100);
 
-    // 💬 DYMek
-    const speech = document.createElement("div");
-    speech.innerText = "hi, im neo im mascot of NeoFind. You find easter egg";
-    speech.style.position = "fixed";
-    speech.style.top = "30%";
-    speech.style.left = "50%";
-    speech.style.transform = "translateX(-50%)";
-    speech.style.background = "white";
-    speech.style.color = "black";
-    speech.style.padding = "15px 20px";
-    speech.style.borderRadius = "20px";
-    speech.style.fontSize = "18px";
-    speech.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
-    speech.style.opacity = "0";
-    speech.style.transition = "opacity 0.5s";
-    speech.style.zIndex = "9999";
-
-    // 🗨️ pokazanie
-    setTimeout(()=>{
-        document.body.appendChild(speech);
-        setTimeout(()=> speech.style.opacity = "1", 50);
+    setTimeout(() => {
+        alert("hi, im neo im mascot of NeoFind :)");
     }, 2000);
 
-    // ⏱️ czeka 5s i wychodzi
-    setTimeout(()=>{
-        speech.style.opacity = "0";
+    setTimeout(() => {
         neo.style.left = "110%";
-    }, 7000);
+    }, 5000);
 
-    // 🧹 usuń
-    setTimeout(()=>{
+    setTimeout(() => {
         neo.remove();
-        speech.remove();
-    }, 9500);
+    }, 7000);
 }
 
 // START
 updateLanguage();
-showUpdate();
 </script>
 
 </body>
