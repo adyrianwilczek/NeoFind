@@ -2961,6 +2961,175 @@ function updateLanguage() {
     showUpdate();
     showReports();
 }
+    
+// 🐣 EASTER EGG NEO
+function spawnNeo(){
+    // 🧍‍♂️ POSTAĆ (DIV zamiast emoji)
+    const neo = document.createElement("div");
+    neo.style.position = "fixed";
+    neo.style.left = "-150px";
+    neo.style.top = "50%";
+    neo.style.transform = "translateY(-50%)";
+    neo.style.width = "120px";
+    neo.style.height = "200px";
+    neo.style.zIndex = "9999";
+    neo.style.transition = "left 2s ease-in-out";
+
+    // 🟦 CIAŁO
+neo.innerHTML = `
+<div style="
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+">
+
+    <!-- GŁOWA -->
+    <div style="
+        width:90px;
+        height:90px;
+        background:#4db8ff;
+        border-radius:50%;
+        position:relative;
+        box-shadow:0 8px 20px rgba(0,0,0,0.4);
+    ">
+        <!-- OCZY -->
+        <div style="
+            width:14px;
+            height:14px;
+            background:black;
+            border-radius:50%;
+            position:absolute;
+            top:30px;
+            left:22px;
+        "></div>
+        <div style="
+            width:14px;
+            height:14px;
+            background:black;
+            border-radius:50%;
+            position:absolute;
+            top:30px;
+            right:22px;
+        "></div>
+
+        <!-- UŚMIECH -->
+        <div style="
+            position:absolute;
+            bottom:20px;
+            left:50%;
+            transform:translateX(-50%);
+            width:30px;
+            height:15px;
+            border-bottom:4px solid black;
+            border-radius:0 0 20px 20px;
+        "></div>
+    </div>
+
+    <!-- RĘCE -->
+    <div style="
+        position:relative;
+        width:120px;
+        height:20px;
+        margin-top:5px;
+    ">
+        <div style="
+            position:absolute;
+            left:-25px;
+            top:0;
+            width:40px;
+            height:12px;
+            background:#3aa6ff;
+            border-radius:10px;
+            transform:rotate(-20deg);
+        "></div>
+
+        <div style="
+            position:absolute;
+            right:-25px;
+            top:0;
+            width:40px;
+            height:12px;
+            background:#3aa6ff;
+            border-radius:10px;
+            transform:rotate(20deg);
+        "></div>
+    </div>
+
+    <!-- TUŁÓW -->
+    <div style="
+        width:70px;
+        height:80px;
+        background:#2b8cff;
+        border-radius:25px;
+        margin-top:5px;
+        box-shadow:0 6px 15px rgba(0,0,0,0.3);
+    "></div>
+
+    <!-- NOGI -->
+    <div style="
+        display:flex;
+        gap:12px;
+        margin-top:5px;
+    ">
+        <div style="
+            width:18px;
+            height:55px;
+            background:#2b8cff;
+            border-radius:12px;
+        "></div>
+        <div style="
+            width:18px;
+            height:55px;
+            background:#2b8cff;
+            border-radius:12px;
+        "></div>
+    </div>
+</div>
+`;
+    document.body.appendChild(neo);
+
+    // 🚶‍♂️ wejście
+    setTimeout(()=>{
+        neo.style.left = "45%";
+    }, 100);
+
+    // 💬 DYMek
+    const speech = document.createElement("div");
+    speech.innerText = "hi, im neo im mascot of NeoFind. You find easter egg";
+    speech.style.position = "fixed";
+    speech.style.top = "30%";
+    speech.style.left = "50%";
+    speech.style.transform = "translateX(-50%)";
+    speech.style.background = "white";
+    speech.style.color = "black";
+    speech.style.padding = "15px 20px";
+    speech.style.borderRadius = "20px";
+    speech.style.fontSize = "18px";
+    speech.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
+    speech.style.opacity = "0";
+    speech.style.transition = "opacity 0.5s";
+    speech.style.zIndex = "9999";
+
+    // 🗨️ pokazanie
+    setTimeout(()=>{
+        document.body.appendChild(speech);
+        setTimeout(()=> speech.style.opacity = "1", 50);
+    }, 2000);
+
+    // ⏱️ czeka 5s i wychodzi
+    setTimeout(()=>{
+        speech.style.opacity = "0";
+        neo.style.left = "110%";
+    }, 7000);
+
+    // 🧹 usuń
+    setTimeout(()=>{
+        neo.remove();
+        speech.remove();
+    }, 9500);
+}
 
 // START
 updateLanguage();
