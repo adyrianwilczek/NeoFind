@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>NeoFind</title>
-
 <style>
 body {
     margin: 0;
@@ -45,7 +44,6 @@ button {
 }
 </style>
 </head>
-
 <body>
 
 <div class="container">
@@ -92,12 +90,18 @@ button {
 
 <script>
 
-// 🌐 DATA
+// 🌍 GLOBAL UPDATE (zmieniasz tylko to)
+const GLOBAL_UPDATE = "Whta new in v1.2? we added:
+    -more search results
+    -we fixed update system
+    -and more...";
+
+// 🌐 DANE
 const data = {
     pl: [
 { title: "Roblox", desc: "Platforma do tworzenia i grania w gry stworzone przez użytkowników. Miliony doświadczeń w jednym miejscu.", link: "https://www.roblox.com/" },
-            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
-            { title: "NeoFind", desc: "NeoFind – nowoczesna wyszukiwarka z inteligentnym systemem wyników. Szybkie wyszukiwanie, czytelne opisy i wsparcie wielu języków.", link: "https://adyrianwilczek.github.io/NeoFind/" },
+            { title: "Grand Theft Auto V", desc: "Ikoniczna gra akcji od Rockstar Games. Otwarty świat Los Santos z trybem online GTA Online.", link: "https://adyrianwilczek.github.io/NeoFind/" },
+            { title: "NeoFind", desc: "NeoFind – nowoczesna wyszukiwarka z inteligentnym systemem wyników. Szybkie wyszukiwanie, czytelne opisy i wsparcie wielu języków.", link: "https://www.rockstargames.com/gta-v" },
             { title: "League of Legends", desc: "MOBA od Riot Games. Miliony graczy na całym świecie walczą w drużynowych meczach 5v5.", link: "https://www.leagueoflegends.com/pl-pl/" },
             { title: "Valorant", desc: "Taktyczna strzelanka od Riot Games łącząca elementy FPS i hero shooter.", link: "https://playvalorant.com/pl-pl/" },
             { title: "Counter-Strike 2", desc: "Najnowsza wersja legendarnej strzelanki Valve. Klasyczna rozgrywka 5v5 z ulepszoną grafiką.", link: "https://www.counter-strike.net/" },
@@ -1443,8 +1447,8 @@ const data = {
 ],
     en: [
       { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
-{ title: "Grand Theft Auto V", desc: "A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.", link: "https://www.rockstargames.com/gta-v" },
-{ title: "NeoFind", desc: "nowoczesna wyszukiwarka z inteligentnym systemem wyników. Szybkie wyszukiwanie, czytelne opisy i wsparcie wielu języków", link: "https://adyrianwilczek.github.io/NeoFind/" },
+{ title: "Grand Theft Auto V", desc: "Iconic action game from Rockstar Games. The open world of Los Santos with GTA Online multiplayer mode.", link: "https://www.rockstargames.com/gta-v" },
+{ title: "NeoFind", desc: "A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.", link: "https://adyrianwilczek.github.io/NeoFind/" },
 { title: "League of Legends", desc: "MOBA from Riot Games. Millions of players worldwide battle in 5v5 team matches.", link: "https://www.leagueoflegends.com/pl-pl/" },
 { title: "Valorant", desc: "Tactical shooter from Riot Games combining FPS and hero shooter elements.", link: "https://playvalorant.com/pl-pl/" },
 { title: "Counter-Strike 2", desc: "The latest version of Valve's legendary shooter. Classic 5v5 gameplay with improved graphics.", link: "https://www.counter-strike.net/" },
@@ -2789,7 +2793,7 @@ const data = {
 { title: "xAI", desc: "Latest xAI achievements.", link: "https://x.ai/" }
 ],
     easter: [
-        { title: "🐰", desc: "🐰🐰🐰", link: "#" }
+        { title: "🐰", desc: "🐰🐰🐰🐰🐰🐰🐰🐰 🐰🐰 🐰🐰🐰🐰🐰🐰 🐰🐰🐰🐰🐰🐰 🐰🐰🐰", link: "#" }
     ]
 };
 
@@ -2851,7 +2855,7 @@ const translations = {
     }
 };
 
-let currentLang = "en";
+let currentLang = 'en';
 
 // 🔄 LANGUAGE
 document.getElementById("langSelect").addEventListener("change", function() {
@@ -2861,128 +2865,97 @@ document.getElementById("langSelect").addEventListener("change", function() {
     updateLanguage();
 });
 
-// 🚀 FIXED SEARCH + NEO EASTER EGG
-window.addEventListener("DOMContentLoaded", () => {
+// 🔍 SEARCH + EASTER EGG
+document.getElementById("search").addEventListener("input", function() {
+    const value = this.value.toLowerCase().trim();
 
-    document.getElementById("search").addEventListener("input", function() {
-        const value = this.value.toLowerCase().trim();
+    if(value === "neo"){
+        spawnNeo();
+        return;
+    }
 
-        // 🐣 NEO
-        if (value === "neo") {
-            spawnNeo();
-            return;
-        }
+    const results = document.getElementById("results");
+    if (!value) return results.innerHTML = "";
 
-        const results = document.getElementById("results");
+    const filtered = data[currentLang].filter(item =>
+        item.title.toLowerCase().includes(value) ||
+        item.desc.toLowerCase().includes(value)
+    );
 
-        if (!value) {
-            results.innerHTML = "";
-            return;
-        }
+    if (!filtered.length) {
+        results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
+        return;
+    }
 
-        const filtered = data[currentLang].filter(item =>
-            item.title.toLowerCase().includes(value) ||
-            item.desc.toLowerCase().includes(value)
-        );
-
-        if (filtered.length === 0) {
-            results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
-            return;
-        }
-
-        results.innerHTML = filtered.map(item => `
-            <div class="result">
-                <a href="${item.link}" target="_blank">${item.title}</a>
-                <p>${item.desc}</p>
-            </div>
-        `).join("");
-    });
-
+    results.innerHTML = filtered.map(item => `
+        <div class="result">
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <p>${item.desc}</p>
+        </div>
+    `).join("");
 });
 
 // 🔐 ADMIN
-function openAdmin() {
+function openAdmin(){
     document.getElementById("adminPanel").style.display = "block";
 }
 
-function checkLogin() {
-    if (document.getElementById("adminPass").value === "adminpanel48") {
+function checkLogin(){
+    if(document.getElementById("adminPass").value === "adminpanel48"){
         document.getElementById("adminContent").style.display = "block";
         showReports();
-    } else {
-        alert("Wrong password");
-    }
-}
-
-// 🆕 UPDATE
-function saveUpdate() {
-    localStorage.setItem("update", document.getElementById("updateText").value);
-    showUpdate();
-}
-
-function showUpdate() {
-    const u = localStorage.getItem("update");
-    if (u) {
-        document.getElementById("updates").innerHTML =
-            `<div class="result"><h3>${translations[currentLang].whatsNew}</h3><p>${u}</p></div>`;
-    }
+    } else alert("Wrong password");
 }
 
 // ⚠️ REPORT
-function openReport() {
+function openReport(){
     document.getElementById("reportBox").style.display = "block";
 }
 
-function sendReport() {
+function sendReport(){
     const title = document.getElementById("reportTitle").value;
     const text = document.getElementById("reportText").value;
 
-    if (!title || !text) return alert("Fill all fields!");
+    if(!title || !text) return alert("Fill all fields!");
 
     let reports = JSON.parse(localStorage.getItem("reports")) || [];
-    reports.push({ id: Date.now(), title, text, date: new Date().toLocaleString() });
+    reports.push({id:Date.now(), title, text, date:new Date().toLocaleString()});
 
     localStorage.setItem("reports", JSON.stringify(reports));
-    alert("Sented📨!");
+    alert("Sent!");
 }
 
 // 📋 REPORTS
-function showReports() {
+function showReports(){
     let reports = JSON.parse(localStorage.getItem("reports")) || [];
     const box = document.getElementById("reportsList");
 
-    if (!reports.length) {
+    if(!reports.length){
         box.innerHTML = translations[currentLang].noReports;
         return;
     }
 
-    box.innerHTML = reports.map(r => `
+    box.innerHTML = reports.map(r=>`
         <div class="result">
             <b>${r.title}</b>
             <p>${r.text}</p>
-            <small>${r.date}</small><br>
-            <button onclick="deleteReport(${r.id})">🗑️Delete</button>
+            <small>${r.date}</small>
         </div>
     `).join("");
 }
 
-function deleteReport(id) {
-    let reports = JSON.parse(localStorage.getItem("reports")) || [];
-    reports = reports.filter(r => r.id !== id);
-    localStorage.setItem("reports", JSON.stringify(reports));
-    showReports();
+// 🌍 UPDATE (GLOBAL)
+function showUpdate(){
+    document.getElementById("updates").innerHTML = `
+        <div class="result">
+            <h3>${translations[currentLang].whatsNew}</h3>
+            <p>${GLOBAL_UPDATE}</p>
+        </div>
+    `;
 }
 
-function exportReports() {
-    const blob = new Blob([localStorage.getItem("reports") || "[]"], {type: "application/json"});
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "reports.json";
-    a.click();
-}
-
-// 🌍 UI
-function updateLanguage() {
+// 🌐 LANGUAGE UI
+function updateLanguage(){
     const t = translations[currentLang];
 
     document.getElementById("search").placeholder = t.search;
@@ -2991,21 +2964,13 @@ function updateLanguage() {
     document.getElementById("reportTitleText").innerText = t.reportTitle;
     document.getElementById("reportTitle").placeholder = t.titlePlaceholder;
     document.getElementById("reportText").placeholder = t.descPlaceholder;
-    document.querySelector("#adminPanel h2").innerText = t.adminPanelTitle;
-    document.getElementById("adminPass").placeholder = t.adminPass;
-    document.querySelector("#adminPanel button").innerText = t.loginBtn;
-    document.querySelector("#adminContent textarea").placeholder = t.updatePlaceholder;
-    document.querySelector("#adminContent button").innerText = t.updateBtn;
-    document.querySelector("#adminContent h3").innerText = t.reportsTitle;
-    document.querySelector("#adminContent button:last-of-type").innerText = t.exportBtn;
 
     showUpdate();
     showReports();
 }
 
-// 🐣 NEO EASTER EGG (działa na GitHub)
-function spawnNeo() {
-
+// 🧑‍🚀 NEO EASTER EGG
+function spawnNeo(){
     const neo = document.createElement("div");
     neo.style.position = "fixed";
     neo.style.left = "-150px";
@@ -3017,43 +2982,19 @@ function spawnNeo() {
     neo.style.transition = "left 2s ease-in-out";
 
     neo.innerHTML = `
-        <div style="
-            width:100%;
-            height:100%;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-        ">
-            <div style="
-                width:90px;
-                height:90px;
-                background:#4db8ff;
-                border-radius:50%;
-            "></div>
-        </div>
+        <div style="width:90px;height:90px;background:#4db8ff;border-radius:50%"></div>
     `;
 
     document.body.appendChild(neo);
 
-    setTimeout(() => {
-        neo.style.left = "45%";
-    }, 100);
-
-    setTimeout(() => {
-        alert("hi, im neo im mascot of NeoFind :)");
-    }, 2000);
-
-    setTimeout(() => {
-        neo.style.left = "110%";
-    }, 5000);
-
-    setTimeout(() => {
-        neo.remove();
-    }, 7000);
+    setTimeout(()=> neo.style.left="45%",100);
+    setTimeout(()=> alert("hi, im neo"),2000);
+    setTimeout(()=> neo.remove(),5000);
 }
 
 // START
 updateLanguage();
+
 </script>
 
 </body>
