@@ -2830,6 +2830,10 @@ let currentLang = "en";
 document.getElementById("langSelect").addEventListener("change", function() {
     currentLang = this.value;
     localStorage.setItem("lang", currentLang);
+
+    // 🔥 synchronizacja z ustawieniami
+    document.getElementById("settingsLang").value = currentLang;
+
     updateLanguage();
 });
 
@@ -2879,12 +2883,14 @@ function openSettings(){
 
 function saveSettings(){
     const lang = document.getElementById("settingsLang").value;
+
     currentLang = lang;
     localStorage.setItem("lang", lang);
 
+    // 🔥 synchronizacja z głównym selectem
     document.getElementById("langSelect").value = lang;
-    updateLanguage();
 
+    updateLanguage();
     alert("Saved!");
 }
 
