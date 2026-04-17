@@ -3,9 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>NeoFind</title>
-
-<link rel="icon" type="image/png" href="favicon.jpeg">
-    
 <style>
 body {
     margin: 0;
@@ -45,6 +42,33 @@ button {
     border: none;
     cursor: pointer;
 }
+
+#consoleBox {
+    display:none;
+    position:fixed;
+    top:10%;
+    left:50%;
+    transform:translateX(-50%);
+    width:80%;
+    height:60%;
+    background:#111;
+    border-radius:15px;
+    padding:10px;
+    z-index:9999;
+}
+
+#consoleLogs {
+    height:80%;
+    overflow:auto;
+    font-size:14px;
+    text-align:left;
+}
+
+#consoleInput {
+    width:100%;
+    margin-top:10px;
+}
+
 </style>
 </head>
 <body>
@@ -52,7 +76,7 @@ button {
 <div class="container">
     <h1>NeoFind 🔍</h1>
 
-   <select id="langSelect" style="display:none;">
+    <select id="langSelect">
         <option value="en" selected>EN</option>
         <option value="pl">PL</option>
         <option value="easter">Easter 🐰</option>
@@ -62,8 +86,21 @@ button {
     <div id="results"></div>
 </div>
 
+<!-- CONSOLE -->
+
+<div id="consoleBox">
+    <div style="display:flex; justify-content:space-between;">
+        <h3>🧠 Debug Console</h3>
+        <button onclick="closeConsole()">❌</button>
+    </div>
+
+    <div id="consoleLogs"></div>
+
+    <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
+</div>
+
 <!-- ⚙️ SETTINGS -->
-<button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">⚙️ Settings</button>
+<button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">⚙️</button>
 
 <div id="settingsBox" style="display:none; text-align:center;">
     <h3>⚙️ Settings</h3>
@@ -72,13 +109,35 @@ button {
     <select id="settingsLang">
         <option value="en">EN</option>
         <option value="pl">PL</option>
-        <option value="easter">Easter 🐰</option>
+        <option value="easter">🐰</option>
     </select><br><br>
+   
+<!-- ADMIN -->
+    <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
+
+    <h2>🔐 Admin Panel</h2>
+
+    <input id="adminPassword" placeholder="Password"><br><br>
+    <button onclick="loginAdmin()">Login</button>
+
+    <div id="adminContent" style="display:none; margin-top:20px;">
+        <h3>➕ Add result</h3>
+
+        <input id="adminTitle" placeholder="Title"><br>
+        <input id="adminDesc" placeholder="Description"><br>
+        <input id="adminLink" placeholder="Link"><br><br>
+
+        <button onclick="addResult()">Add</button><br><br>
+
+        <button onclick="closeAdmin()">❌ Close</button>
+    </div>
+</div>
 
     <h4>📜 History</h4>
     <div id="historyList"></div><br>
 
-    <button onclick="clearHistory()">🧹 Clear History</button><br><br>
+    <button onclick="clearHistory()">🧹 Clear history</button><br><br>
+    <button onclick="openConsole()">🪲 Debug Console</button><br><br>
     <button onclick="saveSettings()">Save</button>
 </div>
 
@@ -91,7 +150,6 @@ button {
 <div id="updates" style="margin:30px; text-align:center;"></div>
 
 <script>
-
 const GLOBAL_UPDATE = "NeoFind 1.0 - first release 🚀";
 
 const data = {
@@ -1443,7 +1501,7 @@ const data = {
             { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }
 ],
     en: [
-     { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
+       { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
 { title: "Grand Theft Auto V", desc: "Iconic action game from Rockstar Games. The open world of Los Santos with GTA Online multiplayer mode.", link: "https://www.rockstargames.com/gta-v" },
 { title: "NeoFind", desc: "A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.", link: "https://adyrianwilczek.github.io/NeoFind/" },
 { title: "League of Legends", desc: "MOBA from Riot Games. Millions of players worldwide battle in 5v5 team matches.", link: "https://www.leagueoflegends.com/pl-pl/" },
@@ -2797,9 +2855,6 @@ const data = {
 const translations = {
     pl: {
         search: "Szukaj...",
-        history: "Historia",
-        save: "Zapisz",
-        settings: "Ustawienia",
         report: "⚠️ Zgłoś problem",
         admin: "🔐 Admin",
         reportTitle: "Zgłoś problem",
@@ -2810,9 +2865,6 @@ const translations = {
     },
     en: {
         search: "Search...",
-        history: "History",
-        save: "Save",
-        settings: "Settings",
         report: "⚠️ Report problem",
         admin: "🔐 Admin",
         reportTitle: "Report a problem",
@@ -2823,9 +2875,6 @@ const translations = {
     },
     easter: {
         search: "🐰🐰🐰...",
-        history: "🐰🐰🐰🐰🐰",
-        save: "🐰🐰",
-        settings: "🐰🐰🐰🐰",
         report: "🐰🐰🐰",
         admin: "🐰🐰",
         reportTitle: "🐰🐰🐰",
@@ -2841,17 +2890,15 @@ let currentLang = "en";
 // 🔄 LANGUAGE
 document.getElementById("langSelect").addEventListener("change", function() {
     currentLang = this.value;
+    log("changed language to " + this.value);
     localStorage.setItem("lang", currentLang);
-
-    // 🔥 synchronizacja z ustawieniami
-    document.getElementById("settingsLang").value = currentLang;
-
     updateLanguage();
 });
 
 // 🔍 SEARCH + HISTORY
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
+    log('searched "' + value + '"');
     saveToHistory(value);
 
     const results = document.getElementById("results");
@@ -2887,6 +2934,7 @@ document.getElementById("search").addEventListener("input", function() {
 });
 
 // ⚙️ SETTINGS
+log("opened settings");
 function openSettings(){
     document.getElementById("settingsBox").style.display = "block";
     document.getElementById("settingsLang").value = currentLang;
@@ -2895,15 +2943,52 @@ function openSettings(){
 
 function saveSettings(){
     const lang = document.getElementById("settingsLang").value;
-
     currentLang = lang;
     localStorage.setItem("lang", lang);
 
-    // 🔥 synchronizacja z głównym selectem
     document.getElementById("langSelect").value = lang;
-
     updateLanguage();
+    log("saved settings (lang: " + currentLang + ")");
     alert("Saved!");
+}
+
+// ADMIN
+function openAdmin(){
+    document.getElementById("adminBox").style.display = "block";
+}
+
+function closeAdmin(){
+    document.getElementById("adminBox").style.display = "none";
+}
+
+function loginAdmin(){
+    const pass = document.getElementById("adminPassword").value;
+
+    if(pass === "adminpanel48"){ // ← możesz zmienić hasło
+        document.getElementById("adminContent").style.display = "block";
+        alert("Logged in!");
+    } else {
+        alert("Wrong password!");
+    }
+}
+
+function addResult(){
+    const title = document.getElementById("adminTitle").value;
+    const desc = document.getElementById("adminDesc").value;
+    const link = document.getElementById("adminLink").value;
+
+    if(!title || !desc || !link){
+        alert("Fill everything!");
+        return;
+    }
+
+    data[currentLang].push({
+        title: title,
+        desc: desc,
+        link: link
+    });
+
+    alert("Added!");
 }
 
 // 📜 HISTORY
@@ -2942,13 +3027,15 @@ function useHistory(text){
 
 function clearHistory(){
     localStorage.removeItem("history");
+    log("cleared history");
     showHistory();
 }
 
-// 🆕 UPDATE
+<!-- 🆕 UPDATE -->
 function showUpdate(){
     const box = document.getElementById("updates");
     const t = translations[currentLang];
+
     box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
 }
 
@@ -2960,6 +3047,8 @@ function updateLanguage(){
     document.getElementById("adminBtn").innerText = t.admin;
     showUpdate();
 }
+
+// NEO 
 
 function spawnNeo(){
     // 🧍‍♂️ POSTAĆ (DIV zamiast emoji)
@@ -3129,6 +3218,56 @@ neo.innerHTML = `
         speech.remove();
     }, 9500);
 }
+
+// CONSOLE
+
+function openConsole(){
+    document.getElementById("consoleBox").style.display = "block";
+}
+
+function closeConsole(){
+    document.getElementById("consoleBox").style.display = "none";
+}
+
+function log(text){
+    const logs = document.getElementById("consoleLogs");
+    if(!logs) return;
+
+    const time = new Date().toLocaleTimeString();
+    logs.innerHTML += `<div>[${time}] ${text}</div>`;
+    logs.scrollTop = logs.scrollHeight;
+}
+
+setInterval(()=>{
+    log("system running...");
+},1000);
+
+function handleCommand(e){
+    if(e.key !== "Enter") return;
+
+    const input = e.target.value;
+    e.target.value = "";
+
+    if(!input.startsWith("/")){
+        log("❌ wrong format. example: /command");
+        return;
+    }
+
+    if(input === "/help"){
+        log("komendy: /help, /clear, /search tekst");
+    }
+    else if(input === "/clear"){
+        document.getElementById("consoleLogs").innerHTML = "";
+    }
+    else if(input.startsWith("/search")){
+        const text = input.replace("/search ","");
+        document.getElementById("search").value = text;
+        log("search: " + text);
+    }
+    else{
+        log("unknown command");
+    }
+};
 
 // START
 const savedLang = localStorage.getItem("lang");
