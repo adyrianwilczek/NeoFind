@@ -142,7 +142,6 @@ button {
     <button onclick="clearHistory()">🧹 Clear history</button><br><br>
     <button onclick="openConsole()">🪲 Debug Console</button><br><br>
     <button onclick="saveSettings()">Save</button>
-    <button onclick="goHome()" style="position:fixed; bottom:120px; right:20px;">🏠 Menu</button>
 </div>
 
 <!-- ADMIN -->
@@ -3042,6 +3041,7 @@ function goHome(){
     // zamknij panele
     const settings = document.getElementById("settingsBox");
     if(settings) settings.style.display = "none";
+    <button onclick="goHome()" style="position:fixed; bottom:120px; right:20px;">🏠 Menu</button>
 
     const admin = document.getElementById("adminBox");
     if(admin) admin.style.display = "none";
