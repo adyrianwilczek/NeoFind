@@ -3037,11 +3037,11 @@ function clearHistory(){
 }
 
 <!-- MENU -->
-function goHome(){
+    <button onclick="goHome()" style="position:fixed; bottom:120px; right:20px;">🏠 Menu</button> 
+    function goHome(){
     // zamknij panele
     const settings = document.getElementById("settingsBox");
     if(settings) settings.style.display = "none";
-    <button onclick="goHome()" style="position:fixed; bottom:120px; right:20px;">🏠 Menu</button>
 
     const admin = document.getElementById("adminBox");
     if(admin) admin.style.display = "none";
