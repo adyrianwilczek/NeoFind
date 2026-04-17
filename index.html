@@ -142,6 +142,7 @@ button {
     <button onclick="clearHistory()">🧹 Clear history</button><br><br>
     <button onclick="openConsole()">🪲 Debug Console</button><br><br>
     <button onclick="saveSettings()">Save</button>
+    <button onclick="goHome()" style="position:fixed; bottom:120px; right:20px;">🏠 Menu</button>
 </div>
 
 <!-- ADMIN -->
@@ -3036,6 +3037,25 @@ function clearHistory(){
     showHistory();
 }
 
+<!-- MENU -->
+function goHome(){
+    // zamknij panele
+    const settings = document.getElementById("settingsBox");
+    if(settings) settings.style.display = "none";
+
+    const admin = document.getElementById("adminBox");
+    if(admin) admin.style.display = "none";
+
+    const consoleBox = document.getElementById("consoleBox");
+    if(consoleBox) consoleBox.style.display = "none";
+
+    // wyczyść wyniki i search
+    document.getElementById("search").value = "";
+    document.getElementById("results").innerHTML = "";
+
+    log("returned to menu");
+}
+
 <!-- 🆕 UPDATE -->
 function showUpdate(){
     const box = document.getElementById("updates");
@@ -3276,7 +3296,6 @@ function handleCommand(e){
 
 // START
 const savedLang = localStorage.getItem("lang");
-document.getElementById("settingsLang").value = currentLang;
 if(savedLang){
     currentLang = savedLang;
     document.getElementById("langSelect").value = savedLang;
