@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>NeoFind</title>
 
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/png" href="favicon.jpeg">
     
 <style>
 body {
@@ -2891,12 +2891,14 @@ const translations = {
 let currentLang = "en";
 
 // 🔄 LANGUAGE
-document.getElementById("langSelect").addEventListener("change", function() {
-    currentLang = this.value;
-    log("changed language to " + this.value);
-    localStorage.setItem("lang", currentLang);
+function saveSettings(){
+    const lang = document.getElementById("settingsLang").value;
+
+    currentLang = lang;
+    localStorage.setItem("lang", lang);
+
     updateLanguage();
-});
+}
 
 // 🔍 SEARCH + HISTORY
 document.getElementById("search").addEventListener("input", function() {
@@ -3274,6 +3276,7 @@ function handleCommand(e){
 
 // START
 const savedLang = localStorage.getItem("lang");
+document.getElementById("settingsLang").value = currentLang;
 if(savedLang){
     currentLang = savedLang;
     document.getElementById("langSelect").value = savedLang;
