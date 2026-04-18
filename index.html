@@ -3245,10 +3245,31 @@ neo.innerHTML = `
 
 // CONSOLE
 
+function openConsole(){
+    document.getElementById("consoleBox").style.display = "block";
+}
+
+function closeConsole(){
+    document.getElementById("consoleBox").style.display = "none";
+}
+
+function log(text){
+    const logs = document.getElementById("consoleLogs");
+    if(!logs) return;
+
+    const time = new Date().toLocaleTimeString();
+    logs.innerHTML += `<div>[${time}] ${text}</div>`;
+    logs.scrollTop = logs.scrollHeight;
+}
+
+setInterval(()=>{
+    log("system running...");
+},1000);
+
 function handleCommand(e){
     if(e.key !== "Enter") return;
 
-    const input = e.target.value.trim();
+    const input = e.target.value;
     e.target.value = "";
 
     if(!input.startsWith("/")){
@@ -3256,66 +3277,17 @@ function handleCommand(e){
         return;
     }
 
-    const cmd = input.toLowerCase();
-
-    // 📜 HELP
-    if(cmd === "/help"){
-        log("📜 commands:");
-        log("/help");
-        log("/clearhistory");
-        log("/search text");
-        log("/language en/pl/easter");
-        log("/time");
-        log("/date");
-        log("/about");
+    if(input === "/help"){
+        log("komendy: /help, /clear, /search tekst");
     }
-
-    // 🧹 CLEAR HISTORY
-    else if(cmd === "/clearhistory"){
-        localStorage.removeItem("history");
-        log("history cleared");
+    else if(input === "/clear"){
+        document.getElementById("consoleLogs").innerHTML = "";
     }
-
-    // 🔍 SEARCH
-    else if(cmd.startsWith("/search")){
+    else if(input.startsWith("/search")){
         const text = input.replace("/search ","");
         document.getElementById("search").value = text;
-        log('searched "' + text + '"');
+        log("search: " + text);
     }
-
-    // 🌍 LANGUAGE
-    else if(cmd.startsWith("/language")){
-        const lang = cmd.replace("/language ","");
-
-        if(["en","pl","easter"].includes(lang)){
-            currentLang = lang;
-            localStorage.setItem("lang", lang);
-            document.getElementById("langSelect").value = lang;
-            updateLanguage();
-            log("language changed to " + lang);
-        } else {
-            log("❌ available: en, pl, easter");
-        }
-    }
-
-    // 🕒 TIME
-    else if(cmd === "/time"){
-        const time = new Date().toLocaleTimeString();
-        log("time: " + time);
-    }
-
-    // 📅 DATE
-    else if(cmd === "/date"){
-        const date = new Date().toLocaleDateString();
-        log("date: " + date);
-    }
-
-    // ℹ️ ABOUT
-    else if(cmd === "/about"){
-        log("NeoFind v1.0 🚀");
-        log("A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.");
-    }
-
     else{
         log("unknown command");
     }
