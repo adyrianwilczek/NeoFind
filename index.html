@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<div id="didYouKnow" style="text-align:center; margin-top:20px;"></div>
+    
 <title>NeoFind</title>
 
 <link rel="icon" type="image/png" href="favicon.jpeg">
@@ -77,7 +79,7 @@ button {
 <body>
 
 <div class="container">
-    <div id="didYouKnow" style="text-align:center; margin-top:20px; opacity:0.8;"></div>
+    <p id="didYouKnow" style="opacity:0.8; margin-bottom:10px;"></p>
     <h1>NeoFind 🔍</h1>
 
     <select id="langSelect" style="display:none;">
@@ -4279,22 +4281,22 @@ const translations = {
 // 💡 RANDOM FACTS
 const facts = {
     en: [
-         "that NeoFind is an English name but the project is from Poland",
-    "you can do everything in the debug console",
-    "in the NeoFind search engine you can search for things *wow*",
-    "our mascot is Neo. Want to see him? Search for 'Neo'"
+        "that NeoFind is an English name but the project is from Polish",
+        "you can do everything in the debug console",
+        "in the NeoFind search engine you can search for things *wow*"
+        "Our mascot is Neo. Want to see him? Search for 'Neo'"
     ],
     es: [
-         "que NeoFind es un nombre en inglés pero el proyecto es de Polonia",
-    "puedes hacer todo en la consola de depuración",
-    "en el buscador NeoFind puedes buscar cosas *wow*",
-    "nuestra mascota es Neo. ¿Quieres verlo? Escribe 'Neo'"
+        "NeoFind es un nombre en inglés, pero el proyecto es polaco"
+        "Puedes hacer todo en la consola de depuración»
+        "En el buscador NeoFind puedes buscar cosas, ¡guau!"
+        "Nuestra mascota es Neo. ¿Quieres verla? Busca 'Neo'"
     ],
     pl: [
-        "że NeoFind to angielska nazwa, ale projekt pochodzi z Polski",
-    "możesz zrobić wszystko w konsoli debugowania",
-    "w wyszukiwarce NeoFind możesz wyszukiwać rzeczy *wow*",
-    "naszą maskotką jest Neo. Chcesz go zobaczyć? Wpisz 'Neo'"
+        "że NeoFind to angielska nazwa, ale projekt pochodzi z języka polskiego”
+        "wszystko można zrobić w konsoli debug”
+        "w wyszukiwarce NeoFind można wyszukiwać rzeczy *wow*”
+        "naszą maskotką jest Neo. Chcesz go zobaczyć? Wyszukaj 'Neo'"
     ],
     easter: [
         "🐰 🐰🐰🐰 🐰🐰 🐰🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 🐰🐰🐰 🐰”
@@ -4308,13 +4310,13 @@ const facts = {
 function showFact(){
     const box = document.getElementById("didYouKnow");
     const t = translations[currentLang];
-    const list = t.facts || [];
+    const list = facts[currentLang] || [];
 
-    if(!box || list.length === 0) return;
+    if(!box || !list.length) return;
 
     const random = list[Math.floor(Math.random() * list.length)];
 
-    box.innerText = t.didYouKnow + " " + random;
+    box.innerHTML = `<h3>${t.didYouKnow}</h3><p>${random}</p>`;
 }
 
 let currentLang = "en";
