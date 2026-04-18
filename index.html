@@ -77,6 +77,7 @@ button {
 <body>
 
 <div class="container">
+    <div id="didYouKnow" style="text-align:center; margin-top:20px; opacity:0.8;"></div>
     <h1>NeoFind 🔍</h1>
 
     <select id="langSelect" style="display:none;">
@@ -4220,6 +4221,13 @@ const translations = {
         whatsNew: "🆕 What's new",
         consoleTitle: "🧠 Debug Console",
         consolePlaceholder: "Enter command..."
+        didYouKnowTitle: "💡 Did you know?",
+        facts: [
+            "that NeoFind is an English name but the project is from Poland",
+            "you can do everything in the debug console",
+            "in the NeoFind search engine you can search for things",
+            "our mascot is Neo. Search 'Neo' to find him"
+        ]
     },
     
      es: {
@@ -4236,6 +4244,13 @@ const translations = {
         whatsNew: "🆕 Novedades",
         consoleTitle: "🧠 Consola",
         consolePlaceholder: "Escribe comando..."
+        didYouKnowTitle: "💡 ¿Sabías que?",
+        facts: [
+            "que NeoFind es un nombre en inglés pero el proyecto es de Polonia",
+            "puedes usar la consola de depuración para todo",
+            "en NeoFind puedes buscar cosas",
+            "nuestra mascota es Neo. Escribe 'Neo' para verlo"
+        ]
     },
 
     pl: {
@@ -4252,6 +4267,13 @@ const translations = {
         whatsNew: "🆕 Co nowego",
         consoleTitle: "🧠 Konsola debug",
         consolePlaceholder: "Wpisz komendę..."
+         didYouKnowTitle: "💡 Czy wiedziałeś?",
+        facts: [
+            "że NeoFind to angielska nazwa, ale projekt pochodzi z Polski",
+            "możesz używać wszystkiego w konsoli debugowania",
+            "w NeoFind możesz wyszukiwać różne rzeczy",
+            "nasza maskotka to Neo. Wpisz 'Neo' żeby go znaleźć"
+        ]
     },
 
     easter: {
@@ -4268,6 +4290,13 @@ const translations = {
         whatsNew: "🐰 🐰🐰🐰",
         consoleTitle: "🐰 🐰🐰🐰🐰",
         consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰..."
+        didYouKnowTitle: "🐰 Did you know?",
+        facts: [
+            "🐰🐰🐰 BUNNYYYYY 🐰",
+            "🐰 I❤️Easter 🐰",
+            "🐰 Easter mode active 🐰",
+            "🐰 Easter is watching 🐰"
+        ]
     }
 };
 
@@ -4724,6 +4753,7 @@ if(savedLang){
 
 updateLanguage();
 showUpdate();
+showFact();
 
 document.getElementById("langSelect").style.display = "none";
     
