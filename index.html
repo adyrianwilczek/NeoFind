@@ -3280,18 +3280,41 @@ function handleCommand(e){
     if(input === "/help"){
         log("komendy: /help, /clear, /search tekst");
     }
-    else if(input === "/clear"){
-        document.getElementById("consoleLogs").innerHTML = "";
+   // 🧹 CLEAR HISTORY
+else if(input === "/clearhistory"){
+    localStorage.removeItem("history");
+    log("history cleared");
+}
+
+// 🌍 LANGUAGE
+else if(input.startsWith("/language")){
+    const lang = input.replace("/language ","").toLowerCase();
+
+    if(lang === "en" || lang === "pl" || lang === "easter"){
+        currentLang = lang;
+        localStorage.setItem("lang", lang);
+        document.getElementById("langSelect").value = lang;
+        updateLanguage();
+        log("language changed to " + lang);
+    } else {
+        log("❌ available: en, pl, easter");
     }
-    else if(input.startsWith("/search")){
-        const text = input.replace("/search ","");
-        document.getElementById("search").value = text;
-        log("search: " + text);
-    }
-    else{
-        log("unknown command");
-    }
-};
+}
+
+// 🕒 TIME
+else if(input === "/time"){
+    log("time: " + new Date().toLocaleTimeString());
+}
+
+// 📅 DATE
+else if(input === "/date"){
+    log("date: " + new Date().toLocaleDateString());
+}
+
+// ℹ️ ABOUT
+else if(input === "/about"){
+    log("NeoFind v1.0 🚀");
+}
 
 // START
 const savedLang = localStorage.getItem("lang");
