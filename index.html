@@ -4208,6 +4208,7 @@ const data = {
 
 const translations = {
     en: {
+        title: "NeoFind🔍",
         search: "Search...",
         settings: "⚙️ Settings",
         language: "Language:",
@@ -4221,41 +4222,11 @@ const translations = {
         whatsNew: "🆕 What's new",
         consoleTitle: "🧠 Debug Console",
         consolePlaceholder: "Enter command...",
-
-        didYouKnowTitle: "💡 Did you know?",
-        facts: [
-            "that NeoFind is an English name but the project is from Poland",
-            "you can do everything in the debug console",
-            "in the NeoFind search engine you can search for things",
-            "our mascot is Neo. Search 'Neo' to find him"
-        ]
-    },
-
-    pl: {
-        search: "Szukaj...",
-        settings: "⚙️ Ustawienia",
-        language: "Język:",
-        history: "📜 Historia",
-        clearHistory: "🧹 Wyczyść historię",
-        console: "🧠 Konsola",
-        save: "Zapisz",
-        report: "⚠️ Zgłoś problem",
-        admin: "🔐 Admin",
-        noResults: "Spróbuj inaczej 😕",
-        whatsNew: "🆕 Co nowego",
-        consoleTitle: "🧠 Konsola",
-        consolePlaceholder: "Wpisz komendę...",
-
-        didYouKnowTitle: "💡 Czy wiedziałeś?",
-        facts: [
-            "że NeoFind to angielska nazwa, ale projekt pochodzi z Polski",
-            "możesz używać wszystkiego w konsoli debugowania",
-            "w NeoFind możesz wyszukiwać różne rzeczy",
-            "nasza maskotka to Neo. Wpisz 'Neo' żeby go znaleźć"
-        ]
+        didYouKnow: "💡 Did you know?"
     },
 
     es: {
+        title: "NeoFind🔍",
         search: "Buscar...",
         settings: "⚙️ Ajustes",
         language: "Idioma:",
@@ -4269,39 +4240,72 @@ const translations = {
         whatsNew: "🆕 Novedades",
         consoleTitle: "🧠 Consola",
         consolePlaceholder: "Escribe comando...",
+        didYouKnow: "💡 ¿Sabías que?"
+    },
 
-        didYouKnowTitle: "💡 ¿Sabías que?",
-        facts: [
-            "que NeoFind es un nombre en inglés pero el proyecto es de Polonia",
-            "puedes usar la consola de depuración para todo",
-            "en NeoFind puedes buscar cosas",
-            "nuestra mascota es Neo. Escribe 'Neo' para verlo"
-        ]
+    pl: {
+        title: "NeoFind🔍",
+        search: "Szukaj...",
+        settings: "⚙️ Ustawienia",
+        language: "Język:",
+        history: "📜 Historia",
+        clearHistory: "🧹 Wyczyść historię",
+        console: "🧠 Konsola debug",
+        save: "Zapisz",
+        report: "⚠️ Zgłoś problem",
+        admin: "🔐 Admin",
+        noResults: "Spróbuj inaczej 😕",
+        whatsNew: "🆕 Co nowego",
+        consoleTitle: "🧠 Konsola debug",
+        consolePlaceholder: "Wpisz komendę...",
+        didYouKnow: "💡 Czy wiedziałeś?"
     },
 
     easter: {
+        title: "NeoFind🔍",
         search: "🐰🐰🐰...",
-        settings: "🐰 Settings",
-        language: "🐰 Language",
-        history: "🐰 History",
-        clearHistory: "🐰 Clear",
-        console: "🐰 Console",
-        save: "🐰 Save",
-        report: "🐰 Report",
-        admin: "🐰 Admin",
-        noResults: "🐰🐰🐰",
-        whatsNew: "🐰🐰",
-        consoleTitle: "🐰 Console",
-        consolePlaceholder: "🐰🐰🐰...",
-
-        didYouKnowTitle: "🐰 Did you know?",
-        facts: [
-            "🐰🐰🐰 BUNNYYYYY 🐰",
-            "🐰 hidden system 🐰",
-            "🐰 Easter mode active 🐰",
-            "🐰 Easter is watching 🐰"
-        ]
+        settings: "🐰 🐰🐰",
+        language: "🐰🐰🐰🐰:",
+        history: "🐰 🐰🐰🐰🐰🐰",
+        clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰🐰",
+        console: "🐰 🐰🐰🐰🐰",
+        save: "🐰🐰",
+        report: "🐰 🐰🐰🐰🐰 🐰🐰🐰🐰",
+        admin: "🐰 🐰🐰",
+        noResults: "🐰🐰🐰 🐰🐰🐰 🐰",
+        whatsNew: "🐰 🐰🐰🐰",
+        consoleTitle: "🐰 🐰🐰🐰🐰",
+        consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰...",
+        didYouKnow: "🐰 🐰🐰🐰?"
     }
+};
+
+// 💡 RANDOM FACTS
+const facts = {
+    en: [
+         "that NeoFind is an English name but the project is from Poland",
+    "you can do everything in the debug console",
+    "in the NeoFind search engine you can search for things *wow*",
+    "our mascot is Neo. Want to see him? Search for 'Neo'"
+    ],
+    es: [
+         "que NeoFind es un nombre en inglés pero el proyecto es de Polonia",
+    "puedes hacer todo en la consola de depuración",
+    "en el buscador NeoFind puedes buscar cosas *wow*",
+    "nuestra mascota es Neo. ¿Quieres verlo? Escribe 'Neo'"
+    ],
+    pl: [
+        "że NeoFind to angielska nazwa, ale projekt pochodzi z Polski",
+    "możesz zrobić wszystko w konsoli debugowania",
+    "w wyszukiwarce NeoFind możesz wyszukiwać rzeczy *wow*",
+    "naszą maskotką jest Neo. Chcesz go zobaczyć? Wpisz 'Neo'"
+    ],
+    easter: [
+        "🐰 🐰🐰🐰 🐰🐰 🐰🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 🐰🐰🐰 🐰”
+        "🐰🐰🐰 🐰🐰🐰🐰 🐰🐰🐰 🐰🐰”
+        "🐰🐰🐰🐰 🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 *🐰*”
+        "🐰🐰🐰 🐰🐰🐰🐰🐰 🐰🐰 🐰🐰🐰 🐰🐰 '🐰'"
+    ]
 };
 
 // 🎲 LOSOWY TEKST
