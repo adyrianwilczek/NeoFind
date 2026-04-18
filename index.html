@@ -3247,6 +3247,7 @@ neo.innerHTML = `
 
 function openConsole(){
     document.getElementById("consoleBox").style.display = "block";
+    log("console opened");
 }
 
 function closeConsole(){
@@ -3262,14 +3263,19 @@ function log(text){
     logs.scrollTop = logs.scrollHeight;
 }
 
+// log co sekunde TYLKO gdy console otwarte
 setInterval(()=>{
+    const box = document.getElementById("consoleBox");
+    if(!box) return;
+    if(box.style.display !== "block") return;
+
     log("system running...");
 },1000);
 
 function handleCommand(e){
     if(e.key !== "Enter") return;
 
-    const input = e.target.value;
+    const input = e.target.value.trim();
     e.target.value = "";
 
     if(!input.startsWith("/")){
@@ -3277,42 +3283,71 @@ function handleCommand(e){
         return;
     }
 
+    // 📜 HELP
     if(input === "/help"){
-        log("komendy: /help, /clear, /search tekst");
+        log("📜 commands:");
+        log("/help");
+        log("/clear");
+        log("/clearhistory");
+        log("/search tekst");
+        log("/language en/pl/easter");
+        log("/time");
+        log("/date");
+        log("/about");
     }
-   // 🧹 CLEAR HISTORY
-else if(input === "/clearhistory"){
-    localStorage.removeItem("history");
-    log("history cleared");
-}
 
-// 🌍 LANGUAGE
-else if(input.startsWith("/language")){
-    const lang = input.replace("/language ","").toLowerCase();
+    // 🧹 CLEAR CONSOLE
+    else if(input === "/clear"){
+        document.getElementById("consoleLogs").innerHTML = "";
+        log("console cleared");
+    }
 
-    if(lang === "en" || lang === "pl" || lang === "easter"){
-        currentLang = lang;
-        localStorage.setItem("lang", lang);
-        document.getElementById("langSelect").value = lang;
-        updateLanguage();
-        log("language changed to " + lang);
-    } else {
-        log("❌ available: en, pl, easter");
-}
+    // 🧹 CLEAR HISTORY
+    else if(input === "/clearhistory"){
+        localStorage.removeItem("history");
+        log("history cleared");
+    }
 
-// 🕒 TIME
-else if(input === "/time"){
-    log("time: " + new Date().toLocaleTimeString());
-}
+    // 🔍 SEARCH
+    else if(input.startsWith("/search")){
+        const text = input.replace("/search ","");
+        document.getElementById("search").value = text;
+        log('searched "' + text + '"');
+    }
 
-// 📅 DATE
-else if(input === "/date"){
-    log("date: " + new Date().toLocaleDateString());
-}
+    // 🌍 LANGUAGE
+    else if(input.startsWith("/language")){
+        const lang = input.replace("/language ","").toLowerCase();
 
-// ℹ️ ABOUT
-else if(input === "/about"){
-    log("NeoFind v1.0 🚀");
+        if(lang === "en" || lang === "pl" || lang === "easter"){
+            currentLang = lang;
+            localStorage.setItem("lang", lang);
+            document.getElementById("langSelect").value = lang;
+            updateLanguage();
+            log("language changed to " + lang);
+        } else {
+            log("❌ available: en, pl, easter");
+        }
+    }
+
+    // 🕒 TIME
+    else if(input === "/time"){
+        log("time: " + new Date().toLocaleTimeString());
+    }
+
+    // 📅 DATE
+    else if(input === "/date"){
+        log("date: " + new Date().toLocaleDateString());
+    }
+
+    // ℹ️ ABOUT
+    else if(input === "/about"){
+        log("NeoFind v1.0 🚀");
+    }
+
+    else{
+        log("unknown command");
+    }
 }
 
 // START
