@@ -106,6 +106,7 @@ button {
     <div id="consoleLogs"></div>
 
     <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
+    <button onclick="exportLogs()">📥 Export</button>
 </div>
 
 <!-- ⚙️ SETTINGS -->
@@ -4724,24 +4725,28 @@ function handleCommand(e){
         return;
     }
     function exportLogs(){
-    const logs = document.getElementById("consoleLogs");
+    const logsElement = document.getElementById("consoleLogs");
 
-    if(!logs || logs.innerText.trim() === ""){
-        alert("No logs to export!");
+    if(!logsElement){
+        alert("No logs found!");
         return;
     }
 
-    const text = logs.innerText;
+    const logs = logsElement.innerText;
 
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
+    if(!logs.trim()){
+        alert("Logs are empty!");
+        return;
+    }
 
+    const blob = new Blob([logs], { type: "text/plain" });
     const a = document.createElement("a");
-    a.href = url;
-    a.download = "neofind_logs.txt";
+
+    a.href = URL.createObjectURL(blob);
+    a.download = "neofind.logs.txt";
     a.click();
 
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(a.href);
 
     log("logs exported");
 }
