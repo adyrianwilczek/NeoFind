@@ -77,7 +77,8 @@ button {
 <body>
 
 <div class="container">
-    <div id="didYouKnow" style="text-align:center; margin-top:20px; opacity:0.8;"></div>
+<div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
+<div id="didYouKnow" style="text-align:center; margin-bottom:10px; opacity:0.8;"></div>
     <h1>NeoFind 🔍</h1>
 
     <select id="langSelect" style="display:none;">
@@ -4230,7 +4231,35 @@ const translations = {
         ]
     },
     
-     es: {
+const translations = {
+    en: {
+        search: "Search...",
+        settings: "⚙️ Settings",
+        language: "Language:",
+        history: "📜 History",
+        clearHistory: "🧹 Clear history",
+        console: "🧠 Debug Console",
+        save: "Save",
+        report: "⚠️ Report problem",
+        admin: "🔐 Admin",
+        noResults: "Try something else 😕",
+        whatsNew: "🆕 What's new",
+        consoleTitle: "🧠 Debug Console",
+        consolePlaceholder: "Enter command...",
+
+        didYouKnowTitle: "🧠 Did you know?",
+        didYouKnow: [
+            "that NeoFind is an English name but the project is from Poland",
+            "you can do everything in the debug console",
+            "you can search normally even in Easter mode",
+            "our mascot Neo appears when you type 'Neo'",
+            "history saves your searches automatically",
+            "admin panel lets you add results",
+            "language is saved in localStorage"
+        ]
+    },
+
+    es: {
         search: "Buscar...",
         settings: "⚙️ Ajustes",
         language: "Idioma:",
@@ -4243,13 +4272,17 @@ const translations = {
         noResults: "Intenta otra cosa 😕",
         whatsNew: "🆕 Novedades",
         consoleTitle: "🧠 Consola",
-        consolePlaceholder: "Escribe comando..."
-        didYouKnowTitle: "💡 ¿Sabías que?",
-        facts: [
-            "que NeoFind es un nombre en inglés pero el proyecto es de Polonia",
-            "puedes usar la consola de depuración para todo",
-            "en NeoFind puedes buscar cosas",
-            "nuestra mascota es Neo. Escribe 'Neo' para verlo"
+        consolePlaceholder: "Escribe comando...",
+
+        didYouKnowTitle: "🧠 ¿Sabías que?",
+        didYouKnow: [
+            "NeoFind es un nombre inglés pero el proyecto es de Polonia",
+            "puedes usar la consola de debug",
+            "puedes buscar incluso en modo Easter",
+            "la mascota Neo aparece si escribes 'Neo'",
+            "el historial se guarda automáticamente",
+            "el panel admin permite añadir resultados",
+            "el idioma se guarda automáticamente"
         ]
     },
 
@@ -4266,41 +4299,63 @@ const translations = {
         noResults: "Spróbuj inaczej 😕",
         whatsNew: "🆕 Co nowego",
         consoleTitle: "🧠 Konsola debug",
-        consolePlaceholder: "Wpisz komendę..."
-         didYouKnowTitle: "💡 Czy wiedziałeś?",
-        facts: [
-            "że NeoFind to angielska nazwa, ale projekt pochodzi z Polski",
-            "możesz używać wszystkiego w konsoli debugowania",
-            "w NeoFind możesz wyszukiwać różne rzeczy",
-            "nasza maskotka to Neo. Wpisz 'Neo' żeby go znaleźć"
+        consolePlaceholder: "Wpisz komendę...",
+
+        didYouKnowTitle: "🧠 Czy wiedziałeś?",
+        didYouKnow: [
+            "NeoFind ma angielską nazwę, ale projekt pochodzi z Polski",
+            "możesz używać konsoli debug",
+            "wyszukiwanie działa nawet w Easter mode",
+            "maskotka Neo pojawia się po wpisaniu 'Neo'",
+            "historia zapisuje się automatycznie",
+            "panel admin pozwala dodawać wyniki",
+            "język zapisuje się w pamięci przeglądarki"
         ]
     },
 
     easter: {
-        search: "🐰🐰🐰...",
-        settings: "🐰 🐰🐰",
-        language: "🐰🐰🐰🐰:",
-        history: "🐰 🐰🐰🐰🐰🐰",
-        clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰🐰",
-        console: "🐰 🐰🐰🐰🐰 ",
-        save: "🐰🐰",
-        report: "🐰 🐰🐰🐰🐰 🐰🐰🐰🐰",
-        admin: "🐰 🐰🐰",
-        noResults: "🐰🐰🐰 🐰🐰🐰 🐰",
-        whatsNew: "🐰 🐰🐰🐰",
-        consoleTitle: "🐰 🐰🐰🐰🐰",
-        consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰..."
-        didYouKnowTitle: "🐰 Did you know?",
-        facts: [
-            "🐰🐰🐰 BUNNYYYYY 🐰",
-            "🐰 I❤️Easter 🐰",
-            "🐰 Easter mode active 🐰",
-            "🐰 Easter is watching 🐰"
+        search: "🐰 Search...",
+        settings: "🐰 Settings",
+        language: "🐰 Language",
+        history: "🐰 History",
+        clearHistory: "🐰 Clear history",
+        console: "🐰 Debug Console",
+        save: "🐰 Save",
+        report: "🐰 Report",
+        admin: "🐰 Admin",
+        noResults: "🐰 No eggs found",
+        whatsNew: "🐰 What's hopping?",
+        consoleTitle: "🐰 Console",
+        consolePlaceholder: "Type command... 🐰",
+
+        didYouKnowTitle: "🐰 Bunny facts!",
+        didYouKnow: [
+            "NeoFind still works in bunny mode",
+            "console is still active",
+            "search still works normally",
+            "Neo mascot still appears",
+            "history still saves everything",
+            "admin panel still exists",
+            "this is just a visual theme 🐰"
         ]
     }
 };
 
 let currentLang = "en";
+
+//RANDOM
+function updateDidYouKnow(){
+    const t = translations[currentLang];
+
+    if(!t.didYouKnow) return;
+
+    const random = t.didYouKnow[
+        Math.floor(Math.random() * t.didYouKnow.length)
+    ];
+
+    document.getElementById("didYouKnowTitle").innerText = t.didYouKnowTitle;
+    document.getElementById("didYouKnow").innerText = random;
+}
 
 // 🔍 SEARCH + HISTORY
 document.getElementById("search").addEventListener("input", function() {
