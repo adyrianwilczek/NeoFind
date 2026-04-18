@@ -77,7 +77,6 @@ button {
 <body>
 
 <div class="container">
-    <div id="didYouKnow" style="text-align:center; margin-top:20px; opacity:0.8;"></div>
     <h1>NeoFind 🔍</h1>
 
     <select id="langSelect" style="display:none;">
@@ -4220,11 +4219,10 @@ const translations = {
         noResults: "Try something else 😕",
         whatsNew: "🆕 What's new",
         consoleTitle: "🧠 Debug Console",
-        consolePlaceholder: "Enter command...",
-        didYouKnow: "💡 Did you know?"
+        consolePlaceholder: "Enter command..."
     },
-
-    es: {
+    
+     es: {
         search: "Buscar...",
         settings: "⚙️ Ajustes",
         language: "Idioma:",
@@ -4237,8 +4235,7 @@ const translations = {
         noResults: "Intenta otra cosa 😕",
         whatsNew: "🆕 Novedades",
         consoleTitle: "🧠 Consola",
-        consolePlaceholder: "Escribe comando...",
-        didYouKnow: "💡 ¿Sabías que?"
+        consolePlaceholder: "Escribe comando..."
     },
 
     pl: {
@@ -4254,8 +4251,7 @@ const translations = {
         noResults: "Spróbuj inaczej 😕",
         whatsNew: "🆕 Co nowego",
         consoleTitle: "🧠 Konsola debug",
-        consolePlaceholder: "Wpisz komendę...",
-        didYouKnow: "💡 Czy wiedziałeś?"
+        consolePlaceholder: "Wpisz komendę..."
     },
 
     easter: {
@@ -4264,58 +4260,16 @@ const translations = {
         language: "🐰🐰🐰🐰:",
         history: "🐰 🐰🐰🐰🐰🐰",
         clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰🐰",
-        console: "🐰 🐰🐰🐰🐰",
+        console: "🐰 🐰🐰🐰🐰 ",
         save: "🐰🐰",
         report: "🐰 🐰🐰🐰🐰 🐰🐰🐰🐰",
         admin: "🐰 🐰🐰",
         noResults: "🐰🐰🐰 🐰🐰🐰 🐰",
         whatsNew: "🐰 🐰🐰🐰",
         consoleTitle: "🐰 🐰🐰🐰🐰",
-        consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰...",
-        didYouKnow: "🐰 🐰🐰🐰?"
+        consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰..."
     }
 };
-
-// 💡 RANDOM FACTS
-const facts = {
-    en: [
-         "that NeoFind is an English name but the project is from Poland",
-    "you can do everything in the debug console",
-    "in the NeoFind search engine you can search for things *wow*",
-    "our mascot is Neo. Want to see him? Search for 'Neo'"
-    ],
-    es: [
-         "que NeoFind es un nombre en inglés pero el proyecto es de Polonia",
-    "puedes hacer todo en la consola de depuración",
-    "en el buscador NeoFind puedes buscar cosas *wow*",
-    "nuestra mascota es Neo. ¿Quieres verlo? Escribe 'Neo'"
-    ],
-    pl: [
-        "że NeoFind to angielska nazwa, ale projekt pochodzi z Polski",
-    "możesz zrobić wszystko w konsoli debugowania",
-    "w wyszukiwarce NeoFind możesz wyszukiwać rzeczy *wow*",
-    "naszą maskotką jest Neo. Chcesz go zobaczyć? Wpisz 'Neo'"
-    ],
-    easter: [
-        "🐰 🐰🐰🐰 🐰🐰 🐰🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 🐰🐰🐰 🐰”
-        "🐰🐰🐰 🐰🐰🐰🐰 🐰🐰🐰 🐰🐰”
-        "🐰🐰🐰🐰 🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 *🐰*”
-        "🐰🐰🐰 🐰🐰🐰🐰🐰 🐰🐰 🐰🐰🐰 🐰🐰 '🐰'"
-    ]
-};
-
-// 🎲 LOSOWY TEKST
-function showFact(){
-    const box = document.getElementById("didYouKnow");
-    const t = translations[currentLang];
-    const list = t.facts || [];
-
-    if(!box || list.length === 0) return;
-
-    const random = list[Math.floor(Math.random() * list.length)];
-
-    box.innerText = t.didYouKnow + " " + random;
-}
 
 let currentLang = "en";
 
@@ -4484,40 +4438,9 @@ function showUpdate(){
 // 🌐 UI
 function updateLanguage(){
     const t = translations[currentLang];
-
-    // GŁÓWNE
-    document.querySelector("h1").innerText = t.title;
     document.getElementById("search").placeholder = t.search;
-
-    // BUTTONY
     document.getElementById("reportBtn").innerText = t.report;
     document.getElementById("adminBtn").innerText = t.admin;
-
-    // SETTINGS
-    document.querySelector("#settingsBox h3").innerText = t.settings;
-    document.querySelector("#settingsBox label").innerText = t.language;
-    document.querySelector("#settingsBox h4").innerText = t.history;
-
-    document.querySelector("#settingsBox button:nth-of-type(1)").innerText = t.clearHistory;
-    document.querySelector("#settingsBox button:nth-of-type(2)").innerText = t.console;
-    document.querySelector("#settingsBox button:nth-of-type(3)").innerText = t.save;
-
-    // CONSOLE
-    document.querySelector("#consoleBox h3").innerText = t.console;
-    document.getElementById("consoleInput").placeholder = t.consolePlaceholder;
-
-    // ADMIN
-    const adminBox = document.getElementById("adminBox");
-    if(adminBox){
-        adminBox.querySelector("h2").innerText = t.adminTitle;
-
-        document.getElementById("adminPassword").placeholder = "Password";
-
-        document.getElementById("adminTitle").placeholder = t.titleInput;
-        document.getElementById("adminDesc").placeholder = t.descInput;
-        document.getElementById("adminLink").placeholder = t.linkInput;
-    }
-
     showUpdate();
 }
 
@@ -4801,7 +4724,6 @@ if(savedLang){
 
 updateLanguage();
 showUpdate();
-showFact();
 
 document.getElementById("langSelect").style.display = "none";
     
