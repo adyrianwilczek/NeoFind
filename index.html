@@ -1506,7 +1506,7 @@ const data = {
             { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }
 ],
     en: [
-       { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
+      { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
 { title: "Grand Theft Auto V", desc: "Iconic action game from Rockstar Games. The open world of Los Santos with GTA Online multiplayer mode.", link: "https://www.rockstargames.com/gta-v" },
 { title: "NeoFind", desc: "A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.", link: "https://adyrianwilczek.github.io/NeoFind/" },
 { title: "League of Legends", desc: "MOBA from Riot Games. Millions of players worldwide battle in 5v5 team matches.", link: "https://www.leagueoflegends.com/pl-pl/" },
@@ -4264,7 +4264,7 @@ const translations = {
         save: "🐰🐰",
         report: "🐰 🐰🐰🐰🐰 🐰🐰🐰🐰",
         admin: "🐰 🐰🐰",
-        noResults: 🐰🐰🐰 🐰🐰🐰 🐰",
+        noResults: "🐰🐰🐰 🐰🐰🐰 🐰",
         whatsNew: "🐰 🐰🐰🐰",
         consoleTitle: "🐰 🐰🐰🐰🐰",
         consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰..."
@@ -4272,16 +4272,6 @@ const translations = {
 };
 
 let currentLang = "en";
-
-// 🔄 LANGUAGE
-function saveSettings(){
-    const lang = document.getElementById("settingsLang").value;
-
-    currentLang = lang;
-    localStorage.setItem("lang", lang);
-
-    updateLanguage();
-}
 
 // 🔍 SEARCH + HISTORY
 document.getElementById("search").addEventListener("input", function() {
@@ -4419,7 +4409,7 @@ function clearHistory(){
     showHistory();
 }
 
-<!-- MENU --> 
+// MENU
     function goHome(){
     // zamknij panele
     const settings = document.getElementById("settingsBox");
@@ -4438,13 +4428,13 @@ function clearHistory(){
     log("returned to menu");
 }
 
-<!-- 🆕 UPDATE -->
+// 🆕 UPDATE
 function showUpdate(){
     const box = document.getElementById("updates");
     const t = translations[currentLang];
     box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
 }
-
+ 
 // 🌐 UI
 function updateLanguage(){
     const t = translations[currentLang];
