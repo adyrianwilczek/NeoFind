@@ -4208,30 +4208,10 @@ const data = {
 };
 
 const translations = {
-    en: {
-        search: "Search...",
-        settings: "⚙️ Settings",
-        language: "Language:",
-        history: "📜 History",
-        clearHistory: "🧹 Clear history",
-        console: "🧠 Debug Console",
-        save: "Save",
-        report: "⚠️ Report problem",
-        admin: "🔐 Admin",
-        noResults: "Try something else 😕",
-        whatsNew: "🆕 What's new",
-        consoleTitle: "🧠 Debug Console",
-        consolePlaceholder: "Enter command..."
-        didYouKnowTitle: "💡 Did you know?",
-        facts: [
-            "that NeoFind is an English name but the project is from Poland",
-            "you can do everything in the debug console",
-            "in the NeoFind search engine you can search for things",
-            "our mascot is Neo. Search 'Neo' to find him"
-        ]
-    },
-    
-const translations = {
+
+    // =======================
+    // 🇬🇧 EN
+    // =======================
     en: {
         search: "Search...",
         settings: "⚙️ Settings",
@@ -4247,6 +4227,7 @@ const translations = {
         consoleTitle: "🧠 Debug Console",
         consolePlaceholder: "Enter command...",
 
+        // RANDOM
         didYouKnowTitle: "🧠 Did you know?",
         didYouKnow: [
             "that NeoFind is an English name but the project is from Poland",
@@ -4259,6 +4240,9 @@ const translations = {
         ]
     },
 
+    // =======================
+    // 🇪🇸 ES
+    // =======================
     es: {
         search: "Buscar...",
         settings: "⚙️ Ajustes",
@@ -4274,10 +4258,11 @@ const translations = {
         consoleTitle: "🧠 Consola",
         consolePlaceholder: "Escribe comando...",
 
+        // RANDOM
         didYouKnowTitle: "🧠 ¿Sabías que?",
         didYouKnow: [
             "NeoFind es un nombre inglés pero el proyecto es de Polonia",
-            "puedes usar la consola de debug",
+            "puedes usar la consola de debug para todo",
             "puedes buscar incluso en modo Easter",
             "la mascota Neo aparece si escribes 'Neo'",
             "el historial se guarda automáticamente",
@@ -4286,6 +4271,9 @@ const translations = {
         ]
     },
 
+    // =======================
+    // 🇵🇱 PL
+    // =======================
     pl: {
         search: "Szukaj...",
         settings: "⚙️ Ustawienia",
@@ -4301,18 +4289,22 @@ const translations = {
         consoleTitle: "🧠 Konsola debug",
         consolePlaceholder: "Wpisz komendę...",
 
+        // RANDOM
         didYouKnowTitle: "🧠 Czy wiedziałeś?",
         didYouKnow: [
             "NeoFind ma angielską nazwę, ale projekt pochodzi z Polski",
-            "możesz używać konsoli debug",
+            "możesz używać konsoli debug do wszystkiego",
             "wyszukiwanie działa nawet w Easter mode",
             "maskotka Neo pojawia się po wpisaniu 'Neo'",
             "historia zapisuje się automatycznie",
             "panel admin pozwala dodawać wyniki",
-            "język zapisuje się w pamięci przeglądarki"
+            "język zapisuje się w localStorage"
         ]
     },
 
+    // =======================
+    // 🐰 EASTER
+    // =======================
     easter: {
         search: "🐰 Search...",
         settings: "🐰 Settings",
@@ -4328,6 +4320,7 @@ const translations = {
         consoleTitle: "🐰 Console",
         consolePlaceholder: "Type command... 🐰",
 
+        // RANDOM
         didYouKnowTitle: "🐰 Bunny facts!",
         didYouKnow: [
             "NeoFind still works in bunny mode",
@@ -4349,9 +4342,7 @@ function updateDidYouKnow(){
 
     if(!t.didYouKnow) return;
 
-    const random = t.didYouKnow[
-        Math.floor(Math.random() * t.didYouKnow.length)
-    ];
+    const random = t.didYouKnow[Math.floor(Math.random() * t.didYouKnow.length)];
 
     document.getElementById("didYouKnowTitle").innerText = t.didYouKnowTitle;
     document.getElementById("didYouKnow").innerText = random;
@@ -4806,6 +4797,7 @@ if(savedLang){
     document.getElementById("langSelect").value = savedLang;
 }
 
+updateDidYouKnow();
 updateLanguage();
 showUpdate();
 showFact();
