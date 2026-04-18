@@ -4207,6 +4207,7 @@ const data = {
 
 const translations = {
     en: {
+        title: "NeoFind 🔍",
         search: "Search...",
         settings: "⚙️ Settings",
         language: "Language:",
@@ -4218,11 +4219,18 @@ const translations = {
         admin: "🔐 Admin",
         noResults: "Try something else 😕",
         whatsNew: "🆕 What's new",
-        consoleTitle: "🧠 Debug Console",
-        consolePlaceholder: "Enter command..."
+        consolePlaceholder: "Enter command...",
+        adminTitle: "🔐 Admin Panel",
+        login: "Login",
+        addResult: "➕ Add result",
+        titleInput: "Title",
+        descInput: "Description",
+        linkInput: "Link",
+        close: "❌ Close"
     },
-    
-     es: {
+
+    es: {
+        title: "NeoFind 🔍",
         search: "Buscar...",
         settings: "⚙️ Ajustes",
         language: "Idioma:",
@@ -4234,11 +4242,18 @@ const translations = {
         admin: "🔐 Admin",
         noResults: "Intenta otra cosa 😕",
         whatsNew: "🆕 Novedades",
-        consoleTitle: "🧠 Consola",
-        consolePlaceholder: "Escribe comando..."
+        consolePlaceholder: "Escribe comando...",
+        adminTitle: "🔐 Panel Admin",
+        login: "Iniciar sesión",
+        addResult: "➕ Añadir resultado",
+        titleInput: "Título",
+        descInput: "Descripción",
+        linkInput: "Enlace",
+        close: "❌ Cerrar"
     },
 
     pl: {
+        title: "NeoFind 🔍",
         search: "Szukaj...",
         settings: "⚙️ Ustawienia",
         language: "Język:",
@@ -4250,24 +4265,37 @@ const translations = {
         admin: "🔐 Admin",
         noResults: "Spróbuj inaczej 😕",
         whatsNew: "🆕 Co nowego",
-        consoleTitle: "🧠 Konsola debug",
-        consolePlaceholder: "Wpisz komendę..."
+        consolePlaceholder: "Wpisz komendę...",
+        adminTitle: "🔐 Panel Admina",
+        login: "Zaloguj",
+        addResult: "➕ Dodaj wynik",
+        titleInput: "Tytuł",
+        descInput: "Opis",
+        linkInput: "Link",
+        close: "❌ Zamknij"
     },
 
-    easter: {
-        search: "🐰🐰🐰...",
-        settings: "🐰 🐰🐰",
-        language: "🐰🐰🐰🐰:",
-        history: "🐰 🐰🐰🐰🐰🐰",
-        clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰🐰",
-        console: "🐰 🐰🐰🐰🐰 ",
-        save: "🐰🐰",
-        report: "🐰 🐰🐰🐰🐰 🐰🐰🐰🐰",
-        admin: "🐰 🐰🐰",
-        noResults: "🐰🐰🐰 🐰🐰🐰 🐰",
-        whatsNew: "🐰 🐰🐰🐰",
-        consoleTitle: "🐰 🐰🐰🐰🐰",
-        consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰..."
+        easter: {
+        title: "🐰🐰🐰 🐰",
+        search: "🐰🐰🐰🐰...",
+        settings: "🐰 🐰🐰🐰🐰",
+        language: "🐰🐰:",
+        history: "🐰 🐰🐰🐰",
+        clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰",
+        console: "🐰 🐰🐰🐰 🐰🐰",
+        save: "🐰🐰🐰",
+        report: "🐰 🐰🐰 🐰🐰🐰🐰",
+        admin: "🐰 🐰🐰🐰",
+        noResults: "🐰🐰🐰🐰 🐰🐰🐰 🐰",
+        whatsNew: "🐰 🐰 🐰🐰",
+        consolePlaceholder: "🐰🐰 🐰🐰🐰...",
+        adminTitle: "🐰 🐰🐰🐰 🐰🐰🐰🐰",
+        login: "🐰🐰🐰",
+        addResult: "🐰 🐰🐰 🐰🐰",
+        titleInput: "🐰🐰",
+        descInput: "🐰🐰🐰",
+        linkInput: "🐰🐰",
+        close: "🐰 🐰🐰🐰"
     }
 };
 
@@ -4438,9 +4466,40 @@ function showUpdate(){
 // 🌐 UI
 function updateLanguage(){
     const t = translations[currentLang];
+
+    // GŁÓWNE
+    document.querySelector("h1").innerText = t.title;
     document.getElementById("search").placeholder = t.search;
+
+    // BUTTONY
     document.getElementById("reportBtn").innerText = t.report;
     document.getElementById("adminBtn").innerText = t.admin;
+
+    // SETTINGS
+    document.querySelector("#settingsBox h3").innerText = t.settings;
+    document.querySelector("#settingsBox label").innerText = t.language;
+    document.querySelector("#settingsBox h4").innerText = t.history;
+
+    document.querySelector("#settingsBox button:nth-of-type(1)").innerText = t.clearHistory;
+    document.querySelector("#settingsBox button:nth-of-type(2)").innerText = t.console;
+    document.querySelector("#settingsBox button:nth-of-type(3)").innerText = t.save;
+
+    // CONSOLE
+    document.querySelector("#consoleBox h3").innerText = t.console;
+    document.getElementById("consoleInput").placeholder = t.consolePlaceholder;
+
+    // ADMIN
+    const adminBox = document.getElementById("adminBox");
+    if(adminBox){
+        adminBox.querySelector("h2").innerText = t.adminTitle;
+
+        document.getElementById("adminPassword").placeholder = "Password";
+
+        document.getElementById("adminTitle").placeholder = t.titleInput;
+        document.getElementById("adminDesc").placeholder = t.descInput;
+        document.getElementById("adminLink").placeholder = t.linkInput;
+    }
+
     showUpdate();
 }
 
