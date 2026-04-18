@@ -95,18 +95,17 @@ button {
 <!-- CONSOLE -->
 
 <div id="consoleBox">
- <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h3 id="consoleTitle">🧠 Debug Console</h3>
-    <div>
-        <button onclick="exportLogs()">📥 Export</button>
-        <button onclick="closeConsole()">❌</button>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 id="consoleTitle">🖥️ Debug Console</h3>
+        <div>
+            <button onclick="exportLogs()">📥 Export</button>
+            <button onclick="closeConsole()">❌</button>
+        </div>
     </div>
-</div>
 
     <div id="consoleLogs"></div>
 
     <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
-    <button onclick="exportLogs()">📥 Export</button>
 </div>
 
 <!-- ⚙️ SETTINGS -->
@@ -4714,17 +4713,8 @@ setInterval(()=>{
     log("system running...");
 },1000);
 
-function handleCommand(e){
-    if(e.key !== "Enter") return;
-
-    const input = e.target.value.trim();
-    e.target.value = "";
-
-    if(!input.startsWith("/")){
-        log("❌ wrong format. example: /command");
-        return;
-    }
-    function exportLogs(){
+// 📥 EXPORT LOGS
+function exportLogs(){
     const logsElement = document.getElementById("consoleLogs");
 
     if(!logsElement){
@@ -4740,18 +4730,32 @@ function handleCommand(e){
     }
 
     const blob = new Blob([logs], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
-
-    a.href = URL.createObjectURL(blob);
-    a.download = "neofind.logs.txt";
+    a.href = url;
+    a.download = "neofind-logs.txt";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
 
-    URL.revokeObjectURL(a.href);
+    URL.revokeObjectURL(url);
 
     log("logs exported");
 }
 
-    // 📜 HELP
+// 💻 COMMANDS
+function handleCommand(e){
+    if(e.key !== "Enter") return;
+
+    const input = e.target.value.trim();
+    e.target.value = "";
+
+    if(!input.startsWith("/")){
+        log("❌ wrong format. example: /command");
+        return;
+    }
+
     if(input === "/help"){
         log("📜 commands:");
         log("/help");
@@ -4761,49 +4765,48 @@ function handleCommand(e){
         log("/time");
         log("/date");
         log("/about");
+        log("/export");
     }
 
-    // 🧹 CLEAR HISTORY
     else if(input === "/clearhistory"){
         localStorage.removeItem("history");
         log("history cleared");
     }
 
-    // 🔍 SEARCH
     else if(input.startsWith("/search")){
         const text = input.replace("/search ","");
         document.getElementById("search").value = text;
         log('searched "' + text + '"');
     }
 
-    // 🌍 LANGUAGE
     else if(input.startsWith("/language")){
         const lang = input.replace("/language ","").toLowerCase();
 
-        if(lang === "en" || lang === "es" || lang === "pl" || lang === "easter" ){
+        if(lang === "en" || lang === "es" || lang === "pl" || lang === "easter"){
             currentLang = lang;
             localStorage.setItem("lang", lang);
             document.getElementById("langSelect").value = lang;
             updateLanguage();
             log("language changed to " + lang);
         } else {
-            log("❌ available: en, es pl, easter");
+            log("❌ available: en, es, pl, easter");
         }
     }
 
-    // 🕒 TIME
     else if(input === "/time"){
         log("time: " + new Date().toLocaleTimeString());
     }
 
-    // 📅 DATE
     else if(input === "/date"){
         log("date: " + new Date().toLocaleDateString());
     }
 
-    // ℹ️ ABOUT
     else if(input === "/about"){
-        log("NeoFind v1.0 - A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.");
+        log("NeoFind - A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.");
+    }
+
+    else if(input === "/export"){
+        exportLogs();
     }
 
     else{
