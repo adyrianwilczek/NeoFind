@@ -95,10 +95,13 @@ button {
 <!-- CONSOLE -->
 
 <div id="consoleBox">
-    <div style="display:flex; justify-content:space-between;">
-        <h3>🧠 Debug Console</h3>
+ <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h3 id="consoleTitle">🧠 Debug Console</h3>
+    <div>
+        <button onclick="exportLogs()">📥 Export</button>
         <button onclick="closeConsole()">❌</button>
     </div>
+</div>
 
     <div id="consoleLogs"></div>
 
@@ -4215,6 +4218,7 @@ const translations = {
         settings: "⚙️ Settings",
         language: "Language:",
         history: "📜 History",
+        export: "📥 Export",
         clearHistory: "🧹 Clear history",
         console: "🧠 Debug Console",
         save: "Save",
@@ -4243,6 +4247,7 @@ const translations = {
         settings: "⚙️ Ustawienia",
         language: "Język:",
         history: "📜 Historia",
+        export: "📥 Pobierz",
         clearHistory: "🧹 Wyczyść historię",
         console: "🧠 Konsola debug",
         save: "Zapisz",
@@ -4270,6 +4275,7 @@ const translations = {
         settings: "⚙️ Ajustes",
         language: "Idioma:",
         history: "📜 Historial",
+        export: "📥 descargar",
         clearHistory: "🧹 Borrar historial",
         console: "🧠 Consola",
         save: "Guardar",
@@ -4297,6 +4303,7 @@ const translations = {
         settings: "🐰 Settings",
         language: "🐰 Language",
         history: "🐰 Bunnys",
+        export: "🐰 To the hole again",
         clearHistory: "🐰 Clear all bunnys",
         console: "🐰 Console",
         save: "🐰 To the hole",
@@ -4502,6 +4509,7 @@ function updateLanguage(){
     document.getElementById("search").placeholder = t.search;
     document.getElementById("reportBtn").innerText = t.report;
     document.getElementById("adminBtn").innerText = t.admin;
+    document.querySelector('button[onclick="exportLogs()"]').innerText = t.export;
     showUpdate();
 }
 
@@ -4715,6 +4723,28 @@ function handleCommand(e){
         log("❌ wrong format. example: /command");
         return;
     }
+    function exportLogs(){
+    const logs = document.getElementById("consoleLogs");
+
+    if(!logs || logs.innerText.trim() === ""){
+        alert("No logs to export!");
+        return;
+    }
+
+    const text = logs.innerText;
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "neofind_logs.txt";
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+    log("logs exported");
+}
 
     // 📜 HELP
     if(input === "/help"){
