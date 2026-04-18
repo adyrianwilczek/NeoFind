@@ -112,6 +112,7 @@ button {
     <label>Language:</label><br>
     <select id="settingsLang">
         <option value="en">EN</option>
+        <option value="es">ES</option>
         <option value="pl">PL</option>
         <option value="easter">🐰</option>
     </select><br><br>
@@ -4670,7 +4671,7 @@ function handleCommand(e){
         log("/help");
         log("/clearhistory");
         log("/search text");
-        log("/language en/pl/easter");
+        log("/language en/es/pl/easter");
         log("/time");
         log("/date");
         log("/about");
@@ -4693,14 +4694,14 @@ function handleCommand(e){
     else if(input.startsWith("/language")){
         const lang = input.replace("/language ","").toLowerCase();
 
-        if(lang === "en" || lang === "pl" || lang === "easter"){
+        if(lang === "en" || lang === "es" || lang === "pl" || lang === "easter" ){
             currentLang = lang;
             localStorage.setItem("lang", lang);
             document.getElementById("langSelect").value = lang;
             updateLanguage();
             log("language changed to " + lang);
         } else {
-            log("❌ available: en, pl, easter");
+            log("❌ available: en, es pl, easter");
         }
     }
 
