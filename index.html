@@ -3287,19 +3287,12 @@ function handleCommand(e){
     if(input === "/help"){
         log("📜 commands:");
         log("/help");
-        log("/clear");
         log("/clearhistory");
-        log("/search tekst");
+        log("/search text");
         log("/language en/pl/easter");
         log("/time");
         log("/date");
         log("/about");
-    }
-
-    // 🧹 CLEAR CONSOLE
-    else if(input === "/clear"){
-        document.getElementById("consoleLogs").innerHTML = "";
-        log("console cleared");
     }
 
     // 🧹 CLEAR HISTORY
