@@ -77,6 +77,7 @@ button {
 <body>
 
 <div class="container">
+    <p id="didYouKnow" style="opacity:0.8; margin-bottom:10px;"></p>
     <h1>NeoFind 🔍</h1>
 
     <select id="langSelect" style="display:none;">
@@ -4207,7 +4208,6 @@ const data = {
 
 const translations = {
     en: {
-        title: "NeoFind 🔍",
         search: "Search...",
         settings: "⚙️ Settings",
         language: "Language:",
@@ -4219,18 +4219,12 @@ const translations = {
         admin: "🔐 Admin",
         noResults: "Try something else 😕",
         whatsNew: "🆕 What's new",
+        consoleTitle: "🧠 Debug Console",
         consolePlaceholder: "Enter command...",
-        adminTitle: "🔐 Admin Panel",
-        login: "Login",
-        addResult: "➕ Add result",
-        titleInput: "Title",
-        descInput: "Description",
-        linkInput: "Link",
-        close: "❌ Close"
+        didYouKnow: "💡 Did you know?"
     },
 
     es: {
-        title: "NeoFind 🔍",
         search: "Buscar...",
         settings: "⚙️ Ajustes",
         language: "Idioma:",
@@ -4242,18 +4236,12 @@ const translations = {
         admin: "🔐 Admin",
         noResults: "Intenta otra cosa 😕",
         whatsNew: "🆕 Novedades",
+        consoleTitle: "🧠 Consola",
         consolePlaceholder: "Escribe comando...",
-        adminTitle: "🔐 Panel Admin",
-        login: "Iniciar sesión",
-        addResult: "➕ Añadir resultado",
-        titleInput: "Título",
-        descInput: "Descripción",
-        linkInput: "Enlace",
-        close: "❌ Cerrar"
+        didYouKnow: "💡 ¿Sabías que?"
     },
 
     pl: {
-        title: "NeoFind 🔍",
         search: "Szukaj...",
         settings: "⚙️ Ustawienia",
         language: "Język:",
@@ -4265,39 +4253,69 @@ const translations = {
         admin: "🔐 Admin",
         noResults: "Spróbuj inaczej 😕",
         whatsNew: "🆕 Co nowego",
+        consoleTitle: "🧠 Konsola debug",
         consolePlaceholder: "Wpisz komendę...",
-        adminTitle: "🔐 Panel Admina",
-        login: "Zaloguj",
-        addResult: "➕ Dodaj wynik",
-        titleInput: "Tytuł",
-        descInput: "Opis",
-        linkInput: "Link",
-        close: "❌ Zamknij"
+        didYouKnow: "💡 Czy wiedziałeś?"
     },
 
-        easter: {
-        title: "🐰🐰🐰 🐰",
-        search: "🐰🐰🐰🐰...",
-        settings: "🐰 🐰🐰🐰🐰",
-        language: "🐰🐰:",
-        history: "🐰 🐰🐰🐰",
-        clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰",
-        console: "🐰 🐰🐰🐰 🐰🐰",
-        save: "🐰🐰🐰",
-        report: "🐰 🐰🐰 🐰🐰🐰🐰",
-        admin: "🐰 🐰🐰🐰",
-        noResults: "🐰🐰🐰🐰 🐰🐰🐰 🐰",
-        whatsNew: "🐰 🐰 🐰🐰",
-        consolePlaceholder: "🐰🐰 🐰🐰🐰...",
-        adminTitle: "🐰 🐰🐰🐰 🐰🐰🐰🐰",
-        login: "🐰🐰🐰",
-        addResult: "🐰 🐰🐰 🐰🐰",
-        titleInput: "🐰🐰",
-        descInput: "🐰🐰🐰",
-        linkInput: "🐰🐰",
-        close: "🐰 🐰🐰🐰"
+    easter: {
+        search: "🐰🐰🐰...",
+        settings: "🐰 🐰🐰",
+        language: "🐰🐰🐰🐰:",
+        history: "🐰 🐰🐰🐰🐰🐰",
+        clearHistory: "🐰 🐰🐰🐰 🐰🐰🐰🐰🐰",
+        console: "🐰 🐰🐰🐰🐰",
+        save: "🐰🐰",
+        report: "🐰 🐰🐰🐰🐰 🐰🐰🐰🐰",
+        admin: "🐰 🐰🐰",
+        noResults: "🐰🐰🐰 🐰🐰🐰 🐰",
+        whatsNew: "🐰 🐰🐰🐰",
+        consoleTitle: "🐰 🐰🐰🐰🐰",
+        consolePlaceholder: "🐰🐰🐰 🐰🐰🐰🐰...",
+        didYouKnow: "🐰 🐰🐰🐰?"
     }
 };
+
+// 💡 RANDOM FACTS
+const facts = {
+    en: [
+        "that NeoFind is an English name but the project is from Polish",
+        "you can do everything in the debug console",
+        "in the NeoFind search engine you can search for things *wow*"
+        "Our mascot is Neo. Want to see him? Search for 'Neo'"
+    ],
+    es: [
+        "NeoFind es un nombre en inglés, pero el proyecto es polaco"
+        "Puedes hacer todo en la consola de depuración»
+        "En el buscador NeoFind puedes buscar cosas, ¡guau!"
+        "Nuestra mascota es Neo. ¿Quieres verla? Busca 'Neo'"
+    ],
+    pl: [
+        "że NeoFind to angielska nazwa, ale projekt pochodzi z języka polskiego”
+        "wszystko można zrobić w konsoli debug”
+        "w wyszukiwarce NeoFind można wyszukiwać rzeczy *wow*”
+        "naszą maskotką jest Neo. Chcesz go zobaczyć? Wyszukaj 'Neo'"
+    ],
+    easter: [
+        "🐰 🐰🐰🐰 🐰🐰 🐰🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 🐰🐰🐰 🐰”
+        "🐰🐰🐰 🐰🐰🐰🐰 🐰🐰🐰 🐰🐰”
+        "🐰🐰🐰🐰 🐰🐰🐰 🐰🐰🐰🐰🐰 🐰 *🐰*”
+        "🐰🐰🐰 🐰🐰🐰🐰🐰 🐰🐰 🐰🐰🐰 🐰🐰 '🐰'"
+    ]
+};
+
+// 🎲 LOSOWY TEKST
+function showFact(){
+    const box = document.getElementById("didYouKnow");
+    const t = translations[currentLang];
+    const list = facts[currentLang] || [];
+
+    if(!box || !list.length) return;
+
+    const random = list[Math.floor(Math.random() * list.length)];
+
+    box.innerHTML = `<h3>${t.didYouKnow}</h3><p>${random}</p>`;
+}
 
 let currentLang = "en";
 
@@ -4783,6 +4801,7 @@ if(savedLang){
 
 updateLanguage();
 showUpdate();
+showFact();
 
 document.getElementById("langSelect").style.display = "none";
     
