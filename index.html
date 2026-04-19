@@ -22,8 +22,8 @@ body {
 }
 
 /* 🔥 NEON + MOVING GRADIENT LOGO */
-.container h1 {
-    font-size: 95px !important;
+#logo {
+    font-size: 110px !important;
     margin-bottom: 20px;
     letter-spacing: 3px;
 
@@ -41,15 +41,14 @@ body {
     -webkit-text-fill-color: transparent;
 
     text-shadow:
-        0 0 10px rgba(0,255,200,0.6),
-        0 0 20px rgba(0,200,255,0.6),
+        0 0 10px rgba(0,255,200,0.7),
+        0 0 20px rgba(0,200,255,0.7),
         0 0 40px rgba(0,255,170,0.6),
         0 0 80px rgba(0,150,255,0.3);
 
     animation: gradientMove 5s linear infinite;
 }
 
-/* 🌈 gradient animation */
 @keyframes gradientMove {
     0% { background-position: 0%; }
     100% { background-position: 300%; }
@@ -187,7 +186,7 @@ button:hover {
 
     <div id="didYouKnow"></div>
 
-    <div class="logo">NeoFind 🔍</div>
+    <h1 id="logo">NeoFind 🔍</h1>
 
     <div class="searchBox">
         <input type="text" id="search" placeholder="Search...">
