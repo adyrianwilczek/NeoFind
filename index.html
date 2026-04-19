@@ -107,6 +107,25 @@ input:focus {
 input::placeholder {
     color: rgba(255,255,255,0.6);
 }
+select {
+    background: rgba(0, 0, 0, 0.4);
+    color: #00ffcc;
+    border: 1px solid rgba(0, 255, 200, 0.4);
+    backdrop-filter: blur(10px);
+    cursor: pointer;
+}
+
+/* opcje w dropdown */
+select option {
+    background: #0f2027;
+    color: #00ffcc;
+}
+
+/* hover/focus */
+select:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(0,255,200,0.5);
+}
 
 /* 📊 RESULTS */
 .result {
