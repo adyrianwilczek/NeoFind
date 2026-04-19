@@ -21,8 +21,9 @@ body {
     margin-top: 80px;
 }
 
+/* 🔥 NEON + MOVING GRADIENT LOGO */
 .container h1 {
-    font-size: 90px !important; /* 🔥 wymusza duży rozmiar */
+    font-size: 95px !important;
     margin-bottom: 20px;
     letter-spacing: 3px;
 
@@ -34,25 +35,27 @@ body {
         #33ccff,
         #00ffcc
     );
-    background-size: 300%;
 
+    background-size: 300%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
     text-shadow:
         0 0 10px rgba(0,255,200,0.6),
         0 0 20px rgba(0,200,255,0.6),
-        0 0 40px rgba(0,255,170,0.6);
+        0 0 40px rgba(0,255,170,0.6),
+        0 0 80px rgba(0,150,255,0.3);
 
     animation: gradientMove 5s linear infinite;
 }
 
+/* 🌈 gradient animation */
 @keyframes gradientMove {
     0% { background-position: 0%; }
     100% { background-position: 300%; }
 }
 
-/* 🔍 pole wyszukiwania */
+/* 🔍 INPUT */
 input, select, textarea {
     width: 80%;
     padding: 18px 25px;
@@ -73,14 +76,14 @@ input, select, textarea {
 input:focus {
     outline: none;
     transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(77,166,255,0.6);
+    box-shadow: 0 0 20px rgba(0,200,255,0.6);
 }
 
 input::placeholder {
     color: rgba(255,255,255,0.6);
 }
 
-/* 📊 wyniki */
+/* 📊 RESULTS */
 .result {
     background: rgba(255,255,255,0.1);
     margin: 10px auto;
@@ -111,7 +114,7 @@ input::placeholder {
     opacity: 0.85;
 }
 
-/* 🔘 buttony */
+/* 🔘 BUTTONS */
 button {
     padding: 10px 20px;
     border-radius: 12px;
@@ -127,7 +130,7 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* 🧠 console */
+/* 🧠 CONSOLE */
 #consoleBox {
     display:none;
     position:fixed;
@@ -154,7 +157,7 @@ button:hover {
     margin-top:10px;
 }
 
-/* 💡 sugestie */
+/* 💡 SUGGESTIONS */
 #suggestions {
     width: 80%;
     margin: auto;
