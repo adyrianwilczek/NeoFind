@@ -21,13 +21,11 @@ body {
     margin-top: 80px;
 }
 
-/* 🔥 NEONOWE LOGO */
 .container h1 {
-    font-size: 70px;
+    font-size: 90px !important; /* 🔥 wymusza duży rozmiar */
     margin-bottom: 20px;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
 
-    /* gradient */
     background: linear-gradient(
         90deg,
         #00ffcc,
@@ -36,31 +34,22 @@ body {
         #33ccff,
         #00ffcc
     );
-
     background-size: 300%;
 
-    /* żeby gradient był na tekście */
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
-    /* glow neon */
     text-shadow:
         0 0 10px rgba(0,255,200,0.6),
         0 0 20px rgba(0,200,255,0.6),
         0 0 40px rgba(0,255,170,0.6);
 
-    /* animacja */
-    animation: gradientMove 4s linear infinite;
+    animation: gradientMove 5s linear infinite;
 }
 
-/* 🔄 animacja przesuwania */
 @keyframes gradientMove {
-    0% {
-        background-position: 0%;
-    }
-    100% {
-        background-position: 300%;
-    }
+    0% { background-position: 0%; }
+    100% { background-position: 300%; }
 }
 
 /* 🔍 pole wyszukiwania */
