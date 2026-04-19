@@ -23,27 +23,30 @@ body {
 
 /* 🔥 NEON + MOVING GRADIENT LOGO */
 #logo {
-    font-size: 90px !important;
+    font-size: 110px !important;
     margin-bottom: 20px;
     letter-spacing: 3px;
 
     background: linear-gradient(
         90deg,
         #00ffcc,
+        #00aaff,
+        #ffffff,
+        #00ff66,
         #00ccff,
-        #00ffaa,
-        #33ccff,
         #00ffcc
     );
 
-    background-size: 300%;
+    background-size: 600% 600%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 
+    animation: gradientMove 3s linear infinite;
+
     text-shadow:
-        0 0 10px rgba(0,255,200,0.7),
-        0 0 20px rgba(0,200,255,0.7),
-        0 0 40px rgba(0,255,170,0.5);
+        0 0 8px rgba(0,255,200,0.7),
+        0 0 20px rgba(0,200,255,0.6),
+        0 0 35px rgba(0,255,120,0.4);
 
     animation: gradientMove 5s linear infinite;
 }
@@ -61,8 +64,21 @@ body {
 
 /* 🌈 animacja */
 @keyframes gradientMove {
-    0% { background-position: 0%; }
-    100% { background-position: 300%; }
+    0% {
+        background-position: 0% 50%;
+    }
+    25% {
+        background-position: 100% 0%;
+    }
+    50% {
+        background-position: 200% 50%;
+    }
+    75% {
+        background-position: 300% 100%;
+    }
+    100% {
+        background-position: 400% 50%;
+    }
 }
 
 /* 🔍 INPUT */
