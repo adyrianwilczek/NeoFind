@@ -23,7 +23,7 @@ body {
 
 /* 🔥 NEON + MOVING GRADIENT LOGO */
 #logo {
-    font-size: 110px !important;
+    font-size: 90px !important;
     margin-bottom: 20px;
     letter-spacing: 3px;
 
@@ -43,12 +43,23 @@ body {
     text-shadow:
         0 0 10px rgba(0,255,200,0.7),
         0 0 20px rgba(0,200,255,0.7),
-        0 0 40px rgba(0,255,170,0.6),
-        0 0 80px rgba(0,150,255,0.3);
+        0 0 40px rgba(0,255,170,0.5);
 
     animation: gradientMove 5s linear infinite;
 }
 
+/* 🔍 normalna lupa (bez neonów) */
+.searchIcon {
+    -webkit-text-fill-color: white !important;
+    background: none !important;
+    text-shadow: none !important;
+
+    font-size: 0.9em;
+    margin-left: 8px;
+    filter: none;
+}
+
+/* 🌈 animacja */
 @keyframes gradientMove {
     0% { background-position: 0%; }
     100% { background-position: 300%; }
@@ -186,7 +197,7 @@ button:hover {
 
     <div id="didYouKnow"></div>
 
-    <h1 id="logo">NeoFind 🔍</h1>
+    <h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
 
     <div class="searchBox">
         <input type="text" id="search" placeholder="Search...">
