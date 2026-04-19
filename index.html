@@ -21,10 +21,25 @@ body {
     margin-top: 80px;
 }
 
+@keyframes neonGlow {
+    0% {
+        text-shadow:
+            0 0 5px #7fdfff,
+            0 0 10px #4da6ff,
+            0 0 20px #4da6ff,
+            0 0 40px #0077ff;
+    }
+    100% {
+        text-shadow:
+            0 0 10px #7fdfff,
+            0 0 20px #66ccff,
+            0 0 40px #3399ff,
+            0 0 80px #0077ff;
+    }
+}
+
 .container h1 {
-    font-size: 42px;
-    margin-bottom: 20px;
-    text-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    animation: neonGlow 1.5s infinite alternate;
 }
 
 /* 🔍 TWOJE pole (ulepszone, ale ten sam vibe) */
