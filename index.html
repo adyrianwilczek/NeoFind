@@ -321,7 +321,7 @@ button:hover {
     <button onclick="openConsole()">🪲 Debug Console</button><br><br>
     <button onclick="saveSettings()">Save</button>
     <h4 id="favTitle">⭐ Favorites</h4>
-<div id="favoritesList"></div><br>
+    <div id="favoritesList"></div><br>
 </div>
 
 <!-- ADMIN -->
@@ -4712,33 +4712,29 @@ function showUpdate(){
 }
 
 // FAV
-function getFavorites(){
-    return JSON.parse(localStorage.getItem("favorites")) || [];
-}
+function showFavorites(){
+    const box = document.getElementById("favoritesList");
 
-function isFavorite(item){
-    const favs = getFavorites();
-    return favs.some(f => f.title === item.title && f.link === item.link);
-}
-
-function toggleFavorite(index){
-    const list = data[currentLang] || [];
-    const item = list[index];
-
-    let favs = getFavorites();
-
-    const exists = favs.find(f => f.title === item.title && f.link === item.link);
-
-    if(exists){
-        favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
-    } else {
-        favs.push(item);
+    if(!box){
+        console.log("❌ favoritesList not found");
+        return;
     }
 
-    localStorage.setItem("favorites", JSON.stringify(favs));
+    const favs = JSON.parse(localStorage.getItem("favorites")) || [];
 
-    // odśwież wyniki
-    document.getElementById("search").dispatchEvent(new Event("input"));
+    console.log("FAVORITES:", favs); // debug
+
+    if(favs.length === 0){
+        box.innerHTML = "No favorites";
+        return;
+    }
+
+    box.innerHTML = favs.map(f => `
+        <div class="result">
+            <a href="${f.link}" target="_blank">${f.title}</a>
+            <p>${f.desc}</p>
+        </div>
+    `).join("");
 }
  
 // 🌐 UI
