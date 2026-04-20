@@ -121,6 +121,20 @@ select option {
     color: #00ffcc;
 }
 
+/* favorite */
+.star {
+    cursor: pointer;
+    font-size: 20px;
+    margin-left: 10px;
+    color: gray;
+    transition: 0.2s;
+}
+
+.star.active {
+    color: gold;
+    text-shadow: 0 0 10px gold;
+}
+
 /* hover/focus */
 select:focus {
     outline: none;
@@ -306,6 +320,8 @@ button:hover {
     <button onclick="clearHistory()">🧹 Clear history</button><br><br>
     <button onclick="openConsole()">🪲 Debug Console</button><br><br>
     <button onclick="saveSettings()">Save</button>
+    <h4 id="favTitle">⭐ Favorites</h4>
+<div id="favoritesList"></div><br>
 </div>
 
 <!-- ADMIN -->
@@ -4385,6 +4401,8 @@ const translations = {
         whatsNew: "🆕 What's new",
         consoleTitle: "🧠 Debug Console",
         consolePlaceholder: "Enter command...",
+        favorites: "⭐ Favorites",
+        noFavorites: "No favorites",
 
         // ================= DID YOU KNOW =================
         didYouKnowTitle: "💡 Did you know?",
@@ -4414,6 +4432,8 @@ const translations = {
         whatsNew: "🆕 Co nowego",
         consoleTitle: "🧠 Konsola debug",
         consolePlaceholder: "Wpisz komendę...",
+        favorites: "⭐ Ulubione",
+        noFavorites: "Brak ulubionych",
 
         didYouKnowTitle: "💡 Czy wiedziałeś?",
         didYouKnow: [
@@ -4442,6 +4462,8 @@ const translations = {
         whatsNew: "🆕 Novedades",
         consoleTitle: "🧠 Consola",
         consolePlaceholder: "Escribe comando...",
+        favorites: "⭐ Favoritos",
+        noFavorites: "Sin favoritos",
 
         didYouKnowTitle: "💡 ¿Sabías que?",
         didYouKnow: [
@@ -4470,6 +4492,8 @@ const translations = {
         whatsNew: "🐰 What's hopping?",
         consoleTitle: "🐰 Console",
         consolePlaceholder: "🐰 type...",
+        favorites: "🐰 Fav :D",
+        noFavorites: "🐰 No fav :C",
 
         didYouKnowTitle: "🐰 Bunny facts!",
         didYouKnow: [
@@ -4528,12 +4552,13 @@ document.getElementById("search").addEventListener("input", function() {
         return;
     }
 
-    results.innerHTML = filtered.map(item => `
-        <div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <p>${item.desc}</p>
-        </div>
-    `).join("");
+    results.innerHTML = filtered.map((item, index) => `
+    <div class="result">
+        <a href="${item.link}" target="_blank">${item.title}</a>
+        <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
+        <p>${item.desc}</p>
+    </div>
+`).join("");
 });
 
 // ⚙️ SETTINGS
@@ -4685,6 +4710,36 @@ function showUpdate(){
     const t = translations[currentLang];
     box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
 }
+
+// FAV
+function getFavorites(){
+    return JSON.parse(localStorage.getItem("favorites")) || [];
+}
+
+function isFavorite(item){
+    const favs = getFavorites();
+    return favs.some(f => f.title === item.title && f.link === item.link);
+}
+
+function toggleFavorite(index){
+    const list = data[currentLang] || [];
+    const item = list[index];
+
+    let favs = getFavorites();
+
+    const exists = favs.find(f => f.title === item.title && f.link === item.link);
+
+    if(exists){
+        favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
+    } else {
+        favs.push(item);
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(favs));
+
+    // odśwież wyniki
+    document.getElementById("search").dispatchEvent(new Event("input"));
+}
  
 // 🌐 UI
 function updateLanguage(){
@@ -4692,6 +4747,7 @@ function updateLanguage(){
     document.getElementById("search").placeholder = t.search;
     document.getElementById("reportBtn").innerText = t.report;
     document.getElementById("adminBtn").innerText = t.admin;
+    document.getElementById("favTitle").innerText = translations[currentLang].favorites;
     document.querySelector('button[onclick="exportLogs()"]').innerText = t.export;
     showUpdate();
 }
@@ -5006,6 +5062,7 @@ if(savedLang){
 
 updateDidYouKnow();
 updateLanguage();
+showFavorites();
 showUpdate();
 showFact();
 
