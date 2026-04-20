@@ -4712,21 +4712,33 @@ function showUpdate(){
 }
 
 // FAV
-function showFavorites(){
-    const box = document.getElementById("favoritesList");
-    const favs = getFavorites();
+function getFavorites(){
+    return JSON.parse(localStorage.getItem("favorites")) || [];
+}
 
-    if(!favs.length){
-        box.innerHTML = translations[currentLang].noFavorites;
-        return;
+function isFavorite(item){
+    const favs = getFavorites();
+    return favs.some(f => f.title === item.title && f.link === item.link);
+}
+
+function toggleFavorite(index){
+    const list = data[currentLang] || [];
+    const item = list[index];
+
+    let favs = getFavorites();
+
+    const exists = favs.find(f => f.title === item.title && f.link === item.link);
+
+    if(exists){
+        favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
+    } else {
+        favs.push(item);
     }
 
-    box.innerHTML = favs.map(f => `
-        <div class="result">
-            <a href="${f.link}" target="_blank">${f.title}</a>
-            <p>${f.desc}</p>
-        </div>
-    `).join("");
+    localStorage.setItem("favorites", JSON.stringify(favs));
+
+    // odśwież wyniki
+    document.getElementById("search").dispatchEvent(new Event("input"));
 }
  
 // 🌐 UI
