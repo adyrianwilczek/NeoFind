@@ -4604,10 +4604,12 @@ function saveSettings(){
     currentLang = lang;
     localStorage.setItem("lang", lang);
 
-    document.getElementById("langSelect").value = lang;
+    // 🔥 TO DODAJ:
+    const theme = document.getElementById("themeSelect").value;
+    applyTheme(theme);
+
     updateLanguage();
     log("saved settings (lang: " + currentLang + ")");
-    alert("Saved!");
 }
 
 // ADMIN
