@@ -4853,6 +4853,60 @@ function startSpace(){
             }
         },10);
     },6000);
+let starInterval;
+let cometInterval;
+
+function startSpace(){
+    // ⭐ GWIAZDY
+    starInterval = setInterval(() => {
+        const star = document.createElement("div");
+        star.style.position = "fixed";
+        star.style.left = Math.random()*100+"%";
+        star.style.top = "-10px";
+        star.style.width = "2px";
+        star.style.height = "2px";
+        star.style.background = "white";
+        star.style.zIndex = "0";
+
+        document.body.appendChild(star);
+
+        let y = 0;
+        const fall = setInterval(()=>{
+            y += 2;
+            star.style.top = y + "px";
+
+            if(y > window.innerHeight){
+                star.remove();
+                clearInterval(fall);
+            }
+        },10);
+    },100);
+
+    // ☄️ KOMETA
+    cometInterval = setInterval(()=>{
+        const comet = document.createElement("div");
+        comet.style.position = "fixed";
+        comet.style.left = "-100px";
+        comet.style.top = Math.random()*60+"%";
+        comet.style.width = "120px";
+        comet.style.height = "2px";
+        comet.style.background = "white";
+        comet.style.boxShadow = "0 0 10px white";
+        comet.style.zIndex = "1";
+
+        document.body.appendChild(comet);
+
+        let x = -100;
+        const move = setInterval(()=>{
+            x += 12;
+            comet.style.left = x + "px";
+
+            if(x > window.innerWidth){
+                comet.remove();
+                clearInterval(move);
+            }
+        },10);
+    },5000);
 }
 
 // 🟢 MATRIX
@@ -4892,12 +4946,54 @@ function startMatrix(){
             drops[i]++;
         });
     },50);
+let matrixInterval;
+
+function startMatrix(){
+    const canvas = document.createElement("canvas");
+    canvas.id = "matrixCanvas";
+    canvas.style.position = "fixed";
+    canvas.style.top = 0;
+    canvas.style.left = 0;
+    canvas.style.zIndex = "0";
+
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const letters = "01アイウエオカキクケコ";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+
+    const drops = Array.from({length: columns}).fill(1);
+
+    matrixInterval = setInterval(()=>{
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        ctx.fillStyle = "#0f0";
+        ctx.font = fontSize + "px monospace";
+
+        drops.forEach((y,i)=>{
+            const text = letters[Math.floor(Math.random()*letters.length)];
+            ctx.fillText(text, i*fontSize, y*fontSize);
+
+            if(y*fontSize > canvas.height && Math.random() > 0.975){
+                drops[i] = 0;
+            }
+
+            drops[i]++;
+        });
+    },50);
 }
 
 // 🛑 STOP
 function stopEffects(){
-    clearInterval(effectInterval);
+    clearInterval(starInterval);
     clearInterval(cometInterval);
+    clearInterval(matrixInterval);
 
     const canvas = document.getElementById("matrixCanvas");
     if(canvas) canvas.remove();
