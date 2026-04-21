@@ -21,24 +21,6 @@ body {
     margin-top: 80px;
 }
 
-/* === THEMES ADDON === */
-
-/* 🌌 SPACE */
-body.space {
-    background: black !important;
-}
-
-/* 🟢 MATRIX */
-body.matrix {
-    background: black !important;
-    color: #00ff00;
-}
-
-/* ⚡ CYBER */
-body.cyber {
-    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e) !important;
-}
-
 /* 🔥 NEON + MOVING GRADIENT LOGO */
 #logo {
     font-size: 85px !important;
@@ -251,6 +233,20 @@ button:hover {
 
 #suggestions div:hover {
     background: rgba(255,255,255,0.1);
+}
+
+/* 🎨 THEME */
+body.space {
+    background: black !important;
+}
+
+body.matrix {
+    background: black !important;
+    color: #00ff00;
+}
+
+body.cyber {
+    background: purple !important;
 }
 </style>
 </head>
@@ -4774,44 +4770,26 @@ function toggleFavorite(index){
 }
 
 // THEME
-let effectInterval;
-let cometInterval;
+let activeTheme = null;
+let intervals = [];
 
-function applyTheme(theme){
-    document.body.classList.remove("space","matrix","cyber");
-
-    if(theme === "space") document.body.classList.add("space");
-    if(theme === "matrix") document.body.classList.add("matrix");
-    if(theme === "cyber") document.body.classList.add("cyber");
-
-    localStorage.setItem("theme", theme);
-    startThemeEffects(theme);
-}
-
-function startThemeEffects(theme){
-    stopEffects();
-
-    if(theme === "space") startSpace();
-    if(theme === "matrix") startMatrix();
-}
-
+// 🛑 STOP wszystkiego
 function stopEffects(){
-    clearInterval(effectInterval);
-    clearInterval(cometInterval);
+    intervals.forEach(i => clearInterval(i));
+    intervals = [];
 
     const canvas = document.getElementById("matrixCanvas");
     if(canvas) canvas.remove();
+}
 
-let effectInterval;
-let cometInterval;
-
-// 🌌 SPACE
+// 🌌 SPACE (PROSTA WERSJA)
 function startSpace(){
-    effectInterval = setInterval(() => {
+    const interval = setInterval(()=>{
         const star = document.createElement("div");
+
         star.style.position = "fixed";
         star.style.left = Math.random()*100+"%";
-        star.style.top = "-10px";
+        star.style.top = "-5px";
         star.style.width = "2px";
         star.style.height = "2px";
         star.style.background = "white";
@@ -4821,101 +4799,27 @@ function startSpace(){
 
         let y = 0;
         const fall = setInterval(()=>{
-            y+=2;
-            star.style.top = y+"px";
-            if(y > window.innerHeight){
-                star.remove();
-                clearInterval(fall);
-            }
-        },10);
-    },120);
-
-    cometInterval = setInterval(()=>{
-        const comet = document.createElement("div");
-        comet.style.position = "fixed";
-        comet.style.left = "-100px";
-        comet.style.top = Math.random()*50+"%";
-        comet.style.width = "100px";
-        comet.style.height = "2px";
-        comet.style.background = "white";
-        comet.style.boxShadow = "0 0 10px white";
-        comet.style.zIndex = "1";
-
-        document.body.appendChild(comet);
-
-        let x = -100;
-        const move = setInterval(()=>{
-            x+=10;
-            comet.style.left = x+"px";
-            if(x > window.innerWidth){
-                comet.remove();
-                clearInterval(move);
-            }
-        },10);
-    },6000);
-let starInterval;
-let cometInterval;
-
-function startSpace(){
-    // ⭐ GWIAZDY
-    starInterval = setInterval(() => {
-        const star = document.createElement("div");
-        star.style.position = "fixed";
-        star.style.left = Math.random()*100+"%";
-        star.style.top = "-10px";
-        star.style.width = "2px";
-        star.style.height = "2px";
-        star.style.background = "white";
-        star.style.zIndex = "0";
-
-        document.body.appendChild(star);
-
-        let y = 0;
-        const fall = setInterval(()=>{
-            y += 2;
+            y += 3;
             star.style.top = y + "px";
 
             if(y > window.innerHeight){
                 star.remove();
                 clearInterval(fall);
             }
-        },10);
-    },100);
+        }, 16);
 
-    // ☄️ KOMETA
-    cometInterval = setInterval(()=>{
-        const comet = document.createElement("div");
-        comet.style.position = "fixed";
-        comet.style.left = "-100px";
-        comet.style.top = Math.random()*60+"%";
-        comet.style.width = "120px";
-        comet.style.height = "2px";
-        comet.style.background = "white";
-        comet.style.boxShadow = "0 0 10px white";
-        comet.style.zIndex = "1";
+    }, 120);
 
-        document.body.appendChild(comet);
-
-        let x = -100;
-        const move = setInterval(()=>{
-            x += 12;
-            comet.style.left = x + "px";
-
-            if(x > window.innerWidth){
-                comet.remove();
-                clearInterval(move);
-            }
-        },10);
-    },5000);
+    intervals.push(interval);
 }
 
-// 🟢 MATRIX
+// 🟢 MATRIX (PROSTA WERSJA)
 function startMatrix(){
     const canvas = document.createElement("canvas");
     canvas.id = "matrixCanvas";
     canvas.style.position = "fixed";
-    canvas.style.top = 0;
-    canvas.style.left = 0;
+    canvas.style.top = "0";
+    canvas.style.left = "0";
     canvas.style.zIndex = "0";
 
     document.body.appendChild(canvas);
@@ -4925,79 +4829,57 @@ function startMatrix(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    const letters = "01アイウエオ";
+    const letters = "01ABCXYZ";
     const fontSize = 14;
     const columns = canvas.width / fontSize;
 
     const drops = Array.from({length: columns}).fill(1);
 
-    effectInterval = setInterval(()=>{
-        ctx.fillStyle = "rgba(0,0,0,0.05)";
+    const interval = setInterval(()=>{
+        ctx.fillStyle = "rgba(0,0,0,0.08)";
         ctx.fillRect(0,0,canvas.width,canvas.height);
 
         ctx.fillStyle = "#0f0";
         ctx.font = fontSize + "px monospace";
 
-        drops.forEach((y,i)=>{
+        for(let i=0;i<drops.length;i++){
             const text = letters[Math.floor(Math.random()*letters.length)];
-            ctx.fillText(text, i*fontSize, y*fontSize);
+            ctx.fillText(text, i*fontSize, drops[i]*fontSize);
 
-            if(y*fontSize > canvas.height) drops[i]=0;
-            drops[i]++;
-        });
-    },50);
-let matrixInterval;
-
-function startMatrix(){
-    const canvas = document.createElement("canvas");
-    canvas.id = "matrixCanvas";
-    canvas.style.position = "fixed";
-    canvas.style.top = 0;
-    canvas.style.left = 0;
-    canvas.style.zIndex = "0";
-
-    document.body.appendChild(canvas);
-
-    const ctx = canvas.getContext("2d");
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const letters = "01アイウエオカキクケコ";
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-
-    const drops = Array.from({length: columns}).fill(1);
-
-    matrixInterval = setInterval(()=>{
-        ctx.fillStyle = "rgba(0,0,0,0.05)";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-
-        ctx.fillStyle = "#0f0";
-        ctx.font = fontSize + "px monospace";
-
-        drops.forEach((y,i)=>{
-            const text = letters[Math.floor(Math.random()*letters.length)];
-            ctx.fillText(text, i*fontSize, y*fontSize);
-
-            if(y*fontSize > canvas.height && Math.random() > 0.975){
+            if(drops[i]*fontSize > canvas.height){
                 drops[i] = 0;
             }
 
             drops[i]++;
-        });
-    },50);
+        }
+    }, 50);
+
+    intervals.push(interval);
 }
 
-// 🛑 STOP
-function stopEffects(){
-    clearInterval(starInterval);
-    clearInterval(cometInterval);
-    clearInterval(matrixInterval);
+// 🎨 APPLY THEME (NAJWAŻNIEJSZE)
+function applyTheme(theme){
+    console.log("THEME:", theme); // debug
 
-    const canvas = document.getElementById("matrixCanvas");
-    if(canvas) canvas.remove();
-}
+    document.body.classList.remove("space","matrix","cyber");
+
+    stopEffects();
+
+    if(theme === "space"){
+        document.body.classList.add("space");
+        startSpace();
+    }
+
+    if(theme === "matrix"){
+        document.body.classList.add("matrix");
+        startMatrix();
+    }
+
+    if(theme === "cyber"){
+        document.body.classList.add("cyber");
+    }
+
+    localStorage.setItem("theme", theme);
 }
  
 // 🌐 UI
