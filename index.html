@@ -21,6 +21,24 @@ body {
     margin-top: 80px;
 }
 
+/* === THEMES ADDON === */
+
+/* 🌌 SPACE */
+body.space {
+    background: black !important;
+}
+
+/* 🟢 MATRIX */
+body.matrix {
+    background: black !important;
+    color: #00ff00;
+}
+
+/* ⚡ CYBER */
+body.cyber {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e) !important;
+}
+
 /* 🔥 NEON + MOVING GRADIENT LOGO */
 #logo {
     font-size: 85px !important;
@@ -292,6 +310,14 @@ button:hover {
         <option value="pl">PL</option>
         <option value="easter">🐰</option>
     </select><br><br>
+
+    <label id="themeLabel">Theme:</label><br>
+<select id="themeSelect">
+    <option value="classic">Classic</option>
+    <option value="space">Space</option>
+    <option value="matrix">Matrix</option>
+    <option value="cyber">Cyber</option>
+</select><br><br>
    
 <!-- ADMIN -->
     <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
@@ -4403,6 +4429,7 @@ const translations = {
         consolePlaceholder: "Enter command...",
         favorites: "⭐ Favorites",
         noFavorites: "No favorites",
+        theme: "Theme:",
 
         // ================= DID YOU KNOW =================
         didYouKnowTitle: "💡 Did you know?",
@@ -4434,6 +4461,7 @@ const translations = {
         consolePlaceholder: "Wpisz komendę...",
         favorites: "⭐ Ulubione",
         noFavorites: "Brak ulubionych",
+        theme: "Motyw:",
 
         didYouKnowTitle: "💡 Czy wiedziałeś?",
         didYouKnow: [
@@ -4464,6 +4492,7 @@ const translations = {
         consolePlaceholder: "Escribe comando...",
         favorites: "⭐ Favoritos",
         noFavorites: "Sin favoritos",
+        theme: "Tema:",
 
         didYouKnowTitle: "💡 ¿Sabías que?",
         didYouKnow: [
@@ -4494,6 +4523,7 @@ const translations = {
         consolePlaceholder: "🐰 type...",
         favorites: "🐰 Fav :D",
         noFavorites: "🐰 No fav :C",
+        theme: "🐰 Theme:",
 
         didYouKnowTitle: "🐰 Bunny facts!",
         didYouKnow: [
@@ -4739,6 +4769,137 @@ function toggleFavorite(index){
 
     // odśwież wyniki
     document.getElementById("search").dispatchEvent(new Event("input"));
+}
+
+// THEME
+let effectInterval;
+let cometInterval;
+
+function applyTheme(theme){
+    document.body.classList.remove("space","matrix","cyber");
+
+    if(theme === "space") document.body.classList.add("space");
+    if(theme === "matrix") document.body.classList.add("matrix");
+    if(theme === "cyber") document.body.classList.add("cyber");
+
+    localStorage.setItem("theme", theme);
+    startThemeEffects(theme);
+}
+
+function startThemeEffects(theme){
+    stopEffects();
+
+    if(theme === "space") startSpace();
+    if(theme === "matrix") startMatrix();
+}
+
+function stopEffects(){
+    clearInterval(effectInterval);
+    clearInterval(cometInterval);
+
+    const canvas = document.getElementById("matrixCanvas");
+    if(canvas) canvas.remove();
+
+let effectInterval;
+let cometInterval;
+
+// 🌌 SPACE
+function startSpace(){
+    effectInterval = setInterval(() => {
+        const star = document.createElement("div");
+        star.style.position = "fixed";
+        star.style.left = Math.random()*100+"%";
+        star.style.top = "-10px";
+        star.style.width = "2px";
+        star.style.height = "2px";
+        star.style.background = "white";
+        star.style.zIndex = "0";
+
+        document.body.appendChild(star);
+
+        let y = 0;
+        const fall = setInterval(()=>{
+            y+=2;
+            star.style.top = y+"px";
+            if(y > window.innerHeight){
+                star.remove();
+                clearInterval(fall);
+            }
+        },10);
+    },120);
+
+    cometInterval = setInterval(()=>{
+        const comet = document.createElement("div");
+        comet.style.position = "fixed";
+        comet.style.left = "-100px";
+        comet.style.top = Math.random()*50+"%";
+        comet.style.width = "100px";
+        comet.style.height = "2px";
+        comet.style.background = "white";
+        comet.style.boxShadow = "0 0 10px white";
+        comet.style.zIndex = "1";
+
+        document.body.appendChild(comet);
+
+        let x = -100;
+        const move = setInterval(()=>{
+            x+=10;
+            comet.style.left = x+"px";
+            if(x > window.innerWidth){
+                comet.remove();
+                clearInterval(move);
+            }
+        },10);
+    },6000);
+}
+
+// 🟢 MATRIX
+function startMatrix(){
+    const canvas = document.createElement("canvas");
+    canvas.id = "matrixCanvas";
+    canvas.style.position = "fixed";
+    canvas.style.top = 0;
+    canvas.style.left = 0;
+    canvas.style.zIndex = "0";
+
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const letters = "01アイウエオ";
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+
+    const drops = Array.from({length: columns}).fill(1);
+
+    effectInterval = setInterval(()=>{
+        ctx.fillStyle = "rgba(0,0,0,0.05)";
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        ctx.fillStyle = "#0f0";
+        ctx.font = fontSize + "px monospace";
+
+        drops.forEach((y,i)=>{
+            const text = letters[Math.floor(Math.random()*letters.length)];
+            ctx.fillText(text, i*fontSize, y*fontSize);
+
+            if(y*fontSize > canvas.height) drops[i]=0;
+            drops[i]++;
+        });
+    },50);
+}
+
+// 🛑 STOP
+function stopEffects(){
+    clearInterval(effectInterval);
+    clearInterval(cometInterval);
+
+    const canvas = document.getElementById("matrixCanvas");
+    if(canvas) canvas.remove();
+}
 }
  
 // 🌐 UI
