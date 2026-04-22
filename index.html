@@ -270,12 +270,18 @@ body.cyber {
 
 </div>
 
-    <select id="langSelect" style="display:none;">
-        <option value="en" selected>EN</option>
-        <option value="es">ES</option>
-        <option value="pl">PL</option>
-        <option value="easter">Easter 🐰</option>
-    </select>
+<select id="settingsLang">
+    <option value="en">EN</option>
+    <option value="es">ES</option>
+    <option value="pl">PL</option>
+    <option value="easter">🐰</option>
+
+    <!-- NIEOBSŁUGIWANE -->
+    <option value="de">DE</option>
+    <option value="fr">FR</option>
+    <option value="it">IT</option>
+    <option value="jp">JP</option>
+</select>
 
 <!-- CONSOLE -->
 
@@ -4426,6 +4432,7 @@ const translations = {
         favorites: "⭐ Favorites",
         noFavorites: "No favorites",
         theme: "Theme:",
+        langNotSupported: "Language not supported yet",
 
         // ================= DID YOU KNOW =================
         didYouKnowTitle: "💡 Did you know?",
@@ -4458,6 +4465,7 @@ const translations = {
         favorites: "⭐ Ulubione",
         noFavorites: "Brak ulubionych",
         theme: "Motyw:",
+        langNotSupported: "Ten język nie jest jeszcze obsługiwany",
 
         didYouKnowTitle: "💡 Czy wiedziałeś?",
         didYouKnow: [
@@ -4489,6 +4497,7 @@ const translations = {
         favorites: "⭐ Favoritos",
         noFavorites: "Sin favoritos",
         theme: "Tema:",
+        langNotSupported: "Este idioma aún no está disponible",
 
         didYouKnowTitle: "💡 ¿Sabías que?",
         didYouKnow: [
@@ -4520,6 +4529,7 @@ const translations = {
         favorites: "🐰 Fav :D",
         noFavorites: "🐰 No fav :C",
         theme: "🐰 Theme:",
+        langNotSupported: "🐰 Not supported... Yet :D",
 
         didYouKnowTitle: "🐰 Bunny facts!",
         didYouKnow: [
@@ -4596,15 +4606,24 @@ function openSettings(){
 }
 
 function saveSettings(){
+function saveSettings(){
     const lang = document.getElementById("settingsLang").value;
-    currentLang = lang;
-    localStorage.setItem("lang", lang);
 
+    const supported = ["en","es","pl","easter"];
+
+    if(!supported.includes(lang)){
+        alert("⚠️ Language '" + lang.toUpperCase() + "' is not supported yet");
+        return;
+    }
     // 🔥 TO DODAJ:
     const theme = document.getElementById("themeSelect").value;
     applyTheme(theme);
 
+    currentLang = lang;
+    localStorage.setItem("lang", lang);
+
     updateLanguage();
+
     log("saved settings (lang: " + currentLang + ")");
 }
 
@@ -4881,6 +4900,20 @@ function applyTheme(theme){
 
     localStorage.setItem("theme", theme);
 }
+
+// NIEOBSŁUGIWANE
+document.getElementById("settingsLang").addEventListener("change", function(){
+    const lang = this.value;
+    const supported = ["en","es","pl","easter"];
+
+    if(!supported.includes(lang)){
+        alert("⚠️ " + translations[currentLang].langNotSupported + ": " + lang.toUpperCase());
+
+        // wraca do poprzedniego
+        this.value = currentLang;
+        return;
+    }
+});
  
 // 🌐 UI
 function updateLanguage(){
