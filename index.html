@@ -4797,8 +4797,16 @@ function register(){
     const pass = document.getElementById("regPass").value;
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => alert("Account created!"))
-        .catch(err => alert(err.message));
+        .then(() => { alert("Account created!"); })
+        .catch(err => { alert(err.message); });
+}
+
+window.login = function(){
+    const email = document.getElementById("logUser").value;
+    const pass = document.getElementById("logPass").value;
+
+    auth.signInWithEmailAndPassword(email, pass)
+        .catch(err => { alert(err.message); });
 }
 
 // Logowanie użytkownika
