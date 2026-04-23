@@ -4793,23 +4793,18 @@ function applyTheme(theme){
 /* 👤 AUTH - Firebase Email/Password */
 // Rejestracja użytkownika: username -> email
 function register(){
-    const user = document.getElementById("regUser").value.trim();
+    console.log("REGISTER CLICKED");
+
+    const email = document.getElementById("regUser").value;
     const pass = document.getElementById("regPass").value;
-    if(!user || !pass){
-        alert("Fill all!");
-        return;
-    }
-    if(bannedUsernames.includes(user.toLowerCase())){
-        alert("This username is banned!");
-        return;
-    }
-    const email = user + "support@neofind.com"; // dodaj własną domenę
+
     auth.createUserWithEmailAndPassword(email, pass)
         .then(() => {
-            alert("Konto utworzone!");
-            return auth.currentUser.updateProfile({displayName: user});
+            console.log("OK");
+            alert("Account created!");
         })
         .catch(err => {
+            console.error(err);
             alert(err.message);
         });
 }
