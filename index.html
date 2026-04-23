@@ -5143,16 +5143,16 @@ function spawnNeo(){
     }, 9500);
 }
 
-// Ustawienia języka/motywu z localStorage i start
+// START
 const savedLang = localStorage.getItem("lang");
-if(savedLang){
+if (savedLang) {
     currentLang = savedLang;
-    document.getElementById("settingsLang").value = savedLang;
+    document.getElementById("langSelect").value = savedLang;
 }
+
 updateDidYouKnow();
 updateLanguage();
-showFavorites();
-showFact();
+showHistory();
 </script>
 
 </body>
