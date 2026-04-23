@@ -4797,8 +4797,8 @@ window.register = function(){
     const pass = document.getElementById("regPass").value;
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => { alert("Account created!"); })
-        .catch(err => { alert(err.message); });
+        .then(() => alert("Account created!"))
+        .catch(err => alert(err.message));
 }
 
 window.login = function(){
@@ -4806,7 +4806,11 @@ window.login = function(){
     const pass = document.getElementById("logPass").value;
 
     auth.signInWithEmailAndPassword(email, pass)
-        .catch(err => { alert(err.message); });
+        .catch(err => alert(err.message));
+}
+
+window.logout = function(){
+    auth.signOut();
 }
     
 // Logowanie użytkownika
@@ -4840,7 +4844,7 @@ auth.onAuthStateChanged(user => {
         loginScreen.style.display = "none";
         app.style.display = "block";
         console.log("User:", user.email);
-        if(user.email === adrian.wilcze@hotmail.com){
+        if(user.email === "adrian.wilczek@hotmail.com"){
             document.getElementById("adminBox").style.display = "block";
             document.getElementById("adminBtn").style.display = "block";
         } else {
