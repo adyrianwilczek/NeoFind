@@ -26,7 +26,6 @@ body {
     font-size: 85px !important;
     margin-bottom: 20px;
     letter-spacing: 3px;
-
     background: linear-gradient(
         90deg,
         #00ffcc,
@@ -36,18 +35,14 @@ body {
         #00ccff,
         #00ffcc
     );
-
     background-size: 600% 600%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-
     animation: gradientMove 7s linear infinite;
-
     text-shadow:
         0 0 8px rgba(0,255,200,0.7),
         0 0 20px rgba(0,200,255,0.6),
         0 0 35px rgba(0,255,120,0.4);
-
 }
 
 /* 🔍 normalna lupa (bez neonów) */
@@ -55,7 +50,6 @@ body {
     -webkit-text-fill-color: white !important;
     background: none !important;
     text-shadow: none !important;
-
     font-size: 0.9em;
     margin-left: 8px;
     filter: none;
@@ -63,21 +57,11 @@ body {
 
 /* 🌈 animacja */
 @keyframes gradientMove {
-    0% {
-        background-position: 0% 50%;
-    }
-    25% {
-        background-position: 100% 0%;
-    }
-    50% {
-        background-position: 200% 50%;
-    }
-    75% {
-        background-position: 300% 100%;
-    }
-    100% {
-        background-position: 400% 50%;
-    }
+    0% { background-position: 0% 50%; }
+    25% { background-position: 100% 0%; }
+    50% { background-position: 200% 50%; }
+    75% { background-position: 300% 100%; }
+    100% { background-position: 400% 50%; }
 }
 
 /* 🔍 INPUT */
@@ -88,13 +72,10 @@ input, select, textarea {
     border: none;
     font-size: 18px;
     margin-bottom: 15px;
-
     background: rgba(255,255,255,0.1);
     color: white;
-
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-
     transition: 0.2s;
 }
 
@@ -107,6 +88,7 @@ input:focus {
 input::placeholder {
     color: rgba(255,255,255,0.6);
 }
+
 select {
     background: rgba(0, 0, 0, 0.4);
     color: #00ffcc;
@@ -115,7 +97,6 @@ select {
     cursor: pointer;
 }
 
-/* opcje w dropdown */
 select option {
     background: #0f2027;
     color: #00ffcc;
@@ -135,7 +116,6 @@ select option {
     text-shadow: 0 0 10px gold;
 }
 
-/* hover/focus */
 select:focus {
     outline: none;
     box-shadow: 0 0 15px rgba(0,255,200,0.5);
@@ -149,10 +129,8 @@ select:focus {
     border-radius: 15px;
     width: 80%;
     text-align: left;
-
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-
     transition: 0.2s;
 }
 
@@ -236,43 +214,30 @@ button:hover {
 }
 
 /* 🎨 THEME */
-body.space {
-    background: black !important;
-}
-
+body.space { background: black !important; }
 body.matrix {
     background: black !important;
     color: #00ff00;
 }
-
-body.cyber {
-    background: purple !important;
-}
+body.cyber { background: purple !important; }
 </style>
 </head>
 <body>
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
-
     <h1>NeoFind Login</h1>
-
     <h3>Login</h3>
-    <input id="logUser" placeholder="Username"><br>
+    <input id="logUser" placeholder="Email"><br>
     <input id="logPass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
-
     <h3>Register</h3>
-    <input id="regUser" placeholder="Username"><br>
+    <input id="regUser" placeholder="Email"><br>
     <input id="regPass" type="password" placeholder="Password"><br>
     <button onclick="register()">Register</button>
-
 </div>
 
-<div class="container">
-<div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
-<div id="didYouKnow" style="text-align:center; margin-bottom:10px; opacity:0.8;"></div>
-    <div class="container">
-
-    <div id="didYouKnow"></div>
+<div class="container" style="display:none;">
+    <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
+    <div id="didYouKnow" style="text-align:center; margin-bottom:10px; opacity:0.8;"></div>
 
     <h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
 
@@ -283,8 +248,6 @@ body.cyber {
 
     <div id="results"></div>
 
-</div>
-
     <select id="langSelect" style="display:none;">
         <option value="en" selected>EN</option>
         <option value="es">ES</option>
@@ -292,140 +255,131 @@ body.cyber {
         <option value="easter">Easter 🐰</option>
     </select>
 
-<!-- CONSOLE -->
-
-<div id="consoleBox">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-        <h3 id="consoleTitle">🖥️ Debug Console</h3>
-        <div>
-            <button onclick="exportLogs()">📥 Export</button>
-            <button onclick="closeConsole()">❌</button>
+    <!-- CONSOLE -->
+    <div id="consoleBox">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3 id="consoleTitle">🖥️ Debug Console</h3>
+            <div>
+                <button onclick="exportLogs()">📥 Export</button>
+                <button onclick="closeConsole()">❌</button>
+            </div>
         </div>
+        <div id="consoleLogs"></div>
+        <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
     </div>
 
-    <div id="consoleLogs"></div>
+    <!-- ⚙️ SETTINGS -->
+    <button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">⚙️</button>
+    <div id="settingsBox" style="display:none; text-align:center;">
+        <h3>⚙️ Settings</h3>
+        <label>Language:</label><br>
+        <select id="settingsLang">
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+            <option value="pl">PL</option>
+            <option value="easter">🐰</option>
+        </select><br><br>
+        <label id="themeLabel">Theme:</label><br>
+        <select id="themeSelect">
+            <option value="classic">Classic</option>
+            <option value="space">Space</option>
+            <option value="matrix">Matrix</option>
+            <option value="cyber">Cyber</option>
+        </select><br><br>
+        
+        <!-- ADMIN -->
+        <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
+            <h2>🔐 Admin Panel</h2>
+            <input id="adminPassword" placeholder="Password"><br><br>
+            <button onclick="loginAdmin()">Login</button>
+            <div id="adminContent" style="display:none; margin-top:20px;">
+                <h3>➕ Add result</h3>
+                <input id="adminTitle" placeholder="Title"><br>
+                <input id="adminDesc" placeholder="Description"><br>
+                <input id="adminLink" placeholder="Link"><br><br>
+                <button onclick="addResult()">Add</button><br><br>
+                <button onclick="closeAdmin()">❌ Close</button>
+            </div>
+        </div>
 
-    <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
-</div>
-
-<!-- ⚙️ SETTINGS -->
-<button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">⚙️</button>
-
-<div id="settingsBox" style="display:none; text-align:center;">
-    <h3>⚙️ Settings</h3>
-
-    <label>Language:</label><br>
-    <select id="settingsLang">
-        <option value="en">EN</option>
-        <option value="es">ES</option>
-        <option value="pl">PL</option>
-        <option value="easter">🐰</option>
-    </select><br><br>
-
-    <label id="themeLabel">Theme:</label><br>
-<select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="space">Space</option>
-    <option value="matrix">Matrix</option>
-    <option value="cyber">Cyber</option>
-</select><br><br>
-   
-<!-- ADMIN -->
-    <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
-
-    <h2>🔐 Admin Panel</h2>
-
-    <input id="adminPassword" placeholder="Password"><br><br>
-    <button onclick="loginAdmin()">Login</button>
-
-    <div id="adminContent" style="display:none; margin-top:20px;">
-        <h3>➕ Add result</h3>
-
-        <input id="adminTitle" placeholder="Title"><br>
-        <input id="adminDesc" placeholder="Description"><br>
-        <input id="adminLink" placeholder="Link"><br><br>
-
-        <button onclick="addResult()">Add</button><br><br>
-
-        <button onclick="closeAdmin()">❌ Close</button>
+        <h4>📜 History</h4>
+        <div id="historyList"></div><br>
+        <button onclick="clearHistory()">🧹 Clear history</button><br><br>
+        <button onclick="openConsole()">🪲 Debug Console</button><br><br>
+        <button onclick="saveSettings()">Save</button>
+        <h4 id="favTitle">⭐ Favorites</h4>
+        <div id="favoritesList"></div><br>
     </div>
+
+    <!-- ADMIN button -->
+    <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
+    <!-- REPORT button -->
+    <button id="reportBtn" onclick="openReport()" style="position:fixed; bottom:20px; left:20px;">⚠️ Report problem</button>
+
+    <div id="updates" style="margin:30px; text-align:center;"></div>
 </div>
 
-    <h4>📜 History</h4>
-    <div id="historyList"></div><br>
-
-    <button onclick="clearHistory()">🧹 Clear history</button><br><br>
-    <button onclick="openConsole()">🪲 Debug Console</button><br><br>
-    <button onclick="saveSettings()">Save</button>
-    <h4 id="favTitle">⭐ Favorites</h4>
-    <div id="favoritesList"></div><br>
-</div>
-
-<!-- ADMIN -->
-<button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
-
-<!-- REPORT -->
-<button id="reportBtn" onclick="openReport()" style="position:fixed; bottom:20px; left:20px;">⚠️ Report problem</button>
-
-<!-- Firebase (compat version - działa ze starym kodem) -->
+<!-- Import Firebase SDK (compatibility version for older syntax) -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-
 <script>
-const firebaseConfig = {
-  apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
-  authDomain: "neofind-f8213.firebaseapp.com",
-  projectId: "neofind-f8213",
-  storageBucket: "neofind-f8213.firebasestorage.app",
-  messagingSenderId: "463022861042",
-  appId: "1:463022861042:web:62a4f360d1dcc63813be6b"
-};
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
+        authDomain: "neofind-f8213.firebaseapp.com",
+        projectId: "neofind-f8213",
+        storageBucket: "neofind-f8213.appspot.com",
+        messagingSenderId: "463022861042",
+        appId: "1:463022861042:web:62a4f360d1dcc63813be6b"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-
-/* LOGIN UI SWITCH */
-function checkLogin() {
-  const user = localStorage.getItem("currentUser");
-
-  const loginScreen = document.getElementById("loginScreen");
-  const app = document.querySelector(".container");
-
-  if (user) {
-    loginScreen.style.display = "none";
-    app.style.display = "block";
-  } else {
-    loginScreen.style.display = "block";
-    app.style.display = "none";
-  }
-}
-
-/* REGISTER (local) */
-function register(){
-    const email = document.getElementById("regUser").value;
-    const pass = document.getElementById("regPass").value;
-
-    auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => {
-            alert("Account created!");
-        })
-        .catch(err => alert(err.message));
-}
-
-/* LOGIN (local) */
-function login(){
-    const email = document.getElementById("logUser").value;
-    const pass = document.getElementById("logPass").value;
-
-    auth.signInWithEmailAndPassword(email, pass)
-        .then(() => {
+    // Monitor auth state and show/hide UI
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // Zalogowany
             document.getElementById("loginScreen").style.display = "none";
             document.querySelector(".container").style.display = "block";
-        })
-        .catch(err => alert(err.message));
-}
-const GLOBAL_UPDATE = "NeoFind 1.6 - We added debug console, Spanish language, history, and more!";
+            // Pokaż przycisk admina tylko dla konkretnego e-maila (Twój email administratora)
+            if (user.email === "adrian.wilczek@hotmail.com") {
+                document.getElementById("adminBtn").style.display = "block";
+            } else {
+                document.getElementById("adminBtn").style.display = "none";
+            }
+        } else {
+            // Nie zalogowany
+            document.getElementById("loginScreen").style.display = "block";
+            document.querySelector(".container").style.display = "none";
+        }
+    });
 
+    // Rejestracja (Firebase email/password)
+    function register(){
+        const email = document.getElementById("regUser").value;
+        const pass = document.getElementById("regPass").value;
+        auth.createUserWithEmailAndPassword(email, pass)
+            .then(() => { alert("Account created!"); })
+            .catch(err => { alert(err.message); });
+    }
+
+    // Logowanie (Firebase email/password)
+    function login(){
+        const email = document.getElementById("logUser").value;
+        const pass = document.getElementById("logPass").value;
+        auth.signInWithEmailAndPassword(email, pass)
+            .catch(err => { alert(err.message); });
+    }
+
+    // Wylogowanie
+    function logout(){
+        auth.signOut();
+    }
+</script>
+
+<script>
+// Przykładowe dane i tłumaczenia
 const data = {
     pl: [
 { title: "Roblox", desc: "Platforma do tworzenia i grania w gry stworzone przez użytkowników. Miliony doświadczeń w jednym miejscu.", link: "https://www.roblox.com/" },
@@ -1773,7 +1727,7 @@ const data = {
             { title: "Llama 4", desc: "Nadchodzący Meta.", link: "https://ai.meta.com/" },
             { title: "Mistral 3", desc: "Nadchodzący Mistral.", link: "https://mistral.ai/" },
             { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }
-],
+    ],
     en: [
      { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
 { title: "Grand Theft Auto V", desc: "Iconic action game from Rockstar Games. The open world of Los Santos with GTA Online multiplayer mode.", link: "https://www.rockstargames.com/gta-v" },
@@ -3120,8 +3074,8 @@ const data = {
 { title: "Llama 4", desc: "Upcoming Meta model.", link: "https://ai.meta.com/" },
 { title: "Mistral 3", desc: "Upcoming Mistral model.", link: "https://mistral.ai/" },
 { title: "xAI", desc: "Latest xAI achievements.", link: "https://x.ai/" }
-],
- es: [
+    ],
+    es: [
 { title: "Roblox", desc: "Plataforma para crear y jugar en juegos creados por los usuarios. Millones de experiencias en un solo lugar.", link: "https://www.roblox.com/" },
             { title: "Grand Theft Auto V", desc: "Icónico juego de acción de Rockstar Games. Mundo abierto de Los Santos con el modo online GTA Online.", link: "https://www.rockstargames.com/gta-v" },
             { title: "NeoFind", desc: "Buscador moderno con sistema inteligente de resultados. Búsqueda rápida, descripciones claras y soporte para múltiples idiomas.", link: "https://adyrianwilczek.github.io/NeoFind/" },
@@ -4468,16 +4422,13 @@ const data = {
             { title: "Mistral 3", desc: "Próximo de Mistral.", link: "https://mistral.ai/" },
             { title: "xAI", desc: "Los últimos logros de xAI.", link: "https://x.ai/" }
     ],
-
     easter: [
         { title: "🐰", desc: "🐰🐰🐰🐰🐰🐰🐰🐰", link: "#" }
     ]
 };
 
 const translations = {
-
     en: {
-        // ================= UI =================
         search: "Search...",
         settings: "⚙️ Settings",
         language: "Language:",
@@ -4495,8 +4446,6 @@ const translations = {
         favorites: "⭐ Favorites",
         noFavorites: "No favorites",
         theme: "Theme:",
-
-        // ================= DID YOU KNOW =================
         didYouKnowTitle: "💡 Did you know?",
         didYouKnow: [
             "that NeoFind is an English name but the project is from Poland",
@@ -4508,7 +4457,6 @@ const translations = {
             "language is saved in your browser"
         ]
     },
-
     pl: {
         search: "Szukaj...",
         settings: "⚙️ Ustawienia",
@@ -4527,7 +4475,6 @@ const translations = {
         favorites: "⭐ Ulubione",
         noFavorites: "Brak ulubionych",
         theme: "Motyw:",
-
         didYouKnowTitle: "💡 Czy wiedziałeś?",
         didYouKnow: [
             "NeoFind ma angielską nazwę, ale projekt pochodzi z Polski",
@@ -4539,7 +4486,6 @@ const translations = {
             "język zapisuje się w przeglądarce"
         ]
     },
-
     es: {
         search: "Buscar...",
         settings: "⚙️ Ajustes",
@@ -4558,7 +4504,6 @@ const translations = {
         favorites: "⭐ Favoritos",
         noFavorites: "Sin favoritos",
         theme: "Tema:",
-
         didYouKnowTitle: "💡 ¿Sabías que?",
         didYouKnow: [
             "NeoFind es un nombre inglés pero el proyecto es de Polonia",
@@ -4570,7 +4515,6 @@ const translations = {
             "el idioma se guarda en el navegador"
         ]
     },
-
     easter: {
         search: "🐰 Search eggs...",
         settings: "🐰 Settings",
@@ -4589,7 +4533,6 @@ const translations = {
         favorites: "🐰 Fav :D",
         noFavorites: "🐰 No fav :C",
         theme: "🐰 Theme:",
-
         didYouKnowTitle: "🐰 Bunny facts!",
         didYouKnow: [
             "NeoFind still works in bunny mode",
@@ -4602,17 +4545,12 @@ const translations = {
         ]
     }
 };
-
 let currentLang = "en";
 
-//RANDOM
-function updateDidYouKnow(){
+function updateDidYouKnow() {
     const t = translations[currentLang];
-
-    if(!t.didYouKnow) return;
-
+    if (!t.didYouKnow) return;
     const random = t.didYouKnow[Math.floor(Math.random() * t.didYouKnow.length)];
-
     document.getElementById("didYouKnowTitle").innerText = t.didYouKnowTitle;
     document.getElementById("didYouKnow").innerText = random;
 }
@@ -4620,703 +4558,277 @@ function updateDidYouKnow(){
 // 🔍 SEARCH + HISTORY
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
-    log('searched "' + value + '"');
     saveToHistory(value);
-
     const results = document.getElementById("results");
-
-    if(value === "neo"){
+    if (value === "neo") {
         spawnNeo();
         return;
     }
-
-    if(!value){
+    if (!value) {
         results.innerHTML = "";
         return;
     }
-
     const list = data[currentLang] || [];
-
     const filtered = list.filter(item =>
         (item.title || "").toLowerCase().includes(value) ||
         (item.desc || "").toLowerCase().includes(value)
     );
-
-    if(!filtered.length){
+    if (!filtered.length) {
         results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
         return;
     }
-
-    results.innerHTML = filtered.map((item, index) => `
-    <div class="result">
-        <a href="${item.link}" target="_blank">${item.title}</a>
-        <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
-        <p>${item.desc}</p>
-    </div>
-`).join("");
+    results.innerHTML = filtered.map((item) => `
+        <div class="result">
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite('${item.title}')">★</span>
+            <p>${item.desc}</p>
+        </div>
+    `).join("");
 });
 
 // ⚙️ SETTINGS
-log("opened settings");
-function openSettings(){
+function openSettings() {
     document.getElementById("settingsBox").style.display = "block";
     document.getElementById("settingsLang").value = currentLang;
     showHistory();
 }
-
-function saveSettings(){
+function saveSettings() {
     const lang = document.getElementById("settingsLang").value;
     currentLang = lang;
     localStorage.setItem("lang", lang);
-
-    // 🔥 TO DODAJ:
     const theme = document.getElementById("themeSelect").value;
     applyTheme(theme);
-
     updateLanguage();
-    log("saved settings (lang: " + currentLang + ")");
 }
 
-// ADMIN
-function openAdmin(){
+// ADMIN PANEL
+function openAdmin() {
     document.getElementById("adminBox").style.display = "block";
 }
-
-function closeAdmin(){
+function closeAdmin() {
     document.getElementById("adminBox").style.display = "none";
 }
-
-function loginAdmin(){
+function loginAdmin() {
     const pass = document.getElementById("adminPassword").value;
-
-    if(pass === "adminpanel48"){ // ← możesz zmienić hasło
+    if (pass === "adminpanel48") {
         document.getElementById("adminContent").style.display = "block";
         alert("Logged in!");
     } else {
         alert("Wrong password!");
     }
 }
-
-function addResult(){
+function addResult() {
     const title = document.getElementById("adminTitle").value;
     const desc = document.getElementById("adminDesc").value;
     const link = document.getElementById("adminLink").value;
-
-    if(!title || !desc || !link){
+    if (!title || !desc || !link) {
         alert("Fill everything!");
         return;
     }
-
-    data[currentLang].push({
-        title: title,
-        desc: desc,
-        link: link
-    });
-
+    data[currentLang].push({ title: title, desc: desc, link: link });
     alert("Added!");
 }
 
-// 📜 HISTORY
-function saveToHistory(query){
-    if(!query) return;
-
+// HISTORY
+function saveToHistory(query) {
+    if (!query) return;
     let history = JSON.parse(localStorage.getItem("history")) || [];
-
-    if(history.includes(query)) return;
-
+    if (history.includes(query)) return;
     history.unshift(query);
-
-    if(history.length > 500) history.pop();
-
+    if (history.length > 500) history.pop();
     localStorage.setItem("history", JSON.stringify(history));
 }
-
-function showHistory(){
+function showHistory() {
     const box = document.getElementById("historyList");
     let history = JSON.parse(localStorage.getItem("history")) || [];
-
-    if(!history.length){
+    if (!history.length) {
         box.innerHTML = "No history";
         return;
     }
-
-    box.innerHTML = history.map(h => `
-        <div class="result" onclick="useHistory('${h}')">${h}</div>
-    `).join("");
+    box.innerHTML = history.map(h => `<div class="result" onclick="useHistory('${h}')">${h}</div>`).join("");
 }
-
-function useHistory(text){
+function useHistory(text) {
     document.getElementById("search").value = text;
     document.getElementById("settingsBox").style.display = "none";
 }
-
-function clearHistory(){
+function clearHistory() {
     localStorage.removeItem("history");
-    log("cleared history");
     showHistory();
 }
 
-// CONSOLE
-    const suggestionsBox = document.getElementById("suggestions");
-
+// SUGGESTIONS
+const suggestionsBox = document.getElementById("suggestions");
+document.getElementById("search").addEventListener("input", function() {
+    const value = this.value.toLowerCase();
+    const list = data[currentLang] || [];
+    if (!value) {
+        suggestionsBox.innerHTML = "";
+        return;
+    }
     const matches = list.filter(item =>
         (item.title || "").toLowerCase().includes(value)
-    ).slice(0,5);
-
+    ).slice(0, 5);
     suggestionsBox.innerHTML = matches.map(item =>
         `<div onclick="useSuggestion('${item.title}')">${item.title}</div>`
     ).join("");
 });
-
-function useSuggestion(text){
+function useSuggestion(text) {
     document.getElementById("search").value = text;
     document.getElementById("suggestions").innerHTML = "";
 }
 
-// MENU
-    function goHome(){
-    // zamknij panele
-    const settings = document.getElementById("settingsBox");
-    if(settings) settings.style.display = "none";
-
-    const admin = document.getElementById("adminBox");
-    if(admin) admin.style.display = "none";
-
-    const consoleBox = document.getElementById("consoleBox");
-    if(consoleBox) consoleBox.style.display = "none";
-
-    // wyczyść wyniki i search
-    document.getElementById("search").value = "";
-    document.getElementById("results").innerHTML = "";
-
-    log("returned to menu");
-}
-
-// 🆕 UPDATE
-function showUpdate(){
-    const box = document.getElementById("updates");
-    const t = translations[currentLang];
-    box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
-}
-
-// FAV
-function getFavorites(){
-    return JSON.parse(localStorage.getItem("favorites")) || [];
-}
-
-function isFavorite(item){
-    const favs = getFavorites();
-    return favs.some(f => f.title === item.title && f.link === item.link);
-}
-
-function toggleFavorite(index){
-    const list = data[currentLang] || [];
-    const item = list[index];
-
-    let favs = getFavorites();
-
-    const exists = favs.find(f => f.title === item.title && f.link === item.link);
-
-    if(exists){
-        favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
-    } else {
-        favs.push(item);
-    }
-
-    localStorage.setItem("favorites", JSON.stringify(favs));
-
-    // odśwież wyniki
-    document.getElementById("search").dispatchEvent(new Event("input"));
-}
-
 // THEME
-let activeTheme = null;
 let intervals = [];
-
-// 🛑 STOP wszystkiego
-function stopEffects(){
+function stopEffects() {
     intervals.forEach(i => clearInterval(i));
     intervals = [];
-
     const canvas = document.getElementById("matrixCanvas");
-    if(canvas) canvas.remove();
+    if (canvas) canvas.remove();
 }
-
-// 🌌 SPACE (PROSTA WERSJA)
-function startSpace(){
-    const interval = setInterval(()=>{
+function startSpace() {
+    const interval = setInterval(() => {
         const star = document.createElement("div");
-
         star.style.position = "fixed";
-        star.style.left = Math.random()*100+"%";
+        star.style.left = Math.random() * 100 + "%";
         star.style.top = "-5px";
         star.style.width = "2px";
         star.style.height = "2px";
         star.style.background = "white";
         star.style.zIndex = "0";
-
         document.body.appendChild(star);
-
         let y = 0;
-        const fall = setInterval(()=>{
+        const fall = setInterval(() => {
             y += 3;
             star.style.top = y + "px";
-
-            if(y > window.innerHeight){
+            if (y > window.innerHeight) {
                 star.remove();
                 clearInterval(fall);
             }
         }, 16);
-
     }, 120);
-
     intervals.push(interval);
 }
-
-// 🟢 MATRIX (PROSTA WERSJA)
-function startMatrix(){
+function startMatrix() {
     const canvas = document.createElement("canvas");
     canvas.id = "matrixCanvas";
     canvas.style.position = "fixed";
     canvas.style.top = "0";
     canvas.style.left = "0";
     canvas.style.zIndex = "0";
-
     document.body.appendChild(canvas);
-
     const ctx = canvas.getContext("2d");
-
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
     const letters = "01ABCXYZ";
     const fontSize = 14;
     const columns = canvas.width / fontSize;
-
-    const drops = Array.from({length: columns}).fill(1);
-
-    const interval = setInterval(()=>{
+    const drops = Array.from({ length: columns }).fill(1);
+    const interval = setInterval(() => {
         ctx.fillStyle = "rgba(0,0,0,0.08)";
         ctx.fillRect(0,0,canvas.width,canvas.height);
-
         ctx.fillStyle = "#0f0";
         ctx.font = fontSize + "px monospace";
-
-        for(let i=0;i<drops.length;i++){
+        for (let i=0; i<drops.length; i++) {
             const text = letters[Math.floor(Math.random()*letters.length)];
             ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-
-            if(drops[i]*fontSize > canvas.height){
+            if (drops[i]*fontSize > canvas.height) {
                 drops[i] = 0;
             }
-
             drops[i]++;
         }
     }, 50);
-
     intervals.push(interval);
 }
-
-// 🎨 APPLY THEME (NAJWAŻNIEJSZE)
-function applyTheme(theme){
-    console.log("THEME:", theme); // debug
-
+function applyTheme(theme) {
     document.body.classList.remove("space","matrix","cyber");
-
     stopEffects();
-
-    if(theme === "space"){
+    if (theme === "space") {
         document.body.classList.add("space");
         startSpace();
     }
-
-    if(theme === "matrix"){
+    if (theme === "matrix") {
         document.body.classList.add("matrix");
         startMatrix();
     }
-
-    if(theme === "cyber"){
+    if (theme === "cyber") {
         document.body.classList.add("cyber");
     }
-
     localStorage.setItem("theme", theme);
 }
 
-// 👤 USER SYSTEM
-
-// 🚫 zbanowane nicki
-const bannedUsernames = ["idiot","fuck","sex","niger"];
-
-// 📦 pobierz użytkowników
-function getUsers(){
-    return JSON.parse(localStorage.getItem("users")) || {};
+// FAVORITES
+function getFavorites() {
+    return JSON.parse(localStorage.getItem("favorites")) || [];
 }
-
-// 💾 zapisz użytkowników
-function saveUsers(users){
-    localStorage.setItem("users", JSON.stringify(users));
+function isFavorite(item) {
+    const favs = getFavorites();
+    return favs.some(f => f.title === item.title && f.link === item.link);
 }
-
-// 👤 aktualny user
-function setCurrentUser(username){
-    localStorage.setItem("currentUser", username);
-}
-
-// 👤 pobierz aktualnego usera
-function getCurrentUser(){
-    return localStorage.getItem("currentUser");
-}
-
-// 🚪 LOGOUT
-function logout(){
-    localStorage.removeItem("currentUser");
-    location.reload();
-}
-
-// 📝 REGISTER
-function register(){
-    const user = document.getElementById("regUser").value.trim();
-    const pass = document.getElementById("regPass").value;
-
-    if(!user || !pass){
-        alert("Fill everything!");
-        return;
-    }
-
-    if(bannedUsernames.includes(user.toLowerCase())){
-        alert("This username is banned!");
-        return;
-    }
-
-    let users = getUsers();
-
-    if(users[user]){
-        alert("User already exists!");
-        return;
-    }
-
-    // 🔥 ADMIN AUTO (tu ustaw swój nick)
-    users[user] = {
-        password: pass,
-        isAdmin: user.toLowerCase() === "adrian" // ← zmień jeśli chcesz
-    };
-
-    saveUsers(users);
-
-    alert("Account created!");
-}
-
-// 🔑 LOGIN
-function login(){
-    const user = document.getElementById("logUser").value.trim();
-    const pass = document.getElementById("logPass").value;
-
-    let users = getUsers();
-
-    if(!users[user] || users[user].password !== pass){
-        alert("Wrong login!");
-        return;
-    }
-
-    setCurrentUser(user);
-    location.reload();
-}
-
-// 🧠 CHECK LOGIN
-function checkLogin(){
-    const user = getCurrentUser();
-
-    const loginScreen = document.getElementById("loginScreen");
-    const app = document.getElementById("app");
-
-    if(user){
-        loginScreen.style.display = "none";
-        app.style.display = "block";
-
-        showUserInfo(user);
+function toggleFavorite(title) {
+    const list = data[currentLang] || [];
+    const item = list.find(i => i.title === title);
+    if (!item) return;
+    let favs = getFavorites();
+    const exists = favs.some(f => f.title === item.title && f.link === item.link);
+    if (exists) {
+        favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
     } else {
-        loginScreen.style.display = "block";
-        app.style.display = "none";
+        favs.push(item);
     }
-auth.onAuthStateChanged(user => {
-    if(user){
-        document.getElementById("loginScreen").style.display = "none";
-        document.querySelector(".container").style.display = "block";
-    } else {
-        document.getElementById("loginScreen").style.display = "block";
-        document.querySelector(".container").style.display = "none";
-    }
-});
-
-// 👤 UI USERA
-function showUserInfo(username){
-    const users = getUsers();
-    const isAdmin = users[username]?.isAdmin;
-
-    const box = document.getElementById("userInfo");
-
-    box.innerHTML = `
-        👤 ${username} ${isAdmin ? "🛠️" : ""}
-        <br><br>
-        <button onclick="logout()">Logout</button>
-    `;
-}
- 
-// 🌐 UI
-function updateLanguage(){
-    const t = translations[currentLang];
-    document.getElementById("search").placeholder = t.search;
-    document.getElementById("reportBtn").innerText = t.report;
-    document.getElementById("adminBtn").innerText = t.admin;
-    document.getElementById("favTitle").innerText = translations[currentLang].favorites;
-    document.querySelector('button[onclick="exportLogs()"]').innerText = t.export;
-    showUpdate();
+    localStorage.setItem("favorites", JSON.stringify(favs));
+    document.getElementById("search").dispatchEvent(new Event("input"));
 }
 
-// NEO 
-
-function spawnNeo(){
-    // 🧍‍♂️ POSTAĆ (DIV zamiast emoji)
-    const neo = document.createElement("div");
-    neo.style.position = "fixed";
-    neo.style.left = "-150px";
-    neo.style.top = "50%";
-    neo.style.transform = "translateY(-50%)";
-    neo.style.width = "120px";
-    neo.style.height = "200px";
-    neo.style.zIndex = "9999";
-    neo.style.transition = "left 2s ease-in-out";
-
-    // 🟦 CIAŁO
-neo.innerHTML = `
-<div style="
-    width:100%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-">
-
-    <!-- GŁOWA -->
-    <div style="
-        width:90px;
-        height:90px;
-        background:#4db8ff;
-        border-radius:50%;
-        position:relative;
-        box-shadow:0 8px 20px rgba(0,0,0,0.4);
-    ">
-        <!-- OCZY -->
-        <div style="
-            width:14px;
-            height:14px;
-            background:black;
-            border-radius:50%;
-            position:absolute;
-            top:30px;
-            left:22px;
-        "></div>
-        <div style="
-            width:14px;
-            height:14px;
-            background:black;
-            border-radius:50%;
-            position:absolute;
-            top:30px;
-            right:22px;
-        "></div>
-
-        <!-- UŚMIECH -->
-        <div style="
-            position:absolute;
-            bottom:20px;
-            left:50%;
-            transform:translateX(-50%);
-            width:30px;
-            height:15px;
-            border-bottom:4px solid black;
-            border-radius:0 0 20px 20px;
-        "></div>
-    </div>
-
-    <!-- RĘCE -->
-    <div style="
-        position:relative;
-        width:120px;
-        height:20px;
-        margin-top:5px;
-    ">
-        <div style="
-            position:absolute;
-            left:-25px;
-            top:0;
-            width:40px;
-            height:12px;
-            background:#3aa6ff;
-            border-radius:10px;
-            transform:rotate(-20deg);
-        "></div>
-
-        <div style="
-            position:absolute;
-            right:-25px;
-            top:0;
-            width:40px;
-            height:12px;
-            background:#3aa6ff;
-            border-radius:10px;
-            transform:rotate(20deg);
-        "></div>
-    </div>
-
-    <!-- TUŁÓW -->
-    <div style="
-        width:70px;
-        height:80px;
-        background:#2b8cff;
-        border-radius:25px;
-        margin-top:5px;
-        box-shadow:0 6px 15px rgba(0,0,0,0.3);
-    "></div>
-
-    <!-- NOGI -->
-    <div style="
-        display:flex;
-        gap:12px;
-        margin-top:5px;
-    ">
-        <div style="
-            width:18px;
-            height:55px;
-            background:#2b8cff;
-            border-radius:12px;
-        "></div>
-        <div style="
-            width:18px;
-            height:55px;
-            background:#2b8cff;
-            border-radius:12px;
-        "></div>
-    </div>
-</div>
-`;
-
-    document.body.appendChild(neo);
-
-    // 🚶‍♂️ wejście
-    setTimeout(()=>{
-        neo.style.left = "45%";
-    }, 100);
-
-    // 💬 DYMek
-    const speech = document.createElement("div");
-    speech.innerText = "hi, im neo im mascot of NeoFind. You find easter egg :) bye";
-    speech.style.position = "fixed";
-    speech.style.top = "30%";
-    speech.style.left = "50%";
-    speech.style.transform = "translateX(-50%)";
-    speech.style.background = "white";
-    speech.style.color = "black";
-    speech.style.padding = "15px 20px";
-    speech.style.borderRadius = "20px";
-    speech.style.fontSize = "18px";
-    speech.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
-    speech.style.opacity = "0";
-    speech.style.transition = "opacity 0.5s";
-    speech.style.zIndex = "9999";
-
-    // 🗨️ pokazanie
-    setTimeout(()=>{
-        document.body.appendChild(speech);
-        setTimeout(()=> speech.style.opacity = "1", 50);
-    }, 2000);
-
-    // ⏱️ czeka 5s i wychodzi
-    setTimeout(()=>{
-        speech.style.opacity = "0";
-        neo.style.left = "110%";
-    }, 7000);
-
-    // 🧹 usuń
-    setTimeout(()=>{
-        neo.remove();
-        speech.remove();
-    }, 9500);
-}
-
-// CONSOLE
-
-function openConsole(){
+// DEBUG console
+function openConsole() {
     document.getElementById("consoleBox").style.display = "block";
-    log("console opened");
 }
-
-function closeConsole(){
+function closeConsole() {
     document.getElementById("consoleBox").style.display = "none";
 }
-
-function log(text){
+function log(text) {
     const logs = document.getElementById("consoleLogs");
-    if(!logs) return;
-
+    if (!logs) return;
     const time = new Date().toLocaleTimeString();
     logs.innerHTML += `<div>[${time}] ${text}</div>`;
     logs.scrollTop = logs.scrollHeight;
 }
-
-// log co sekunde TYLKO gdy console otwarte
-setInterval(()=>{
+setInterval(() => {
     const box = document.getElementById("consoleBox");
-    if(!box) return;
-    if(box.style.display !== "block") return;
-
+    if (!box || box.style.display !== "block") return;
     log("System running...");
-},1000);
-
-// 📥 EXPORT LOGS
-function exportLogs(){
+}, 1000);
+function exportLogs() {
     const logsElement = document.getElementById("consoleLogs");
-
-    if(!logsElement){
+    if (!logsElement) {
         alert("No logs found!");
         return;
     }
-
     const logs = logsElement.innerText;
-
-    if(!logs.trim()){
+    if (!logs.trim()) {
         alert("Logs are empty!");
         return;
     }
-
     const blob = new Blob([logs], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-
     const a = document.createElement("a");
     a.href = url;
     a.download = "neofind-logs.txt";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
     URL.revokeObjectURL(url);
-
     log("logs exported");
 }
-
-// 💻 COMMANDS
-function handleCommand(e){
-    if(e.key !== "Enter") return;
-
+function handleCommand(e) {
+    if (e.key !== "Enter") return;
     const input = e.target.value.trim();
     e.target.value = "";
-
-    if(!input.startsWith("/")){
+    if (!input.startsWith("/")) {
         log("❌ wrong format. example: /command");
         return;
     }
-
-    if(input === "/help"){
+    if (input === "/help") {
         log("📜 commands:");
         log("/help");
         log("/clearhistory");
@@ -5326,23 +4838,16 @@ function handleCommand(e){
         log("/date");
         log("/about");
         log("/export");
-    }
-
-    else if(input === "/clearhistory"){
+    } else if (input === "/clearhistory") {
         localStorage.removeItem("history");
         log("history cleared");
-    }
-
-    else if(input.startsWith("/search")){
-        const text = input.replace("/search ","");
+    } else if (input.startsWith("/search")) {
+        const text = input.replace("/search ", "");
         document.getElementById("search").value = text;
         log('searched "' + text + '"');
-    }
-
-    else if(input.startsWith("/language")){
-        const lang = input.replace("/language ","").toLowerCase();
-
-        if(lang === "en" || lang === "es" || lang === "pl" || lang === "easter"){
+    } else if (input.startsWith("/language")) {
+        const lang = input.replace("/language ", "").toLowerCase();
+        if (lang === "en" || lang === "es" || lang === "pl" || lang === "easter") {
             currentLang = lang;
             localStorage.setItem("lang", lang);
             document.getElementById("langSelect").value = lang;
@@ -5351,45 +4856,31 @@ function handleCommand(e){
         } else {
             log("❌ available: en, es, pl, easter");
         }
-    }
-
-    else if(input === "/time"){
+    } else if (input === "/time") {
         log("time: " + new Date().toLocaleTimeString());
-    }
-
-    else if(input === "/date"){
+    } else if (input === "/date") {
         log("date: " + new Date().toLocaleDateString());
-    }
-
-    else if(input === "/about"){
-        log("NeoFind - A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.");
-    }
-
-    else if(input === "/export"){
+    } else if (input === "/about") {
+        log("NeoFind - A modern search engine with an intelligent results system.");
+    } else if (input === "/export") {
         exportLogs();
-    }
-
-    else{
+    } else {
         log("unknown command");
     }
 }
 
 // START
 const savedLang = localStorage.getItem("lang");
-if(savedLang){
+if (savedLang) {
     currentLang = savedLang;
     document.getElementById("langSelect").value = savedLang;
 }
-
 updateDidYouKnow();
 updateLanguage();
+showHistory();
 showFavorites();
-checkLogin();
 showUpdate();
 showFact();
-
-document.getElementById("langSelect").style.display = "none";
-    
 </script>
 
 </body>
