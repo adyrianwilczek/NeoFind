@@ -402,32 +402,27 @@ function checkLogin() {
 
 /* REGISTER (local) */
 function register(){
-  const user = document.getElementById("regUser").value;
-  const pass = document.getElementById("regPass").value;
+    const email = document.getElementById("regUser").value;
+    const pass = document.getElementById("regPass").value;
 
-  if(!user || !pass){
-    alert("Fill everything!");
-    return;
-  }
-
-  localStorage.setItem("user_" + user, pass);
-  alert("Account created!");
+    auth.createUserWithEmailAndPassword(email, pass)
+        .then(() => {
+            alert("Account created!");
+        })
+        .catch(err => alert(err.message));
 }
 
 /* LOGIN (local) */
 function login(){
-  const user = document.getElementById("logUser").value;
-  const pass = document.getElementById("logPass").value;
+    const email = document.getElementById("logUser").value;
+    const pass = document.getElementById("logPass").value;
 
-  const saved = localStorage.getItem("user_" + user);
-
-  if(saved !== pass){
-    alert("Wrong login!");
-    return;
-  }
-
-  localStorage.setItem("currentUser", user);
-  location.reload();
+    auth.signInWithEmailAndPassword(email, pass)
+        .then(() => {
+            document.getElementById("loginScreen").style.display = "none";
+            document.querySelector(".container").style.display = "block";
+        })
+        .catch(err => alert(err.message));
 }
 const GLOBAL_UPDATE = "NeoFind 1.6 - We added debug console, Spanish language, history, and more!";
 
@@ -5043,7 +5038,15 @@ function checkLogin(){
         loginScreen.style.display = "block";
         app.style.display = "none";
     }
-}
+auth.onAuthStateChanged(user => {
+    if(user){
+        document.getElementById("loginScreen").style.display = "none";
+        document.querySelector(".container").style.display = "block";
+    } else {
+        document.getElementById("loginScreen").style.display = "block";
+        document.querySelector(".container").style.display = "none";
+    }
+});
 
 // 👤 UI USERA
 function showUserInfo(username){
