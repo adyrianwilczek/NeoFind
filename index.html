@@ -4793,20 +4793,12 @@ function applyTheme(theme){
 /* 👤 AUTH - Firebase Email/Password */
 // Rejestracja użytkownika: username -> email
 function register(){
-    console.log("REGISTER CLICKED");
-
     const email = document.getElementById("regUser").value;
     const pass = document.getElementById("regPass").value;
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => {
-            console.log("OK");
-            alert("Account created!");
-        })
-        .catch(err => {
-            console.error(err);
-            alert(err.message);
-        });
+        .then(() => alert("Account created!"))
+        .catch(err => alert(err.message));
 }
 
 // Logowanie użytkownika
