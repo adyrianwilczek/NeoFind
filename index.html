@@ -368,12 +368,10 @@ body.cyber {
 <button id="reportBtn" onclick="openReport()" style="position:fixed; bottom:20px; left:20px;">⚠️ Report problem</button>
 
 <div id="updates" style="margin:30px; text-align:center;"></div>
-
-<script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    
 <script>
-<div id="app" style="display:none;">
 const firebaseConfig = {
     apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
     authDomain: "neofind-f8213.firebaseapp.com",
@@ -4719,15 +4717,6 @@ function clearHistory(){
 
 // CONSOLE
     const suggestionsBox = document.getElementById("suggestions");
-
-document.getElementById("search").addEventListener("input", function(){
-    const value = this.value.toLowerCase();
-    const list = data[currentLang] || [];
-
-    if(!value){
-        suggestionsBox.innerHTML = "";
-        return;
-    }
 
     const matches = list.filter(item =>
         (item.title || "").toLowerCase().includes(value)
