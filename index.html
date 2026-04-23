@@ -367,22 +367,68 @@ body.cyber {
 <!-- REPORT -->
 <button id="reportBtn" onclick="openReport()" style="position:fixed; bottom:20px; left:20px;">⚠️ Report problem</button>
 
-<div id="updates" style="margin:30px; text-align:center;"></div>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
-    
+<!-- Firebase (compat version - działa ze starym kodem) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
 <script>
 const firebaseConfig = {
-    apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
-    authDomain: "neofind-f8213.firebaseapp.com",
-    projectId: "neofind-f8213",
-    storageBucket: "neofind-f8213.firebasestorage.app",
-    messagingSenderId: "463022861042",
-    appId: "1:463022861042:web:62a4f360d1dcc63813be6b"
-  };
+  apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
+  authDomain: "neofind-f8213.firebaseapp.com",
+  projectId: "neofind-f8213",
+  storageBucket: "neofind-f8213.firebasestorage.app",
+  messagingSenderId: "463022861042",
+  appId: "1:463022861042:web:62a4f360d1dcc63813be6b"
+};
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+
+/* LOGIN UI SWITCH */
+function checkLogin() {
+  const user = localStorage.getItem("currentUser");
+
+  const loginScreen = document.getElementById("loginScreen");
+  const app = document.querySelector(".container");
+
+  if (user) {
+    loginScreen.style.display = "none";
+    app.style.display = "block";
+  } else {
+    loginScreen.style.display = "block";
+    app.style.display = "none";
+  }
+}
+
+/* REGISTER (local) */
+function register(){
+  const user = document.getElementById("regUser").value;
+  const pass = document.getElementById("regPass").value;
+
+  if(!user || !pass){
+    alert("Fill everything!");
+    return;
+  }
+
+  localStorage.setItem("user_" + user, pass);
+  alert("Account created!");
+}
+
+/* LOGIN (local) */
+function login(){
+  const user = document.getElementById("logUser").value;
+  const pass = document.getElementById("logPass").value;
+
+  const saved = localStorage.getItem("user_" + user);
+
+  if(saved !== pass){
+    alert("Wrong login!");
+    return;
+  }
+
+  localStorage.setItem("currentUser", user);
+  location.reload();
+}
 const GLOBAL_UPDATE = "NeoFind 1.6 - We added debug console, Spanish language, history, and more!";
 
 const data = {
