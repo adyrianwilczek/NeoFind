@@ -251,6 +251,21 @@ body.cyber {
 </style>
 </head>
 <body>
+<div id="loginScreen" style="text-align:center; margin-top:100px;">
+
+    <h1>NeoFind Login</h1>
+
+    <h3>Login</h3>
+    <input id="logUser" placeholder="Username"><br>
+    <input id="logPass" type="password" placeholder="Password"><br>
+    <button onclick="login()">Login</button>
+
+    <h3>Register</h3>
+    <input id="regUser" placeholder="Username"><br>
+    <input id="regPass" type="password" placeholder="Password"><br>
+    <button onclick="register()">Register</button>
+
+</div>
 
 <div class="container">
 <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
@@ -355,6 +370,21 @@ body.cyber {
 <div id="updates" style="margin:30px; text-align:center;"></div>
 
 <script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script>
+<div id="app" style="display:none;">
+const firebaseConfig = {
+    apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
+    authDomain: "neofind-f8213.firebaseapp.com",
+    projectId: "neofind-f8213",
+    storageBucket: "neofind-f8213.firebasestorage.app",
+    messagingSenderId: "463022861042",
+    appId: "1:463022861042:web:62a4f360d1dcc63813be6b"
+  };
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const GLOBAL_UPDATE = "NeoFind 1.6 - We added debug console, Spanish language, history, and more!";
 
 const data = {
@@ -1706,7 +1736,7 @@ const data = {
             { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }
 ],
     en: [
-      { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
+     { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
 { title: "Grand Theft Auto V", desc: "Iconic action game from Rockstar Games. The open world of Los Santos with GTA Online multiplayer mode.", link: "https://www.rockstargames.com/gta-v" },
 { title: "NeoFind", desc: "A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.", link: "https://adyrianwilczek.github.io/NeoFind/" },
 { title: "League of Legends", desc: "MOBA from Riot Games. Millions of players worldwide battle in 5v5 team matches.", link: "https://www.leagueoflegends.com/pl-pl/" },
@@ -4881,6 +4911,118 @@ function applyTheme(theme){
 
     localStorage.setItem("theme", theme);
 }
+
+// 👤 USER SYSTEM
+
+// 🚫 zbanowane nicki
+const bannedUsernames = ["idiot","fuck","sex","niger"];
+
+// 📦 pobierz użytkowników
+function getUsers(){
+    return JSON.parse(localStorage.getItem("users")) || {};
+}
+
+// 💾 zapisz użytkowników
+function saveUsers(users){
+    localStorage.setItem("users", JSON.stringify(users));
+}
+
+// 👤 aktualny user
+function setCurrentUser(username){
+    localStorage.setItem("currentUser", username);
+}
+
+// 👤 pobierz aktualnego usera
+function getCurrentUser(){
+    return localStorage.getItem("currentUser");
+}
+
+// 🚪 LOGOUT
+function logout(){
+    localStorage.removeItem("currentUser");
+    location.reload();
+}
+
+// 📝 REGISTER
+function register(){
+    const user = document.getElementById("regUser").value.trim();
+    const pass = document.getElementById("regPass").value;
+
+    if(!user || !pass){
+        alert("Fill everything!");
+        return;
+    }
+
+    if(bannedUsernames.includes(user.toLowerCase())){
+        alert("This username is banned!");
+        return;
+    }
+
+    let users = getUsers();
+
+    if(users[user]){
+        alert("User already exists!");
+        return;
+    }
+
+    // 🔥 ADMIN AUTO (tu ustaw swój nick)
+    users[user] = {
+        password: pass,
+        isAdmin: user.toLowerCase() === "adrian" // ← zmień jeśli chcesz
+    };
+
+    saveUsers(users);
+
+    alert("Account created!");
+}
+
+// 🔑 LOGIN
+function login(){
+    const user = document.getElementById("logUser").value.trim();
+    const pass = document.getElementById("logPass").value;
+
+    let users = getUsers();
+
+    if(!users[user] || users[user].password !== pass){
+        alert("Wrong login!");
+        return;
+    }
+
+    setCurrentUser(user);
+    location.reload();
+}
+
+// 🧠 CHECK LOGIN
+function checkLogin(){
+    const user = getCurrentUser();
+
+    const loginScreen = document.getElementById("loginScreen");
+    const app = document.getElementById("app");
+
+    if(user){
+        loginScreen.style.display = "none";
+        app.style.display = "block";
+
+        showUserInfo(user);
+    } else {
+        loginScreen.style.display = "block";
+        app.style.display = "none";
+    }
+}
+
+// 👤 UI USERA
+function showUserInfo(username){
+    const users = getUsers();
+    const isAdmin = users[username]?.isAdmin;
+
+    const box = document.getElementById("userInfo");
+
+    box.innerHTML = `
+        👤 ${username} ${isAdmin ? "🛠️" : ""}
+        <br><br>
+        <button onclick="logout()">Logout</button>
+    `;
+}
  
 // 🌐 UI
 function updateLanguage(){
@@ -5204,6 +5346,7 @@ if(savedLang){
 updateDidYouKnow();
 updateLanguage();
 showFavorites();
+checkLogin();
 showUpdate();
 showFact();
 
