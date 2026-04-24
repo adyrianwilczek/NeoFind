@@ -135,17 +135,6 @@ select option {
     text-shadow: 0 0 10px gold;
 }
 
-/* czerwony log out */
-.logoutBtn {
-    background: #ff4d4d;
-    color: white;
-}
-
-.logoutBtn:hover {
-    background: #cc0000;
-    transform: scale(1.05);
-}
-    
 /* hover/focus */
 select:focus {
     outline: none;
@@ -224,11 +213,6 @@ button:hover {
 #consoleInput {
     width:100%;
     margin-top:10px;
-}
-
-/* popup */
-#logoutPopup {
-    display:none;
 }
 
 /* 💡 SUGGESTIONS */
@@ -341,17 +325,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
             <option value="cyber">Cyber</option>
         </select><br><br>
         <h3>👤 Account</h3>
-        
-                <h4>📜 History</h4>
-        <div id="historyList"></div><br>
-
-        <button onclick="clearHistory()">🧹 Clear history</button><br><br>
-        <button onclick="openConsole()">🪲 Debug Console</button><br><br>
-        <button onclick="saveSettings()">Save</button><br><br>
-        <button onclick="openLogoutPopup()" class="logoutBtn">➜] Log Out</button>
-        <h4 id="favTitle">⭐ Favorites</h4>
-        <div id="favoritesList"></div><br>
-    </div>
 
 <div class="result">
     <b>Email:</b>
@@ -392,46 +365,23 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 
 <p id="banStatus"></p>
 
+        <h4>📜 History</h4>
+        <div id="historyList"></div><br>
+
+        <button onclick="clearHistory()">🧹 Clear history</button><br><br>
+        <button onclick="openConsole()">🪲 Debug Console</button><br><br>
+        <button onclick="saveSettings()">Save</button><br><br>
+        <button onclick="logout()">➜] Log Out</button>
+        <h4 id="favTitle">⭐ Favorites</h4>
+        <div id="favoritesList"></div><br>
+    </div>
+
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
     <!-- REPORT BUTTON -->
     <button id="reportBtn" onclick="openReport()" style="position:fixed; bottom:20px; left:20px;">⚠️ Report problem</button>
 
     <div id="updates" style="margin:30px; text-align:center;"></div>
-</div>
-
-    <div id="logoutPopup" style="
-    display:none;
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.6);
-    z-index:9999;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-">
-    <div style="
-        background:#1a1a1a;
-        padding:30px;
-        border-radius:15px;
-        text-align:center;
-        box-shadow:0 10px 30px rgba(0,0,0,0.5);
-    ">
-        <h2 style="color:#ff4d4d;">⚠️ Are you sure?</h2>
-        <p style="opacity:0.8;">You will be logged out</p><br>
-
-        <button onclick="confirmLogout()" style="
-            background:#ff4d4d;
-            color:white;
-            margin-right:10px;
-        ">Yes, logout</button>
-
-        <button onclick="closeLogoutPopup()">Cancel</button>
-    </div>
 </div>
 
 <!-- Firebase scripts -->
