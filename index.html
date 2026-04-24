@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
 <meta charset="UTF-8">
 <title>NeoFind</title>
@@ -263,12 +263,12 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
-    <input id="logUser" placeholder="E-mail"><br>
-    <input id="logPass" type="password" placeholder="Password"><br>
+    <input id="logUser" placeholder="Nazwa użytkownika"><br>
+    <input id="logPass" type="password" placeholder="Hasło"><br>
     <button onclick="login()">Login</button>
     <h3>Register</h3>
-    <input id="regUser" placeholder="E-mail"><br>
-    <input id="regPass" type="password" placeholder="Password"><br>
+    <input id="regUser" placeholder="Nazwa użytkownika"><br>
+    <input id="regPass" type="password" placeholder="Hasło"><br>
     <button onclick="register()">Register</button>
 </div>
 
@@ -358,12 +358,12 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
                 <button onclick="closeAdmin()">❌ Close</button>
                 <h3>🚫 Ban system</h3>
 
-<input id="banEmail" placeholder="User email"><br><br>
+<input id="banEmail" placeholder="user email"><br><br>
 
-<button onclick="banUser()">Ban user</button>
-<button onclick="unbanUser()">Unban user</button>
-
-<p id="banStatus"></p>
+<button onclick="banUser()">Ban</button>
+<button onclick="unbanUser()">Unban</button>
+            </div>
+        </div>
 
         <h4>📜 History</h4>
         <div id="historyList"></div><br>
@@ -4838,12 +4838,10 @@ function applyTheme(theme){
 /* =========================
    FIREBASE INIT
 ========================= */
-firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const auth = firebase.auth();
 
 /* =========================
-   ADMIN EMAILS
+   ADMIN EMAIL (opcjonalne)
 ========================= */
 const ADMIN_EMAILS = [
     "adrian.wilczek@hotmail.com",
@@ -4876,6 +4874,7 @@ window.login = function () {
 
     if (!email || !pass) return alert("Fill all!");
 
+    // 🔥 sprawdzenie bana
     db.collection("bannedUsers").doc(email).get()
         .then(doc => {
             if (doc.exists) {
@@ -4886,7 +4885,9 @@ window.login = function () {
             return auth.signInWithEmailAndPassword(email, pass);
         })
         .catch(err => {
-            if (err.message !== "BANNED") alert(err.message);
+            if (err.message !== "BANNED") {
+                alert(err.message);
+            }
         });
 };
 
@@ -4900,6 +4901,7 @@ window.logout = function () {
 /* =========================
    AUTH STATE
 ========================= */
+auth.onAuthStateChanged(user => {
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
 
@@ -4907,8 +4909,9 @@ window.logout = function () {
         loginScreen.style.display = "none";
         app.style.display = "block";
 
-        document.getElementById("accountEmail").innerText = user.email;
+        console.log("User:", user.email);
 
+        // 🔐 admin check
         if (ADMIN_EMAILS.includes(user.email)) {
             document.getElementById("adminBox").style.display = "block";
             document.getElementById("adminBtn").style.display = "block";
@@ -4924,93 +4927,31 @@ window.logout = function () {
 });
 
 /* =========================
-   BAN SYSTEM (FIRESTORE)
+   BAN SYSTEM
 ========================= */
+
+// 🚫 BAN USER
 window.banUser = function () {
     const email = document.getElementById("banEmail").value.trim();
+
     if (!email) return alert("Enter email!");
 
     db.collection("bannedUsers").doc(email).set({
         reason: "Banned by admin",
         date: new Date()
     })
-    .then(() => {
-        document.getElementById("banStatus").innerText = "🚫 Banned: " + email;
-    })
+    .then(() => alert("User banned!"))
     .catch(err => alert(err.message));
 };
 
+// ✅ UNBAN USER
 window.unbanUser = function () {
     const email = document.getElementById("banEmail").value.trim();
-    if (!email) return alert("Enter email!");
 
     db.collection("bannedUsers").doc(email).delete()
-        .then(() => {
-            document.getElementById("banStatus").innerText = "✅ Unbanned: " + email;
-        })
+        .then(() => alert("User unbanned!"))
         .catch(err => alert(err.message));
 };
-
-/* =========================
-   EMAIL CHANGE
-========================= */
-window.changeEmailPrompt = function () {
-    const user = auth.currentUser;
-    if (!user) return alert("Not logged in!");
-
-    const newEmail = prompt("Enter new email:");
-    const password = prompt("Enter current password:");
-
-    if (!newEmail || !password) return;
-
-    const credential = firebase.auth.EmailAuthProvider.credential(
-        user.email,
-        password
-    );
-
-    user.reauthenticateWithCredential(credential)
-        .then(() => user.updateEmail(newEmail))
-        .then(() => {
-            alert("Email changed!");
-            document.getElementById("accountEmail").innerText = newEmail;
-        })
-        .catch(err => alert(err.message));
-};
-
-/* =========================
-   BLOCK BANNED USERS ON LOGIN STATE
-========================= */
-auth.onAuthStateChanged(user => {
-    if (!user) return;
-
-    db.collection("bannedUsers").doc(user.email).get()
-        .then(doc => {
-            if (doc.exists) {
-                alert("🚫 You are banned!");
-                auth.signOut();
-            }
-        auth.onAuthStateChanged(user => {
-    const loginScreen = document.getElementById("loginScreen");
-    const app = document.getElementById("app");
-
-    if (user) {
-        loginScreen.style.display = "none";
-        app.style.display = "block";
-
-        document.getElementById("accountEmail").innerText = user.email;
-
-        if (ADMIN_EMAILS.includes(user.email)) {
-            document.getElementById("adminBox").style.display = "block";
-            document.getElementById("adminBtn").style.display = "block";
-        } else {
-            document.getElementById("adminBox").style.display = "none";
-            document.getElementById("adminBtn").style.display = "none";
-        }
-    } else {
-        loginScreen.style.display = "block";
-        app.style.display = "none";
-    }
-});
 
 /* Brakujące funkcje */
 function showFavorites(){
