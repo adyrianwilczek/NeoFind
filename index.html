@@ -356,6 +356,12 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
                 <input id="adminLink" placeholder="Link"><br><br>
                 <button onclick="addResult()">Add</button><br><br>
                 <button onclick="closeAdmin()">❌ Close</button>
+                <h3>🚫 Ban system</h3>
+
+<input id="banEmail" placeholder="user email"><br><br>
+
+<button onclick="banUser()">Ban</button>
+<button onclick="unbanUser()">Unban</button>
             </div>
         </div>
 
@@ -381,6 +387,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 <!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
 /* Konfiguracja Firebase */
 const firebaseConfig = {
@@ -4669,7 +4676,26 @@ function addResult(){
         link: link
     });
     alert("Added!");
-    // Można tu dodać zapis do Firestore, jeśli potrzeba.
+    // Można tu dodać zapis do Firestore, jeśli potrzeba.'
+    window.banUser = function () {
+    const email = document.getElementById("banEmail").value.trim();
+
+    if (!email) return alert("Enter email!");
+
+    db.collection("bannedUsers").doc(email).set({
+        reason: "Banned by admin",
+        date: new Date()
+    })
+    .then(() => alert("User banned!"))
+    .catch(err => alert(err.message));
+};
+window.unbanUser = function () {
+    const email = document.getElementById("banEmail").value.trim();
+
+    db.collection("bannedUsers").doc(email).delete()
+        .then(() => alert("User unbanned!"))
+        .catch(err => alert(err.message));
+};
     closeAdmin();
 }
 
@@ -4886,15 +4912,26 @@ auth.onAuthStateChanged(user => {
 /* CHANGE EMAIL */
 window.changeEmail = function () {
     const user = auth.currentUser;
+
+    const currentPass = document.getElementById("currentPassEmail").value;
     const newEmail = document.getElementById("newEmail").value;
 
     if (!user) return alert("Not logged in!");
+    if (!currentPass || !newEmail) return alert("Fill all!");
+
+    const cred = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        currentPass
+    );
+        if (!user) return alert("Not logged in!");
     if (BANNED_EMAILS.includes(newEmail)) {
         return alert("This email is blocked 🚫");
-    }
 
-    user.updateEmail(newEmail)
-        .then(() => alert("Email updated!"))
+    user.reauthenticateWithCredential(cred)
+        .then(() => user.updateEmail(newEmail))
+        .then(() => {
+            alert("Email changed!");
+        })
         .catch(err => alert(err.message));
 };
 
@@ -4923,6 +4960,29 @@ window.changePassword = function () {
         .then(() => user.updatePassword(newPass))
         .then(() => alert("Password changed!"))
         .catch(err => alert(err.message));
+};
+
+/* BAN SYSTEM */
+const db = firebase.firestore();
+window.login = function () {
+    const email = document.getElementById("logUser").value.trim();
+    const pass = document.getElementById("logPass").value;
+
+    if (!email || !pass) return alert("Fill all!");
+
+    db.collection("bannedUsers").doc(email).get()
+        .then(doc => {
+            if (doc.exists) {
+                alert("🚫 This account is banned!");
+                throw new Error("BANNED");
+            }
+            return auth.signInWithEmailAndPassword(email, pass);
+        })
+        .catch(err => {
+            if (err.message !== "BANNED") {
+                alert(err.message);
+            }
+        });
 };
 
 /* OPEN PASSWORD BOX */
