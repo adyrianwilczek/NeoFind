@@ -4834,8 +4834,14 @@ function applyTheme(theme){
     localStorage.setItem("theme", theme);
 }
 
-/* 👤 AUTH - Firebase Email/Password */
+/* =========================
+   FIREBASE INIT
+========================= */
+const db = firebase.firestore();
 
+/* =========================
+   ADMIN EMAIL (opcjonalne)
+========================= */
 const ADMIN_EMAILS = [
     "adrian.wilczek@hotmail.com",
     "account.neofind@gmail.com",
@@ -4844,138 +4850,37 @@ const ADMIN_EMAILS = [
     "Michal.wilkowski@gmail.com"
 ];
 
-const BANNED_EMAILS = [
-    "support@gmail.com",
-    "admin@gmail.com",
-    "test@gmail.com"
-];
-
-/* REGISTER */
+/* =========================
+   REGISTER
+========================= */
 window.register = function () {
     const email = document.getElementById("regUser").value.trim();
     const pass = document.getElementById("regPass").value;
 
-    if (BANNED_EMAILS.includes(email)) {
-        alert("This email is blocked 🚫");
-        return;
-    }
+    if (!email || !pass) return alert("Fill all!");
 
     auth.createUserWithEmailAndPassword(email, pass)
         .then(() => alert("Account created!"))
         .catch(err => alert(err.message));
 };
 
-/* LOGIN */
-window.login = function () {
-    const email = document.getElementById("logUser").value.trim();
-    const pass = document.getElementById("logPass").value;
-
-    if (BANNED_EMAILS.includes(email)) {
-        alert("This email is blocked 🚫");
-        return;
-    }
-
-    auth.signInWithEmailAndPassword(email, pass)
-        .catch(err => alert(err.message));
-};
-
-/* LOGOUT */
-window.logout = function () {
-    auth.signOut();
-};
-
-/* STATE */
-auth.onAuthStateChanged(user => {
-    const loginScreen = document.getElementById("loginScreen");
-    const app = document.getElementById("app");
-
-    if (user) {
-        loginScreen.style.display = "none";
-        app.style.display = "block";
-
-        // admin check
-        const isAdmin = ADMIN_EMAILS.includes(user.email);
-
-        document.getElementById("adminBox").style.display = isAdmin ? "block" : "none";
-        document.getElementById("adminBtn").style.display = isAdmin ? "block" : "none";
-
-        // email display
-        const emailBox = document.getElementById("accountEmail");
-        if (emailBox) emailBox.innerText = user.email;
-
-    } else {
-        loginScreen.style.display = "block";
-        app.style.display = "none";
-    }
-});
-
-/* CHANGE EMAIL */
-window.changeEmail = function () {
-    const user = auth.currentUser;
-
-    const currentPass = document.getElementById("currentPassEmail").value;
-    const newEmail = document.getElementById("newEmail").value;
-
-    if (!user) return alert("Not logged in!");
-    if (!currentPass || !newEmail) return alert("Fill all!");
-
-    const cred = firebase.auth.EmailAuthProvider.credential(
-        user.email,
-        currentPass
-    );
-        if (!user) return alert("Not logged in!");
-    if (BANNED_EMAILS.includes(newEmail)) {
-        return alert("This email is blocked 🚫");
-
-    user.reauthenticateWithCredential(cred)
-        .then(() => user.updateEmail(newEmail))
-        .then(() => {
-            alert("Email changed!");
-        })
-        .catch(err => alert(err.message));
-};
-
-/* CHANGE PASSWORD */
-window.changePassword = function () {
-    const user = auth.currentUser;
-
-    const current = document.getElementById("currentPass").value;
-    const newPass = document.getElementById("newPass").value;
-    const repeat = document.getElementById("repeatPass").value;
-
-    if (!current || !newPass || !repeat) {
-        return alert("Fill all fields!");
-    }
-
-    if (newPass !== repeat) {
-        return alert("Passwords do not match!");
-    }
-
-    const cred = firebase.auth.EmailAuthProvider.credential(
-        user.email,
-        current
-    );
-
-    user.reauthenticateWithCredential(cred)
-        .then(() => user.updatePassword(newPass))
-        .then(() => alert("Password changed!"))
-        .catch(err => alert(err.message));
-};
-
-/* BAN SYSTEM */
-const db = firebase.firestore();
+/* =========================
+   LOGIN + BAN CHECK
+========================= */
 window.login = function () {
     const email = document.getElementById("logUser").value.trim();
     const pass = document.getElementById("logPass").value;
 
     if (!email || !pass) return alert("Fill all!");
 
+    // 🔥 sprawdzenie bana
     db.collection("bannedUsers").doc(email).get()
         .then(doc => {
             if (doc.exists) {
                 alert("🚫 This account is banned!");
                 throw new Error("BANNED");
             }
+
             return auth.signInWithEmailAndPassword(email, pass);
         })
         .catch(err => {
@@ -4985,9 +4890,66 @@ window.login = function () {
         });
 };
 
-/* OPEN PASSWORD BOX */
-window.openPasswordBox = function () {
-    document.getElementById("passwordBox").style.display = "block";
+/* =========================
+   LOGOUT
+========================= */
+window.logout = function () {
+    auth.signOut();
+};
+
+/* =========================
+   AUTH STATE
+========================= */
+auth.onAuthStateChanged(user => {
+    const loginScreen = document.getElementById("loginScreen");
+    const app = document.getElementById("app");
+
+    if (user) {
+        loginScreen.style.display = "none";
+        app.style.display = "block";
+
+        console.log("User:", user.email);
+
+        // 🔐 admin check
+        if (ADMIN_EMAILS.includes(user.email)) {
+            document.getElementById("adminBox").style.display = "block";
+            document.getElementById("adminBtn").style.display = "block";
+        } else {
+            document.getElementById("adminBox").style.display = "none";
+            document.getElementById("adminBtn").style.display = "none";
+        }
+
+    } else {
+        loginScreen.style.display = "block";
+        app.style.display = "none";
+    }
+});
+
+/* =========================
+   BAN SYSTEM
+========================= */
+
+// 🚫 BAN USER
+window.banUser = function () {
+    const email = document.getElementById("banEmail").value.trim();
+
+    if (!email) return alert("Enter email!");
+
+    db.collection("bannedUsers").doc(email).set({
+        reason: "Banned by admin",
+        date: new Date()
+    })
+    .then(() => alert("User banned!"))
+    .catch(err => alert(err.message));
+};
+
+// ✅ UNBAN USER
+window.unbanUser = function () {
+    const email = document.getElementById("banEmail").value.trim();
+
+    db.collection("bannedUsers").doc(email).delete()
+        .then(() => alert("User unbanned!"))
+        .catch(err => alert(err.message));
 };
 
 /* Brakujące funkcje */
