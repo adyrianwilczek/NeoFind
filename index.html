@@ -4886,25 +4886,31 @@ auth.onAuthStateChanged(user => {
 });
 
 // ✏️ ZMIANA EMAILA
-function changeEmailPrompt(){
-    const newEmail = prompt("New email:");
-    if(!newEmail) return;
-
-    const pass = prompt("Enter your password:");
-    if(!pass) return;
-
+window.changeEmail = function(){
     const user = auth.currentUser;
-    const cred = firebase.auth.EmailAuthProvider.credential(user.email, pass);
+    const newEmail = document.getElementById("newEmail").value;
+    const currentPass = document.getElementById("currentPassEmail").value;
 
-    user.reauthenticateWithCredential(cred)
+    if(!newEmail || !currentPass){
+        alert("Fill everything!");
+        return;
+    }
+
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        currentPass
+    );
+
+    user.reauthenticateWithCredential(credential)
         .then(() => {
             return user.updateEmail(newEmail);
         })
         .then(() => {
             alert("Email changed!");
-            document.getElementById("accountEmail").innerText = newEmail;
         })
-        .catch(err => alert(err.message));
+        .catch(err => {
+            alert(err.message);
+        });
 }
 
 // 🔒 OTWÓRZ PANEL HASŁA
@@ -4913,35 +4919,38 @@ function openPasswordBox(){
 }
 
 // 🔐 ZMIANA HASŁA
-function changePassword(){
-    const current = document.getElementById("currentPass").value;
+window.changePassword = function(){
+    const user = auth.currentUser;
+    const currentPass = document.getElementById("currentPass").value;
     const newPass = document.getElementById("newPass").value;
-    const repeat = document.getElementById("repeatPass").value;
+    const repeatPass = document.getElementById("repeatPass").value;
 
-    if(!current || !newPass || !repeat){
-        alert("Fill all!");
+    if(!currentPass || !newPass || !repeatPass){
+        alert("Fill everything!");
         return;
     }
 
-    if(newPass !== repeat){
+    if(newPass !== repeatPass){
         alert("Passwords do not match!");
         return;
     }
 
-    const user = auth.currentUser;
-    const cred = firebase.auth.EmailAuthProvider.credential(user.email, current);
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        currentPass
+    );
 
-    user.reauthenticateWithCredential(cred)
+    user.reauthenticateWithCredential(credential)
         .then(() => {
             return user.updatePassword(newPass);
         })
         .then(() => {
             alert("Password changed!");
-            document.getElementById("passwordBox").style.display = "none";
         })
-        .catch(err => alert(err.message));
+        .catch(err => {
+            alert(err.message);
+        });
 }
-});
 
 /* Brakujące funkcje */
 function showFavorites(){
