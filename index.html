@@ -4989,7 +4989,27 @@ auth.onAuthStateChanged(user => {
                 alert("🚫 You are banned!");
                 auth.signOut();
             }
-        });
+        auth.onAuthStateChanged(user => {
+    const loginScreen = document.getElementById("loginScreen");
+    const app = document.getElementById("app");
+
+    if (user) {
+        loginScreen.style.display = "none";
+        app.style.display = "block";
+
+        document.getElementById("accountEmail").innerText = user.email;
+
+        if (ADMIN_EMAILS.includes(user.email)) {
+            document.getElementById("adminBox").style.display = "block";
+            document.getElementById("adminBtn").style.display = "block";
+        } else {
+            document.getElementById("adminBox").style.display = "none";
+            document.getElementById("adminBtn").style.display = "none";
+        }
+    } else {
+        loginScreen.style.display = "block";
+        app.style.display = "none";
+    }
 });
 
 /* Brakujące funkcje */
