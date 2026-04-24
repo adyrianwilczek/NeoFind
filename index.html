@@ -324,6 +324,26 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
             <option value="matrix">Matrix</option>
             <option value="cyber">Cyber</option>
         </select><br><br>
+        <h3>👤 Account</h3>
+
+<div class="result">
+    <b>Email:</b>
+    <span id="accountEmail"></span>
+    <button onclick="changeEmailPrompt()">✎ Change</button>
+</div>
+
+<div class="result">
+    <b>Password:</b>
+    <span>******</span>
+    <button onclick="openPasswordBox()">✎ Change</button>
+</div>
+
+<div id="passwordBox" style="display:none; margin-top:10px;">
+    <input id="currentPass" type="password" placeholder="Current password"><br>
+    <input id="newPass" type="password" placeholder="New password"><br>
+    <input id="repeatPass" type="password" placeholder="Repeat new password"><br>
+    <button onclick="changePassword()">Save password</button>
+</div>
 
         <!-- ADMIN PANEL -->
         <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
@@ -345,7 +365,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
         <button onclick="clearHistory()">🧹 Clear history</button><br><br>
         <button onclick="openConsole()">🪲 Debug Console</button><br><br>
         <button onclick="saveSettings()">Save</button><br><br>
-        <button onclick="logout()">🔄 Logout</button>
+        <button onclick="logout()">➜] Log Out</button>
         <h4 id="favTitle">⭐ Favorites</h4>
         <div id="favoritesList"></div><br>
     </div>
@@ -4857,6 +4877,70 @@ auth.onAuthStateChanged(user => {
         document.getElementById("adminBox").style.display = "none";
         document.getElementById("adminBtn").style.display = "none";
     }
+    // 📧 pokaż email w settings
+auth.onAuthStateChanged(user => {
+    if (user) {
+        const emailBox = document.getElementById("accountEmail");
+        if (emailBox) emailBox.innerText = user.email;
+    }
+});
+
+// ✏️ ZMIANA EMAILA
+function changeEmailPrompt(){
+    const newEmail = prompt("New email:");
+    if(!newEmail) return;
+
+    const pass = prompt("Enter your password:");
+    if(!pass) return;
+
+    const user = auth.currentUser;
+    const cred = firebase.auth.EmailAuthProvider.credential(user.email, pass);
+
+    user.reauthenticateWithCredential(cred)
+        .then(() => {
+            return user.updateEmail(newEmail);
+        })
+        .then(() => {
+            alert("Email changed!");
+            document.getElementById("accountEmail").innerText = newEmail;
+        })
+        .catch(err => alert(err.message));
+}
+
+// 🔒 OTWÓRZ PANEL HASŁA
+function openPasswordBox(){
+    document.getElementById("passwordBox").style.display = "block";
+}
+
+// 🔐 ZMIANA HASŁA
+function changePassword(){
+    const current = document.getElementById("currentPass").value;
+    const newPass = document.getElementById("newPass").value;
+    const repeat = document.getElementById("repeatPass").value;
+
+    if(!current || !newPass || !repeat){
+        alert("Fill all!");
+        return;
+    }
+
+    if(newPass !== repeat){
+        alert("Passwords do not match!");
+        return;
+    }
+
+    const user = auth.currentUser;
+    const cred = firebase.auth.EmailAuthProvider.credential(user.email, current);
+
+    user.reauthenticateWithCredential(cred)
+        .then(() => {
+            return user.updatePassword(newPass);
+        })
+        .then(() => {
+            alert("Password changed!");
+            document.getElementById("passwordBox").style.display = "none";
+        })
+        .catch(err => alert(err.message));
+}
 });
 
 /* Brakujące funkcje */
