@@ -4838,10 +4838,12 @@ function applyTheme(theme){
 /* =========================
    FIREBASE INIT
 ========================= */
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
 
 /* =========================
-   ADMIN EMAIL (opcjonalne)
+   ADMIN EMAILS
 ========================= */
 const ADMIN_EMAILS = [
     "adrian.wilczek@hotmail.com",
@@ -4874,7 +4876,6 @@ window.login = function () {
 
     if (!email || !pass) return alert("Fill all!");
 
-    // 🔥 sprawdzenie bana
     db.collection("bannedUsers").doc(email).get()
         .then(doc => {
             if (doc.exists) {
@@ -4885,9 +4886,7 @@ window.login = function () {
             return auth.signInWithEmailAndPassword(email, pass);
         })
         .catch(err => {
-            if (err.message !== "BANNED") {
-                alert(err.message);
-            }
+            if (err.message !== "BANNED") alert(err.message);
         });
 };
 
@@ -4909,9 +4908,8 @@ auth.onAuthStateChanged(user => {
         loginScreen.style.display = "none";
         app.style.display = "block";
 
-        console.log("User:", user.email);
+        document.getElementById("accountEmail").innerText = user.email;
 
-        // 🔐 admin check
         if (ADMIN_EMAILS.includes(user.email)) {
             document.getElementById("adminBox").style.display = "block";
             document.getElementById("adminBtn").style.display = "block";
@@ -4927,39 +4925,72 @@ auth.onAuthStateChanged(user => {
 });
 
 /* =========================
-   BAN SYSTEM
+   BAN SYSTEM (FIRESTORE)
 ========================= */
-
-const bannedUsers = new Set(JSON.parse(localStorage.getItem("bannedUsers")) || []);
-
-/* 🚫 BAN USER */
 window.banUser = function () {
     const email = document.getElementById("banEmail").value.trim();
     if (!email) return alert("Enter email!");
 
-    bannedUsers.add(email);
-    localStorage.setItem("bannedUsers", JSON.stringify([...bannedUsers]));
-
-    document.getElementById("banStatus").innerText = "User banned: " + email;
+    db.collection("bannedUsers").doc(email).set({
+        reason: "Banned by admin",
+        date: new Date()
+    })
+    .then(() => {
+        document.getElementById("banStatus").innerText = "🚫 Banned: " + email;
+    })
+    .catch(err => alert(err.message));
 };
 
-/* ✅ UNBAN USER */
 window.unbanUser = function () {
     const email = document.getElementById("banEmail").value.trim();
     if (!email) return alert("Enter email!");
 
-    bannedUsers.delete(email);
-    localStorage.setItem("bannedUsers", JSON.stringify([...bannedUsers]));
-
-    document.getElementById("banStatus").innerText = "User unbanned: " + email;
+    db.collection("bannedUsers").doc(email).delete()
+        .then(() => {
+            document.getElementById("banStatus").innerText = "✅ Unbanned: " + email;
+        })
+        .catch(err => alert(err.message));
 };
 
-/* 🚪 BLOCK LOGIN IF BANNED */
+/* =========================
+   EMAIL CHANGE
+========================= */
+window.changeEmailPrompt = function () {
+    const user = auth.currentUser;
+    if (!user) return alert("Not logged in!");
+
+    const newEmail = prompt("Enter new email:");
+    const password = prompt("Enter current password:");
+
+    if (!newEmail || !password) return;
+
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        password
+    );
+
+    user.reauthenticateWithCredential(credential)
+        .then(() => user.updateEmail(newEmail))
+        .then(() => {
+            alert("Email changed!");
+            document.getElementById("accountEmail").innerText = newEmail;
+        })
+        .catch(err => alert(err.message));
+};
+
+/* =========================
+   BLOCK BANNED USERS ON LOGIN STATE
+========================= */
 auth.onAuthStateChanged(user => {
-    if (user && bannedUsers.has(user.email)) {
-        alert("🚫 You are banned!");
-        auth.signOut();
-    }
+    if (!user) return;
+
+    db.collection("bannedUsers").doc(user.email).get()
+        .then(doc => {
+            if (doc.exists) {
+                alert("🚫 You are banned!");
+                auth.signOut();
+            }
+        });
 });
 
 /* Brakujące funkcje */
