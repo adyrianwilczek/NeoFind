@@ -394,7 +394,13 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 // Ustaw email administratora (np. 'admin@local.neofind')
-const ADMIN_EMAIL = "admin@neofind";
+const ADMIN_EMAILS = [
+    "adrian.wilczek@hotmail.com",
+    "account.neofind@gmail.com",
+    "support.neofind@gmail.com",
+    "Michal.wilkowski@outlook.com",
+    "Michal.wilkowski@gmail.com"
+];
 
 // Dane i tłumaczenia
 const data = {
@@ -4812,101 +4818,125 @@ function applyTheme(theme){
 
 /* 👤 AUTH - Firebase Email/Password */
 
-// ✅ REGISTER
-window.register = function(){
-    const email = document.getElementById("regUser").value;
+const ADMIN_EMAILS = [
+    "adrian.wilczek@hotmail.com",
+    "account.neofind@gmail.com",
+    "support.neofind@gmail.com",
+    "Michal.wilkowski@outlook.com",
+    "Michal.wilkowski@gmail.com"
+];
+
+const BANNED_EMAILS = [
+    "support@gmail.com",
+    "admin@gmail.com",
+    "test@gmail.com"
+];
+
+/* REGISTER */
+window.register = function () {
+    const email = document.getElementById("regUser").value.trim();
     const pass = document.getElementById("regPass").value;
+
+    if (BANNED_EMAILS.includes(email)) {
+        alert("This email is blocked 🚫");
+        return;
+    }
 
     auth.createUserWithEmailAndPassword(email, pass)
         .then(() => alert("Account created!"))
         .catch(err => alert(err.message));
-}
+};
 
-// ✅ LOGIN
-window.login = function(){
-    const email = document.getElementById("logUser").value;
+/* LOGIN */
+window.login = function () {
+    const email = document.getElementById("logUser").value.trim();
     const pass = document.getElementById("logPass").value;
+
+    if (BANNED_EMAILS.includes(email)) {
+        alert("This email is blocked 🚫");
+        return;
+    }
 
     auth.signInWithEmailAndPassword(email, pass)
         .catch(err => alert(err.message));
-}
+};
 
-// ✅ LOGOUT
-window.logout = function(){
+/* LOGOUT */
+window.logout = function () {
     auth.signOut();
-}
+};
 
-// ✅ AUTH STATE (TYLKO RAZ!)
+/* STATE */
 auth.onAuthStateChanged(user => {
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
 
-    if(user){
+    if (user) {
         loginScreen.style.display = "none";
         app.style.display = "block";
 
-        console.log("User:", user.email);
+        // admin check
+        const isAdmin = ADMIN_EMAILS.includes(user.email);
 
-        // 📧 pokaż email
+        document.getElementById("adminBox").style.display = isAdmin ? "block" : "none";
+        document.getElementById("adminBtn").style.display = isAdmin ? "block" : "none";
+
+        // email display
         const emailBox = document.getElementById("accountEmail");
-        if(emailBox) emailBox.innerText = user.email;
-
-        // 🔐 admin
-        if(user.email === "adrian.wilczek@hotmail.com"){
-            document.getElementById("adminBox").style.display = "block";
-            document.getElementById("adminBtn").style.display = "block";
-        } else {
-            document.getElementById("adminBox").style.display = "none";
-            document.getElementById("adminBtn").style.display = "none";
-        }
+        if (emailBox) emailBox.innerText = user.email;
 
     } else {
         loginScreen.style.display = "block";
         app.style.display = "none";
-        document.getElementById("adminBox").style.display = "none";
-        document.getElementById("adminBtn").style.display = "none";
     }
 });
 
+/* CHANGE EMAIL */
+window.changeEmail = function () {
+    const user = auth.currentUser;
+    const newEmail = document.getElementById("newEmail").value;
 
-// 🔒 OTWIERANIE PANELU HASŁA
-window.openPasswordBox = function(){
-    document.getElementById("passwordBox").style.display = "block";
-}
+    if (!user) return alert("Not logged in!");
+    if (BANNED_EMAILS.includes(newEmail)) {
+        return alert("This email is blocked 🚫");
+    }
 
+    user.updateEmail(newEmail)
+        .then(() => alert("Email updated!"))
+        .catch(err => alert(err.message));
+};
 
-// 🔑 ZMIANA HASŁA
-window.changePassword = function(){
+/* CHANGE PASSWORD */
+window.changePassword = function () {
+    const user = auth.currentUser;
+
     const current = document.getElementById("currentPass").value;
     const newPass = document.getElementById("newPass").value;
     const repeat = document.getElementById("repeatPass").value;
 
-    if(!current || !newPass || !repeat){
-        alert("Fill all!");
-        return;
+    if (!current || !newPass || !repeat) {
+        return alert("Fill all fields!");
     }
 
-    if(newPass !== repeat){
-        alert("Passwords do not match!");
-        return;
+    if (newPass !== repeat) {
+        return alert("Passwords do not match!");
     }
 
-    const user = auth.currentUser;
-    if(!user){
-        alert("Not logged in!");
-        return;
-    }
-
-    const cred = firebase.auth.EmailAuthProvider.credential(user.email, current);
+    const cred = firebase.auth.EmailAuthProvider.credential(
+        user.email,
+        current
+    );
 
     user.reauthenticateWithCredential(cred)
         .then(() => user.updatePassword(newPass))
-        .then(() => {
-            alert("Password changed!");
-            document.getElementById("passwordBox").style.display = "none";
-        })
+        .then(() => alert("Password changed!"))
         .catch(err => alert(err.message));
-}
+};
+
+/* OPEN PASSWORD BOX */
+window.openPasswordBox = function () {
+    document.getElementById("passwordBox").style.display = "block";
+};
 
 /* Brakujące funkcje */
 function showFavorites(){
