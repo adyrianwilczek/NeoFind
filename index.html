@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>NeoFind</title>
@@ -263,12 +263,12 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
-    <input id="logUser" placeholder="Nazwa użytkownika"><br>
-    <input id="logPass" type="password" placeholder="Hasło"><br>
+    <input id="logUser" placeholder="E-mail"><br>
+    <input id="logPass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
     <h3>Register</h3>
-    <input id="regUser" placeholder="Nazwa użytkownika"><br>
-    <input id="regPass" type="password" placeholder="Hasło"><br>
+    <input id="regUser" placeholder="E-mail"><br>
+    <input id="regPass" type="password" placeholder="Password"><br>
     <button onclick="register()">Register</button>
 </div>
 
@@ -358,12 +358,12 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
                 <button onclick="closeAdmin()">❌ Close</button>
                 <h3>🚫 Ban system</h3>
 
-<input id="banEmail" placeholder="user email"><br><br>
+<input id="banEmail" placeholder="User email"><br><br>
 
-<button onclick="banUser()">Ban</button>
-<button onclick="unbanUser()">Unban</button>
-            </div>
-        </div>
+<button onclick="banUser()">Ban user</button>
+<button onclick="unbanUser()">Unban user</button>
+
+<p id="banStatus"></p>
 
         <h4>📜 History</h4>
         <div id="historyList"></div><br>
@@ -4930,28 +4930,37 @@ auth.onAuthStateChanged(user => {
    BAN SYSTEM
 ========================= */
 
-// 🚫 BAN USER
+const bannedUsers = new Set(JSON.parse(localStorage.getItem("bannedUsers")) || []);
+
+/* 🚫 BAN USER */
 window.banUser = function () {
     const email = document.getElementById("banEmail").value.trim();
-
     if (!email) return alert("Enter email!");
 
-    db.collection("bannedUsers").doc(email).set({
-        reason: "Banned by admin",
-        date: new Date()
-    })
-    .then(() => alert("User banned!"))
-    .catch(err => alert(err.message));
+    bannedUsers.add(email);
+    localStorage.setItem("bannedUsers", JSON.stringify([...bannedUsers]));
+
+    document.getElementById("banStatus").innerText = "User banned: " + email;
 };
 
-// ✅ UNBAN USER
+/* ✅ UNBAN USER */
 window.unbanUser = function () {
     const email = document.getElementById("banEmail").value.trim();
+    if (!email) return alert("Enter email!");
 
-    db.collection("bannedUsers").doc(email).delete()
-        .then(() => alert("User unbanned!"))
-        .catch(err => alert(err.message));
+    bannedUsers.delete(email);
+    localStorage.setItem("bannedUsers", JSON.stringify([...bannedUsers]));
+
+    document.getElementById("banStatus").innerText = "User unbanned: " + email;
 };
+
+/* 🚪 BLOCK LOGIN IF BANNED */
+auth.onAuthStateChanged(user => {
+    if (user && bannedUsers.has(user.email)) {
+        alert("🚫 You are banned!");
+        auth.signOut();
+    }
+});
 
 /* Brakujące funkcje */
 function showFavorites(){
