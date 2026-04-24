@@ -226,6 +226,11 @@ button:hover {
     margin-top:10px;
 }
 
+/* popup */
+#logoutPopup {
+    display:none;
+}
+
 /* 💡 SUGGESTIONS */
 #suggestions {
     width: 80%;
@@ -395,7 +400,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <div id="updates" style="margin:30px; text-align:center;"></div>
 </div>
 
-        <div id="logoutPopup" style="
+    <div id="logoutPopup" style="
     display:none;
     position:fixed;
     top:0;
@@ -404,6 +409,8 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     height:100%;
     background:rgba(0,0,0,0.6);
     z-index:9999;
+
+    display:flex;
     align-items:center;
     justify-content:center;
 ">
