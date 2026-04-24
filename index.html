@@ -245,8 +245,9 @@ body.matrix {
     color: #00ff00;
 }
 
-body.cyber {
-    background: purple !important;
+body.ocean {
+    background: Aqua !important;
+    color: #38fff2
 }
 </style>
 </head>
@@ -322,7 +323,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
             <option value="classic">Classic</option>
             <option value="space">Space</option>
             <option value="matrix">Matrix</option>
-            <option value="cyber">Cyber</option>
+            <option value="ocean">Ocean</option>
         </select><br><br>
         <h3>👤 Account</h3>
 
@@ -4819,7 +4820,7 @@ function startMatrix(){
 }
 function applyTheme(theme){
     console.log("THEME:", theme);
-    document.body.classList.remove("space","matrix","cyber");
+    document.body.classList.remove("space","matrix","ocean");
     stopEffects();
     if(theme === "space"){
         document.body.classList.add("space");
@@ -4829,8 +4830,8 @@ function applyTheme(theme){
         document.body.classList.add("matrix");
         startMatrix();
     }
-    if(theme === "cyber"){
-        document.body.classList.add("cyber");
+    if(theme === "ocean"){
+        document.body.classList.add("ocean");
     }
     localStorage.setItem("theme", theme);
 }
