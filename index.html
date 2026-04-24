@@ -345,6 +345,17 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <button onclick="changePassword()">Save password</button>
 </div>
 
+        <h4>📜 History</h4>
+        <div id="historyList"></div><br>
+
+        <button onclick="clearHistory()">🧹 Clear history</button><br><br>
+        <button onclick="openConsole()">🪲 Debug Console</button><br><br>
+        <button onclick="saveSettings()">Save</button><br><br>
+        <button onclick="logout()">➜] Log Out</button>
+        <h4 id="favTitle">⭐ Favorites</h4>
+        <div id="favoritesList"></div><br>
+    </div>
+
         <!-- ADMIN PANEL -->
         <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
             <h2>🔐 Admin Panel</h2>
@@ -364,17 +375,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 <button onclick="unbanUser()">Unban user</button>
 
 <p id="banStatus"></p>
-
-        <h4>📜 History</h4>
-        <div id="historyList"></div><br>
-
-        <button onclick="clearHistory()">🧹 Clear history</button><br><br>
-        <button onclick="openConsole()">🪲 Debug Console</button><br><br>
-        <button onclick="saveSettings()">Save</button><br><br>
-        <button onclick="logout()">➜] Log Out</button>
-        <h4 id="favTitle">⭐ Favorites</h4>
-        <div id="favoritesList"></div><br>
-    </div>
 
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
