@@ -4886,39 +4886,6 @@ auth.onAuthStateChanged(user => {
 });
 
 // ✏️ ZMIANA EMAILA
-window.changeEmail = function(){
-    const user = auth.currentUser;
-    const newEmail = document.getElementById("newEmail").value;
-    const currentPass = document.getElementById("currentPassEmail").value;
-
-    if(!newEmail || !currentPass){
-        alert("Fill everything!");
-        return;
-    }
-
-    const credential = firebase.auth.EmailAuthProvider.credential(
-        user.email,
-        currentPass
-    );
-
-    user.reauthenticateWithCredential(credential)
-        .then(() => {
-            return user.updateEmail(newEmail);
-        })
-        .then(() => {
-            alert("Email changed!");
-        })
-        .catch(err => {
-            alert(err.message);
-        });
-}
-
-// 🔒 OTWÓRZ PANEL HASŁA
-function openPasswordBox(){
-    document.getElementById("passwordBox").style.display = "block";
-}
-
-// 🔐 ZMIANA HASŁA
 window.changePassword = function(){
     const user = auth.currentUser;
     const currentPass = document.getElementById("currentPass").value;
@@ -4950,6 +4917,48 @@ window.changePassword = function(){
         .catch(err => {
             alert(err.message);
         });
+}
+
+// 🔒 OTWÓRZ PANEL HASŁA
+function openPasswordBox(){
+    document.getElementById("passwordBox").style.display = "block";
+}
+
+// 🔐 ZMIANA HASŁA
+window.openPasswordBox = function(){
+    document.getElementById("passwordBox").style.display = "block";
+}
+
+window.changePassword = function(){
+    const current = document.getElementById("currentPass").value;
+    const newPass = document.getElementById("newPass").value;
+    const repeat = document.getElementById("repeatPass").value;
+
+    if(!current || !newPass || !repeat){
+        alert("Fill all!");
+        return;
+    }
+
+    if(newPass !== repeat){
+        alert("Passwords do not match!");
+        return;
+    }
+
+    const user = auth.currentUser;
+    if(!user){
+        alert("Not logged in!");
+        return;
+    }
+
+    const cred = firebase.auth.EmailAuthProvider.credential(user.email, current);
+
+    user.reauthenticateWithCredential(cred)
+        .then(() => user.updatePassword(newPass))
+        .then(() => {
+            alert("Password changed!");
+            document.getElementById("passwordBox").style.display = "none";
+        })
+        .catch(err => alert(err.message));
 }
 
 /* Brakujące funkcje */
