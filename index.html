@@ -4645,7 +4645,7 @@ document.getElementById("search").addEventListener("input", function() {
     }
     results.innerHTML = filtered.map((item, index) => `
     <div class="result">
-        <a href="#" onclick="openTab('${item.link}')">${item.title}</a>
+        <a href="${item.link}" target="_blank">${item.title}</a>
         <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
         <p>${item.desc}</p>
     </div>
@@ -5169,55 +5169,6 @@ function handleCommand(e){
     else{
         log("unknown command");
     }
-}
-
-// Karty
-function openTab(url){
-    const id = "tab_" + Date.now();
-
-    // 🔘 zakładka
-    const tab = document.createElement("div");
-    tab.innerText = "Tab";
-    tab.style.padding = "8px 12px";
-    tab.style.background = "#222";
-    tab.style.borderRadius = "8px";
-    tab.style.cursor = "pointer";
-    tab.style.color = "white";
-
-    tab.onclick = () => switchTab(id);
-
-    // ❌ zamykanie
-    const close = document.createElement("span");
-    close.innerText = " ✖";
-    close.style.marginLeft = "8px";
-    close.onclick = (e)=>{
-        e.stopPropagation();
-        document.getElementById(id).remove();
-        tab.remove();
-    };
-
-    tab.appendChild(close);
-    document.getElementById("tabsBar").appendChild(tab);
-
-    // 📄 zawartość
-    const frame = document.createElement("iframe");
-    frame.src = url;
-    frame.id = id;
-    frame.style.width = "100%";
-    frame.style.height = "100%";
-    frame.style.border = "none";
-
-    document.getElementById("tabContent").appendChild(frame);
-
-    switchTab(id);
-}
-
-function switchTab(id){
-    const frames = document.querySelectorAll("#tabContent iframe");
-    frames.forEach(f => f.style.display = "none");
-
-    const active = document.getElementById(id);
-    if(active) active.style.display = "block";
 }
 
 // 🔄 UI Aktualizacje
