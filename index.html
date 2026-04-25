@@ -280,11 +280,25 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
 
     <div class="searchBox">
-        <input type="text" id="search" placeholder="Search...">
-        <div id="suggestions"></div>
-    </div>
+<input type="text" id="search" placeholder="Search...">
+<div id="suggestions"></div>
 
-    <div id="results"></div>
+<!-- 🔥 TUTAJ WKLEJ -->
+<div id="tabsBar" style="
+    display:flex;
+    gap:5px;
+    padding:10px;
+    background:rgba(0,0,0,0.4);
+    overflow-x:auto;
+"></div>
+
+<div id="tabContent" style="
+    width:100%;
+    height:70vh;
+"></div>
+
+<!-- 🔍 wyniki -->
+<div id="results"></div>
 
     <select id="langSelect" style="display:none;">
         <option value="en" selected>EN</option>
@@ -325,7 +339,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
             <option value="matrix">Matrix</option>
             <option value="ocean">Ocean</option>
         </select><br><br>
-        <h3>👤 Account</h3>
+        <h3 id="accountTitle">👤 Account</h3>
 
 <div class="result">
     <b>Email:</b>
@@ -352,7 +366,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
         <button onclick="clearHistory()">🧹 Clear history</button><br><br>
         <button onclick="openConsole()">🪲 Debug Console</button><br><br>
         <button onclick="saveSettings()">Save</button><br><br>
-        <button onclick="logout()">➜] Log Out</button>
+        <button onclick="openLogoutPopup()" id="logoutBtn">Log Out</button>
         <h4 id="favTitle">⭐ Favorites</h4>
         <div id="favoritesList"></div><br>
     </div>
@@ -372,8 +386,8 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 
 <input id="banEmail" placeholder="User email"><br><br>
 
-<button onclick="banUser()">Ban user</button>
-<button onclick="unbanUser()">Unban user</button>
+<button onclick="banUser()" id="banBtn">Ban user</button>
+<button onclick="unbanUser()" id="unbanBtn">Unban user</button>
 
 <p id="banStatus"></p>
 
@@ -4470,6 +4484,13 @@ const translations = {
         favorites: "⭐ Favorites",
         noFavorites: "No favorites",
         theme: "Theme:",
+        account: "Account",
+        email: "Email",
+        password: "Password",
+        change: "Change",
+        banUser: "Ban user",
+        unbanUser: "Unban user",
+        logout: "Log out",
 
         didYouKnowTitle: "💡 Did you know?",
         didYouKnow: [
@@ -4500,6 +4521,13 @@ const translations = {
         favorites: "⭐ Ulubione",
         noFavorites: "Brak ulubionych",
         theme: "Motyw:",
+        account: "Konto",
+        email: "Email",
+        password: "Hasło",
+        change: "Zmień",
+        banUser: "Zbanuj użytkownika",
+        unbanUser: "Odbanuj użytkownika",
+        logout: "Wyloguj się",
 
         didYouKnowTitle: "💡 Czy wiesz, że?",
         didYouKnow: [
@@ -4530,6 +4558,13 @@ const translations = {
         favorites: "⭐ Favoritos",
         noFavorites: "Sin favoritos",
         theme: "Tema:",
+        account: "Cuenta",
+        email: "Correo",
+        password: "Contraseña",
+        change: "Cambiar",
+        banUser: "Banear usuario",
+        unbanUser: "Desbanear usuario",
+        logout: "Cerrar sesión",
 
         didYouKnowTitle: "💡 ¿Sabías?",
         didYouKnow: [
@@ -4610,7 +4645,7 @@ document.getElementById("search").addEventListener("input", function() {
     }
     results.innerHTML = filtered.map((item, index) => `
     <div class="result">
-        <a href="${item.link}" target="_blank">${item.title}</a>
+        <a href="#" onclick="openTab('${item.link}')">${item.title}</a>
         <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
         <p>${item.desc}</p>
     </div>
@@ -5136,6 +5171,55 @@ function handleCommand(e){
     }
 }
 
+// Karty
+function openTab(url){
+    const id = "tab_" + Date.now();
+
+    // 🔘 zakładka
+    const tab = document.createElement("div");
+    tab.innerText = "Tab";
+    tab.style.padding = "8px 12px";
+    tab.style.background = "#222";
+    tab.style.borderRadius = "8px";
+    tab.style.cursor = "pointer";
+    tab.style.color = "white";
+
+    tab.onclick = () => switchTab(id);
+
+    // ❌ zamykanie
+    const close = document.createElement("span");
+    close.innerText = " ✖";
+    close.style.marginLeft = "8px";
+    close.onclick = (e)=>{
+        e.stopPropagation();
+        document.getElementById(id).remove();
+        tab.remove();
+    };
+
+    tab.appendChild(close);
+    document.getElementById("tabsBar").appendChild(tab);
+
+    // 📄 zawartość
+    const frame = document.createElement("iframe");
+    frame.src = url;
+    frame.id = id;
+    frame.style.width = "100%";
+    frame.style.height = "100%";
+    frame.style.border = "none";
+
+    document.getElementById("tabContent").appendChild(frame);
+
+    switchTab(id);
+}
+
+function switchTab(id){
+    const frames = document.querySelectorAll("#tabContent iframe");
+    frames.forEach(f => f.style.display = "none");
+
+    const active = document.getElementById(id);
+    if(active) active.style.display = "block";
+}
+
 // 🔄 UI Aktualizacje
 function updateLanguage(){
     const t = translations[currentLang];
@@ -5151,6 +5235,14 @@ function showUpdate(){
     const box = document.getElementById("updates");
     const t = translations[currentLang];
     box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
+}
+function updateUI(){
+    const t = translations[currentLang];
+
+    document.getElementById("accountTitle").innerText = t.account;
+    document.getElementById("logoutBtn").innerText = t.logout;
+    document.getElementById("banBtn").innerText = t.banUser;
+    document.getElementById("unbanBtn").innerText = t.unbanUser;
 }
 
 function spawnNeo(){
@@ -5304,6 +5396,7 @@ if (savedLang) {
 updateDidYouKnow();
 updateLanguage();
 showHistory();
+updateUI();
 </script>
 
 </body>
