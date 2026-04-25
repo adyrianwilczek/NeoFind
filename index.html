@@ -380,9 +380,26 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
     <!-- REPORT BUTTON -->
-    <button id="reportBtn" onclick="openReport()" style="position:fixed; bottom:20px; left:20px;">⚠️ Report problem</button>
+    <<button onclick="openReport()">⚠️ Report</button>
+<div id="reportBox" style="
+    display:none;
+    position:fixed;
+    top:20%;
+    left:50%;
+    transform:translateX(-50%);
+    width:80%;
+    background:#111;
+    padding:20px;
+    border-radius:15px;
+    z-index:9999;
+    text-align:center;
+">
+    <h3>⚠️ Report problem</h3>
 
-    <div id="updates" style="margin:30px; text-align:center;"></div>
+    <input id="reportText" placeholder="Describe problem..."><br><br>
+
+    <button onclick="sendReport()">Send</button>
+    <button onclick="closeReport()">❌ Close</button>
 </div>
 
 <!-- Firebase scripts -->
@@ -400,6 +417,7 @@ const firebaseConfig = {
     appId: "1:463022861042:web:62a4f360d1dcc63813be6b"
 };
 firebase.initializeApp(firebaseConfig);
+
 
 const GLOBAL_UPDATE = "🚀 Added login, admin panel and ban system + bug fixes";
 
@@ -4678,6 +4696,7 @@ function saveSettings(){
     log("saved settings (lang: " + currentLang + ")");
 }
 
+
 /* ADMIN PANEL CONTROL */
 function openAdmin(){
     document.getElementById("adminBox").style.display = "block";
@@ -5155,6 +5174,38 @@ function handleCommand(e){
     else{
         log("unknown command");
     }
+}
+
+// Report Problem
+function openReport(){
+    document.getElementById("reportBox").style.display = "block";
+}
+
+function closeReport(){
+    document.getElementById("reportBox").style.display = "none";
+}
+
+function sendReport(){
+    const text = document.getElementById("reportText").value.trim();
+
+    if(!text){
+        showPopup("Write something!", "red");
+        return;
+    }
+
+    db.collection("reports").add({
+        text: text,
+        user: auth.currentUser ? auth.currentUser.email : "guest",
+        date: new Date()
+    })
+    .then(()=>{
+        showPopup("Report sent!", "#00cc66");
+        document.getElementById("reportText").value = "";
+        closeReport();
+    })
+    .catch(err=>{
+        showPopup(err.message, "red");
+    });
 }
 
 // 🔄 UI Aktualizacje
