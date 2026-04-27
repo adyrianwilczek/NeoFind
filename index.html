@@ -115,6 +115,27 @@ select {
     cursor: pointer;
 }
 
+/* karty */
+.tab {
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.tab.active {
+    background: #4da6ff;
+}
+
+.tabPage {
+    display: none;
+}
+
+.tabPage.active {
+    display: block;
+}
+
 /* opcje w dropdown */
 select option {
     background: #0f2027;
@@ -274,6 +295,15 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 </div>
 
 <div id="app" class="container" style="display:none;">
+<div id="tabsBar" style="
+    display:flex;
+    gap:5px;
+    padding:10px;
+    background:rgba(0,0,0,0.4);
+    overflow-x:auto;
+"></div>
+
+<div id="tabContent"></div>
     <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
     <div id="didYouKnow" style="text-align:center; margin-bottom:10px; opacity:0.8;"></div>
 
@@ -5205,6 +5235,71 @@ function sendReport(){
     })
     .catch(err=>{
         showPopup(err.message, "red");
+    });
+}
+
+// KARTY
+let tabs = [
+    { id: "searchTab", name: "🔍 Search", render: renderSearch },
+    { id: "favTab", name: "⭐ Favorites", render: showFavorites },
+    { id: "settingsTab", name: "⚙️ Settings", render: openSettings },
+    { id: "reportTab", name: "⚠️ Reports", render: openReport }
+];
+
+function initTabs(){
+    const bar = document.getElementById("tabsBar");
+    const content = document.getElementById("tabContent");
+
+    bar.innerHTML = "";
+
+    tabs.forEach((t, i) => {
+        const btn = document.createElement("div");
+        btn.className = "tab";
+        btn.innerText = t.name;
+
+        btn.onclick = () => {
+            document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+            btn.classList.add("active");
+
+            content.innerHTML = "";
+            t.render(content);
+        };
+
+        bar.appendChild(btn);
+
+        if(i === 0) btn.click(); // startowa karta
+    });
+}
+
+// SEARCH TAB UI
+function renderSearch(container){
+    container.innerHTML = `
+        <input id="search" placeholder="Search..." />
+        <div id="suggestions"></div>
+        <div id="results"></div>
+    `;
+
+    // reconnect event
+    document.getElementById("search").addEventListener("input", function(){
+        const value = this.value.toLowerCase().trim();
+        const results = document.getElementById("results");
+
+        const list = data[currentLang] || [];
+        const filtered = list.filter(item =>
+            (item.title || "").toLowerCase().includes(value)
+        );
+
+        if(!filtered.length){
+            results.innerHTML = "No results";
+            return;
+        }
+
+        results.innerHTML = filtered.map(item => `
+            <div class="result">
+                <a href="${item.link}" target="_blank">${item.title}</a>
+                <p>${item.desc}</p>
+            </div>
+        `).join("");
     });
 }
 
