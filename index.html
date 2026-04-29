@@ -115,27 +115,6 @@ select {
     cursor: pointer;
 }
 
-/* karty */
-.tab {
-    padding: 8px 12px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 10px;
-    cursor: pointer;
-    white-space: nowrap;
-}
-
-.tab.active {
-    background: #4da6ff;
-}
-
-.tabPage {
-    display: none;
-}
-
-.tabPage.active {
-    display: block;
-}
-
 /* opcje w dropdown */
 select option {
     background: #0f2027;
@@ -271,31 +250,6 @@ body.ocean {
     color: #38fff2
 }
 
-/* karty */
-    #tabsBar {
-    display:flex;
-    gap:5px;
-    padding:10px;
-    background:rgba(0,0,0,0.4);
-    overflow-x:auto;
-}
-
-.tab {
-    padding:6px 12px;
-    border-radius:10px;
-    background:rgba(255,255,255,0.1);
-    cursor:pointer;
-}
-
-.tab.active {
-    background:#4da6ff;
-}
-
-iframe {
-    width:100%;
-    height:80vh;
-    border:none;
-}
 </style>
 </head>
 <body>
@@ -311,6 +265,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
+    <button onclick="resendVerification()">Resend verification</button>
     <input id="logUser" placeholder="E-mail"><br>
     <input id="logPass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
@@ -321,15 +276,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 </div>
 
 <div id="app" class="container" style="display:none;">
-<div id="tabsBar"></div>
-<div id="tabViews"></div>
-<div id="tabsBar" style="
-    display:flex;
-    gap:5px;
-    padding:10px;
-    background:rgba(0,0,0,0.4);
-    overflow-x:auto;
-"></div>
 
 <div id="tabContent"></div>
     <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
@@ -389,6 +335,15 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <b>Email:</b>
     <span id="accountEmail"></span>
     <button onclick="changeEmailPrompt()">✎ Change</button>
+</div>
+
+<div id="premiumBadge" style="
+    display:none;
+    color:#00ffff;
+    font-weight:bold;
+    margin-top:10px;
+">
+    💎 Premium
 </div>
 
 <div class="result">
@@ -4953,6 +4908,10 @@ const ADMIN_EMAILS = [
 ]
 
 /* =========================
+   PREMIUM
+==========================*/
+
+/* =========================
    REGISTER
 ========================= */
 window.register = function () {
@@ -4962,7 +4921,12 @@ window.register = function () {
     if (!email || !pass) return alert("Fill all!");
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => alert("Account created!"))
+        .then(userCred => {
+            return userCred.user.sendEmailVerification();
+        })
+        .then(() => {
+            alert("Verification email sent! Check your inbox 📧");
+        })
         .catch(err => alert(err.message));
 };
 
@@ -4989,6 +4953,11 @@ window.logout = function () {
 /* =========================
    AUTH STATE + BAN CHECK
 ========================= */
+if (!user.emailVerified) {
+    alert("Verify your email first!");
+    auth.signOut();
+    return;
+}
 auth.onAuthStateChanged(async user => {
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
@@ -5024,6 +4993,11 @@ auth.onAuthStateChanged(async user => {
         document.getElementById("adminBox").style.display = "none";
         document.getElementById("adminBtn").style.display = "none";
     }
+if (PREMIUM_EMAILS.includes(user.email)) {
+    document.getElementById("premiumBadge").style.display = "block";
+} else {
+    document.getElementById("premiumBadge").style.display = "none";
+}
 });
 
 /* =========================
@@ -5266,39 +5240,15 @@ function sendReport(){
     });
 }
 
-// KARTY
-let tabs = [];
-let tabId = 0;
+// Resed E-mail
+window.resendVerification = function () {
+    const user = auth.currentUser;
+    if (!user) return alert("Login first!");
 
-function createTab(url, title){
-    const id = "tab" + (++tabId);
-
-    tabs.push({ id, url, title });
-    renderTabs();
-    switchTab(id);
-}
-
-function renderTabs(){
-    const bar = document.getElementById("tabsBar");
-    bar.innerHTML = "";
-
-    tabs.forEach(t => {
-        const div = document.createElement("div");
-        div.className = "tab";
-        div.innerText = t.title;
-
-        div.onclick = () => switchTab(t.id);
-
-        bar.appendChild(div);
-    });
-}
-
-function switchTab(id){
-    const view = document.getElementById("tabViews");
-    const tab = tabs.find(t => t.id === id);
-
-    view.innerHTML = `<iframe src="${tab.url}"></iframe>`;
-}
+    user.sendEmailVerification()
+        .then(() => alert("Sent again! 📧"))
+        .catch(err => alert(err.message));
+};
 
 // 🔄 UI Aktualizacje
 function updateLanguage(){
@@ -5465,19 +5415,6 @@ function spawnNeo(){
         speech.remove();
     }, 9500);
 }
-
-// KARTY
-document.addEventListener("click", function(e){
-    const a = e.target.closest("a");
-    if(!a) return;
-
-    const url = a.getAttribute("href");
-
-    if(url && url.startsWith("http")){
-        e.preventDefault();
-        createTab(url, a.innerText || "Tab");
-    }
-});
 
 // START
 const savedLang = localStorage.getItem("lang");
