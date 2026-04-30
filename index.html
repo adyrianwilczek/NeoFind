@@ -274,15 +274,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 </div>
 
 <div id="app" class="container" style="display:none;">
-<div id="tabsBar"></div>
-<div id="tabViews"></div>
-<div id="tabsBar" style="
-    display:flex;
-    gap:5px;
-    padding:10px;
-    background:rgba(0,0,0,0.4);
-    overflow-x:auto;
-"></div>
 
 <div id="tabContent"></div>
     <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
@@ -400,7 +391,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
     <!-- REPORT BUTTON -->
-    <<button onclick="openReport()">⚠️ Report</button>
+    <button onclick="openReport()">⚠️ Report</button>
 <div id="reportBox" style="
     display:none;
     position:fixed;
@@ -4960,11 +4951,6 @@ window.logout = function () {
 /* =========================
    AUTH STATE + BAN CHECK
 ========================= */
-if (PREMIUM_EMAILS.includes(user.email)) {
-    document.getElementById("premiumBadge").style.display = "block";
-} else {
-    document.getElementById("premiumBadge").style.display = "none";
-}
 auth.onAuthStateChanged(async user => {
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
@@ -4992,6 +4978,11 @@ auth.onAuthStateChanged(async user => {
     app.style.display = "block";
 
     document.getElementById("accountEmail").innerText = user.email;
+    if (PREMIUM_EMAILS.includes(user.email)) {
+    document.getElementById("premiumBadge").style.display = "block";
+} else {
+    document.getElementById("premiumBadge").style.display = "none";
+}
 
     if (ADMIN_EMAILS.includes(user.email)) {
         document.getElementById("adminBox").style.display = "block";
