@@ -265,7 +265,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
-    <button onclick="resendVerification()">Resend verification</button>
     <input id="logUser" placeholder="E-mail"><br>
     <input id="logPass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
@@ -4914,7 +4913,9 @@ const PREMIUM_EMAILS = [
     "j.e.wilczek@gmail.com",
     "adrian.wilczek@hotmail.com",
     "michal.wilkowski@outlook.com",
-    "Michal.wilkowski@gmail.com"
+    "Michal.wilkowski@gmail.com",
+    "support.neofind@gmail.com",
+    "account.neofind@gmail.com"
 ];
     
 /* =========================
@@ -5245,16 +5246,6 @@ function sendReport(){
         showPopup(err.message, "red");
     });
 }
-
-// Resed E-mail
-window.resendVerification = function () {
-    const user = auth.currentUser;
-    if (!user) return alert("Login first!");
-
-    user.sendEmailVerification()
-        .then(() => alert("Sent again! 📧"))
-        .catch(err => alert(err.message));
-};
 
 // 🔄 UI Aktualizacje
 function updateLanguage(){
