@@ -249,7 +249,6 @@ body.ocean {
     background: Aqua !important;
     color: #38fff2
 }
-
 </style>
 </head>
 <body>
@@ -275,6 +274,15 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 </div>
 
 <div id="app" class="container" style="display:none;">
+<div id="tabsBar"></div>
+<div id="tabViews"></div>
+<div id="tabsBar" style="
+    display:flex;
+    gap:5px;
+    padding:10px;
+    background:rgba(0,0,0,0.4);
+    overflow-x:auto;
+"></div>
 
 <div id="tabContent"></div>
     <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
@@ -328,7 +336,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
             <option value="matrix">Matrix</option>
             <option value="ocean">Ocean</option>
         </select><br><br>
-        <h3 id="accountTitle">👤 Account</h3>
+<h3 id="accountTitle">👤 Account</h3>
 
 <div class="result">
     <b>Email:</b>
@@ -4906,18 +4914,15 @@ const ADMIN_EMAILS = [
     "j.e.wilkowska@gmail.com"
 ]
 
-/* =========================
-   PREMIUM EMAILS
-==========================*/
 const PREMIUM_EMAILS = [
-    "j.e.wilczek@gmail.com",
     "adrian.wilczek@hotmail.com",
-    "michal.wilkowski@outlook.com",
-    "Michal.wilkowski@gmail.com",
+    "account.neofind@gmail.com",
     "support.neofind@gmail.com",
-    "account.neofind@gmail.com"
+    "Michal.wilkowski@outlook.com",
+    "Michal.wilkowski@gmail.com",
+    "j.e.wilkowska@gmail.com"
 ];
-    
+
 /* =========================
    REGISTER
 ========================= */
@@ -4928,12 +4933,7 @@ window.register = function () {
     if (!email || !pass) return alert("Fill all!");
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(userCred => {
-            return userCred.user.sendEmailVerification();
-        })
-        .then(() => {
-            alert("Verification email sent! Check your inbox 📧");
-        })
+        .then(() => alert("Account created!"))
         .catch(err => alert(err.message));
 };
 
@@ -4960,10 +4960,10 @@ window.logout = function () {
 /* =========================
    AUTH STATE + BAN CHECK
 ========================= */
-if (!user.emailVerified) {
-    alert("Verify your email first!");
-    auth.signOut();
-    return;
+if (PREMIUM_EMAILS.includes(user.email)) {
+    document.getElementById("premiumBadge").style.display = "block";
+} else {
+    document.getElementById("premiumBadge").style.display = "none";
 }
 auth.onAuthStateChanged(async user => {
     const loginScreen = document.getElementById("loginScreen");
@@ -5000,11 +5000,6 @@ auth.onAuthStateChanged(async user => {
         document.getElementById("adminBox").style.display = "none";
         document.getElementById("adminBtn").style.display = "none";
     }
-if (PREMIUM_EMAILS.includes(user.email)) {
-    document.getElementById("premiumBadge").style.display = "block";
-} else {
-    document.getElementById("premiumBadge").style.display = "none";
-}
 });
 
 /* =========================
