@@ -377,9 +377,27 @@ z-index:9999;
         <button onclick="openConsole()">🪲 Debug Console</button><br><br>
         <button onclick="saveSettings()">Save</button><br><br>
         <button onclick="openLogoutPopup()" id="logoutBtn">Log Out</button>
+        <button onclick="document.getElementById('rateBox').style.display='block'">⭐ Rate us</button>
         <h4 id="favTitle">⭐ Favorites</h4>
         <div id="favoritesList"></div><br>
     </div>
+
+        <h4>⭐ Rate us</h4>
+
+<div id="rateBox" style="display:none;">
+    <h4>⭐ Rate us</h4>
+    <select id="rateStars">
+        <option value="">Select rating</option>
+        <option value="1">⭐ 1</option>
+        <option value="2">⭐⭐ 2</option>
+        <option value="3">⭐⭐⭐ 3</option>
+        <option value="4">⭐⭐⭐⭐ 4</option>
+        <option value="5">⭐⭐⭐⭐⭐ 5</option>
+    </select><br><br>
+    <textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
+    <button onclick="sendRating()">Send rating</button>
+    <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
+</div>
 
         <!-- ADMIN PANEL -->
         <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
@@ -400,6 +418,10 @@ z-index:9999;
 <button onclick="unbanUser()" id="unbanBtn">Unban user</button>
 
 <p id="banStatus"></p>
+
+<h3>⭐ Ratings</h3>
+<div id="ratingsList"></div>
+<p id="ratingAvg"></p>
                 
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
@@ -5280,6 +5302,61 @@ function sendReport(){
     .catch(err=>{
         showPopup(err.message, "red");
     });
+}
+
+// OCENY
+window.sendRating = function () {
+    const stars = parseInt(document.getElementById("rateStars").value);
+    const text = document.getElementById("rateText").value.trim();
+
+    if (!stars) return alert("Select stars!");
+
+    const user = auth.currentUser;
+
+    db.collection("ratings").add({
+        stars: stars,
+        text: text,
+        user: user ? user.email : "guest",
+        date: new Date()
+    })
+    .then(() => {
+        alert("Thanks for rating!");
+        document.getElementById("rateStars").value = "";
+        document.getElementById("rateText").value = "";
+    })
+    .catch(err => alert(err.message));
+};
+
+// OCENY II
+async function loadRatings(){
+    const snapshot = await db.collection("ratings").get();
+
+    const box = document.getElementById("ratingsList");
+    let all = [];
+    box.innerHTML = "";
+
+    snapshot.forEach(doc => {
+        const r = doc.data();
+        all.push(r.stars);
+
+        box.innerHTML += `
+            <div class="result">
+                <b>${r.user}</b><br>
+                ⭐ ${r.stars}/5<br>
+                ${r.text || ""}
+            </div>
+        `;
+    });
+
+    if(all.length){
+        const avgStars = all.reduce((a,b)=>a+b,0) / all.length;
+
+        // ⭐ procent (tak jak chciałeś)
+        const percent = Math.round((avgStars / 5) * 100);
+
+        document.getElementById("ratingAvg").innerText =
+            "Average: " + percent + "% (" + avgStars.toFixed(2) + "/5)";
+    }
 }
 
 // WIADOMOŚCI II
