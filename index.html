@@ -376,7 +376,7 @@ z-index:9999;
         <button onclick="clearHistory()">🧹 Clear history</button><br><br>
         <button onclick="openConsole()">🪲 Debug Console</button><br><br>
         <button onclick="saveSettings()">Save</button><br><br>
-        <button onclick="openLogoutPopup()" id="logoutBtn">Log Out</button>
+        <button onclick="auth.signOut()" id="logoutBtn">Log Out</button>
         <button onclick="document.getElementById('rateBox').style.display='block'">⭐ Rate us</button>
         <h4 id="favTitle">⭐ Favorites</h4>
         <div id="favoritesList"></div><br>
@@ -422,11 +422,13 @@ z-index:9999;
 <h3>⭐ Ratings</h3>
 <div id="ratingsList"></div>
 <p id="ratingAvg"></p>
+            </div>
+        </div>
                 
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
     <!-- REPORT BUTTON -->
-    <button onclick="openReport()">⚠️ Report</button>
+    <button id="reportBtn" onclick="openReport()">⚠️ Report</button>
 <div id="reportBox" style="
     display:none;
     position:fixed;
@@ -469,7 +471,7 @@ z-index:9999;
 <br>
 <button onclick="closeNews()">❌ Close</button>
 </div>
-
+<div id="updates"></div>
 <!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -5405,6 +5407,7 @@ function updateLanguage(){
 
 function showUpdate(){
     const box = document.getElementById("updates");
+    if(!box) return;
     const t = translations[currentLang];
     box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
 }
