@@ -444,6 +444,28 @@ z-index:9999;
     <button onclick="sendReport()">Send</button>
     <button onclick="closeReport()">❌ Close</button>
 </div>
+<div id="newsBox" style="
+display:none;
+position:fixed;
+top:15%;
+left:50%;
+transform:translateX(-50%);
+width:80%;
+max-height:70%;
+overflow:auto;
+background:#111;
+padding:20px;
+border-radius:15px;
+z-index:9999;
+">
+
+<h2>📰 News</h2>
+
+<div id="newsList"></div>
+
+<br>
+<button onclick="closeNews()">❌ Close</button>
+</div>
 
 <!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -5333,30 +5355,6 @@ async function loadRatings(){
             "Average: " + percent + "% (" + avgStars.toFixed(2) + "/5)";
     }
 }
-
-// WIADOMOŚCI
-<div id="newsBox" style="
-display:none;
-position:fixed;
-top:15%;
-left:50%;
-transform:translateX(-50%);
-width:80%;
-max-height:70%;
-overflow:auto;
-background:#111;
-padding:20px;
-border-radius:15px;
-z-index:9999;
-">
-
-<h2>📰 News</h2>
-
-<div id="newsList"></div>
-
-<br>
-<button onclick="closeNews()">❌ Close</button>
-</div>
 
 // WIADOMOŚCI II
 function openNews(){
