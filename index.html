@@ -334,6 +334,19 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <span id="accountEmail"></span>
     <button onclick="changeEmailPrompt()">✎ Change</button>
 </div>
+<button onclick="openNews()" style="
+position:fixed;
+top:20px;
+right:20px;
+padding:10px 15px;
+border-radius:12px;
+background:#ffcc00;
+color:black;
+font-weight:bold;
+z-index:9999;
+">
+📰 News
+</button>
 
 <div id="premiumBadge" style="
     display:none;
@@ -368,6 +381,21 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
         <div id="favoritesList"></div><br>
     </div>
 
+        <h4>⭐ Rate us</h4>
+
+<select id="rateStars">
+    <option value="">Select rating</option>
+    <option value="1">⭐ 1</option>
+    <option value="2">⭐⭐ 2</option>
+    <option value="3">⭐⭐⭐ 3</option>
+    <option value="4">⭐⭐⭐⭐ 4</option>
+    <option value="5">⭐⭐⭐⭐⭐ 5</option>
+</select><br><br>
+
+<textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
+
+<button onclick="sendRating()">Send rating</button>
+
         <!-- ADMIN PANEL -->
         <div id="adminBox" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%); width:80%; background:#111; padding:20px; border-radius:15px; z-index:9999; text-align:center;">
             <h2>🔐 Admin Panel</h2>
@@ -388,6 +416,10 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 
 <p id="banStatus"></p>
 
+<h3>⭐ Ratings</h3>
+<div id="ratingsList"></div>
+<p id="ratingAvg"></p>
+                
     <!-- ADMIN BUTTON -->
     <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
     <!-- REPORT BUTTON -->
@@ -4623,6 +4655,19 @@ const translations = {
         ]
     }
 };
+    
+const newsData = [
+    {
+        title: "🚀 Big update!",
+        text: "Added login system and admin panel",
+        date: "2026-05-02"
+    },
+    {
+        title: "⭐ Ratings added",
+        text: "Users can now rate NeoFind!",
+        date: "2026-05-03"
+    }
+];
 
 let currentLang = "en";
 
@@ -4711,6 +4756,7 @@ function saveSettings(){
 /* ADMIN PANEL CONTROL */
 function openAdmin(){
     document.getElementById("adminBox").style.display = "block";
+    loadRatings();
 }
 function closeAdmin(){
     document.getElementById("adminBox").style.display = "none";
@@ -5233,6 +5279,107 @@ function sendReport(){
     });
 }
 
+// OCENY
+window.sendRating = function () {
+    const stars = parseInt(document.getElementById("rateStars").value);
+    const text = document.getElementById("rateText").value.trim();
+
+    if (!stars) return alert("Select stars!");
+
+    const user = auth.currentUser;
+
+    db.collection("ratings").add({
+        stars: stars,
+        text: text,
+        user: user ? user.email : "guest",
+        date: new Date()
+    })
+    .then(() => {
+        alert("Thanks for rating!");
+        document.getElementById("rateStars").value = "";
+        document.getElementById("rateText").value = "";
+    })
+    .catch(err => alert(err.message));
+};
+
+// OCENY II
+async function loadRatings(){
+    const snapshot = await db.collection("ratings").get();
+
+    const box = document.getElementById("ratingsList");
+    let all = [];
+    box.innerHTML = "";
+
+    snapshot.forEach(doc => {
+        const r = doc.data();
+        all.push(r.stars);
+
+        box.innerHTML += `
+            <div class="result">
+                <b>${r.user}</b><br>
+                ⭐ ${r.stars}/5<br>
+                ${r.text || ""}
+            </div>
+        `;
+    });
+
+    if(all.length){
+        const avgStars = all.reduce((a,b)=>a+b,0) / all.length;
+
+        // ⭐ procent (tak jak chciałeś)
+        const percent = Math.round((avgStars / 5) * 100);
+
+        document.getElementById("ratingAvg").innerText =
+            "Average: " + percent + "% (" + avgStars.toFixed(2) + "/5)";
+    }
+}
+
+// WIADOMOŚCI
+<div id="newsBox" style="
+display:none;
+position:fixed;
+top:15%;
+left:50%;
+transform:translateX(-50%);
+width:80%;
+max-height:70%;
+overflow:auto;
+background:#111;
+padding:20px;
+border-radius:15px;
+z-index:9999;
+">
+
+<h2>📰 News</h2>
+
+<div id="newsList"></div>
+
+<br>
+<button onclick="closeNews()">❌ Close</button>
+</div>
+
+// WIADOMOŚCI II
+function openNews(){
+    document.getElementById("newsBox").style.display = "block";
+    loadNews();
+}
+
+function closeNews(){
+    document.getElementById("newsBox").style.display = "none";
+}
+
+function loadNews(){
+    const box = document.getElementById("newsList");
+
+    box.innerHTML = newsData.map(n => `
+        <div class="result">
+            <h3>${n.title}</h3>
+            <p>${n.text}</p>
+            <small>${n.date}</small>
+        </div>
+    `).join("");
+}
+    
 // 🔄 UI Aktualizacje
 function updateLanguage(){
     const t = translations[currentLang];
