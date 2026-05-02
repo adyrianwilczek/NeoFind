@@ -5384,11 +5384,22 @@ function loadNews(){
 // 🔄 UI Aktualizacje
 function updateLanguage(){
     const t = translations[currentLang];
-    document.getElementById("search").placeholder = t.search;
-    document.getElementById("reportBtn").innerText = t.report;
-    document.getElementById("adminBtn").innerText = t.admin;
-    document.getElementById("favTitle").innerText = translations[currentLang].favorites;
-    document.querySelector('button[onclick="exportLogs()"]').innerText = t.export;
+    
+    const search = document.getElementById("search");
+    if(search) search.placeholder = t.search;
+    
+    const reportBtn = document.getElementById("reportBtn");
+    if(reportBtn) reportBtn.innerText = t.report;
+    
+    const adminBtn = document.getElementById("adminBtn");
+    if(adminBtn) adminBtn.innerText = t.admin;
+    
+    const favTitle = document.getElementById("favTitle");
+    if(favTitle) favTitle.innerText = t.favorites;
+    
+    const exportBtn = document.querySelector('button[onclick="exportLogs()"]');
+    if(exportBtn) exportBtn.innerText = t.export;
+    
     showUpdate();
 }
 
