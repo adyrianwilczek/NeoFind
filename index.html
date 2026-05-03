@@ -4739,6 +4739,21 @@ function updateDidYouKnow(){
 /* 🔍 SEARCH + HISTORY */
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
+    // 🧠 CALCULATOR
+if(/^[0-9+\-*/(). ]+$/.test(value)){
+    try{
+        const result = eval(value);
+
+        if(result !== undefined){
+            document.getElementById("results").innerHTML = `
+                <div class="result">
+                    <h2>= ${result}</h2>
+                </div>
+            `;
+            return;
+        }
+    }catch(e){}
+}
     log('searched "' + value + '"');
     saveToHistory(value);
 
