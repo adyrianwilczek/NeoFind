@@ -4710,107 +4710,171 @@ function getAIResponse(query) {
 
     query = query.toLowerCase();
 
-    const responses = [
-        { k: "what is roblox", a: "Roblox is an online platform where people can play and create games made by others." },
-        { k: "what is minecraft", a: "Minecraft is a sandbox game where you can build, explore, and survive in endless worlds." },
-        { k: "why is sky blue", a: "The sky is blue because of how sunlight scatters in the atmosphere (Rayleigh scattering)." },
-        { k: "how are you", a: "I'm just an AI in NeoFind, but I'm running smoothly 🙂" },
-        { k: "what is ai", a: "AI is technology that allows computers to simulate human-like thinking and responses." },
-        { k: "what is javascript", a: "JavaScript is a programming language used to create interactive websites and apps." },
-        { k: "what is html", a: "HTML is the structure of web pages, like the skeleton of a website." },
-        { k: "what is css", a: "CSS is used to style websites, like colors, layouts, and fonts." },
-        { k: "what is internet", a: "The internet is a global network that connects computers worldwide." },
-        { k: "what is wifi", a: "WiFi is a wireless way to connect devices to the internet." },
+    // =========================
+    // POLSKIE PYTANIA
+    // =========================
 
-        { k: "what is google", a: "Google is a search engine that helps you find information online." },
-        { k: "what is youtube", a: "YouTube is a platform for watching and sharing videos." },
-        { k: "what is discord", a: "Discord is an app for chatting through text, voice, and communities." },
-        { k: "what is laptop", a: "A laptop is a portable computer you can use anywhere." },
-        { k: "what is computer", a: "A computer is a device that processes data and runs programs." },
-
-        { k: "why do we sleep", a: "We sleep to rest our body and help our brain recover and stay healthy." },
-        { k: "why do we dream", a: "Dreams happen during sleep and may reflect thoughts and memories." },
-        { k: "what is gravity", a: "Gravity is the force that pulls objects toward each other, like us to Earth." },
-        { k: "what is earth", a: "Earth is the third planet from the Sun and our home." },
-        { k: "what is sun", a: "The Sun is a star that gives Earth light and heat." },
-
-        { k: "what is moon", a: "The Moon is Earth's natural satellite that orbits around us." },
-        { k: "what is water", a: "Water is a liquid essential for life on Earth." },
-        { k: "what is fire", a: "Fire is a chemical reaction that produces heat and light." },
-        { k: "what is energy", a: "Energy is what allows work to be done or things to move." },
-        { k: "what is electricity", a: "Electricity is the flow of electric charge used to power devices." },
-
-        { k: "what is programming", a: "Programming is writing instructions for computers to follow." },
-        { k: "what is coding", a: "Coding is creating software using programming languages." },
-        { k: "what is game", a: "A game is an activity made for fun or challenge." },
-        { k: "what is roblox studio", a: "Roblox Studio is a tool to create games on Roblox." },
-        { k: "what is minecraft mod", a: "A Minecraft mod is a modification that changes or adds features to the game." },
-
-        { k: "what is fps", a: "FPS means frames per second, showing how smooth a game runs." },
-        { k: "what is ping", a: "Ping is the delay between your device and a server." },
-        { k: "what is ai chatbot", a: "An AI chatbot is a program that talks with users using artificial intelligence." },
-        { k: "what is search engine", a: "A search engine helps you find information on the internet." },
-        { k: "what is algorithm", a: "An algorithm is a set of steps to solve a problem." },
-
-        { k: "what is data", a: "Data is information stored or processed by computers." },
-        { k: "what is file", a: "A file is a container for storing data on a computer." },
-        { k: "what is folder", a: "A folder is used to organize files on a device." },
-        { k: "what is browser", a: "A browser is an app used to access websites." },
-        { k: "what is website", a: "A website is a collection of web pages on the internet." },
-
-        { k: "why is grass green", a: "Grass is green because of chlorophyll, a pigment used in photosynthesis." },
-        { k: "what is photosynthesis", a: "Photosynthesis is how plants turn sunlight into energy." },
-        { k: "what is atom", a: "An atom is the smallest unit of matter." },
-        { k: "what is molecule", a: "A molecule is two or more atoms bonded together." },
-        { k: "what is speed", a: "Speed is how fast something moves." },
-
-        { k: "what is time", a: "Time is how we measure events and their duration." },
-        { k: "what is space", a: "Space is the vast universe beyond Earth." },
-        { k: "what is planet", a: "A planet is a large object that orbits a star." },
-        { k: "what is star", a: "A star is a huge glowing ball of gas in space." },
-        { k: "what is galaxy", a: "A galaxy is a system of billions of stars." },
-
-        { k: "what is music", a: "Music is sounds arranged in a way that is pleasant to hear." },
-        { k: "what is art", a: "Art is creative expression like drawing, painting, or music." },
-        { k: "what is sport", a: "A sport is a physical activity with rules and competition." },
-        { k: "what is football", a: "Football is a sport where teams try to score goals." },
-        { k: "what is basketball", a: "Basketball is a game where players shoot a ball into a hoop." },
-
-        { k: "what is ai assistant", a: "An AI assistant helps answer questions and complete tasks." },
-        { k: "what is neofind", a: "NeoFind is a search engine project with AI-powered answers." },
-        { k: "what is error", a: "An error is a problem that prevents something from working correctly." },
-        { k: "what is bug", a: "A bug is a mistake in code that causes unexpected behavior." },
-        { k: "what is update", a: "An update is a newer version that improves software." },
-
-        { k: "what is login", a: "Login means signing into an account." },
-        { k: "what is password", a: "A password is a secret code used to protect accounts." },
-        { k: "what is security", a: "Security is protecting systems and data from threats." },
-        { k: "what is cloud", a: "Cloud computing stores data and services on the internet." },
-        { k: "what is server", a: "A server is a computer that provides data to other devices." },
-
-        { k: "what is ai future", a: "AI will likely become more helpful in everyday tasks." },
-        { k: "what is machine learning", a: "Machine learning is when AI learns from data automatically." },
-        { k: "what is neural network", a: "A neural network is a system inspired by the human brain." },
-        { k: "what is robot", a: "A robot is a machine that can perform tasks automatically." },
-        { k: "what is technology", a: "Technology is the use of science to solve problems." }
-    ];
-
-    for (let item of responses) {
-        if (query.includes(item.k)) {
-            return item.a;
-        }
+    if (query.includes("co to jest roblox")) {
+        return "Roblox to platforma online, gdzie użytkownicy mogą grać i tworzyć gry stworzone przez innych użytkowników.";
     }
 
-    return "I don't fully understand this yet, but try rephrasing or searching it again.";
-}
+    if (query.includes("co to jest minecraft")) {
+        return "Minecraft to gra typu sandbox, w której możesz budować, przetrwać i eksplorować nieskończone światy.";
+    }
+
+    if (query.includes("co to jest fortnite")) {
+        return "Fortnite to gra battle royale, w której gracze walczą o przetrwanie.";
+    }
+
+    if (query.includes("co to jest discord")) {
+        return "Discord to aplikacja do komunikacji tekstowej, głosowej i społecznościowej.";
+    }
+
+    if (query.includes("co to jest youtube")) {
+        return "YouTube to platforma do oglądania i udostępniania filmów.";
+    }
+
+    if (query.includes("co to jest google")) {
+        return "Google to wyszukiwarka internetowa pomagająca znaleźć informacje.";
+    }
+
+    if (query.includes("co to jest internet")) {
+        return "Internet to globalna sieć łącząca komputery na całym świecie.";
+    }
+
+    if (query.includes("co to jest wifi")) {
+        return "WiFi to technologia bezprzewodowego łączenia urządzeń z internetem.";
+    }
+
+    if (query.includes("co to jest komputer")) {
+        return "Komputer to urządzenie przetwarzające dane i uruchamiające programy.";
+    }
+
+    if (query.includes("co to jest laptop")) {
+        return "Laptop to przenośny komputer do pracy i rozrywki.";
+    }
+
+    if (query.includes("co to jest programowanie")) {
+        return "Programowanie to tworzenie instrukcji dla komputerów.";
+    }
+
+    if (query.includes("co to jest kodowanie")) {
+        return "Kodowanie to pisanie programów w językach programowania.";
+    }
+
+    if (query.includes("co to jest błąd")) {
+        return "Błąd to problem powodujący niepoprawne działanie programu.";
+    }
+
+    if (query.includes("co to jest bug")) {
+        return "Bug to błąd w kodzie programu.";
+    }
+
+    if (query.includes("dlaczego niebo jest niebieskie")) {
+        return "Niebo jest niebieskie przez rozpraszanie światła w atmosferze.";
+    }
+
+    if (query.includes("dlaczego śpimy")) {
+        return "Śpimy, aby odpocząć i zregenerować organizm.";
+    }
+
+    if (query.includes("dlaczego śnimy")) {
+        return "Sny pojawiają się podczas snu i mogą odzwierciedlać myśli.";
+    }
+
+    if (query.includes("jak się masz")) {
+        return "Jestem AI w NeoFind i działam poprawnie 🙂";
+    }
+
+    // =========================
+    // ANGIELSKIE PYTANIA
+    // =========================
+
+    if (query.includes("what is roblox")) {
+        return "Roblox is an online platform where users can create and play games.";
+    }
+
+    if (query.includes("what is minecraft")) {
+        return "Minecraft is a sandbox game where you can build and explore infinite worlds.";
+    }
+
+    if (query.includes("what is fortnite")) {
+        return "Fortnite is a battle royale game where players fight to survive.";
+    }
+
+    if (query.includes("what is discord")) {
+        return "Discord is an app for voice, video, and text communication.";
+    }
+
+    if (query.includes("what is youtube")) {
+        return "YouTube is a platform for watching and sharing videos.";
+    }
+
+    if (query.includes("what is google")) {
+        return "Google is a search engine used to find information online.";
+    }
+
+    if (query.includes("what is internet")) {
+        return "The internet is a global network connecting computers worldwide.";
+    }
+
+    if (query.includes("what is wifi")) {
+        return "WiFi is wireless technology that connects devices to the internet.";
+    }
+
+    if (query.includes("what is computer")) {
+        return "A computer is a device that processes data and runs programs.";
+    }
+
+    if (query.includes("what is laptop")) {
+        return "A laptop is a portable computer for work and entertainment.";
+    }
+
+    if (query.includes("what is programming")) {
+        return "Programming is writing instructions for computers.";
+    }
+
+    if (query.includes("what is coding")) {
+        return "Coding is creating software using programming languages.";
+    }
+
+    if (query.includes("what is bug")) {
+        return "A bug is an error in a program.";
+    }
+
+    if (query.includes("why is sky blue")) {
+        return "The sky is blue due to light scattering in the atmosphere.";
+    }
+
+    if (query.includes("how are you")) {
+        return "I'm an AI inside NeoFind, working fine 🙂";
+    }
+
+    // =========================
+    // FALLBACK SYSTEM
+    // =========================
+
+    if (
+        query.includes("co to jest") ||
+        query.includes("dlaczego") ||
+        query.includes("jak")
+    ) {
+        return "Nie do końca rozumiem to pytanie. Spróbuj je inaczej sformułować, możesz też poprosić w report problem.";
+    }
+
+    if (
+        query.includes("what is") ||
+        query.includes("why") ||
+        query.includes("how")
+    ) {
+        return "I don't fully understand this question. Try rephrasing it, you can also ask in report problem.";
+    }
     
 const aiKeywords = [
     "what is",
     "why",
     "how",
-    "explain",
-    "define",
-    "co to",
+    "co to jest",
     "dlaczego",
     "jak"
 ];
@@ -4852,7 +4916,7 @@ if(/^[0-9+\-*/(). ]+$/.test(value)){
 if(isAIQuery && value.length > 3){
     results.innerHTML = `
         <div class="result">
-            <h2>🤖 AI Response</h2>
+            <h2>🤖 NeoAI response:</h2>
             <p>${getAIResponse(value)}</p>
         </div>
     `;
