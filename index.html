@@ -5008,7 +5008,14 @@ window.register = function () {
     if (!email || !pass) return alert("Fill all!");
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(() => alert("Account created!"))
+        .then((userCredential) => {
+            userCredential.user.sendEmailVerification()
+                .then(() => {
+                    alert("Account created! Check your email and click the verification link before logging in.");
+                    auth.signOut();
+                })
+                .catch(err => alert("Error sending verification email: " + err.message));
+        })
         .catch(err => alert(err.message));
 };
 
@@ -5054,14 +5061,26 @@ auth.onAuthStateChanged(async user => {
             return;
         }
 
-    } catch (e) {
+ } catch (e) {
         console.error("Ban check error:", e);
     }
 
-    loginScreen.style.display = "none";
-    app.style.display = "block";
+    if (!user.emailVerified) {
+        alert("Please verify your email first! Check your inbox and click the link.");
+        auth.signOut();
+        return;
+    }
 
-    document.getElementById("accountEmail").innerText = user.email;
+if (!user.emailVerified) {
+    alert("Please verify your email first! Check your inbox and click the link.");
+    auth.signOut();
+    return;
+}
+
+loginScreen.style.display = "none";
+app.style.display = "block";
+
+document.getElementById("accountEmail").innerText = user.email;
     if (PREMIUM_EMAILS.includes(user.email)) {
     document.getElementById("premiumBadge").style.display = "block";
 } else {
