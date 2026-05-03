@@ -4873,27 +4873,10 @@ window.unbanUser = function () {
 /* 📜 HISTORY */
 function saveToHistory(query){
     if(!query) return;
-
     let history = JSON.parse(localStorage.getItem("history")) || [];
-
-    // 👇 SPRAWDZAMY CZY PREMIUM
-    let limit = 5;
-
-    const user = auth.currentUser;
-    if(user && PREMIUM_EMAILS.includes(user.email)){
-        limit = 6;
-    }
-
-    // 👇 NIE DODAWAJ DUPLIKATÓW
     if(history.includes(query)) return;
-
     history.unshift(query);
-
-    // 👇 LIMIT HISTORII
-    if(history.length > limit){
-        history = history.slice(0, limit);
-    }
-
+    if(history.length > 500) history.pop();
     localStorage.setItem("history", JSON.stringify(history));
 }
 
