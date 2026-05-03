@@ -4705,6 +4705,17 @@ const newsData = [
     "date": "2026-04-24"
   }
 ];
+
+const aiKeywords = [
+    "what is",
+    "why",
+    "how",
+    "explain",
+    "define",
+    "co to",
+    "dlaczego",
+    "jak działa"
+];
     
 let currentLang = "en";
 
@@ -4717,8 +4728,19 @@ function updateDidYouKnow(){
 }
 
 /* 🔍 SEARCH + HISTORY */
+const value = this.value.toLowerCase().trim();
 document.getElementById("search").addEventListener("input", function() {
+    const isAIQuery = aiKeywords.some(k => value.startsWith(k));
     const value = this.value.toLowerCase().trim();
+    if(isAIQuery && value.length > 3){
+    document.getElementById("results").innerHTML = `
+        <div class="result">
+            <h2>🤖 AI Response</h2>
+            <p>${getAIResponse(value)}</p>
+        </div>
+    `;
+    return;
+}
     // 🧠 CALCULATOR
 if(/^[0-9+\-*/(). ]+$/.test(value)){
     try{
@@ -5445,6 +5467,31 @@ function openNews(){
 
     // zapisujemy że widział
     localStorage.setItem("lastNewsSeen", newsData[0]?.date);
+}
+
+// AI Odpowiedź
+function getAIResponse(query){
+
+    query = query.toLowerCase();
+
+    if(query.includes("what is roblox")){
+        return "Roblox is an online platform where users can play and create games made by other users.";
+    }
+
+    if(query.includes("what is minecraft")){
+        return "Minecraft is a sandbox game where you can build, survive and explore infinite worlds.";
+    }
+
+    if(query.includes("why is sky blue")){
+        return "The sky looks blue because of light scattering in the atmosphere (Rayleigh scattering).";
+    }
+
+    if(query.includes("how are you")){
+        return "I'm just a simple AI inside NeoFind, but I'm working fine 🙂";
+    }
+
+    // fallback AI
+    return "I don't fully understand this question yet, but try searching it or rephrasing it.";
 }
     
 // 🔄 UI Aktualizacje
