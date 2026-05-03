@@ -334,7 +334,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <span id="accountEmail"></span>
     <button onclick="changeEmailPrompt()">✎ Change</button>
 </div>
-<button onclick="openNews()" style="
+<button id="newsBtn" onclick="openNews()" style="
 position:fixed;
 top:20px;
 right:20px;
@@ -345,7 +345,7 @@ color:black;
 font-weight:bold;
 z-index:9999;
 ">
-📰 News
+📰 News <span id="newsBadge" style="color:red; display:none;">🔴</span>
 </button>
 
 <div id="premiumBadge" style="
@@ -5412,6 +5412,26 @@ function loadNews(){
         </div>
     `).join("");
 }
+// 🔴 NOWE
+function checkNews(){
+    const lastSeen = localStorage.getItem("lastNewsSeen");
+    const latest = newsData[0]?.date;
+
+    if(lastSeen !== latest){
+        document.getElementById("newsBadge").style.display = "inline";
+    }
+}
+
+function openNews(){
+    document.getElementById("newsBox").style.display = "block";
+    loadNews();
+
+    // 🔴 usuwamy badge
+    document.getElementById("newsBadge").style.display = "none";
+
+    // zapisujemy że widział
+    localStorage.setItem("lastNewsSeen", newsData[0]?.date);
+}
     
 // 🔄 UI Aktualizacje
 function updateLanguage(){
@@ -5601,6 +5621,7 @@ if (savedLang) {
 updateDidYouKnow();
 updateLanguage();
 showHistory();
+checkNews();
 updateUI();
 </script>
 
