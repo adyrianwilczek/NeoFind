@@ -4709,6 +4709,21 @@ function getAIResponse(query) {
 
     query = query.toLowerCase();
 
+    const aiKeywords = [
+        "what is",
+        "why",
+        "how",
+        "co to jest",
+        "dlaczego",
+        "jak"
+    ];
+
+    let isAIQuery = aiKeywords.some(k => query.includes(k));
+
+    if(isAIQuery && query.length > 3){
+        return aiResponses[Math.floor(Math.random() * aiResponses.length)];
+    }
+
     // =========================
     // POLSKIE PYTANIA
     // =========================
@@ -4868,17 +4883,6 @@ function getAIResponse(query) {
     ) {
         return "I don't fully understand this question. Try rephrasing it, you can also ask in report problem.";
     }
-    
-const aiKeywords = [
-    "what is",
-    "why",
-    "how",
-    "co to jest",
-    "dlaczego",
-    "jak"
-];
-
-}
     
 let currentLang = "en";
 
