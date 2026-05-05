@@ -418,7 +418,7 @@ z-index:9999;
             <h2>🔐 Admin Panel</h2>
             <!-- Widoczne dla admina -->
             <div id="adminContent" style="margin-top:20px;">
-                <h3>➕ Dodaj wynik</h3>
+                <h3>➕ Add result</h3>
                 <input id="adminTitle" placeholder="Title"><br>
                 <input id="adminDesc" placeholder="Description"><br>
                 <input id="adminLink" placeholder="Link"><br><br>
@@ -504,36 +504,6 @@ firebase.initializeApp(firebaseConfig);
 
 
 const GLOBAL_UPDATE = "🚀 Added login, admin panel and ban system + bug fixes";
-
-// ===== ROLES SYSTEM =====
-const PREMIUM_EMAILS = [
-    "test@gmail.com"
-];
-
-const roles = {
-    tester: [],
-    admin: [
-        "admin1@gmail.com",
-        "admin2@gmail.com"
-    ],
-    owner: [
-        "twojemail@gmail.com"
-    ]
-};
-
-function getUserRole(email) {
-    if (!email) return "user";
-
-    if (roles.owner.includes(email)) return "owner";
-    if (roles.admin.includes(email)) return "admin";
-    if (roles.tester.includes(email)) return "tester";
-
-    return "user";
-}
-
-function isPremium(email) {
-    return PREMIUM_EMAILS.includes(email);
-}
 
 // Dane i tłumaczenia
 const data = {
@@ -5296,6 +5266,26 @@ const PREMIUM_EMAILS = [
     "j.e.wilkowska@gmail.com"
 ];
 
+const roles = {
+    tester: [],
+    admin: [
+        "admin1@gmail.com",
+        "admin2@gmail.com"
+    ],
+    owner: [
+        "twojemail@gmail.com"
+    ]
+};
+
+function getUserRole(email) {
+    if (roles.owner.includes(email)) return "owner";
+    if (roles.admin.includes(email)) return "admin";
+    if (roles.tester.includes(email)) return "tester";
+    return "user";
+}
+document.getElementById("roleText").innerText =
+    userRole === "user" ? "Brak roli" : userRole;
+
 /* =========================
    REGISTER
 ========================= */
@@ -5362,20 +5352,6 @@ auth.onAuthStateChanged(async user => {
  } catch (e) {
         console.error("Ban check error:", e);
     }
-    const role = getUserRole(user.email);
-
-document.getElementById("roleText").innerText =
-    role === "user" ? "" : role;
-
-    const role = getUserRole(user.email);
-const premium = isPremium(user.email);
-
-// zapis do firebase
-set(ref(db, "users/" + user.uid), {
-    email: user.email,
-    role: role,
-    premium: premium
-});
 
     if (!user.emailVerified) {
         alert("Please verify your email first! Check your inbox and click the link.");
@@ -5388,6 +5364,16 @@ if (!user.emailVerified) {
     auth.signOut();
     return;
 }
+
+const role = getUserRole(user.email);
+const premium = isPremium(user.email);
+
+// zapis do Firebase
+set(ref(db, "users/" + user.uid), {
+    email: user.email,
+    role: role,
+    premium: premium
+});
 
 loginScreen.style.display = "none";
 app.style.display = "block";
