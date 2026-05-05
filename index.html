@@ -502,6 +502,8 @@ z-index:9999;
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 /* Konfiguracja Firebase */
 const firebaseConfig = {
@@ -5292,7 +5294,7 @@ function applyTheme(theme){
 ========================= */
 const db = firebase.firestore();
 const auth = firebase.auth();
-const storage = getStorage();
+const storage = firebase.storage();
 
 /* =========================
    ADMIN EMAILS
@@ -5772,13 +5774,11 @@ document.getElementById("profileUpload").addEventListener("change", async functi
 
     document.getElementById("profileImage").src = url;
 
-    db.ref("users/" + user.uid + "/profileImage").set(url);
+    firebase.database().ref("users/...").set(url);  // ✅
 
 });
 
 // Cosmetics
-document.getElementById("profileUpload").addEventListener("change", async function(e){
-
     const file = e.target.files[0];
     if(!file) return;
 
