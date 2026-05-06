@@ -5383,7 +5383,7 @@ auth.onAuthStateChanged(async user => {
  } catch (e) {
         console.error("Ban check error:", e);
     }
-get(ref(db, "users/" + user.uid + "/profileImage")).then(snapshot => {
+firebase.database().ref("users/" + user.uid + "/profileImage").once("value").then(snapshot => {
     if(snapshot.exists()){
         document.getElementById("profileImage").src = snapshot.val();
     }
@@ -5641,7 +5641,7 @@ function sendReport(){
     const text = document.getElementById("reportText").value.trim();
 
     if(!text){
-        showPopup("Write something!", "red");
+        alert("Write something!");
         return;
     }
 
@@ -5651,7 +5651,7 @@ function sendReport(){
         date: new Date()
     })
     .then(()=>{
-        showPopup("Report sent!", "#00cc66");
+        alert("Report sent!");
         document.getElementById("reportText").value = "";
         closeReport();
     })
@@ -5774,7 +5774,7 @@ document.getElementById("profileUpload").addEventListener("change", async functi
 
     document.getElementById("profileImage").src = url;
 
-    firebase.database().ref("users/...").set(url);  // ✅
+    firebase.database().ref("users/" + user.uid + "/profileImage").set(url);
 
 });
 
