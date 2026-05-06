@@ -256,7 +256,7 @@ body.ocean {
 Podsumowanie zmian:
 - Użyto kompatybilnych skryptów Firebase (10.7.1 firebase-app-compat.js i firebase-auth-compat.js).
 - Rejestracja/logowanie przemapowano na e-mail (username@local.neofind) przy użyciu Firebase Auth.
-- Dodano wykrywanie admina po adresie e-mail (konfiguruj ADMIN_EMAIL poniżej).
+- Dodano wykrywanie admina po adresie e-mail (konfiguruf ADMIN_EMAIL poniżej).
 - Przywrócono brakujące funkcje showFavorites() i showFact().
 - Usunięto zagnieżdżone znaczniki <script> i poprawiono strukturę HTML (div #app poza skryptami).
 Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EMAIL.
@@ -267,11 +267,16 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <input id="logUser" placeholder="E-mail"><br>
     <input id="logPass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
-    <h3>Register</h3>
-    <input id="regUser" placeholder="E-mail"><br>
-    <input id="regPass" type="password" placeholder="Password"><br>
-    <button onclick="register()">Register</button>
+<h3>Register</h3>
+<input id="regUser" placeholder="E-mail"><br>
+<input id="regPass" type="password" placeholder="Password"><br>
+<div style="margin: 10px 0; font-size: 14px;">
+    <input type="checkbox" id="acceptPolicy">
+    <label for="acceptPolicy">
+        I accept NeoFind's <span onclick="openPrivacy()" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">privacy policy</span>
+    </label>
 </div>
+<button onclick="register()">Register</button>
 
 <div id="app" class="container" style="display:none;">
 
@@ -484,6 +489,55 @@ z-index:9999;
 
 <br>
 <button onclick="closeNews()">❌ Close</button>
+</div>
+<div id="privacyBox" style="
+    display:none;
+    position:fixed;
+    top:5%;
+    left:50%;
+    transform:translateX(-50%);
+    width:85%;
+    max-height:85vh;
+    overflow-y:auto;
+    background:#111;
+    padding:30px;
+    border-radius:15px;
+    z-index:99999;
+    text-align:left;
+    line-height:1.7;
+">
+    <h2>📋 NeoFind Privacy Policy</h2>
+    <p><b>Last updated: May 2026</b></p>
+
+    <h3>1. What data we collect</h3>
+    <p>We collect your email address when you register. We also store your search history, favorites, and settings locally in your browser.</p>
+
+    <h3>2. How we use your data</h3>
+    <p>Your email is used only for authentication via Firebase. We do not sell or share your data with third parties.</p>
+
+    <h3>3. Cookies and local storage</h3>
+    <p>NeoFind uses localStorage to save your preferences such as language, theme, history and favorites. No tracking cookies are used.</p>
+
+    <h3>4. Profile images</h3>
+    <p>If you upload a profile picture, it is stored securely in Firebase Storage and linked to your account.</p>
+
+    <h3>5. Ratings and reports</h3>
+    <p>Ratings and reports you submit are stored in Firestore and may be reviewed by admins.</p>
+
+    <h3>6. Data deletion</h3>
+    <p>You can clear your local data at any time using the "Clear history" button. To delete your account, contact us at support.neofind@gmail.com.</p>
+
+    <h3>7. Security</h3>
+    <p>We use Firebase Authentication which provides secure login. Passwords are never stored in plain text.</p>
+
+    <h3>8. Changes to this policy</h3>
+    <p>We may update this policy. Continued use of NeoFind means you accept any changes.</p>
+
+    <h3>9. Contact</h3>
+    <p>Questions? Email us: <b>support.neofind@gmail.com</b></p>
+
+    <br>
+    <button onclick="closePrivacy()">❌ Close</button>
 </div>
 <div id="updates"></div>
 <!-- Firebase scripts -->
@@ -5272,8 +5326,10 @@ const PREMIUM_EMAILS = [
 window.register = function () {
     const email = document.getElementById("regUser").value.trim();
     const pass = document.getElementById("regPass").value;
+    const accepted = document.getElementById("acceptPolicy").checked;
 
     if (!email || !pass) return alert("Fill all!");
+    if (!accepted) return alert("You must accept the privacy policy to register!");
 
     auth.createUserWithEmailAndPassword(email, pass)
         .then((userCredential) => {
@@ -5917,6 +5973,16 @@ function spawnNeo(){
 function getAIResponse(query){
     return "🤖 I am AI. You asked: " + query;
 }
+
+// Privacy policy
+function openPrivacy(){
+    document.getElementById("privacyBox").style.display = "block";
+}
+
+function closePrivacy(){
+    document.getElementById("privacyBox").style.display = "none";
+}
+    
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
