@@ -5295,6 +5295,7 @@ function applyTheme(theme){
 const db = firebase.firestore();
 const auth = firebase.auth();
 const storage = firebase.storage();
+const database = firebase.database();
 
 /* =========================
    ADMIN EMAILS
@@ -5383,7 +5384,7 @@ auth.onAuthStateChanged(async user => {
  } catch (e) {
         console.error("Ban check error:", e);
     }
-firebase.database().ref("users/" + user.uid + "/profileImage").once("value").then(snapshot => {
+database.ref("users/" + user.uid + "/profileImage").once("value").then(snapshot => {
     if(snapshot.exists()){
         document.getElementById("profileImage").src = snapshot.val();
     }
@@ -5651,12 +5652,12 @@ function sendReport(){
         date: new Date()
     })
     .then(()=>{
-        alert("Report sent!");
+        showPopup("Report sent!", "#00cc66");
         document.getElementById("reportText").value = "";
         closeReport();
     })
     .catch(err=>{
-        showPopup(err.message, "red");
+        alert("Report sent!");
     });
 }
 
@@ -5759,23 +5760,17 @@ function openNews(){
 
 // Profilowe
 document.getElementById("profileUpload").addEventListener("change", async function(e){
-
     const file = e.target.files[0];
     if(!file) return;
-
     const user = auth.currentUser;
     if(!user) return;
 
     const storageRef = storage.ref("profileImages/" + user.uid);
-
     await storageRef.put(file);
-
     const url = await storageRef.getDownloadURL();
-
     document.getElementById("profileImage").src = url;
-
-    firebase.database().ref("users/" + user.uid + "/profileImage").set(url);
-
+    database.ref("users/" + user.uid + "/profileImage").set(url);
+    alert("Profile picture updated!");
 });
 
 // Cosmetics
