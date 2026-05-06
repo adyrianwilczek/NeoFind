@@ -334,18 +334,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <span id="accountEmail"></span>
     <button onclick="changeEmailPrompt()">✎ Change</button>
 </div>
-<div id="profileSection">
-
-  <!-- zdjęcie -->
-  <img id="profileImage" src="default.png" style="width:80px;height:80px;border-radius:50%;object-fit:cover;">
-
-  <!-- upload -->
-  <input type="file" id="profileUpload" accept="image/*">
-
-  <!-- cosmetics -->
-  <div id="cosmeticsText">Cosmetics</div>
-
-</div>
 <button id="newsBtn" onclick="openNews()" style="
 position:fixed;
 top:20px;
@@ -502,8 +490,6 @@ z-index:9999;
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script>
 /* Konfiguracja Firebase */
 const firebaseConfig = {
@@ -519,38 +505,6 @@ firebase.initializeApp(firebaseConfig);
 
 const GLOBAL_UPDATE = "🚀 Added login, admin panel and ban system + bug fixes";
 
-const cosmetics = [
-    "cat ears",
-    "dog ears",
-    "angel halo",
-    "devil horns",
-    "crown",
-    "gold crown",
-    "neon circle",
-    "fire aura",
-    "ice aura",
-    "rainbow aura",
-    "galaxy aura",
-    "glitch effect",
-    "pixel frame",
-    "vip badge",
-    "diamond badge",
-    "skull mask",
-    "robot eyes",
-    "laser eyes",
-    "sunglasses",
-    "cap",
-    "hood",
-    "wizard hat",
-    "knight helmet",
-    "space helmet",
-    "butterfly wings",
-    "dragon wings",
-    "angel wings",
-    "shadow aura",
-    "sparkles",
-    "stars effect"
-];
 // Dane i tłumaczenia
 const data = {
     pl: [
@@ -4624,7 +4578,6 @@ const translations = {
         premium: "💎 Premium",
         banUser: "Ban user",
         unbanUser: "Unban user",
-        cosmetics: "Cosmetics",
         noHistory: "No history"
     },
 
@@ -4652,7 +4605,6 @@ const translations = {
         premium: "💎 Premium",
         banUser: "Zbanuj użytkownika",
         unbanUser: "Odbanuj użytkownika",
-        cosmetics: "Kosmetyki",
         noHistory: "Brak historii"
     },
 
@@ -4680,7 +4632,6 @@ const translations = {
         premium: "💎 Premium",
         banUser: "Banear usuario",
         unbanUser: "Desbanear usuario",
-        cosmetics: "Cosméticos",
         noHistory: "Sin historial"
     },
 
@@ -4708,7 +4659,6 @@ const translations = {
         premium: "💎 Golden bunny",
         banUser: "🐰 Kick bunny",
         unbanUser: "🐰 Forgive bunny",
-        cosmetics: "🐰 Cosmetics",
         noHistory: "🐰 No bunny tracks"
     }
 };
@@ -5294,8 +5244,6 @@ function applyTheme(theme){
 ========================= */
 const db = firebase.firestore();
 const auth = firebase.auth();
-const storage = firebase.storage();
-const database = firebase.database();
 
 /* =========================
    ADMIN EMAILS
@@ -5384,11 +5332,6 @@ auth.onAuthStateChanged(async user => {
  } catch (e) {
         console.error("Ban check error:", e);
     }
-database.ref("users/" + user.uid + "/profileImage").once("value").then(snapshot => {
-    if(snapshot.exists()){
-        document.getElementById("profileImage").src = snapshot.val();
-    }
-});
 
     if (!user.emailVerified) {
         alert("Please verify your email first! Check your inbox and click the link.");
@@ -5642,7 +5585,7 @@ function sendReport(){
     const text = document.getElementById("reportText").value.trim();
 
     if(!text){
-        alert("Write something!");
+        showPopup("Write something!", "red");
         return;
     }
 
@@ -5657,7 +5600,7 @@ function sendReport(){
         closeReport();
     })
     .catch(err=>{
-        alert("Report sent!");
+        showPopup(err.message, "red");
     });
 }
 
@@ -5757,40 +5700,6 @@ function openNews(){
     // zapisujemy że widział
     localStorage.setItem("lastNewsSeen", newsData[0]?.date);
 }
-
-// Profilowe
-document.getElementById("profileUpload").addEventListener("change", async function(e){
-    const file = e.target.files[0];
-    if(!file) return;
-    const user = auth.currentUser;
-    if(!user) return;
-
-    const storageRef = storage.ref("profileImages/" + user.uid);
-    await storageRef.put(file);
-    const url = await storageRef.getDownloadURL();
-    document.getElementById("profileImage").src = url;
-    database.ref("users/" + user.uid + "/profileImage").set(url);
-    alert("Profile picture updated!");
-});
-
-// Cosmetics
-    const file = e.target.files[0];
-    if(!file) return;
-
-    const user = auth.currentUser;
-    if(!user) return;
-
-    const storageRef = ref(storage, "profileImages/" + user.uid);
-
-    await uploadBytes(storageRef, file);
-
-    const url = await getDownloadURL(storageRef);
-
-    document.getElementById("profileImage").src = url;
-
-    set(ref(db, "users/" + user.uid + "/profileImage"), url);
-
-});
     
 // 🔄 UI Aktualizacje
 function updateLanguage(){
