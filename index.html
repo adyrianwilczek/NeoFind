@@ -272,13 +272,6 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <input id="regPass" type="password" placeholder="Password"><br>
     <button onclick="register()">Register</button>
 </div>
-<label style="font-size:14px;">
-  <input type="checkbox" id="acceptPolicy">
-  I accept NeoFind's 
-  <span id="openPolicy" style="color:blue; cursor:pointer; text-decoration:underline;">
-    privacy policy
-  </span>
-</label>
 
 <div id="app" class="container" style="display:none;">
 
@@ -491,48 +484,6 @@ z-index:9999;
 
 <br>
 <button onclick="closeNews()">❌ Close</button>
-</div>
-<div id="policyModal" style="
-  display:none;
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,0.6);
-  z-index:9999;
-">
-
-  <div style="
-    background:white;
-    width:90%;
-    max-width:500px;
-    margin:100px auto;
-    padding:20px;
-    border-radius:10px;
-    max-height:70%;
-    overflow-y:auto;
-  ">
-
-    <h2>Privacy Policy</h2>
-
-    <p>
-      NeoFind collects basic user data such as email and usage data to improve the service.
-    </p>
-
-    <p>
-      Your data is stored securely and is not sold to third parties.
-    </p>
-
-    <p>
-      You can request deletion of your data at any time.
-    </p>
-
-    <p>
-      By using NeoFind, you agree to this policy.
-    </p>
-
-    <button id="closePolicy">Close</button>
-
-  </div>
 </div>
 <div id="updates"></div>
 <!-- Firebase scripts -->
@@ -5318,12 +5269,6 @@ const PREMIUM_EMAILS = [
 /* =========================
    REGISTER
 ========================= */
-const accepted = document.getElementById("acceptPolicy").checked;
-
-if(!accepted){
-    alert("You must accept the privacy policy!");
-    return;
-}
 window.register = function () {
     const email = document.getElementById("regUser").value.trim();
     const pass = document.getElementById("regPass").value;
@@ -5755,15 +5700,6 @@ function openNews(){
     // zapisujemy że widział
     localStorage.setItem("lastNewsSeen", newsData[0]?.date);
 }
-
-    // 🔐 PRIVACY POLICY
-document.getElementById("openPolicy").onclick = () => {
-    document.getElementById("policyModal").style.display = "block";
-};
-
-document.getElementById("closePolicy").onclick = () => {
-    document.getElementById("policyModal").style.display = "none";
-};
     
 // 🔄 UI Aktualizacje
 function updateLanguage(){
