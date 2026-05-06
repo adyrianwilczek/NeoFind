@@ -5756,6 +5756,15 @@ function openNews(){
     // zapisujemy że widział
     localStorage.setItem("lastNewsSeen", newsData[0]?.date);
 }
+
+// Privacy policy
+function openPrivacy(){
+    document.getElementById("privacyBox").style.display = "block";
+}
+
+function closePrivacy(){
+    document.getElementById("privacyBox").style.display = "none";
+}
     
 // 🔄 UI Aktualizacje
 function updateLanguage(){
@@ -5972,15 +5981,6 @@ function spawnNeo(){
 }
 function getAIResponse(query){
     return "🤖 I am AI. You asked: " + query;
-}
-
-// Privacy policy
-function openPrivacy(){
-    document.getElementById("privacyBox").style.display = "block";
-}
-
-function closePrivacy(){
-    document.getElementById("privacyBox").style.display = "none";
 }
     
 // START
