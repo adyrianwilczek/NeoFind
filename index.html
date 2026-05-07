@@ -267,16 +267,17 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <input id="logUser" placeholder="E-mail"><br>
     <input id="logPass" type="password" placeholder="Password"><br>
     <button onclick="login()">Login</button>
-<h3>Register</h3>
-<input id="regUser" placeholder="E-mail"><br>
-<input id="regPass" type="password" placeholder="Password"><br>
-<div style="margin: 10px 0; font-size: 14px;">
-    <input type="checkbox" id="acceptPolicy">
-    <label for="acceptPolicy">
-        I accept NeoFind's <span onclick="openPrivacy()" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">privacy policy</span>
-    </label>
+    <h3>Register</h3>
+    <input id="regUser" placeholder="E-mail"><br>
+    <input id="regPass" type="password" placeholder="Password"><br>
+    <div style="margin: 10px 0; font-size: 14px;">
+        <input type="checkbox" id="acceptPolicy">
+        <label for="acceptPolicy">
+            I accept NeoFind's <span onclick="openPrivacy()" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">privacy policy</span>
+        </label>
+    </div>
+    <button onclick="register()">Register</button>
 </div>
-<button onclick="register()">Register</button>
 
 <div id="app" class="container" style="display:none;">
 
