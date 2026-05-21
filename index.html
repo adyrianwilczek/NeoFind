@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>NeoFind</title>
-
 <link rel="icon" type="image/png" href="favicon.jpeg">
-    
 <style>
 body {
     margin: 0;
@@ -14,73 +12,33 @@ body {
     min-height: 100vh;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
 }
-
-/* 📦 container */
-.container {
-    text-align: center;
-    margin-top: 80px;
-}
-
-/* 🔥 NEON + MOVING GRADIENT LOGO */
+.container { text-align: center; margin-top: 80px; }
 #logo {
     font-size: 85px !important;
     margin-bottom: 20px;
     letter-spacing: 3px;
-
-    background: linear-gradient(
-        90deg,
-        #00ffcc,
-        #00aaff,
-        #ffffff,
-        #00ff66,
-        #00ccff,
-        #00ffcc
-    );
-
+    background: linear-gradient(90deg,#00ffcc,#00aaff,#ffffff,#00ff66,#00ccff,#00ffcc);
     background-size: 600% 600%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-
     animation: gradientMove 7s linear infinite;
-
-    text-shadow:
-        0 0 8px rgba(0,255,200,0.7),
-        0 0 20px rgba(0,200,255,0.6),
-        0 0 35px rgba(0,255,120,0.4);
-
+    text-shadow: 0 0 8px rgba(0,255,200,0.7),0 0 20px rgba(0,200,255,0.6),0 0 35px rgba(0,255,120,0.4);
 }
-
-/* 🔍 normalna lupa (bez neonów) */
 .searchIcon {
     -webkit-text-fill-color: white !important;
     background: none !important;
     text-shadow: none !important;
-
     font-size: 0.9em;
     margin-left: 8px;
     filter: none;
 }
-
-/* 🌈 animacja */
 @keyframes gradientMove {
-    0% {
-        background-position: 0% 50%;
-    }
-    25% {
-        background-position: 100% 0%;
-    }
-    50% {
-        background-position: 200% 50%;
-    }
-    75% {
-        background-position: 300% 100%;
-    }
-    100% {
-        background-position: 400% 50%;
-    }
+    0%   { background-position: 0% 50%; }
+    25%  { background-position: 100% 0%; }
+    50%  { background-position: 200% 50%; }
+    75%  { background-position: 300% 100%; }
+    100% { background-position: 400% 50%; }
 }
-
-/* 🔍 INPUT */
 input, select, textarea {
     width: 80%;
     padding: 18px 25px;
@@ -88,60 +46,25 @@ input, select, textarea {
     border: none;
     font-size: 18px;
     margin-bottom: 15px;
-
     background: rgba(255,255,255,0.1);
     color: white;
-
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-
     transition: 0.2s;
 }
-
-input:focus {
-    outline: none;
-    transform: scale(1.02);
-    box-shadow: 0 0 20px rgba(0,200,255,0.6);
-}
-
-input::placeholder {
-    color: rgba(255,255,255,0.6);
-}
+input:focus { outline: none; transform: scale(1.02); box-shadow: 0 0 20px rgba(0,200,255,0.6); }
+input::placeholder { color: rgba(255,255,255,0.6); }
 select {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0,0,0,0.4);
     color: #00ffcc;
-    border: 1px solid rgba(0, 255, 200, 0.4);
+    border: 1px solid rgba(0,255,200,0.4);
     backdrop-filter: blur(10px);
     cursor: pointer;
 }
-
-/* opcje w dropdown */
-select option {
-    background: #0f2027;
-    color: #00ffcc;
-}
-
-/* favorite */
-.star {
-    cursor: pointer;
-    font-size: 20px;
-    margin-left: 10px;
-    color: gray;
-    transition: 0.2s;
-}
-
-.star.active {
-    color: gold;
-    text-shadow: 0 0 10px gold;
-}
-
-/* hover/focus */
-select:focus {
-    outline: none;
-    box-shadow: 0 0 15px rgba(0,255,200,0.5);
-}
-
-/* 📊 RESULTS */
+select option { background: #0f2027; color: #00ffcc; }
+select:focus { outline: none; box-shadow: 0 0 15px rgba(0,255,200,0.5); }
+.star { cursor: pointer; font-size: 20px; margin-left: 10px; color: gray; transition: 0.2s; }
+.star.active { color: gold; text-shadow: 0 0 10px gold; }
 .result {
     background: rgba(255,255,255,0.1);
     margin: 10px auto;
@@ -149,30 +72,13 @@ select:focus {
     border-radius: 15px;
     width: 80%;
     text-align: left;
-
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-
     transition: 0.2s;
 }
-
-.result:hover {
-    transform: scale(1.02);
-    background: rgba(255,255,255,0.15);
-}
-
-.result a {
-    color: #4da6ff;
-    font-size: 20px;
-    text-decoration: none;
-}
-
-.result p {
-    margin-top: 5px;
-    opacity: 0.85;
-}
-
-/* 🔘 BUTTONS */
+.result:hover { transform: scale(1.02); background: rgba(255,255,255,0.15); }
+.result a { color: #4da6ff; font-size: 20px; text-decoration: none; }
+.result p { margin-top: 5px; opacity: 0.85; }
 button {
     padding: 10px 20px;
     border-radius: 12px;
@@ -182,40 +88,22 @@ button {
     color: white;
     transition: 0.2s;
 }
-
-button:hover {
-    background: #3399ff;
-    transform: scale(1.05);
-}
-
-/* 🧠 CONSOLE */
+button:hover { background: #3399ff; transform: scale(1.05); }
 #consoleBox {
-    display:none;
-    position:fixed;
-    top:10%;
-    left:50%;
-    transform:translateX(-50%);
-    width:80%;
-    height:60%;
-    background:#111;
-    border-radius:15px;
-    padding:10px;
-    z-index:9999;
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 60%;
+    background: #111;
+    border-radius: 15px;
+    padding: 10px;
+    z-index: 9999;
 }
-
-#consoleLogs {
-    height:80%;
-    overflow:auto;
-    font-size:14px;
-    text-align:left;
-}
-
-#consoleInput {
-    width:100%;
-    margin-top:10px;
-}
-
-/* 💡 SUGGESTIONS */
+#consoleLogs { height: 80%; overflow: auto; font-size: 14px; text-align: left; }
+#consoleInput { width: 100%; margin-top: 10px; }
 #suggestions {
     width: 80%;
     margin: auto;
@@ -224,55 +112,27 @@ button:hover {
     text-align: left;
     overflow: hidden;
 }
-
-#suggestions div {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-}
-
-#suggestions div:hover {
-    background: rgba(255,255,255,0.1);
-}
-
-/* 🎨 THEME */
-body.space {
-    background: black !important;
-}
-
-body.matrix {
-    background: black !important;
-    color: #00ff00;
-}
-
-body.ocean {
-    background: Aqua !important;
-    color: #38fff2
-}
-
-/* Urodziny */
+#suggestions div { padding: 10px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); }
+#suggestions div:hover { background: rgba(255,255,255,0.1); }
+body.space { background: black !important; }
+body.matrix { background: black !important; color: #00ff00; }
+body.ocean { background: Aqua !important; color: #38fff2; }
 #birthdayBanner {
     margin-top: 8px;
     padding: 6px;
     border-radius: 8px;
-    background: rgba(255, 200, 200, 0.2);
+    background: rgba(255,200,200,0.2);
     color: white;
     font-size: 13px;
 }
-
-#readMoreBtn:hover {
-    text-decoration: underline;
-}
-
+#readMoreBtn:hover { text-decoration: underline; }
 .modal {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
     background: rgba(0,0,0,0.6);
+    z-index: 99998;
 }
-
 .modal-content {
     background: #1e1e1e;
     padding: 20px;
@@ -284,15 +144,8 @@ body.ocean {
 </style>
 </head>
 <body>
-<!--
-Podsumowanie zmian:
-- Użyto kompatybilnych skryptów Firebase (10.7.1 firebase-app-compat.js i firebase-auth-compat.js).
-- Rejestracja/logowanie przemapowano na e-mail (username@local.neofind) przy użyciu Firebase Auth.
-- Dodano wykrywanie admina po adresie e-mail (konfiguruj ADMIN_EMAIL poniżej).
-- Przywrócono brakujące funkcje showFavorites() i showFact().
-- Usunięto zagnieżdżone znaczniki <script> i poprawiono strukturę HTML (div #app poza skryptami).
-Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EMAIL.
--->
+
+<!-- LOGIN SCREEN -->
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
@@ -302,39 +155,35 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <h3>Register</h3>
     <input id="regUser" placeholder="E-mail"><br>
     <input id="regPass" type="password" placeholder="Password"><br>
-    <div style="margin: 10px 0; font-size: 14px;">
+    <div style="margin:10px 0; font-size:14px;">
         <input type="checkbox" id="acceptPolicy">
         <label for="acceptPolicy">
-            I accept NeoFind's <span onclick="openPrivacy()" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">privacy policy</span>
+            I accept NeoFind's <span onclick="openPrivacy()" style="color:#4da6ff;cursor:pointer;text-decoration:underline;">privacy policy</span>
         </label>
     </div>
     <button onclick="register()">Register</button>
 </div>
 
+<!-- MAIN APP -->
 <div id="app" class="container" style="display:none;">
 
-<div id="tabContent"></div>
-    <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
-    <div id="didYouKnow" style="text-align:center; margin-bottom:10px; opacity:0.8;"></div>
+    <div id="tabContent"></div>
+    <div id="didYouKnowTitle" style="text-align:center;margin-top:20px;font-size:18px;"></div>
+    <div id="didYouKnow" style="text-align:center;margin-bottom:10px;opacity:0.8;"></div>
 
-<h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
+    <h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
 
-<div class="searchBox">
-    <input type="text" id="search" placeholder="Search...">
-
-    <!-- 🎂 BIRTHDAY BANNER -->
-    <div id="birthdayBanner" style="display:none;">
-        <span id="birthdayText"></span>
-        <span id="readMoreBtn" style="cursor:pointer; color:#4da6ff; margin-left:5px;">
-            read more
-        </span>
+    <div class="searchBox">
+        <input type="text" id="search" placeholder="Search...">
+        <!-- BIRTHDAY BANNER -->
+        <div id="birthdayBanner" style="display:none;">
+            <span id="birthdayText"></span>
+            <span id="readMoreBtn" style="cursor:pointer;color:#4da6ff;margin-left:5px;">read more</span>
+        </div>
+        <div id="suggestions"></div>
     </div>
 
-    <div id="suggestions"></div>
-</div>
-
-<!-- 🔍 wyniki -->
-<div id="results"></div>
+    <div id="results"></div>
 
     <select id="langSelect" style="display:none;">
         <option value="en" selected>EN</option>
@@ -345,7 +194,7 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 
     <!-- CONSOLE -->
     <div id="consoleBox">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
             <h3 id="consoleTitle">🖥️ Debug Console</h3>
             <div>
                 <button onclick="exportLogs()">📥 Export</button>
@@ -356,10 +205,11 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
         <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
     </div>
 
-    <!-- ⚙️ SETTINGS -->
-    <button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">👤 Profile</button>
+    <!-- PROFILE BUTTON -->
+    <button onclick="openSettings()" style="position:fixed;bottom:70px;right:20px;">👤 Profile</button>
 
-    <div id="settingsBox" style="display:none; text-align:center;">
+    <!-- SETTINGS BOX -->
+    <div id="settingsBox" style="display:none;text-align:center;">
         <h3>⚙️ Settings</h3>
         <label>Language:</label><br>
         <select id="settingsLang">
@@ -375,210 +225,158 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
             <option value="matrix">Matrix</option>
             <option value="ocean">Ocean</option>
         </select><br><br>
-<h3 id="accountTitle">👤 Account</h3>
 
-<div class="result">
-    <b>Email:</b>
-    <span id="accountEmail"></span>
-    <button onclick="changeEmailPrompt()">✎ Change</button>
-</div>
-<button id="newsBtn" onclick="openNews()" style="
-position:fixed;
-top:20px;
-right:20px;
-padding:10px 15px;
-border-radius:12px;
-background:#ffcc00;
-color:black;
-font-weight:bold;
-z-index:9999;
-">
-📰 News <span id="newsBadge" style="color:red; display:none;">🔴</span>
-</button>
+        <h3 id="accountTitle">👤 Account</h3>
+        <div class="result">
+            <b>Email:</b>
+            <span id="accountEmail"></span>
+            <button onclick="changeEmailPrompt()">✎ Change</button>
+        </div>
 
-<div id="premiumBadge" style="
-    display:none;
-    color:#00ffff;
-    font-weight:bold;
-    margin-top:10px;
-">
-    💎 Premium
-</div>
+        <div id="premiumBadge" style="display:none;color:#00ffff;font-weight:bold;margin-top:10px;">
+            💎 Premium
+        </div>
 
-<div class="result">
-    <b>Password:</b>
-    <span>******</span>
-    <button onclick="openPasswordBox()">✎ Change</button>
-</div>
+        <div class="result">
+            <b>Password:</b>
+            <span>******</span>
+            <button onclick="openPasswordBox()">✎ Change</button>
+        </div>
 
-<div id="passwordBox" style="display:none; margin-top:10px;">
-    <input id="currentPass" type="password" placeholder="Current password"><br>
-    <input id="newPass" type="password" placeholder="New password"><br>
-    <input id="repeatPass" type="password" placeholder="Repeat new password"><br>
-    <button onclick="changePassword()">Save password</button>
-</div>
+        <div id="passwordBox" style="display:none;margin-top:10px;">
+            <input id="currentPass" type="password" placeholder="Current password"><br>
+            <input id="newPass" type="password" placeholder="New password"><br>
+            <input id="repeatPass" type="password" placeholder="Repeat new password"><br>
+            <button onclick="changePassword()">Save password</button>
+        </div>
 
         <h4>📜 History</h4>
         <div id="historyList"></div><br>
-
         <button onclick="clearHistory()">🧹 Clear history</button><br><br>
         <button onclick="openConsole()">🪲 Debug Console</button><br><br>
         <button onclick="saveSettings()">Save</button><br><br>
         <button onclick="auth.signOut()" id="logoutBtn">Log Out</button>
         <button onclick="document.getElementById('rateBox').style.display='block'">⭐ Rate us</button>
+
         <h4 id="favTitle">⭐ Favorites</h4>
         <div id="favoritesList"></div><br>
     </div>
 
+    <!-- RATE BOX -->
+    <div id="rateBox" style="display:none;text-align:center;">
         <h4>⭐ Rate us</h4>
+        <select id="rateStars">
+            <option value="">Select rating</option>
+            <option value="1">⭐ 1</option>
+            <option value="2">⭐⭐ 2</option>
+            <option value="3">⭐⭐⭐ 3</option>
+            <option value="4">⭐⭐⭐⭐ 4</option>
+            <option value="5">⭐⭐⭐⭐⭐ 5</option>
+        </select><br><br>
+        <textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
+        <button onclick="sendRating()">Send rating</button>
+        <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
+    </div>
 
-<div id="rateBox" style="display:none;">
-    <h4>⭐ Rate us</h4>
-    <select id="rateStars">
-        <option value="">Select rating</option>
-        <option value="1">⭐ 1</option>
-        <option value="2">⭐⭐ 2</option>
-        <option value="3">⭐⭐⭐ 3</option>
-        <option value="4">⭐⭐⭐⭐ 4</option>
-        <option value="5">⭐⭐⭐⭐⭐ 5</option>
-    </select><br><br>
-    <textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
-    <button onclick="sendRating()">Send rating</button>
-    <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
-</div>
+    <!-- NEWS BUTTON -->
+    <button id="newsBtn" onclick="openNews()" style="position:fixed;top:20px;right:20px;padding:10px 15px;border-radius:12px;background:#ffcc00;color:black;font-weight:bold;z-index:9999;">
+        📰 News <span id="newsBadge" style="color:red;display:none;">🔴</span>
+    </button>
 
-        <!-- ADMIN PANEL -->
-        <div id="adminBox" style="
-    display:none;
-    position:fixed;
-    top:10%;
-    left:50%;
-    transform:translateX(-50%);
-    width:80%;
-    max-height:80vh;
-    overflow-y:auto;
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    z-index:9999;
-    text-align:center;
-">
-            <h2>🔐 Admin Panel</h2>
-            <!-- Widoczne dla admina -->
-            <div id="adminContent" style="margin-top:20px;">
-                <h3>➕ Dodaj wynik</h3>
-                <input id="adminTitle" placeholder="Title"><br>
-                <input id="adminDesc" placeholder="Description"><br>
-                <input id="adminLink" placeholder="Link"><br><br>
-                <button onclick="addResult()">Add</button><br><br>
-                <button onclick="closeAdmin()">❌ Close</button>
-                <h3>🚫 Ban system</h3>
-
-<input id="banEmail" placeholder="User email"><br><br>
-
-<button onclick="banUser()" id="banBtn">Ban user</button>
-<button onclick="unbanUser()" id="unbanBtn">Unban user</button>
-
-<p id="banStatus"></p>
-
-<h3>⭐ Ratings</h3>
-<div id="ratingsList"></div>
-<p id="ratingAvg"></p>
-            </div>
+    <!-- ADMIN PANEL -->
+    <div id="adminBox" style="display:none;position:fixed;top:10%;left:50%;transform:translateX(-50%);width:80%;max-height:80vh;overflow-y:auto;background:#111;padding:20px;border-radius:15px;z-index:9999;text-align:center;">
+        <h2>🔐 Admin Panel</h2>
+        <div id="adminContent" style="margin-top:20px;">
+            <h3>➕ Add result</h3>
+            <input id="adminTitle" placeholder="Title"><br>
+            <input id="adminDesc" placeholder="Description"><br>
+            <input id="adminLink" placeholder="Link"><br><br>
+            <button onclick="addResult()">Add</button><br><br>
+            <button onclick="closeAdmin()">❌ Close</button>
+            <h3>🚫 Ban system</h3>
+            <input id="banEmail" placeholder="User email"><br><br>
+            <button onclick="banUser()" id="banBtn">Ban user</button>
+            <button onclick="unbanUser()" id="unbanBtn">Unban user</button>
+            <p id="banStatus"></p>
+            <h3>⭐ Ratings</h3>
+            <div id="ratingsList"></div>
+            <p id="ratingAvg"></p>
         </div>
-                
+    </div>
+
     <!-- ADMIN BUTTON -->
-    <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
+    <button id="adminBtn" onclick="openAdmin()" style="position:fixed;bottom:20px;right:20px;">🔐 Admin</button>
+
     <!-- REPORT BUTTON -->
     <button id="reportBtn" onclick="openReport()">⚠️ Report</button>
-<div id="reportBox" style="
-    display:none;
-    position:fixed;
-    top:20%;
-    left:50%;
-    transform:translateX(-50%);
-    width:80%;
-    background:#111;
-    padding:20px;
-    border-radius:15px;
-    z-index:9999;
-    text-align:center;
-">
-    <h3>⚠️ Report problem</h3>
 
-    <input id="reportText" placeholder="Describe problem..."><br><br>
-    <div id="privacyBox" style="
-    display:none;
-    position:fixed;
-    top:5%;
-    left:50%;
-    transform:translateX(-50%);
-    width:85%;
-    max-height:85vh;
-    overflow-y:auto;
-    background:#111;
-    padding:30px;
-    border-radius:15px;
-    z-index:99999;
-    text-align:left;
-    line-height:1.7;
-">
-    <h2>📋 NeoFind Privacy Policy</h2>
-    <p><b>Last updated: May 2026</b></p>
-    <h3>1. What data we collect</h3>
-    <p>We collect your email address when you register. We also store your search history, favorites, and settings locally in your browser.</p>
-    <h3>2. How we use your data</h3>
-    <p>Your email is used only for authentication via Firebase. We do not sell or share your data with third parties.</p>
-    <h3>3. Cookies and local storage</h3>
-    <p>NeoFind uses localStorage to save your preferences such as language, theme, history and favorites. No tracking cookies are used.</p>
-    <h3>4. Profile images</h3>
-    <p>If you upload a profile picture, it is stored securely in Firebase Storage and linked to your account.</p>
-    <h3>5. Ratings and reports</h3>
-    <p>Ratings and reports you submit are stored in Firestore and may be reviewed by admins.</p>
-    <h3>6. Data deletion</h3>
-    <p>You can clear your local data at any time using the "Clear history" button. To delete your account, contact us at support.neofind@gmail.com.</p>
-    <h3>7. Security</h3>
-    <p>We use Firebase Authentication which provides secure login. Passwords are never stored in plain text.</p>
-    <h3>8. Changes to this policy</h3>
-    <p>We may update this policy. Continued use of NeoFind means you accept any changes.</p>
-    <h3>9. Contact</h3>
-    <p>Questions? Email us: <b>support.neofind@gmail.com</b></p>
-    <br>
-    <button onclick="closePrivacy()">❌ Close</button>
-</div>
+    <!-- REPORT BOX -->
+    <div id="reportBox" style="display:none;position:fixed;top:20%;left:50%;transform:translateX(-50%);width:80%;background:#111;padding:20px;border-radius:15px;z-index:9999;text-align:center;">
+        <h3>⚠️ Report problem</h3>
+        <input id="reportText" placeholder="Describe problem..."><br><br>
+        <button onclick="sendReport()">Send</button>
+        <button onclick="closeReport()">❌ Close</button>
+    </div>
 
-    <button onclick="sendReport()">Send</button>
-    <button onclick="closeReport()">❌ Close</button>
-</div>
-<div id="newsBox" style="
-display:none;
-position:fixed;
-top:15%;
-left:50%;
-transform:translateX(-50%);
-width:80%;
-max-height:70%;
-overflow:auto;
-background:#111;
-padding:20px;
-border-radius:15px;
-z-index:9999;
-">
+    <!-- PRIVACY BOX -->
+    <div id="privacyBox" style="display:none;position:fixed;top:5%;left:50%;transform:translateX(-50%);width:85%;max-height:85vh;overflow-y:auto;background:#111;padding:30px;border-radius:15px;z-index:99999;text-align:left;line-height:1.7;">
+        <h2>📋 NeoFind Privacy Policy</h2>
+        <p><b>Last updated: May 2026</b></p>
+        <h3>1. What data we collect</h3>
+        <p>We collect your email address when you register. We also store your search history, favorites, and settings locally in your browser.</p>
+        <h3>2. How we use your data</h3>
+        <p>Your email is used only for authentication via Firebase. We do not sell or share your data with third parties.</p>
+        <h3>3. Cookies and local storage</h3>
+        <p>NeoFind uses localStorage to save your preferences such as language, theme, history and favorites. No tracking cookies are used.</p>
+        <h3>4. Profile images</h3>
+        <p>If you upload a profile picture, it is stored securely in Firebase Storage and linked to your account.</p>
+        <h3>5. Ratings and reports</h3>
+        <p>Ratings and reports you submit are stored in Firestore and may be reviewed by admins.</p>
+        <h3>6. Data deletion</h3>
+        <p>You can clear your local data at any time using the "Clear history" button. To delete your account, contact us at support.neofind@gmail.com.</p>
+        <h3>7. Security</h3>
+        <p>We use Firebase Authentication which provides secure login. Passwords are never stored in plain text.</p>
+        <h3>8. Changes to this policy</h3>
+        <p>We may update this policy. Continued use of NeoFind means you accept any changes.</p>
+        <h3>9. Contact</h3>
+        <p>Questions? Email us: <b>support.neofind@gmail.com</b></p>
+        <br>
+        <button onclick="closePrivacy()">❌ Close</button>
+    </div>
 
-<h2>📰 News</h2>
+    <!-- NEWS BOX -->
+    <div id="newsBox" style="display:none;position:fixed;top:15%;left:50%;transform:translateX(-50%);width:80%;max-height:70%;overflow:auto;background:#111;padding:20px;border-radius:15px;z-index:9999;">
+        <h2>📰 News</h2>
+        <div id="newsList"></div>
+        <br>
+        <button onclick="closeNews()">❌ Close</button>
+    </div>
 
-<div id="newsList"></div>
+    <!-- BIRTHDAY MODAL -->
+    <div id="birthdayModal" style="display:none;" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Birthday Event</h2>
+            <p>To celebrate the owner's 11th birthday, we are hosting a special event!</p>
+            <p>🎁 Anyone who writes <b>"wszystkiego najlepszego"</b> in:</p>
+            <ul style="text-align:left;">
+                <li>Rate Us</li>
+                <li>Report Problem</li>
+            </ul>
+            <p>will receive <b>Premium for 1 week</b>!</p>
+            <button id="closeBirthday" onclick="document.getElementById('birthdayModal').style.display='none'">Close</button>
+        </div>
+    </div>
 
-<br>
-<button onclick="closeNews()">❌ Close</button>
-</div>
-<div id="updates"></div>
-<!-- Firebase scripts -->
+    <div id="updates"></div>
+
+</div><!-- koniec #app -->
+
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script>
-/* Konfiguracja Firebase */
+/* Firebase Config */
 const firebaseConfig = {
     apiKey: "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0",
     authDomain: "neofind-f8213.firebaseapp.com",
@@ -589,10 +387,32 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 
+const db = firebase.firestore();
+const auth = firebase.auth();
 
 const GLOBAL_UPDATE = "🚀 Added login, admin panel and ban system + bug fixes";
 
-// Dane i tłumaczenia
+const ADMIN_EMAILS = [
+    "adrian.wilczek@hotmail.com",
+    "account.neofind@gmail.com",
+    "support.neofind@gmail.com",
+    "Michal.wilkowski@outlook.com",
+    "Michal.wilkowski@gmail.com",
+    "j.e.wilkowska@gmail.com"
+];
+
+const PREMIUM_EMAILS = [
+    "adrian.wilczek@hotmail.com",
+    "account.neofind@gmail.com",
+    "support.neofind@gmail.com",
+    "Michal.wilkowski@outlook.com",
+    "Michal.wilkowski@gmail.com",
+    "j.e.wilkowska@gmail.com"
+];
+
+/* =====================
+   DATA (skrócone - wklej swoje oryginalne data tutaj)
+   ===================== */
 const data = {
     pl: [
 { title: "Roblox", desc: "Platforma do tworzenia i grania w gry stworzone przez użytkowników. Miliony doświadczeń w jednym miejscu.", link: "https://www.roblox.com/" },
@@ -1939,7 +1759,7 @@ const data = {
             { title: "o3", desc: "Nadchodzący OpenAI.", link: "https://openai.com/" },
             { title: "Llama 4", desc: "Nadchodzący Meta.", link: "https://ai.meta.com/" },
             { title: "Mistral 3", desc: "Nadchodzący Mistral.", link: "https://mistral.ai/" },
-            { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }
+            { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }}
     ],
     en: [
      { title: "Roblox", desc: "A platform for creating and playing user-generated games. Millions of experiences in one place.", link: "https://www.roblox.com/" },
@@ -4640,6 +4460,9 @@ const data = {
     ]
 };
 
+/* =====================
+   TRANSLATIONS
+   ===================== */
 const translations = {
     en: {
         search: "Search...",
@@ -4667,7 +4490,6 @@ const translations = {
         unbanUser: "Unban user",
         noHistory: "No history"
     },
-
     pl: {
         search: "Szukaj...",
         settings: "⚙️ Ustawienia",
@@ -4694,7 +4516,6 @@ const translations = {
         unbanUser: "Odbanuj użytkownika",
         noHistory: "Brak historii"
     },
-
     es: {
         search: "Buscar...",
         settings: "⚙️ Ajustes",
@@ -4721,7 +4542,6 @@ const translations = {
         unbanUser: "Desbanear usuario",
         noHistory: "Sin historial"
     },
-
     easter: {
         search: "🐰 Search eggs...",
         settings: "🐰 Settings",
@@ -4749,398 +4569,137 @@ const translations = {
         noHistory: "🐰 No bunny tracks"
     }
 };
-    
+
+/* =====================
+   NEWS DATA
+   ===================== */
 const newsData = [
-  {
-    "title": "NeoFind have version v1.18",
-    "text": "Neofind now have version v1.18 what new? More results, and now NeoFind is on neofind.pl",
-    "date": "2026-05-07"
-  },
-  {
-    "title": "Artificial Intelligence expansion continues",
-    "text": "AI technologies are rapidly expanding across industries including education, business, and entertainment, while governments work on new regulations.",
-    "date": "2026-05-01"
-  },
-  {
-    "title": "War in Ukraine remains ongoing",
-    "text": "The conflict in Ukraine continues with international support and ongoing geopolitical tensions affecting global stability.",
-    "date": "2026-04-30"
-  },
-  {
-    "title": "Global temperatures reach record levels",
-    "text": "Scientists report that global temperatures are rising, leading to more frequent extreme weather events such as heatwaves and floods.",
-    "date": "2026-04-29"
-  },
-  {
-    "title": "Electric vehicle adoption increases worldwide",
-    "text": "More countries and companies are investing in electric vehicles and charging infrastructure as demand continues to grow.",
-    "date": "2026-04-28"
-  },
-  {
-    "title": "New space missions planned for Moon and Mars",
-    "text": "Space agencies and private companies are preparing new missions aimed at exploring the Moon and Mars in the near future.",
-    "date": "2026-04-27"
-  },
-  {
-    "title": "New internet safety laws introduced",
-    "text": "Governments are introducing stricter online safety regulations to better protect users, especially children.",
-    "date": "2026-04-26"
-  },
-  {
-    "title": "E-sports industry continues rapid growth",
-    "text": "Competitive gaming is growing fast, attracting millions of viewers and offering increasingly large prize pools.",
-    "date": "2026-04-25"
-  },
-  {
-    "title": "Breakthroughs in modern medicine",
-    "text": "Advances in gene therapy and biotechnology are helping treat diseases once considered untreatable.",
-    "date": "2026-04-24"
-  }
+    { title: "NeoFind have version v1.18", text: "Neofind now have version v1.18 what new? More results, and now NeoFind is on neofind.pl", date: "2026-05-07" },
+    { title: "Artificial Intelligence expansion continues", text: "AI technologies are rapidly expanding across industries.", date: "2026-05-01" },
+    { title: "War in Ukraine remains ongoing", text: "The conflict in Ukraine continues with international support.", date: "2026-04-30" },
+    { title: "Global temperatures reach record levels", text: "Scientists report that global temperatures are rising.", date: "2026-04-29" },
+    { title: "Electric vehicle adoption increases worldwide", text: "More countries are investing in electric vehicles.", date: "2026-04-28" }
 ];
 
-function getAIResponse(query) {
-
-    query = query.toLowerCase();
-
-    if (query.includes("what is roblox")) {
-        return "Roblox is an online platform where users can play and create games made by other users.";
-    }
-
-    if (query.includes("what is minecraft")) {
-        return "Minecraft is a sandbox game where you can build, survive and explore infinite worlds.";
-    }
-
-    if (query.includes("why is sky blue")) {
-        return "The sky looks blue because of light scattering in the atmosphere (Rayleigh scattering).";
-    }
-
-    if (query.includes("how are you")) {
-        return "Good, thank you for ask I'm just a NeoAI, but I'm working fine 🙂";
-    }
-
-    if (query.includes("what is ai")) {
-        return "AI is technology that allows computers to simulate human-like thinking and decision making.";
-    }
-
-    if (query.includes("what is javascript")) {
-        return "JavaScript is a programming language used to make websites interactive.";
-    }
-
-    if (query.includes("what is html")) {
-        return "HTML is the structure of a website, like its skeleton.";
-    }
-
-    if (query.includes("what is css")) {
-        return "CSS is used to style websites, like colors, layouts and design.";
-    }
-
-    if (query.includes("what is internet")) {
-        return "The internet is a global network that connects computers around the world.";
-    }
-
-    if (query.includes("what is wifi")) {
-        return "WiFi is a wireless technology that connects devices to the internet.";
-    }
-
-    if (query.includes("what is google")) {
-        return "Google is a search engine that helps people find information online.";
-    }
-
-    if (query.includes("what is youtube")) {
-        return "YouTube is a platform for watching and sharing videos.";
-    }
-
-    if (query.includes("what is discord")) {
-        return "Discord is an app used for chatting with text, voice, and communities.";
-    }
-
-    if (query.includes("what is computer")) {
-        return "A computer is a device that processes data and runs programs.";
-    }
-
-    if (query.includes("what is laptop")) {
-        return "A laptop is a portable computer you can carry and use anywhere.";
-    }
-
-    if (query.includes("what is phone")) {
-        return "A phone is a device used for communication and apps.";
-    }
-
-    if (query.includes("what is game")) {
-        return "A game is a form of entertainment with rules and goals.";
-    }
-
-    if (query.includes("what is programming")) {
-        return "Programming is writing instructions for computers to follow.";
-    }
-
-    if (query.includes("what is coding")) {
-        return "Coding is creating software using programming languages.";
-    }
-
-    if (query.includes("what is error")) {
-        return "An error is a problem that stops something from working correctly.";
-    }
-
-    if (query.includes("what is bug")) {
-        return "A bug is a mistake in code that causes unexpected behavior.";
-    }
-
-    if (query.includes("what is gravity")) {
-        return "Gravity is the force that pulls objects toward each other.";
-    }
-
-    if (query.includes("what is sun")) {
-        return "The Sun is a star that gives Earth light and heat.";
-    }
-
-    if (query.includes("what is moon")) {
-        return "The Moon is Earth's natural satellite.";
-    }
-
-    if (query.includes("what is earth")) {
-        return "Earth is the third planet from the Sun and our home.";
-    }
-
-    if (query.includes("what is space")) {
-        return "Space is the vast universe beyond Earth.";
-    }
-
-    if (query.includes("what is planet")) {
-        return "A planet is a large object that orbits a star.";
-    }
-
-    if (query.includes("what is star")) {
-        return "A star is a huge ball of burning gas in space.";
-    }
-
-    if (query.includes("what is galaxy")) {
-        return "A galaxy is a huge system of stars, gas and dust.";
-    }
-
-    if (query.includes("what is water")) {
-        return "Water is a liquid essential for life.";
-    }
-
-    if (query.includes("what is fire")) {
-        return "Fire is a chemical reaction that produces heat and light.";
-    }
-
-    if (query.includes("what is energy")) {
-        return "Energy is the ability to do work or cause change.";
-    }
-
-    if (query.includes("what is electricity")) {
-        return "Electricity is the flow of electric charge used to power devices.";
-    }
-
-    if (query.includes("what is time")) {
-        return "Time is how we measure events and their duration.";
-    }
-
-    if (query.includes("what is speed")) {
-        return "Speed is how fast something moves.";
-    }
-
-    if (query.includes("what is robot")) {
-        return "A robot is a machine that can perform tasks automatically.";
-    }
-
-    if (query.includes("what is chatgpt")) {
-        return "ChatGPT is an AI model that can chat and answer questions.";
-    }
-
-    if (query.includes("what is search engine")) {
-        return "A search engine helps you find information on the internet.";
-    }
-
-    if (query.includes("what is browser")) {
-        return "A browser is an app used to access websites.";
-    }
-
-    if (query.includes("what is website")) {
-        return "A website is a collection of pages on the internet.";
-    }
-
-    if (query.includes("what is file")) {
-        return "A file is a container for storing data.";
-    }
-
-    if (query.includes("what is folder")) {
-        return "A folder is used to organize files.";
-    }
-
-    if (query.includes("what is cloud")) {
-        return "Cloud computing stores and processes data online.";
-    }
-
-    if (query.includes("what is server")) {
-        return "A server is a computer that provides data to other devices.";
-    }
-
-    if (query.includes("what is virus")) {
-        return "A computer virus is harmful software that spreads between devices.";
-    }
-
-    if (query.includes("what is password")) {
-        return "A password is a secret code used to protect accounts.";
-    }
-
-    if (query.includes("what is security")) {
-        return "Security means protecting systems and data from threats.";
-    }
-
-    if (query.includes("what is update")) {
-        return "An update is a new version of software with improvements.";
-    }
-
-    if (query.includes("what is download")) {
-        return "Download means getting data from the internet to your device.";
-    }
-
-    if (query.includes("what is upload")) {
-        return "Upload means sending data from your device to the internet.";
-    }
-
-    if (query.includes("what is fps")) {
-        return "FPS means frames per second, how smooth a game runs.";
-    }
-
-    if (query.includes("what is ping")) {
-        return "Ping is the delay between your device and a server.";
-    }
-
-    if (query.includes("why do we sleep")) {
-        return "We sleep to rest and restore energy.";
-    }
-
-    if (query.includes("why do we dream")) {
-        return "Dreams happen during sleep and may reflect thoughts.";
-    }
-
-    if (query.includes("why is water wet")) {
-        return "Water feels wet because it sticks to surfaces and spreads easily.";
-    }
-
-    if (query.includes("tell me a joke")) {
-        return "Why did the computer go to school? To improve its bytes 😄";
-    }
-
-    // fallback AI
-    return "I don't fully understand this question yet, but try rephrasing it or searching again.";
-}
-    
-const aiKeywords = [
-    "what is",
-    "why",
-    "how",
-    "explain",
-    "define",
-    "co to",
-    "dlaczego",
-    "jak"
-];
-    
+/* =====================
+   ZMIENNE GLOBALNE
+   ===================== */
 let currentLang = "en";
+let intervals = [];
 
-function updateDidYouKnow(){
+/* =====================
+   AI RESPONSE
+   ===================== */
+function getAIResponse(query) {
+    query = query.toLowerCase();
+    if (query.includes("what is roblox")) return "Roblox is an online platform where users can play and create games.";
+    if (query.includes("what is minecraft")) return "Minecraft is a sandbox game where you can build and explore.";
+    if (query.includes("why is sky blue")) return "The sky looks blue because of light scattering (Rayleigh scattering).";
+    if (query.includes("how are you")) return "Good, thank you for asking! I'm NeoAI 🙂";
+    if (query.includes("what is ai")) return "AI is technology that allows computers to simulate human-like thinking.";
+    if (query.includes("what is javascript")) return "JavaScript is a programming language for interactive websites.";
+    if (query.includes("what is html")) return "HTML is the structure of a website, like its skeleton.";
+    if (query.includes("what is css")) return "CSS is used to style websites.";
+    if (query.includes("what is google")) return "Google is a search engine that helps people find information.";
+    if (query.includes("what is youtube")) return "YouTube is a platform for watching and sharing videos.";
+    if (query.includes("what is discord")) return "Discord is an app used for chatting with text and voice.";
+    if (query.includes("what is chatgpt")) return "ChatGPT is an AI model that can chat and answer questions.";
+    if (query.includes("tell me a joke")) return "Why did the computer go to school? To improve its bytes 😄";
+    return "I don't fully understand this question yet. Try rephrasing it or searching again.";
+}
+
+const aiKeywords = ["what is","why","how","explain","define","co to","dlaczego","jak"];
+
+/* =====================
+   DID YOU KNOW
+   ===================== */
+function updateDidYouKnow() {
     const t = translations[currentLang];
-    if(!t.didYouKnow) return;
+    if (!t || !t.didYouKnow) return;
     const random = t.didYouKnow[Math.floor(Math.random() * t.didYouKnow.length)];
-    document.getElementById("didYouKnowTitle").innerText = t.didYouKnowTitle;
+    document.getElementById("didYouKnowTitle").innerText = t.didYouKnowTitle || "";
     document.getElementById("didYouKnow").innerText = random;
 }
 
-/* 🔍 SEARCH + HISTORY */
+/* =====================
+   SEARCH
+   ===================== */
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
-    // 🧠 CALCULATOR
-if(/^[0-9+\-*/(). ]+$/.test(value)){
-    try{
-        const result = eval(value);
 
-        if(result !== undefined){
-            document.getElementById("results").innerHTML = `
-                <div class="result">
-                    <h2>= ${result}</h2>
-                </div>
-            `;
-            return;
-        }
-    }catch(e){}
-}
+    // Kalkulator
+    if (/^[0-9+\-*/(). ]+$/.test(value) && value.length > 0) {
+        try {
+            const result = eval(value);
+            if (result !== undefined) {
+                document.getElementById("results").innerHTML = `<div class="result"><h2>= ${result}</h2></div>`;
+                return;
+            }
+        } catch(e) {}
+    }
+
     log('searched "' + value + '"');
     saveToHistory(value);
 
     const results = document.getElementById("results");
     const isAIQuery = aiKeywords.some(k => value.startsWith(k));
 
-if(isAIQuery && value.length > 3){
-    results.innerHTML = `
-        <div class="result">
-            <h2>🤖 NeoAI</h2>
-            <p>${getAIResponse(value)}</p>
-        </div>
-    `;
-    return;
-}
-    if(value === "neo"){
-        spawnNeo();
+    if (isAIQuery && value.length > 3) {
+        results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>${getAIResponse(value)}</p></div>`;
         return;
     }
-    if(!value){
-        results.innerHTML = "";
-        return;
-    }
+
+    if (value === "neo") { spawnNeo(); return; }
+    if (!value) { results.innerHTML = ""; return; }
+
     const list = data[currentLang] || [];
     const filtered = list.filter(item =>
         (item.title || "").toLowerCase().includes(value) ||
         (item.desc || "").toLowerCase().includes(value)
     );
-    if(!filtered.length){
-        results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
+
+    if (!filtered.length) {
+        results.innerHTML = `<div class="result">${(translations[currentLang] || translations.en).noResults}</div>`;
         return;
     }
+
     results.innerHTML = filtered.map((item, index) => `
-    <div class="result">
-        <a href="${item.link}" target="_blank">${item.title}</a>
-        <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
-        <p>${item.desc}</p>
-    </div>
+        <div class="result">
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
+            <p>${item.desc}</p>
+        </div>
     `).join("");
 });
 
-/* 🔍 SUGGESTIONS */
+/* SUGGESTIONS */
 const suggestionsBox = document.getElementById("suggestions");
-document.getElementById("search").addEventListener("input", function(){
+document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase();
     const list = data[currentLang] || [];
-    if(!value){
-        suggestionsBox.innerHTML = "";
-        return;
-    }
-    const matches = list.filter(item =>
-        (item.title || "").toLowerCase().includes(value)
-    ).slice(0,5);
+    if (!value) { suggestionsBox.innerHTML = ""; return; }
+    const matches = list.filter(item => (item.title || "").toLowerCase().includes(value)).slice(0, 5);
     suggestionsBox.innerHTML = matches.map(item =>
-        `<div onclick="useSuggestion('${item.title}')">${item.title}</div>`
+        `<div onclick="useSuggestion('${item.title.replace(/'/g, "\\'")}')">${item.title}</div>`
     ).join("");
 });
 
-function useSuggestion(text){
+function useSuggestion(text) {
     document.getElementById("search").value = text;
     document.getElementById("suggestions").innerHTML = "";
 }
 
-/* ⚙️ SETTINGS */
-log("opened settings");
-function openSettings(){
+/* =====================
+   SETTINGS
+   ===================== */
+function openSettings() {
     document.getElementById("settingsBox").style.display = "block";
     document.getElementById("settingsLang").value = currentLang;
     showHistory();
+    showFavorites();
 }
 
-function saveSettings(){
+function saveSettings() {
     const lang = document.getElementById("settingsLang").value;
     currentLang = lang;
     localStorage.setItem("lang", lang);
@@ -5150,99 +4709,54 @@ function saveSettings(){
     log("saved settings (lang: " + currentLang + ")");
 }
 
-
-/* ADMIN PANEL CONTROL */
-function openAdmin(){
-    document.getElementById("adminBox").style.display = "block";
-    loadRatings();
-}
-function closeAdmin(){
-    document.getElementById("adminBox").style.display = "none";
-}
-function addResult(){
-    const title = document.getElementById("adminTitle").value;
-    const desc = document.getElementById("adminDesc").value;
-    const link = document.getElementById("adminLink").value;
-    if(!title || !desc || !link){
-        alert("Fill everything!");
-        return;
-    }
-    data[currentLang].push({
-        title: title,
-        desc: desc,
-        link: link
-    });
-    alert("Added!");
-    // Można tu dodać zapis do Firestore, jeśli potrzeba.'
-    window.banUser = function () {
-    const email = document.getElementById("banEmail").value.trim();
-
-    if (!email) return alert("Enter email!");
-
-    db.collection("bannedUsers").doc(email).set({
-        reason: "Banned by admin",
-        date: new Date()
-    })
-    .then(() => alert("User banned!"))
-    .catch(err => alert(err.message));
-};
-window.unbanUser = function () {
-    const email = document.getElementById("banEmail").value.trim();
-
-    db.collection("bannedUsers").doc(email).delete()
-        .then(() => alert("User unbanned!"))
-        .catch(err => alert(err.message));
-};
-    closeAdmin();
-}
-
-/* 📜 HISTORY */
-function saveToHistory(query){
-    if(!query) return;
+/* =====================
+   HISTORY
+   ===================== */
+function saveToHistory(query) {
+    if (!query) return;
     let history = JSON.parse(localStorage.getItem("history")) || [];
-    if(history.includes(query)) return;
+    if (history.includes(query)) return;
     history.unshift(query);
-    if(history.length > 500) history.pop();
+    if (history.length > 500) history.pop();
     localStorage.setItem("history", JSON.stringify(history));
 }
 
-function showHistory(){
+function showHistory() {
     const box = document.getElementById("historyList");
     let history = JSON.parse(localStorage.getItem("history")) || [];
-    if(!history.length){
-        box.innerHTML = "No history";
-        return;
-    }
-    box.innerHTML = history.map(h => `
-        <div class="result" onclick="useHistory('${h}')">${h}</div>
-    `).join("");
+    const t = translations[currentLang] || translations.en;
+    if (!history.length) { box.innerHTML = t.noHistory || "No history"; return; }
+    box.innerHTML = history.map(h =>
+        `<div class="result" onclick="useHistory('${h.replace(/'/g, "\\'")}')">${h}</div>`
+    ).join("");
 }
 
-function useHistory(text){
+function useHistory(text) {
     document.getElementById("search").value = text;
     document.getElementById("settingsBox").style.display = "none";
 }
 
-function clearHistory(){
+function clearHistory() {
     localStorage.removeItem("history");
     log("cleared history");
     showHistory();
 }
 
-/* FAV */
-function getFavorites(){
-    return JSON.parse(localStorage.getItem("favorites")) || [];
+/* =====================
+   FAVORITES
+   ===================== */
+function getFavorites() { return JSON.parse(localStorage.getItem("favorites")) || []; }
+
+function isFavorite(item) {
+    return getFavorites().some(f => f.title === item.title && f.link === item.link);
 }
-function isFavorite(item){
-    const favs = getFavorites();
-    return favs.some(f => f.title === item.title && f.link === item.link);
-}
-function toggleFavorite(index){
+
+function toggleFavorite(index) {
     const list = data[currentLang] || [];
     const item = list[index];
     let favs = getFavorites();
     const exists = favs.find(f => f.title === item.title && f.link === item.link);
-    if(exists){
+    if (exists) {
         favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
     } else {
         favs.push(item);
@@ -5251,159 +4765,288 @@ function toggleFavorite(index){
     document.getElementById("search").dispatchEvent(new Event("input"));
 }
 
-/* 🎨 APPLY THEME */
-let intervals = [];
-function stopEffects(){
+function showFavorites() {
+    const box = document.getElementById("favoritesList");
+    const favs = getFavorites();
+    const t = translations[currentLang] || translations.en;
+    if (!favs.length) { box.innerText = t.noFavorites || "No favorites"; return; }
+    box.innerHTML = favs.map(item => `
+        <div class="result">
+            <a href="${item.link}" target="_blank">${item.title}</a>
+            <p>${item.desc}</p>
+        </div>
+    `).join("");
+}
+
+/* =====================
+   THEMES
+   ===================== */
+function stopEffects() {
     intervals.forEach(i => clearInterval(i));
     intervals = [];
     const canvas = document.getElementById("matrixCanvas");
-    if(canvas) canvas.remove();
+    if (canvas) canvas.remove();
 }
-function startSpace(){
-    const interval = setInterval(()=>{
+
+function startSpace() {
+    const interval = setInterval(() => {
         const star = document.createElement("div");
-        star.style.position = "fixed";
-        star.style.left = Math.random()*100+"%";
-        star.style.top = "-5px";
-        star.style.width = "2px";
-        star.style.height = "2px";
-        star.style.background = "white";
-        star.style.zIndex = "0";
+        star.style.cssText = "position:fixed;left:"+Math.random()*100+"%;top:-5px;width:2px;height:2px;background:white;z-index:0;";
         document.body.appendChild(star);
         let y = 0;
-        const fall = setInterval(()=>{
-            y += 3;
-            star.style.top = y + "px";
-            if(y > window.innerHeight){
-                star.remove();
-                clearInterval(fall);
-            }
+        const fall = setInterval(() => {
+            y += 3; star.style.top = y + "px";
+            if (y > window.innerHeight) { star.remove(); clearInterval(fall); }
         }, 16);
     }, 120);
     intervals.push(interval);
 }
-function startMatrix(){
+
+function startMatrix() {
     const canvas = document.createElement("canvas");
     canvas.id = "matrixCanvas";
-    canvas.style.position = "fixed";
-    canvas.style.top = "0";
-    canvas.style.left = "0";
-    canvas.style.zIndex = "0";
+    canvas.style.cssText = "position:fixed;top:0;left:0;z-index:0;";
     document.body.appendChild(canvas);
     const ctx = canvas.getContext("2d");
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     const letters = "01ABCXYZ";
     const fontSize = 14;
-    const columns = canvas.width / fontSize;
-    const drops = Array.from({length: columns}).fill(1);
-    const interval = setInterval(()=>{
+    const drops = Array.from({length: Math.floor(canvas.width/fontSize)}).fill(1);
+    const interval = setInterval(() => {
         ctx.fillStyle = "rgba(0,0,0,0.08)";
-        ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#0f0";
         ctx.font = fontSize + "px monospace";
-        for(let i=0;i<drops.length;i++){
-            const text = letters[Math.floor(Math.random()*letters.length)];
-            ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-            if(drops[i]*fontSize > canvas.height){
-                drops[i] = 0;
-            }
+        drops.forEach((d, i) => {
+            ctx.fillText(letters[Math.floor(Math.random()*letters.length)], i*fontSize, d*fontSize);
+            if (d*fontSize > canvas.height) drops[i] = 0;
             drops[i]++;
-        }
+        });
     }, 50);
     intervals.push(interval);
 }
-function applyTheme(theme){
-    console.log("THEME:", theme);
+
+function applyTheme(theme) {
     document.body.classList.remove("space","matrix","ocean");
     stopEffects();
-    if(theme === "space"){
-        document.body.classList.add("space");
-        startSpace();
-    }
-    if(theme === "matrix"){
-        document.body.classList.add("matrix");
-        startMatrix();
-    }
-    if(theme === "ocean"){
-        document.body.classList.add("ocean");
-    }
+    if (theme === "space") { document.body.classList.add("space"); startSpace(); }
+    if (theme === "matrix") { document.body.classList.add("matrix"); startMatrix(); }
+    if (theme === "ocean") { document.body.classList.add("ocean"); }
     localStorage.setItem("theme", theme);
 }
 
-/* =========================
-   FIREBASE INIT (TYLKO RAZ)
-========================= */
-const db = firebase.firestore();
-const auth = firebase.auth();
+/* =====================
+   CONSOLE
+   ===================== */
+function openConsole() { document.getElementById("consoleBox").style.display = "block"; log("console opened"); }
+function closeConsole() { document.getElementById("consoleBox").style.display = "none"; }
 
-/* =========================
-   ADMIN EMAILS
-========================= */
-const ADMIN_EMAILS = [
-    "adrian.wilczek@hotmail.com",
-    "account.neofind@gmail.com",
-    "support.neofind@gmail.com",
-    "Michal.wilkowski@outlook.com",
-    "Michal.wilkowski@gmail.com",
-    "j.e.wilkowska@gmail.com"
-]
+function log(text) {
+    const logs = document.getElementById("consoleLogs");
+    if (!logs) return;
+    logs.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${text}</div>`;
+    logs.scrollTop = logs.scrollHeight;
+}
 
-const PREMIUM_EMAILS = [
-    "adrian.wilczek@hotmail.com",
-    "account.neofind@gmail.com",
-    "support.neofind@gmail.com",
-    "Michal.wilkowski@outlook.com",
-    "Michal.wilkowski@gmail.com",
-    "j.e.wilkowska@gmail.com"
-];
+setInterval(() => {
+    const box = document.getElementById("consoleBox");
+    if (!box || box.style.display !== "block") return;
+    log("System running...");
+}, 10000);
 
-/* =========================
-   REGISTER
-========================= */
-window.register = function () {
+function exportLogs() {
+    const logs = document.getElementById("consoleLogs");
+    if (!logs || !logs.innerText.trim()) { alert("No logs!"); return; }
+    const blob = new Blob([logs.innerText], {type: "text/plain"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "neofind-logs.txt";
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    log("logs exported");
+}
+
+function handleCommand(e) {
+    if (e.key !== "Enter") return;
+    const input = e.target.value.trim();
+    e.target.value = "";
+    if (!input.startsWith("/")) { log("❌ wrong format. example: /command"); return; }
+    if (input === "/help") {
+        log("📜 commands: /help /clearhistory /search text /language en|es|pl|easter /time /date /about /export");
+    } else if (input === "/clearhistory") {
+        localStorage.removeItem("history"); log("history cleared");
+    } else if (input.startsWith("/search ")) {
+        const text = input.slice(8);
+        document.getElementById("search").value = text;
+        document.getElementById("search").dispatchEvent(new Event("input"));
+        log('searched "' + text + '"');
+    } else if (input.startsWith("/language ")) {
+        const lang = input.slice(10).toLowerCase();
+        if (["en","es","pl","easter"].includes(lang)) {
+            currentLang = lang;
+            localStorage.setItem("lang", lang);
+            updateLanguage();
+            log("language changed to " + lang);
+        } else { log("❌ available: en, es, pl, easter"); }
+    } else if (input === "/time") {
+        log("time: " + new Date().toLocaleTimeString());
+    } else if (input === "/date") {
+        log("date: " + new Date().toLocaleDateString());
+    } else if (input === "/about") {
+        log("NeoFind - A modern search engine with an intelligent results system.");
+    } else if (input === "/export") {
+        exportLogs();
+    } else {
+        log("unknown command");
+    }
+}
+
+/* =====================
+   REPORT
+   ===================== */
+function openReport() { document.getElementById("reportBox").style.display = "block"; }
+function closeReport() { document.getElementById("reportBox").style.display = "none"; }
+
+function sendReport() {
+    const text = document.getElementById("reportText").value.trim();
+    if (!text) { alert("Write something!"); return; }
+    db.collection("reports").add({
+        text: text,
+        user: auth.currentUser ? auth.currentUser.email : "guest",
+        date: new Date()
+    }).then(() => {
+        alert("Report sent!");
+        document.getElementById("reportText").value = "";
+        closeReport();
+    }).catch(err => alert(err.message));
+}
+
+/* =====================
+   PRIVACY
+   ===================== */
+function openPrivacy() { document.getElementById("privacyBox").style.display = "block"; }
+function closePrivacy() { document.getElementById("privacyBox").style.display = "none"; }
+
+/* =====================
+   NEWS
+   ===================== */
+function openNews() {
+    document.getElementById("newsBox").style.display = "block";
+    document.getElementById("newsBadge").style.display = "none";
+    localStorage.setItem("lastNewsSeen", newsData[0]?.date);
+    loadNews();
+}
+
+function closeNews() { document.getElementById("newsBox").style.display = "none"; }
+
+function loadNews() {
+    document.getElementById("newsList").innerHTML = newsData.map(n => `
+        <div class="result">
+            <h3>${n.title}</h3>
+            <p>${n.text}</p>
+            <small>${n.date}</small>
+        </div>
+    `).join("");
+}
+
+function checkNews() {
+    const lastSeen = localStorage.getItem("lastNewsSeen");
+    if (lastSeen !== newsData[0]?.date) {
+        document.getElementById("newsBadge").style.display = "inline";
+    }
+}
+
+/* =====================
+   RATINGS
+   ===================== */
+window.sendRating = function() {
+    const stars = parseInt(document.getElementById("rateStars").value);
+    const text = document.getElementById("rateText").value.trim();
+    if (!stars) { alert("Select stars!"); return; }
+    db.collection("ratings").add({
+        stars: stars,
+        text: text,
+        user: auth.currentUser ? auth.currentUser.email : "guest",
+        date: new Date()
+    }).then(() => {
+        alert("Thanks for rating!");
+        document.getElementById("rateStars").value = "";
+        document.getElementById("rateText").value = "";
+    }).catch(err => alert(err.message));
+};
+
+async function loadRatings() {
+    const snapshot = await db.collection("ratings").get();
+    const box = document.getElementById("ratingsList");
+    let all = [];
+    box.innerHTML = "";
+    snapshot.forEach(doc => {
+        const r = doc.data();
+        all.push(r.stars);
+        box.innerHTML += `<div class="result"><b>${r.user}</b><br>⭐ ${r.stars}/5<br>${r.text || ""}</div>`;
+    });
+    if (all.length) {
+        const avg = all.reduce((a,b) => a+b, 0) / all.length;
+        document.getElementById("ratingAvg").innerText = "Average: " + Math.round((avg/5)*100) + "% (" + avg.toFixed(2) + "/5)";
+    }
+}
+
+/* =====================
+   ADMIN
+   ===================== */
+function openAdmin() { document.getElementById("adminBox").style.display = "block"; loadRatings(); }
+function closeAdmin() { document.getElementById("adminBox").style.display = "none"; }
+
+function addResult() {
+    const title = document.getElementById("adminTitle").value;
+    const desc = document.getElementById("adminDesc").value;
+    const link = document.getElementById("adminLink").value;
+    if (!title || !desc || !link) { alert("Fill everything!"); return; }
+    data[currentLang].push({title, desc, link});
+    alert("Added!");
+    closeAdmin();
+}
+
+window.banUser = function() {
+    const email = document.getElementById("banEmail").value.trim();
+    if (!email) { alert("Enter email!"); return; }
+    db.collection("bannedUsers").doc(email).set({reason: "Banned by admin", date: new Date()})
+        .then(() => { document.getElementById("banStatus").innerText = "🚫 Banned: " + email; })
+        .catch(err => alert(err.message));
+};
+
+window.unbanUser = function() {
+    const email = document.getElementById("banEmail").value.trim();
+    if (!email) { alert("Enter email!"); return; }
+    db.collection("bannedUsers").doc(email).delete()
+        .then(() => { document.getElementById("banStatus").innerText = "✅ Unbanned: " + email; })
+        .catch(err => alert(err.message));
+};
+
+/* =====================
+   AUTH
+   ===================== */
+window.register = function() {
     const email = document.getElementById("regUser").value.trim();
     const pass = document.getElementById("regPass").value;
     const accepted = document.getElementById("acceptPolicy").checked;
-
-    if (!email || !pass) return alert("Fill all!");
-    if (!accepted) return alert("You must accept the privacy policy to register!");
-
+    if (!email || !pass) { alert("Fill all!"); return; }
+    if (!accepted) { alert("You must accept the privacy policy!"); return; }
     auth.createUserWithEmailAndPassword(email, pass)
-        .then((userCredential) => {
-            userCredential.user.sendEmailVerification()
-                .then(() => {
-                    alert("Account created! Check your email and click the verification link before logging in.");
-                    auth.signOut();
-                })
-                .catch(err => alert("Error sending verification email: " + err.message));
-        })
-        .catch(err => alert(err.message));
+        .then(uc => uc.user.sendEmailVerification()
+            .then(() => { alert("Account created! Check your email for verification link."); auth.signOut(); })
+        ).catch(err => alert(err.message));
 };
-    
-/* =========================
-   LOGIN
-========================= */
-window.login = function () {
+
+window.login = function() {
     const email = document.getElementById("logUser").value.trim();
     const pass = document.getElementById("logPass").value;
-
-    if (!email || !pass) return alert("Fill all!");
-
-    auth.signInWithEmailAndPassword(email, pass)
-        .catch(err => alert(err.message));
+    if (!email || !pass) { alert("Fill all!"); return; }
+    auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
 };
 
-/* =========================
-   LOGOUT
-========================= */
-window.logout = function () {
-    auth.signOut();
-};
-
-/* =========================
-   AUTH STATE + BAN CHECK
-========================= */
 auth.onAuthStateChanged(async user => {
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
@@ -5416,680 +5059,145 @@ auth.onAuthStateChanged(async user => {
 
     try {
         const doc = await db.collection("bannedUsers").doc(user.email).get();
-
-        if (doc.exists) {
-            alert("🚫 You are banned!");
-            await auth.signOut();
-            return;
-        }
-
- } catch (e) {
-        console.error("Ban check error:", e);
-    }
+        if (doc.exists) { alert("🚫 You are banned!"); await auth.signOut(); return; }
+    } catch(e) { console.error("Ban check error:", e); }
 
     if (!user.emailVerified) {
-        alert("Please verify your email first! Check your inbox and click the link.");
+        alert("Please verify your email first!");
         auth.signOut();
         return;
     }
 
-if (!user.emailVerified) {
-    alert("Please verify your email first! Check your inbox and click the link.");
-    auth.signOut();
-    return;
-}
+    loginScreen.style.display = "none";
+    app.style.display = "block";
+    document.getElementById("accountEmail").innerText = user.email;
 
-loginScreen.style.display = "none";
-app.style.display = "block";
+    document.getElementById("premiumBadge").style.display =
+        PREMIUM_EMAILS.includes(user.email) ? "block" : "none";
 
-document.getElementById("accountEmail").innerText = user.email;
-    if (PREMIUM_EMAILS.includes(user.email)) {
-    document.getElementById("premiumBadge").style.display = "block";
-} else {
-    document.getElementById("premiumBadge").style.display = "none";
-}
-
-    if (ADMIN_EMAILS.includes(user.email)) {
-        document.getElementById("adminBox").style.display = "block";
-        document.getElementById("adminBtn").style.display = "block";
-    } else {
-        document.getElementById("adminBox").style.display = "none";
-        document.getElementById("adminBtn").style.display = "none";
-    }
+    const isAdmin = ADMIN_EMAILS.includes(user.email);
+    document.getElementById("adminBtn").style.display = isAdmin ? "block" : "none";
 });
 
-/* =========================
-   BAN SYSTEM (FIRESTORE)
-========================= */
-window.banUser = function () {
-    const email = document.getElementById("banEmail").value.trim();
-    if (!email) return alert("Enter email!");
-
-    db.collection("bannedUsers").doc(email).set({
-        reason: "Banned by admin",
-        date: new Date()
-    })
-    .then(() => {
-        document.getElementById("banStatus").innerText = "🚫 Banned: " + email;
-    })
-    .catch(err => alert(err.message));
-};
-
-window.unbanUser = function () {
-    const email = document.getElementById("banEmail").value.trim();
-    if (!email) return alert("Enter email!");
-
-    db.collection("bannedUsers").doc(email).delete()
-        .then(() => {
-            document.getElementById("banStatus").innerText = "✅ Unbanned: " + email;
-        })
-        .catch(err => alert(err.message));
-};
-
-/* =========================
-   CHANGE EMAIL
-========================= */
-window.changeEmailPrompt = function () {
+/* =====================
+   CHANGE EMAIL / PASSWORD
+   ===================== */
+window.changeEmailPrompt = function() {
     const user = auth.currentUser;
-    if (!user) return alert("Not logged in!");
-
+    if (!user) { alert("Not logged in!"); return; }
     const newEmail = prompt("New email:");
     const pass = prompt("Current password:");
-
     if (!newEmail || !pass) return;
-
     const cred = firebase.auth.EmailAuthProvider.credential(user.email, pass);
-
     user.reauthenticateWithCredential(cred)
         .then(() => user.updateEmail(newEmail))
-        .then(() => {
-            alert("Email changed!");
-            document.getElementById("accountEmail").innerText = newEmail;
-        })
+        .then(() => { alert("Email changed!"); document.getElementById("accountEmail").innerText = newEmail; })
         .catch(err => alert(err.message));
 };
 
-/* =========================
-   CHANGE PASSWORD
-========================= */
-window.changePassword = function () {
+window.changePassword = function() {
     const current = document.getElementById("currentPass").value;
     const newPass = document.getElementById("newPass").value;
     const repeat = document.getElementById("repeatPass").value;
-
-    if (!current || !newPass || !repeat) return alert("Fill all!");
-    if (newPass !== repeat) return alert("Passwords do not match!");
-
+    if (!current || !newPass || !repeat) { alert("Fill all!"); return; }
+    if (newPass !== repeat) { alert("Passwords do not match!"); return; }
     const user = auth.currentUser;
-    if (!user) return alert("Not logged in!");
-
+    if (!user) { alert("Not logged in!"); return; }
     const cred = firebase.auth.EmailAuthProvider.credential(user.email, current);
-
     user.reauthenticateWithCredential(cred)
         .then(() => user.updatePassword(newPass))
-        .then(() => {
-            alert("Password changed!");
-            document.getElementById("passwordBox").style.display = "none";
-        })
+        .then(() => { alert("Password changed!"); document.getElementById("passwordBox").style.display = "none"; })
         .catch(err => alert(err.message));
 };
 
-/* =========================
-   OPEN PASSWORD BOX
-========================= */
-window.openPasswordBox = function () {
-    document.getElementById("passwordBox").style.display = "block";
-};
+window.openPasswordBox = function() { document.getElementById("passwordBox").style.display = "block"; };
 
-/* Brakujące funkcje */
-function showFavorites(){
-    const box = document.getElementById("favoritesList");
-    let favs = getFavorites();
-    if(!favs.length){
-        box.innerText = translations[currentLang].noFavorites;
-        return;
-    }
-    box.innerHTML = favs.map(item => `
-        <div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <p>${item.desc}</p>
-        </div>
-    `).join("");
-}
-
-function showFact(){
-    updateDidYouKnow();
-}
-
-// CONSOLE
-function openConsole(){
-    document.getElementById("consoleBox").style.display = "block";
-    log("console opened");
-}
-
-function closeConsole(){
-    document.getElementById("consoleBox").style.display = "none";
-}
-
-function log(text){
-    const logs = document.getElementById("consoleLogs");
-    if(!logs) return;
-    const time = new Date().toLocaleTimeString();
-    logs.innerHTML += `<div>[${time}] ${text}</div>`;
-    logs.scrollTop = logs.scrollHeight;
-}
-
-setInterval(()=>{
-    const box = document.getElementById("consoleBox");
-    if(!box) return;
-    if(box.style.display !== "block") return;
-    log("System running...");
-},1000);
-
-function exportLogs(){
-    const logsElement = document.getElementById("consoleLogs");
-    if(!logsElement){
-        alert("Brak logów!");
-        return;
-    }
-    const logs = logsElement.innerText;
-    if(!logs.trim()){
-        alert("Brak logów!");
-        return;
-    }
-    const blob = new Blob([logs], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "neofind-logs.txt";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    log("logs exported");
-}
-
-function handleCommand(e){
-    if(e.key !== "Enter") return;
-    const input = e.target.value.trim();
-    e.target.value = "";
-    if(!input.startsWith("/")){
-        log("❌ wrong format. example: /command");
-        return;
-    }
-    if(input === "/help"){
-        log("📜 commands:");
-        log("/help");
-        log("/clearhistory");
-        log("/search text");
-        log("/language en/es/pl/easter");
-        log("/time");
-        log("/date");
-        log("/about");
-        log("/export");
-    }
-    else if(input === "/clearhistory"){
-        localStorage.removeItem("history");
-        log("history cleared");
-    }
-    else if(input.startsWith("/search")){
-        const text = input.replace("/search ","");
-        document.getElementById("search").value = text;
-        log('searched "' + text + '"');
-    }
-    else if(input.startsWith("/language")){
-        const lang = input.replace("/language ","").toLowerCase();
-        if(["en","es","pl","easter"].includes(lang)){
-            currentLang = lang;
-            localStorage.setItem("lang", lang);
-            document.getElementById("langSelect").value = lang;
-            updateLanguage();
-            log("language changed to " + lang);
-        } else {
-            log("❌ available: en, es, pl, easter");
-        }
-    }
-    else if(input === "/time"){
-        log("time: " + new Date().toLocaleTimeString());
-    }
-    else if(input === "/date"){
-        log("date: " + new Date().toLocaleDateString());
-    }
-    else if(input === "/about"){
-        log("NeoFind - A modern search engine with an intelligent results system. Fast searches, clear descriptions, and multilingual support.");
-    }
-    else if(input === "/export"){
-        exportLogs();
-    }
-    else{
-        log("unknown command");
-    }
-}
-
-// Report Problem
-function openReport(){
-    document.getElementById("reportBox").style.display = "block";
-}
-
-function closeReport(){
-    document.getElementById("reportBox").style.display = "none";
-}
-
-function sendReport(){
-    const text = document.getElementById("reportText").value.trim();
-
-    if(!text){
-        showPopup("Write something!", "red");
-        return;
-    }
-
-    db.collection("reports").add({
-        text: text,
-        user: auth.currentUser ? auth.currentUser.email : "guest",
-        date: new Date()
-    })
-    .then(()=>{
-        showPopup("Report sent!", "#00cc66");
-        document.getElementById("reportText").value = "";
-        closeReport();
-    })
-    .catch(err=>{
-        showPopup(err.message, "red");
-    });
-}
-
-// OCENY
-window.sendRating = function () {
-    const stars = parseInt(document.getElementById("rateStars").value);
-    const text = document.getElementById("rateText").value.trim();
-
-    if (!stars) return alert("Select stars!");
-
-    const user = auth.currentUser;
-
-    db.collection("ratings").add({
-        stars: stars,
-        text: text,
-        user: user ? user.email : "guest",
-        date: new Date()
-    })
-    .then(() => {
-        alert("Thanks for rating!");
-        document.getElementById("rateStars").value = "";
-        document.getElementById("rateText").value = "";
-    })
-    .catch(err => alert(err.message));
-};
-
-// OCENY II
-async function loadRatings(){
-    const snapshot = await db.collection("ratings").get();
-
-    const box = document.getElementById("ratingsList");
-    let all = [];
-    box.innerHTML = "";
-
-    snapshot.forEach(doc => {
-        const r = doc.data();
-        all.push(r.stars);
-
-        box.innerHTML += `
-            <div class="result">
-                <b>${r.user}</b><br>
-                ⭐ ${r.stars}/5<br>
-                ${r.text || ""}
-            </div>
-        `;
-    });
-
-    if(all.length){
-        const avgStars = all.reduce((a,b)=>a+b,0) / all.length;
-
-        // ⭐ procent (tak jak chciałeś)
-        const percent = Math.round((avgStars / 5) * 100);
-
-        document.getElementById("ratingAvg").innerText =
-            "Average: " + percent + "% (" + avgStars.toFixed(2) + "/5)";
-    }
-}
-
-// WIADOMOŚCI II
-function openNews(){
-    document.getElementById("newsBox").style.display = "block";
-    loadNews();
-}
-
-function closeNews(){
-    document.getElementById("newsBox").style.display = "none";
-}
-
-function loadNews(){
-    const box = document.getElementById("newsList");
-
-    box.innerHTML = newsData.map(n => `
-        <div class="result">
-            <h3>${n.title}</h3>
-            <p>${n.text}</p>
-            <small>${n.date}</small>
-        </div>
-    `).join("");
-}
-// 🔴 NOWE
-function checkNews(){
-    const lastSeen = localStorage.getItem("lastNewsSeen");
-    const latest = newsData[0]?.date;
-
-    if(lastSeen !== latest){
-        document.getElementById("newsBadge").style.display = "inline";
-    }
-}
-
-function openNews(){
-    document.getElementById("newsBox").style.display = "block";
-    loadNews();
-
-    // 🔴 usuwamy badge
-    document.getElementById("newsBadge").style.display = "none";
-
-    // zapisujemy że widział
-    localStorage.setItem("lastNewsSeen", newsData[0]?.date);
-}
-
-// 🎂 BIRTHDAY EVENT
-
-const today = new Date();
-
-if(today.getDate() === 21 && today.getMonth() === 4){
-    const banner = document.getElementById("birthdayBanner");
-
-    if(banner){
-        banner.style.display = "block";
-
-        document.getElementById("birthdayText").innerText =
-            "🎂 Today is the owner's 11th birthday";
-    }
-}
-
-// 📖 OPEN MODAL
-const readMoreBtn = document.getElementById("readMoreBtn");
-if(readMoreBtn){
-    readMoreBtn.onclick = () => {
-        document.getElementById("birthdayModal").style.display = "block";
-    };
-}
-
-// ❌ CLOSE MODAL
-const closeBtn = document.getElementById("closeBirthday");
-if(closeBtn){
-    closeBtn.onclick = () => {
-        document.getElementById("birthdayModal").style.display = "none";
-    };
-}
-    
-// 🔄 UI Aktualizacje
-function updateLanguage(){
-    const t = translations[currentLang];
-
-    // 🔍 search
+/* =====================
+   LANGUAGE UPDATE
+   ===================== */
+function updateLanguage() {
+    const t = translations[currentLang] || translations.en;
     document.getElementById("search").placeholder = t.search;
-
-    // 👤 profile button
-    const profileBtn = document.getElementById("profileBtn");
-    if(profileBtn) profileBtn.innerText = "👤 " + t.account;
-
-    // ⚙️ settings
-    const settingsTitle = document.querySelector("#settingsBox h3");
-    if(settingsTitle) settingsTitle.innerText = t.settings;
-
-    // 🌐 language label
-    const langLabel = document.querySelector("#settingsBox label");
-    if(langLabel) langLabel.innerText = t.language;
-
-    // 📜 history
-    const historyTitle = document.getElementById("historyTitle");
-    if(historyTitle) historyTitle.innerText = t.history;
-
-    const clearBtn = document.getElementById("clearHistoryBtn");
-    if(clearBtn) clearBtn.innerText = t.clearHistory;
-
-    // 🧠 console
-    const consoleBtn = document.getElementById("consoleBtn");
-    if(consoleBtn) consoleBtn.innerText = t.console;
-
-    // 💾 save
-    const saveBtn = document.getElementById("saveBtn");
-    if(saveBtn) saveBtn.innerText = t.save;
-
-    // 🚪 logout
-    const logoutBtn = document.getElementById("logoutBtn");
-    if(logoutBtn) logoutBtn.innerText = t.logout;
-
-    // 👤 account
     const accountTitle = document.getElementById("accountTitle");
-    if(accountTitle) accountTitle.innerText = "👤 " + t.account;
-
-    // 📰 news
-    const newsBtn = document.getElementById("newsBtn");
-    if(newsBtn) newsBtn.innerText = t.news;
-
-    // ⭐ rate
-    const rateBtn = document.getElementById("rateBtn");
-    if(rateBtn) rateBtn.innerText = t.rateUs;
-
-    // ⭐ favorites
+    if (accountTitle) accountTitle.innerText = "👤 " + t.account;
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) logoutBtn.innerText = t.logout;
     const favTitle = document.getElementById("favTitle");
-    if(favTitle) favTitle.innerText = t.favorites;
-
-    // 🔄 odśwież historię
+    if (favTitle) favTitle.innerText = t.favorites;
+    const banBtn = document.getElementById("banBtn");
+    if (banBtn) banBtn.innerText = t.banUser;
+    const unbanBtn = document.getElementById("unbanBtn");
+    if (unbanBtn) unbanBtn.innerText = t.unbanUser;
     showHistory();
 }
 
-function showUpdate(){
-    const box = document.getElementById("updates");
-    if(!box) return;
-    const t = translations[currentLang];
-    box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
-}
-function updateUI(){
-    const t = translations[currentLang];
-
-    document.getElementById("accountTitle").innerText = t.account;
-    document.getElementById("logoutBtn").innerText = t.logout;
-    document.getElementById("banBtn").innerText = t.banUser;
-    document.getElementById("unbanBtn").innerText = t.unbanUser;
-}
-
-function spawnNeo(){
+/* =====================
+   NEO EASTER EGG
+   ===================== */
+function spawnNeo() {
     const neo = document.createElement("div");
-    neo.style.position = "fixed";
-    neo.style.left = "-150px";
-    neo.style.top = "50%";
-    neo.style.transform = "translateY(-50%)";
-    neo.style.width = "120px";
-    neo.style.height = "200px";
-    neo.style.zIndex = "9999";
-    neo.style.transition = "left 2s ease-in-out";
+    neo.style.cssText = "position:fixed;left:-150px;top:50%;transform:translateY(-50%);width:120px;height:200px;z-index:9999;transition:left 2s ease-in-out;";
     neo.innerHTML = `
-<div style="
-    width:100%;
-    height:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-">
-    <div style="
-        width:90px;
-        height:90px;
-        background:#4db8ff;
-        border-radius:50%;
-        position:relative;
-        box-shadow:0 8px 20px rgba(0,0,0,0.4);
-    ">
-        <div style="
-            width:14px;
-            height:14px;
-            background:black;
-            border-radius:50%;
-            position:absolute;
-            top:30px;
-            left:22px;
-        "></div>
-        <div style="
-            width:14px;
-            height:14px;
-            background:black;
-            border-radius:50%;
-            position:absolute;
-            top:30px;
-            right:22px;
-        "></div>
-        <div style="
-            position:absolute;
-            bottom:20px;
-            left:50%;
-            transform:translateX(-50%);
-            width:30px;
-            height:15px;
-            border-bottom:4px solid black;
-            border-radius:0 0 20px 20px;
-        "></div>
-    </div>
-    <div style="
-        position:relative;
-        width:120px;
-        height:20px;
-        margin-top:5px;
-    ">
-        <div style="
-            position:absolute;
-            left:-25px;
-            top:0;
-            width:40px;
-            height:12px;
-            background:#3aa6ff;
-            border-radius:10px;
-            transform:rotate(-20deg);
-        "></div>
-        <div style="
-            position:absolute;
-            right:-25px;
-            top:0;
-            width:40px;
-            height:12px;
-            background:#3aa6ff;
-            border-radius:10px;
-            transform:rotate(20deg);
-        "></div>
-    </div>
-    <div style="
-        width:70px;
-        height:80px;
-        background:#2b8cff;
-        border-radius:25px;
-        margin-top:5px;
-        box-shadow:0 6px 15px rgba(0,0,0,0.3);
-    "></div>
-    <div style="
-        display:flex;
-        gap:12px;
-        margin-top:5px;
-    ">
-        <div style="
-            width:18px;
-            height:55px;
-            background:#2b8cff;
-            border-radius:12px;
-        "></div>
-        <div style="
-            width:18px;
-            height:55px;
-            background:#2b8cff;
-            border-radius:12px;
-        "></div>
-    </div>
-</div>
-`;
+        <div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;">
+            <div style="width:90px;height:90px;background:#4db8ff;border-radius:50%;position:relative;box-shadow:0 8px 20px rgba(0,0,0,0.4);">
+                <div style="width:14px;height:14px;background:black;border-radius:50%;position:absolute;top:30px;left:22px;"></div>
+                <div style="width:14px;height:14px;background:black;border-radius:50%;position:absolute;top:30px;right:22px;"></div>
+                <div style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:30px;height:15px;border-bottom:4px solid black;border-radius:0 0 20px 20px;"></div>
+            </div>
+            <div style="width:70px;height:80px;background:#2b8cff;border-radius:25px;margin-top:10px;"></div>
+            <div style="display:flex;gap:12px;margin-top:5px;">
+                <div style="width:18px;height:55px;background:#2b8cff;border-radius:12px;"></div>
+                <div style="width:18px;height:55px;background:#2b8cff;border-radius:12px;"></div>
+            </div>
+        </div>`;
     document.body.appendChild(neo);
-    setTimeout(()=>{ neo.style.left = "45%"; }, 100);
+    setTimeout(() => { neo.style.left = "45%"; }, 100);
+
     const speech = document.createElement("div");
-    speech.innerText = "hi, im neo im mascot of NeoFind. You found an easter egg :) bye";
-    speech.style.position = "fixed";
-    speech.style.top = "30%";
-    speech.style.left = "50%";
-    speech.style.transform = "translateX(-50%)";
-    speech.style.background = "white";
-    speech.style.color = "black";
-    speech.style.padding = "15px 20px";
-    speech.style.borderRadius = "20px";
-    speech.style.fontSize = "18px";
-    speech.style.boxShadow = "0 10px 25px rgba(0,0,0,0.4)";
-    speech.style.opacity = "0";
-    speech.style.transition = "opacity 0.5s";
-    speech.style.zIndex = "9999";
-    setTimeout(()=>{
-        document.body.appendChild(speech);
-        setTimeout(()=> speech.style.opacity = "1", 50);
-    }, 2000);
-    setTimeout(()=>{
-        speech.style.opacity = "0";
-        neo.style.left = "110%";
-    }, 7000);
-    setTimeout(()=>{
-        neo.remove();
-        speech.remove();
-    }, 9500);
-}
-function getAIResponse(query){
-    return "🤖 I am AI. You asked: " + query;
+    speech.innerText = "hi, im neo the mascot of NeoFind! You found an easter egg :) bye";
+    speech.style.cssText = "position:fixed;top:30%;left:50%;transform:translateX(-50%);background:white;color:black;padding:15px 20px;border-radius:20px;font-size:18px;box-shadow:0 10px 25px rgba(0,0,0,0.4);opacity:0;transition:opacity 0.5s;z-index:9999;";
+    setTimeout(() => { document.body.appendChild(speech); setTimeout(() => speech.style.opacity = "1", 50); }, 2000);
+    setTimeout(() => { speech.style.opacity = "0"; neo.style.left = "110%"; }, 7000);
+    setTimeout(() => { neo.remove(); speech.remove(); }, 9500);
 }
 
-//Urodziny
-<div id="birthdayModal" style="display:none;" class="modal">
-    <div class="modal-content">
-        <h2>🎉 Birthday Event</h2>
-
-        <p>
-            To celebrate the owner's 11th birthday, we are hosting a special event!
-        </p>
-
-        <p>
-            🎁 Anyone who writes <b>"wszystkiego najlepszego"</b> in:
-        </p>
-
-        <ul>
-            <li>Rate Us</li>
-            <li>Report Problem</li>
-        </ul>
-
-        <p>
-            will receive <b>Premium for 1 week</b>!
-        </p>
-
-        <button id="closeBirthday">Close</button>
-    </div>
-</div>
-    
-// PRIVACY POLICY
-function openPrivacy(){
-    document.getElementById("privacyBox").style.display = "block";
+/* =====================
+   BIRTHDAY EVENT
+   ===================== */
+const today = new Date();
+if (today.getDate() === 21 && today.getMonth() === 4) {
+    const banner = document.getElementById("birthdayBanner");
+    if (banner) {
+        banner.style.display = "block";
+        document.getElementById("birthdayText").innerText = "🎂 Today is the owner's 11th birthday!";
+    }
 }
 
-function closePrivacy(){
-    document.getElementById("privacyBox").style.display = "none";
-}
-// START
+document.getElementById("readMoreBtn").onclick = function() {
+    document.getElementById("birthdayModal").style.display = "block";
+};
+
+/* =====================
+   INIT
+   ===================== */
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
     currentLang = savedLang;
-    document.getElementById("langSelect").value = savedLang;
+    const sl = document.getElementById("settingsLang");
+    if (sl) sl.value = savedLang;
+}
+
+const savedTheme = localStorage.getItem("theme");
+if (savedTheme) {
+    const ts = document.getElementById("themeSelect");
+    if (ts) ts.value = savedTheme;
+    applyTheme(savedTheme);
 }
 
 updateDidYouKnow();
 updateLanguage();
 showHistory();
 checkNews();
-updateUI();
 </script>
-
 </body>
 </html>
