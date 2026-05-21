@@ -188,6 +188,20 @@ button:hover {
     transform: scale(1.05);
 }
 
+/* URODZINY */
+#birthdayBanner {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 10px;
+    background: rgba(255, 200, 200, 0.2);
+    color: #fff;
+    font-size: 14px;
+}
+
+#readMoreBtn:hover {
+    text-decoration: underline;
+}
+
 /* 🧠 CONSOLE */
 #consoleBox {
     display:none;
@@ -233,25 +247,6 @@ button:hover {
 
 #suggestions div:hover {
     background: rgba(255,255,255,0.1);
-}
-
-/* URODZINYYY */
-#birthdayBadge {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    color: white;
-    background: linear-gradient(45deg, #ff4d4d, #ffcc00, #ff66ff);
-    box-shadow: 0 0 10px rgba(255, 100, 200, 0.6);
-    animation: glow 1.5s infinite alternate;
-    margin-top: 5px;
-}
-
-@keyframes glow {
-    from { box-shadow: 0 0 5px rgba(255, 100, 200, 0.5); }
-    to { box-shadow: 0 0 20px rgba(255, 200, 100, 0.9); }
 }
 
 /* 🎨 THEME */
@@ -309,6 +304,12 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
 <div id="suggestions"></div>
+<div id="birthdayBanner" style="display:none;">
+    <span id="birthdayText"></span>
+    <span id="readMoreBtn" style="cursor:pointer; color:#4da6ff; margin-left:5px;">
+        read more
+    </span>
+</div>
 
 <!-- 🔍 wyniki -->
 <div id="results"></div>
@@ -381,7 +382,6 @@ z-index:9999;
 ">
     💎 Premium
 </div>
-<div id="birthdayBadge" style="display:none;"></div>
 
 <div class="result">
     <b>Password:</b>
@@ -5538,6 +5538,50 @@ function showFavorites(){
 function showFact(){
     updateDidYouKnow();
 }
+
+// Urodziny
+const today = new Date();
+
+if(today.getDate() === 21 && today.getMonth() === 4){
+    const banner = document.getElementById("birthdayBanner");
+    banner.style.display = "block";
+
+    document.getElementById("birthdayText").innerText =
+        "🎂 Today is the owner's 11th birthday";
+}
+
+<div id="birthdayModal" style="display:none;" class="modal">
+    <div class="modal-content">
+        <h2>🎉 Birthday Event</h2>
+
+        <p>
+            To celebrate the owner's 11th birthday, we are hosting a special event!
+        </p>
+
+        <p>
+            🎁 Anyone who writes <b>"wszystkiego najlepszego"</b> in:
+        </p>
+
+        <ul>
+            <li>Rate Us</li>
+            <li>Report Problem</li>
+        </ul>
+
+        <p>
+            will receive <b>Premium for 1 week</b>!
+        </p>
+
+        <button id="closeBirthday">Close</button>
+    </div>
+</div>
+
+document.getElementById("readMoreBtn").onclick = () => {
+    document.getElementById("birthdayModal").style.display = "block";
+};
+
+document.getElementById("closeBirthday").onclick = () => {
+    document.getElementById("birthdayModal").style.display = "none";
+};
 
 // CONSOLE
 function openConsole(){
