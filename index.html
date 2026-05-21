@@ -188,20 +188,6 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* URODZINY */
-#birthdayBanner {
-    margin-top: 10px;
-    padding: 8px;
-    border-radius: 10px;
-    background: rgba(255, 200, 200, 0.2);
-    color: #fff;
-    font-size: 14px;
-}
-
-#readMoreBtn:hover {
-    text-decoration: underline;
-}
-
 /* 🧠 CONSOLE */
 #consoleBox {
     display:none;
@@ -263,6 +249,38 @@ body.ocean {
     background: Aqua !important;
     color: #38fff2
 }
+
+/* Urodziny */
+#birthdayBanner {
+    margin-top: 8px;
+    padding: 6px;
+    border-radius: 8px;
+    background: rgba(255, 200, 200, 0.2);
+    color: white;
+    font-size: 13px;
+}
+
+#readMoreBtn:hover {
+    text-decoration: underline;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+}
+
+.modal-content {
+    background: #1e1e1e;
+    padding: 20px;
+    margin: 10% auto;
+    width: 300px;
+    border-radius: 10px;
+    text-align: center;
+}
 </style>
 </head>
 <body>
@@ -299,16 +317,20 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <div id="didYouKnowTitle" style="text-align:center; margin-top:20px; font-size:18px;"></div>
     <div id="didYouKnow" style="text-align:center; margin-bottom:10px; opacity:0.8;"></div>
 
-    <h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
+<h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
 
-    <div class="searchBox">
-<input type="text" id="search" placeholder="Search...">
-<div id="suggestions"></div>
-<div id="birthdayBanner" style="display:none;">
-    <span id="birthdayText"></span>
-    <span id="readMoreBtn" style="cursor:pointer; color:#4da6ff; margin-left:5px;">
-        read more
-    </span>
+<div class="searchBox">
+    <input type="text" id="search" placeholder="Search...">
+
+    <!-- 🎂 BIRTHDAY BANNER -->
+    <div id="birthdayBanner" style="display:none;">
+        <span id="birthdayText"></span>
+        <span id="readMoreBtn" style="cursor:pointer; color:#4da6ff; margin-left:5px;">
+            read more
+        </span>
+    </div>
+
+    <div id="suggestions"></div>
 </div>
 
 <!-- 🔍 wyniki -->
@@ -5539,50 +5561,6 @@ function showFact(){
     updateDidYouKnow();
 }
 
-// Urodziny
-const today = new Date();
-
-if(today.getDate() === 21 && today.getMonth() === 4){
-    const banner = document.getElementById("birthdayBanner");
-    banner.style.display = "block";
-
-    document.getElementById("birthdayText").innerText =
-        "🎂 Today is the owner's 11th birthday";
-}
-
-<div id="birthdayModal" style="display:none;" class="modal">
-    <div class="modal-content">
-        <h2>🎉 Birthday Event</h2>
-
-        <p>
-            To celebrate the owner's 11th birthday, we are hosting a special event!
-        </p>
-
-        <p>
-            🎁 Anyone who writes <b>"wszystkiego najlepszego"</b> in:
-        </p>
-
-        <ul>
-            <li>Rate Us</li>
-            <li>Report Problem</li>
-        </ul>
-
-        <p>
-            will receive <b>Premium for 1 week</b>!
-        </p>
-
-        <button id="closeBirthday">Close</button>
-    </div>
-</div>
-
-document.getElementById("readMoreBtn").onclick = () => {
-    document.getElementById("birthdayModal").style.display = "block";
-};
-
-document.getElementById("closeBirthday").onclick = () => {
-    document.getElementById("birthdayModal").style.display = "none";
-};
-
 // CONSOLE
 function openConsole(){
     document.getElementById("consoleBox").style.display = "block";
@@ -5816,6 +5794,37 @@ function openNews(){
     // zapisujemy że widział
     localStorage.setItem("lastNewsSeen", newsData[0]?.date);
 }
+
+// 🎂 BIRTHDAY EVENT
+
+const today = new Date();
+
+if(today.getDate() === 21 && today.getMonth() === 4){
+    const banner = document.getElementById("birthdayBanner");
+
+    if(banner){
+        banner.style.display = "block";
+
+        document.getElementById("birthdayText").innerText =
+            "🎂 Today is the owner's 11th birthday";
+    }
+}
+
+// 📖 OPEN MODAL
+const readMoreBtn = document.getElementById("readMoreBtn");
+if(readMoreBtn){
+    readMoreBtn.onclick = () => {
+        document.getElementById("birthdayModal").style.display = "block";
+    };
+}
+
+// ❌ CLOSE MODAL
+const closeBtn = document.getElementById("closeBirthday");
+if(closeBtn){
+    closeBtn.onclick = () => {
+        document.getElementById("birthdayModal").style.display = "none";
+    };
+}
     
 // 🔄 UI Aktualizacje
 function updateLanguage(){
@@ -6034,6 +6043,32 @@ function getAIResponse(query){
     return "🤖 I am AI. You asked: " + query;
 }
 
+//Urodziny
+<div id="birthdayModal" style="display:none;" class="modal">
+    <div class="modal-content">
+        <h2>🎉 Birthday Event</h2>
+
+        <p>
+            To celebrate the owner's 11th birthday, we are hosting a special event!
+        </p>
+
+        <p>
+            🎁 Anyone who writes <b>"wszystkiego najlepszego"</b> in:
+        </p>
+
+        <ul>
+            <li>Rate Us</li>
+            <li>Report Problem</li>
+        </ul>
+
+        <p>
+            will receive <b>Premium for 1 week</b>!
+        </p>
+
+        <button id="closeBirthday">Close</button>
+    </div>
+</div>
+    
 // PRIVACY POLICY
 function openPrivacy(){
     document.getElementById("privacyBox").style.display = "block";
