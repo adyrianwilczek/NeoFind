@@ -235,6 +235,25 @@ button:hover {
     background: rgba(255,255,255,0.1);
 }
 
+/* URODZINYYY */
+#birthdayBadge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #ff4d4d, #ffcc00, #ff66ff);
+    box-shadow: 0 0 10px rgba(255, 100, 200, 0.6);
+    animation: glow 1.5s infinite alternate;
+    margin-top: 5px;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 5px rgba(255, 100, 200, 0.5); }
+    to { box-shadow: 0 0 20px rgba(255, 200, 100, 0.9); }
+}
+
 /* 🎨 THEME */
 body.space {
     background: black !important;
@@ -362,6 +381,7 @@ z-index:9999;
 ">
     💎 Premium
 </div>
+<div id="birthdayBadge" style="display:none;"></div>
 
 <div class="result">
     <b>Password:</b>
