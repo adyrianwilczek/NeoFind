@@ -5129,6 +5129,24 @@ if(badWord && badWord !== lastBadWord){
     if(value === "neo are you watching?"){
     const icon = document.querySelector(".searchIcon");
 
+    if(icon){
+        icon.innerText = "👁️";
+    }
+
+    setTimeout(() => {
+
+        if(icon){
+            icon.innerText = "🔍";
+        }
+
+        // 👇 TU używamy Neo popup
+        showNeo("yes I'm still here 👁️");
+
+    }, 2000);
+
+    return; // 🔥 MEGA WAŻNE
+}
+
     // 👁️ zmiana lupy
     if(icon){
         icon.innerText = "👁️";
