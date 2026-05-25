@@ -249,6 +249,42 @@ body.ocean {
     background: Aqua !important;
     color: #38fff2
 }
+/* WARNING */
+#neoWarning {
+    margin-top: 6px;
+    padding: 6px;
+    border-radius: 6px;
+    background: rgba(255, 80, 80, 0.2);
+    color: #ff8080;
+    font-size: 13px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* oko zamiast lupki */
+#neoPopup {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #1e1e1e;
+    color: white;
+    padding: 12px;
+    border-radius: 10px;
+    max-width: 200px;
+    font-size: 14px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+#neoPopup::before {
+    content: "🤖";
+    display: block;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
 </style>
 </head>
 <body>
@@ -289,6 +325,8 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
 
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
+<div id="neoPopup" style="display:none;"></div>
+<div id="neoWarning" style="display:none;"></div>
 <div id="suggestions"></div>
 
 <!-- 🔍 wyniki -->
@@ -550,6 +588,16 @@ firebase.initializeApp(firebaseConfig);
 
 const GLOBAL_UPDATE = "🚀 Added login, admin panel and ban system + bug fixes";
 
+
+const bannedWords = [
+    "niger",
+    "penis",
+    "idiota",
+    "debil",
+    "fuck",
+    "idiot",
+    "niga"
+];
 // Dane i tłumaczenia
 const data = {
     pl: [
@@ -5044,6 +5092,70 @@ function updateDidYouKnow(){
 /* 🔍 SEARCH + HISTORY */
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
+const warning = document.getElementById("neoWarning");
+
+const badWord = containsBadWord(value);
+
+if(badWord){
+    if(warning){
+        warning.style.display = "block";
+
+setTimeout(() => {
+    warning.style.display = "none";
+}, 3000);
+        warning.innerText = `🚫 Neo: Please avoid inappropriate language ("${badWord}")`;
+    }
+}else{
+    if(warning){
+        warning.style.display = "none";
+    }
+}
+let lastBadWord = "";
+
+const badWord = containsBadWord(value);
+
+if(badWord && badWord !== lastBadWord){
+    lastBadWord = badWord;
+
+    const user = auth.currentUser;
+    if(user){
+        const username = user.email || "unknown";
+
+        push(ref(db, "reports"), {
+    sender: "Neo",
+    text: `🚫 ${username} attempted to search inappropriate content: "${badWord}"`,
+    date: new Date().toISOString()
+});
+    }
+}
+    if(value === "neo are you watching?"){
+    const icon = document.querySelector(".searchIcon");
+
+    // 👁️ zmiana lupy
+    if(icon){
+        icon.innerText = "👁️";
+    }
+
+    // po 2 sekundach wraca + popup
+    setTimeout(() => {
+
+        if(icon){
+            icon.innerText = "🔍";
+        }
+
+        const popup = document.getElementById("neoPopup");
+
+        if(popup){
+            popup.style.display = "block";
+            popup.innerText = "yes I'm still here";
+
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 4000);
+        }
+
+    }, 2000);
+}
     // 🧠 CALCULATOR
 if(/^[0-9+\-*/(). ]+$/.test(value)){
     try{
@@ -5217,6 +5329,13 @@ function clearHistory(){
     localStorage.removeItem("history");
     log("cleared history");
     showHistory();
+}
+
+/* banned words */
+function containsBadWord(text){
+    text = text.toLowerCase();
+
+    return bannedWords.find(word => text.includes(word));
 }
 
 /* FAV */
