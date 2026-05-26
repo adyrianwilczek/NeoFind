@@ -513,6 +513,8 @@ z-index:9999;
     text-align:left;
     line-height:1.7;
 ">
+<div id="policyModal" style="display:none;" class="modal">
+    <div class="modal-content">
     <h2>📋 NeoFind Privacy Policy</h2>
     <p><b>Last updated: May 2026</b></p>
     <h3>1. What data we collect</h3>
@@ -534,7 +536,9 @@ z-index:9999;
     <h3>9. Contact</h3>
     <p>Questions? Email us: <b>support.neofind@gmail.com</b></p>
     <br>
-    <button onclick="closePrivacy()">❌ Close</button>
+        <button id="closePolicy">❌ Close</button>
+
+    </div>
 </div>
 
     <button onclick="sendReport()">Send</button>
