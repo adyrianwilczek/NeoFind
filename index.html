@@ -288,15 +288,6 @@ body.ocean {
 </style>
 </head>
 <body>
-<!--
-Podsumowanie zmian:
-- Użyto kompatybilnych skryptów Firebase (10.7.1 firebase-app-compat.js i firebase-auth-compat.js).
-- Rejestracja/logowanie przemapowano na e-mail (username@local.neofind) przy użyciu Firebase Auth.
-- Dodano wykrywanie admina po adresie e-mail (konfiguruj ADMIN_EMAIL poniżej).
-- Przywrócono brakujące funkcje showFavorites() i showFact().
-- Usunięto zagnieżdżone znaczniki <script> i poprawiono strukturę HTML (div #app poza skryptami).
-Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EMAIL.
--->
 <div id="loginScreen" style="text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
@@ -306,12 +297,15 @@ Manualnie: Włącz w konsoli Firebase metodę Email/Password oraz ustaw ADMIN_EM
     <h3>Register</h3>
     <input id="regUser" placeholder="E-mail"><br>
     <input id="regPass" type="password" placeholder="Password"><br>
-    <div style="margin: 10px 0; font-size: 14px;">
-        <input type="checkbox" id="acceptPolicy">
-        <label for="acceptPolicy">
-            I accept NeoFind's <span onclick="openPrivacy()" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">privacy policy</span>
-        </label>
-    </div>
+<div style="margin: 10px 0; font-size: 14px;">
+    <input type="checkbox" id="acceptPolicy">
+    <label>
+        I accept NeoFind's 
+        <span id="openPolicy" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">
+            privacy policy
+        </span>
+    </label>
+</div>
     <button onclick="register()">Register</button>
 </div>
 
