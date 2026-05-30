@@ -5908,9 +5908,10 @@ function loadNews(){
 function checkNews(){
     const lastSeen = localStorage.getItem("lastNewsSeen");
     const latest = newsData[0]?.date;
+    const badge = document.getElementById("newsBadge");
 
-    if(lastSeen !== latest){
-        document.getElementById("newsBadge").style.display = "inline";
+    if(badge && lastSeen !== latest){
+        badge.style.display = "inline";
     }
 }
 
