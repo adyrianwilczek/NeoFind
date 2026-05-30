@@ -5919,6 +5919,25 @@ function openNews(){
     // zapisujemy że widział
     localStorage.setItem("lastNewsSeen", newsData[0]?.date);
 }
+
+// Easter egg
+let visits = localStorage.getItem("neoVisits");
+
+if(!visits){
+    visits = 0;
+}
+
+visits++;
+localStorage.setItem("neoVisits", visits);
+
+// 🔥 co 50 wejść
+if(visits % 50 === 0){
+    const logo = document.getElementById("logo");
+
+    if(logo){
+        logo.innerHTML = 'MeoFind <span class="searchIcon">🔍</span>';
+    }
+}
     
 // 🔄 UI Aktualizacje
 function updateLanguage(){
