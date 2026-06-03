@@ -494,6 +494,39 @@ z-index:9999;
     <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
 </div>
 
+<!-- FRIENDS BUTTON -->
+<button onclick="openFriends()" style="position:fixed; bottom:120px; right:20px;">👥 Friends</button>
+
+<!-- FRIENDS BOX -->
+<div id="friendsBox">
+    <h2>👥 Friends</h2>
+    <input id="friendEmailInput" placeholder="Friend's email..." style="width:60%; display:inline-block;">
+    <button onclick="sendFriendRequest()">➕ Add</button>
+    <p id="friendStatus"></p>
+
+    <h3>📨 Pending Requests</h3>
+    <div id="pendingList"></div>
+
+    <h3>✅ Friends</h3>
+    <div id="friendsList"></div>
+
+    <br>
+    <button onclick="closeFriends()">❌ Close</button>
+</div>
+
+<!-- CHAT BOX -->
+<div id="chatBox" style="display:none;">
+    <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
+        <span id="chatWithLabel" style="font-size:14px; color:#4da6ff;">💬 Chat</span>
+        <button onclick="document.getElementById('chatBox').style.display='none'" style="padding:4px 8px; font-size:12px;">❌</button>
+    </div>
+    <div id="chatMessages"></div>
+    <div style="display:flex; gap:5px; padding:0 10px 10px;">
+        <input id="chatInput" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+        <button onclick="sendChatMessage()" style="padding:8px 12px; border-radius:20px;">➤</button>
+    </div>
+</div>
+
         <!-- ADMIN PANEL -->
         <div id="adminBox" style="
     display:none;
@@ -527,39 +560,6 @@ z-index:9999;
 <button onclick="unbanUser()" id="unbanBtn">Unban user</button>
 
 <p id="banStatus"></p>
-
-<!-- FRIENDS BUTTON -->
-<button onclick="openFriends()" style="position:fixed; bottom:120px; right:20px;">👥 Friends</button>
-
-<!-- FRIENDS BOX -->
-<div id="friendsBox">
-    <h2>👥 Friends</h2>
-    <input id="friendEmailInput" placeholder="Friend's email..." style="width:60%; display:inline-block;">
-    <button onclick="sendFriendRequest()">➕ Add</button>
-    <p id="friendStatus"></p>
-
-    <h3>📨 Pending Requests</h3>
-    <div id="pendingList"></div>
-
-    <h3>✅ Friends</h3>
-    <div id="friendsList"></div>
-
-    <br>
-    <button onclick="closeFriends()">❌ Close</button>
-</div>
-
-<!-- CHAT BOX -->
-<div id="chatBox" style="display:none;">
-    <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
-        <span id="chatWithLabel" style="font-size:14px; color:#4da6ff;">💬 Chat</span>
-        <button onclick="document.getElementById('chatBox').style.display='none'" style="padding:4px 8px; font-size:12px;">❌</button>
-    </div>
-    <div id="chatMessages"></div>
-    <div style="display:flex; gap:5px; padding:0 10px 10px;">
-        <input id="chatInput" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-        <button onclick="sendChatMessage()" style="padding:8px 12px; border-radius:20px;">➤</button>
-    </div>
-</div>
 
 <h3>⭐ Ratings</h3>
 <div id="ratingsList"></div>
