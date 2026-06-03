@@ -387,7 +387,7 @@ body.ocean {
         <option value="en" selected>EN</option>
         <option value="es">ES</option>
         <option value="pl">PL</option>
-        <option value="easter">Easter 🐰</option>
+        <option value="summer">Summer ☀️</option>
     </select>
 
     <!-- CONSOLE -->
@@ -413,7 +413,7 @@ body.ocean {
             <option value="en">EN</option>
             <option value="es">ES</option>
             <option value="pl">PL</option>
-            <option value="easter">🐰</option>
+            <option value="Summer">☀️</option>
         </select><br><br>
         <label id="themeLabel">Theme:</label><br>
         <select id="themeSelect">
@@ -4729,8 +4729,8 @@ const data = {
             { title: "Mistral 3", desc: "Próximo de Mistral.", link: "https://mistral.ai/" },
             { title: "xAI", desc: "Los últimos logros de xAI.", link: "https://x.ai/" }
     ],
-    easter: [
-        { title: "🐰", desc: "🐰🐰🐰🐰🐰🐰🐰🐰", link: "#" }
+    summer: [
+        { title: "☀️", desc: "☀️☀️☀️☀️☀️☀️☀️", link: "#" }
     ]
 };
 
@@ -4840,38 +4840,38 @@ didYouKnow: [
 ]
     },
 
-    easter: {
-        search: "🐰 Search eggs...",
-        settings: "🐰 Settings",
-        language: "🐰 Language",
-        history: "🐰 Bunny history",
-        clearHistory: "🐰 Clear burrow",
-        console: "🐰 Bunny console",
-        save: "🐰 Save carrot",
-        report: "🐰 Report fox!",
-        admin: "🐰 Easter king",
-        noResults: "🐰 No eggs found",
-        favorites: "🐰 Carrots",
-        noFavorites: "🐰 No carrots",
-        theme: "🐰 Theme",
-        account: "🐰 Bunny account",
-        email: "🐰 Nest",
-        password: "🐰 Secret carrot",
-        change: "🐰 Change",
-        logout: "🐰 Escape burrow",
-        news: "🐰 Bunny news",
-        rateUs: "🐰 Rate carrots",
-        premium: "💎 Golden bunny",
-        banUser: "🐰 Kick bunny",
-        unbanUser: "🐰 Forgive bunny",
-        noHistory: "🐰 No bunny tracks",
-        didYouKnowTitle: "🐣 Secret:",
+    summer: {
+        search: "☀️ search...",
+        settings: "☀️ Settings",
+        language: "☀️ Language",
+        history: "☀️ History",
+        clearHistory: "☀️ Clear History",
+        console: "☀️ Debug console",
+        save: "☀️ Save",
+        report: "☀️ Report winter!",
+        admin: "☀️ summer god",
+        noResults: "☀️ what do you mean",
+        favorites: "☀️ Fav",
+        noFavorites: "☀️ No fav",
+        theme: "☀️ Theme",
+        account: "☀️ account",
+        email: "☀️ Email",
+        password: "☀️ Password",
+        change: "☀️ Change",
+        logout: "☀️ Log out",
+        news: "☀️ Summer news",
+        rateUs: "☀️ Rate Us",
+        premium: "💎 good summer",
+        banUser: "☀️ kick to winter",
+        unbanUser: "☀️ invite to summer",
+        noHistory: "☀️ No history",
+        didYouKnowTitle: "☀️ Summer fact:",
 didYouKnow: [
-    "The egg is watching.",
+    "The summer is watching.",
     "You unlocked hidden NeoFind mode.",
-    "Bunny owns the system.",
+    "Neo owns the system.",
     "Nothing is real.",
-    "You found the secret 😳"
+    "☀️☀️☀️"
 ]
     }
 };
@@ -5870,7 +5870,7 @@ function handleCommand(e){
             updateLanguage();
             log("language changed to " + lang);
         } else {
-            log("❌ available: en, es, pl, easter");
+            log("❌ available: en, es, pl, summer");
         }
     }
     else if(input === "/time"){
