@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NeoFind</title>
 
 <link rel="icon" type="image/png" href="favicon.jpeg">
@@ -341,6 +342,12 @@ body.ocean {
     display: block;
     font-size: 20px;
     margin-bottom: 5px;
+}
+
+@media (max-width: 600px) {
+    #logo { font-size: 48px !important; }
+    input, select, textarea { width: 95%; font-size: 15px; }
+    .container { margin-top: 40px; }
 }
 </style>
 </head>
