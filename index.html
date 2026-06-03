@@ -19,13 +19,13 @@ body {
 /* 📦 container */
 .container {
     text-align: center;
-    margin-top: 80px;
+    margin-top: 50px;
 }
 
 /* 🔥 NEON + MOVING GRADIENT LOGO */
 #logo {
-    font-size: 85px !important;
-    margin-bottom: 20px;
+    font-size: 65px !important;
+    margin-bottom: 10px;
     letter-spacing: 3px;
 
     background: linear-gradient(
@@ -143,12 +143,18 @@ select:focus {
 }
 
 /* 📊 RESULTS */
+#results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 10px;
+    width: 85%;
+    margin: 0 auto;
+}
+
 .result {
     background: rgba(255,255,255,0.1);
-    margin: 10px auto;
     padding: 15px;
     border-radius: 15px;
-    width: 80%;
     text-align: left;
 
     backdrop-filter: blur(10px);
