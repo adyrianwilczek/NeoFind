@@ -5380,13 +5380,11 @@ function addResult(){
         alert("Fill everything!");
         return;
     }
-    data[currentLang].push({
-        title: title,
-        desc: desc,
-        link: link
-    });
-    alert("Added!");
-    // Można tu dodać zapis do Firestore, jeśli potrzeba.'
+    const newResult = { title: title, desc: desc, link: link, lang: currentLang };
+    data[currentLang].push(newResult);
+    db.collection("customResults").add(newResult)
+        .then(() => alert("Added!"))
+        .catch(err => alert("Added locally. Firebase error: " + err.message));
     window.banUser = function () {
     const email = document.getElementById("banEmail").value.trim();
 
@@ -5665,6 +5663,13 @@ if (!user.emailVerified) {
 
 loginScreen.style.display = "none";
 app.style.display = "block";
+
+db.collection("customResults").get().then(snapshot => {
+    snapshot.forEach(doc => {
+        const r = doc.data();
+        if (data[r.lang]) data[r.lang].push({ title: r.title, desc: r.desc, link: r.link });
+    });
+});
 
 document.getElementById("accountEmail").innerText = user.email;
     if (PREMIUM_EMAILS.includes(user.email)) {
