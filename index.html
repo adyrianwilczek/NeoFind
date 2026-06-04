@@ -5306,27 +5306,21 @@ if(/^[0-9+\-*/(). ]+$/.test(value)){
     const results = document.getElementById("results");
     const isAIQuery = aiKeywords.some(k => value.startsWith(k));
 
-if(isAIQuery && value.length > 3){
-    results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>Thinking...</p></div>`;
-    
-    fetch("https://api.anthropic.com/v1/messages", {
+async function getAIResponse(query) {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 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"
+        },
         body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 300,
-            messages: [{ role: "user", content: value }]
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: query }],
+            max_tokens: 150
         })
-    })
-    .then(r => r.json())
-    .then(data => {
-        const text = data.content?.[0]?.text || "I couldn't find an answer.";
-        results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>${text}</p></div>`;
-    })
-    .catch(() => {
-        results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>${getAIResponse(value)}</p></div>`;
     });
-    return;
+    const data = await response.json();
+    return data.choices[0].message.content;
 }
     if(value === "neo"){
         spawnNeo();
