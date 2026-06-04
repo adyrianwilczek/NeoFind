@@ -366,7 +366,11 @@ body.ocean {
     <button onclick="login()">Login</button>
     <h3>Register</h3>
     <input id="regUser" placeholder="E-mail"><br>
-    <input id="regPass" type="password" placeholder="Password"><br>
+    <input id="regPass" type="password" placeholder="Password" oninput="checkPasswordStrength(this.value)"><br>
+<div id="strengthBar" style="height:6px; width:80%; margin:4px auto; border-radius:3px; background:#333; max-width:400px;">
+    <div id="strengthFill" style="height:100%; width:0%; border-radius:3px; transition:0.3s;"></div>
+</div>
+<div id="strengthLabel" style="font-size:12px; opacity:0.7; margin-bottom:8px;"></div>
 <div style="margin: 10px 0; font-size: 14px;">
     <input type="checkbox" id="acceptPolicy">
     <label>
@@ -495,14 +499,14 @@ z-index:9999;
 
 <div id="rateBox" style="display:none;">
     <h4>⭐ Rate us</h4>
-    <select id="rateStars">
-        <option value="">Select rating</option>
-        <option value="1">⭐ 1</option>
-        <option value="2">⭐⭐ 2</option>
-        <option value="3">⭐⭐⭐ 3</option>
-        <option value="4">⭐⭐⭐⭐ 4</option>
-        <option value="5">⭐⭐⭐⭐⭐ 5</option>
-    </select><br><br>
+    <div id="starRating" style="font-size:32px; cursor:pointer; margin:10px 0;">
+    <span class="rateStar" data-val="1" onclick="setRating(1)" onmouseover="hoverRating(1)" onmouseout="resetRatingHover()">☆</span>
+    <span class="rateStar" data-val="2" onclick="setRating(2)" onmouseover="hoverRating(2)" onmouseout="resetRatingHover()">☆</span>
+    <span class="rateStar" data-val="3" onclick="setRating(3)" onmouseover="hoverRating(3)" onmouseout="resetRatingHover()">☆</span>
+    <span class="rateStar" data-val="4" onclick="setRating(4)" onmouseover="hoverRating(4)" onmouseout="resetRatingHover()">☆</span>
+    <span class="rateStar" data-val="5" onclick="setRating(5)" onmouseover="hoverRating(5)" onmouseout="resetRatingHover()">☆</span>
+</div>
+<input type="hidden" id="rateStars" value=""><br>
     <textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
     <button onclick="sendRating()">Send rating</button>
     <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
@@ -5303,12 +5307,25 @@ if(/^[0-9+\-*/(). ]+$/.test(value)){
     const isAIQuery = aiKeywords.some(k => value.startsWith(k));
 
 if(isAIQuery && value.length > 3){
-    results.innerHTML = `
-        <div class="result">
-            <h2>🤖 NeoAI</h2>
-            <p>${getAIResponse(value)}</p>
-        </div>
-    `;
+    results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>Thinking...</p></div>`;
+    
+    fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            model: "claude-sonnet-4-20250514",
+            max_tokens: 300,
+            messages: [{ role: "user", content: value }]
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        const text = data.content?.[0]?.text || "I couldn't find an answer.";
+        results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>${text}</p></div>`;
+    })
+    .catch(() => {
+        results.innerHTML = `<div class="result"><h2>🤖 NeoAI</h2><p>${getAIResponse(value)}</p></div>`;
+    });
     return;
 }
     if(value === "neo"){
@@ -5328,11 +5345,18 @@ if(isAIQuery && value.length > 3){
         results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
         return;
     }
-    results.innerHTML = filtered.map((item, index) => `
+    function highlight(text, query){
+    if(!query) return text;
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    return text.replace(regex, '<mark style="background:#00ccff33; color:white; border-radius:3px; padding:0 2px;">$1</mark>');
+}
+
+results.innerHTML += filtered.map((item, index) => `
     <div class="result">
-        <a href="${item.link}" target="_blank">${item.title}</a>
+        <a href="${item.link}" target="_blank">${highlight(item.title, value)}</a>
         <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
-        <p>${item.desc}</p>
+        <button onclick="copyLink('${item.link}')" style="padding:3px 8px; font-size:12px; margin-left:8px; border-radius:8px;">🔗 Copy</button>
+        <p>${highlight(item.desc, value)}</p>
     </div>
     `).join("");
 });
@@ -6466,6 +6490,78 @@ function openPrivacy(){
 function closePrivacy(){
     document.getElementById("privacyBox").style.display = "none";
 }
+
+// Wzkaźnik hasła czy coś
+function checkPasswordStrength(pass){
+    const fill = document.getElementById("strengthFill");
+    const label = document.getElementById("strengthLabel");
+    if(!fill || !label) return;
+    let score = 0;
+    if(pass.length >= 8) score++;
+    if(pass.length >= 12) score++;
+    if(/[A-Z]/.test(pass)) score++;
+    if(/[0-9]/.test(pass)) score++;
+    if(/[^A-Za-z0-9]/.test(pass)) score++;
+    const levels = [
+        { w:"0%", color:"#333", text:"" },
+        { w:"25%", color:"#ff4444", text:"Weak" },
+        { w:"50%", color:"#ff9900", text:"Fair" },
+        { w:"75%", color:"#ffcc00", text:"Good" },
+        { w:"100%", color:"#00cc66", text:"Strong" },
+        { w:"100%", color:"#00ffaa", text:"Very Strong" }
+    ];
+    const lvl = levels[Math.min(score, 5)];
+    fill.style.width = lvl.w;
+    fill.style.background = lvl.color;
+    label.innerText = lvl.text;
+    label.style.color = lvl.color;
+}
+
+// Skrót Ctrl+K
+document.addEventListener("keydown", function(e){
+    if((e.ctrlKey || e.metaKey) && e.key === "k"){
+        e.preventDefault();
+        const searchEl = document.getElementById("search");
+        if(searchEl){
+            searchEl.focus();
+            searchEl.select();
+        }
+    }
+});
+
+// kopiowanie linku
+function copyLink(url){
+    navigator.clipboard.writeText(url).then(()=>{
+        showPopup("Link copied!", "#00cc66");
+    }).catch(()=>{
+        alert("Copied: " + url);
+    });
+}
+
+// Klikalne gwiazdki
+let selectedRating = 0;
+
+function setRating(val){
+    selectedRating = val;
+    document.getElementById("rateStars").value = val;
+    updateStarDisplay(val);
+}
+
+function hoverRating(val){
+    updateStarDisplay(val);
+}
+
+function resetRatingHover(){
+    updateStarDisplay(selectedRating);
+}
+
+function updateStarDisplay(val){
+    document.querySelectorAll(".rateStar").forEach(s => {
+        s.innerText = parseInt(s.dataset.val) <= val ? "★" : "☆";
+        s.style.color = parseInt(s.dataset.val) <= val ? "gold" : "gray";
+    });
+}
+    
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
