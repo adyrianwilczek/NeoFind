@@ -5221,6 +5221,9 @@ function updateDidYouKnow(){
 }
 
 /* 🔍 SEARCH + HISTORY */
+let searchTimeout;
+document.getElementById("search").addEventListener("input", function() {
+    clearTimeout(searchTimeout);
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
 const warning = document.getElementById("neoWarning");
@@ -5257,6 +5260,8 @@ if(badWord && badWord !== lastBadWord){
 });
     }
 }
+    }, 300);
+});
     if(value === "neo are you watching?"){
     const icon = document.querySelector(".searchIcon");
 
