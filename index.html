@@ -6238,13 +6238,22 @@ function openChat(friendEmail){
         .onSnapshot(snapshot => {
             const box = document.getElementById("chatMessages");
             box.innerHTML = "";
-            snapshot.forEach(doc => {
-                const msg = doc.data();
-                const isMe = msg.from === auth.currentUser.email;
-                box.innerHTML += `<div class="${isMe ? 'chat-msg-me' : 'chat-msg-them'}">
-                    <b>${isMe ? 'You' : msg.from.split('@')[0]}:</b> ${msg.text}
-                </div>`;
-            });
+           snapshot.forEach(doc => {
+    const msg = doc.data();
+    const msgId = doc.id;
+    const isMe = msg.from === auth.currentUser.email;
+
+    box.innerHTML += `
+        <div class="${isMe ? 'chat-msg-me' : 'chat-msg-them'}">
+            <b>${isMe ? 'You' : msg.from.split('@')[0]}:</b> ${msg.text}
+
+            ${isMe ? `
+                <button onclick="editMessage('${chatId}', '${msgId}')">✏️</button>
+                <button onclick="deleteMessage('${chatId}', '${msgId}')">❌</button>
+            ` : ""}
+        </div>
+    `;
+});
             box.scrollTop = box.scrollHeight;
         });
 }
@@ -6587,6 +6596,53 @@ document.addEventListener("keydown", (e) => {
         pos = 0;
     }
 });
+
+// edit and delete
+async function deleteMessage(chatId, msgId){
+    const user = auth.currentUser;
+    if(!user) return;
+
+    const docRef = db.collection("chats")
+        .doc(chatId)
+        .collection("messages")
+        .doc(msgId);
+
+    const snapshot = await docRef.get();
+    const data = snapshot.data();
+
+    if(!data || data.from !== user.email){
+        alert("You can't delete this message");
+        return;
+    }
+
+    await docRef.delete();
+}
+
+async function editMessage(chatId, msgId){
+    const user = auth.currentUser;
+    if(!user) return;
+
+    const docRef = db.collection("chats")
+        .doc(chatId)
+        .collection("messages")
+        .doc(msgId);
+
+    const snapshot = await docRef.get();
+    const data = snapshot.data();
+
+    if(!data || data.from !== user.email){
+        alert("You can't edit this message");
+        return;
+    }
+
+    const newText = prompt("Edit message:", data.text);
+    if(!newText) return;
+
+    await docRef.update({
+        text: newText
+    });
+}
+    
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
