@@ -6100,10 +6100,6 @@ auth.onAuthStateChanged(async user => {
         return;
     }
 
-    if (Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-
     try {
         const doc = await db.collection("bannedUsers").doc(user.email).get();
 
@@ -6751,6 +6747,9 @@ function openChat(friendEmail){
 }
 
 async function sendChatMessage(){
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        try { Notification.requestPermission(); } catch(e) {}
+    }
     const input = document.getElementById("chatInput");
     const text = input.value.trim();
     if(!text || !currentChatFriend) return;
