@@ -6368,7 +6368,7 @@ function openChat(friendEmail){
 
     box.innerHTML += `
         <div class="${isMe ? 'chat-msg-me' : 'chat-msg-them'}">
-            <b>${isMe ? 'You' : msg.from.split('@')[0]}:</b> ${msg.text}
+            <b>${isMe ? 'You' : msg.from.split('@')[0]}:</b> ${msg.text.replace(':)', '😊').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('<3', '❤️').replace(':/', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job')}
 
             ${isMe ? `
                 <button onclick="editMessage('${chatId}', '${msgId}')">✏️</button>
