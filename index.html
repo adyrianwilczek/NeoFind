@@ -6016,6 +6016,7 @@ if (!user.emailVerified) {
 
 loginScreen.style.display = "none";
 app.style.display = "block";
+updateLanguage();
 
 db.collection("customResults").get().then(snapshot => {
     snapshot.forEach(doc => {
@@ -6598,19 +6599,16 @@ document.addEventListener("fullscreenchange", () => {
 });
 
 function switchLang(lang){
-    currentLang = lang;
     localStorage.setItem("lang", lang);
-    const sel = document.getElementById("settingsLang");
-    if(sel) sel.value = lang;
     if(lang === "summer"){
         const flash = document.createElement("div");
         flash.style.cssText = "position:fixed;inset:0;z-index:99999;pointer-events:none;background:linear-gradient(135deg,rgba(255,180,0,0.35),rgba(255,100,0,0.25),rgba(255,200,50,0.3));opacity:0;transition:opacity 0.15s";
         document.body.appendChild(flash);
         requestAnimationFrame(() => { flash.style.opacity = "1"; });
-        setTimeout(() => { flash.style.opacity = "0"; }, 300);
-        setTimeout(() => { flash.remove(); }, 500);
+        setTimeout(() => { location.reload(); }, 400);
+    } else {
+        location.reload();
     }
-    updateLanguage();
 }
 
 function updateLanguage(){
