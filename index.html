@@ -5513,6 +5513,8 @@ function useSuggestion(text){
 /* ⚙️ SETTINGS */
 log("opened settings");
 function openSettings(){
+    document.getElementById("friendsBox").style.display = "none";
+    document.body.style.overflow = "";
     document.getElementById("settingsBox").style.display = "block";
     document.getElementById("settingsLang").value = currentLang;
     showHistory();
@@ -6213,6 +6215,7 @@ let currentChatFriend = null;
 let chatListener = null;
 
 function openFriends(){
+    document.getElementById("settingsBox").style.display = "none";
     document.getElementById("friendsBox").style.display = "block";
     document.body.style.overflow = "hidden";
     loadFriendRequests();
