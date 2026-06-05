@@ -586,19 +586,19 @@ body.ocean {
 <div id="bottomNav">
     <button onclick="openFriends()">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M2 20c0-4 3.5-6 7-6s7 2 7 6"/><path d="M16 3a4 4 0 0 1 0 8"/><path d="M22 20c0-3.5-2.5-5-6-5"/></svg></span>
-        <span class="nav-label">Friends</span>
+        <span class="nav-label" id="navFriendsLabel">Friends</span>
     </button>
     <button onclick="openSettings()">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-5 3.6-8 8-8s8 3 8 8"/></svg></span>
-        <span class="nav-label">Profile</span>
+        <span class="nav-label" id="navProfileLabel">Profile</span>
     </button>
     <button id="adminBtn" onclick="openAdmin()" style="display:none;">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
-        <span class="nav-label">Admin</span>
+        <span class="nav-label" id="navAdminLabel">Admin</span>
     </button>
     <button id="reportBtn" onclick="openReport()">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span>
-        <span class="nav-label">Report</span>
+        <span class="nav-label" id="navReportLabel">Report</span>
     </button>
 </div>
 
@@ -677,7 +677,7 @@ body.ocean {
                     <input id="currentPass" type="password" placeholder="Current password"><br>
                     <input id="newPass" type="password" placeholder="New password"><br>
                     <input id="repeatPass" type="password" placeholder="Repeat new password"><br>
-                    <button onclick="changePassword()">Save password</button>
+                    <button onclick="changePassword()" id="savePasswordBtnEl">Save password</button>
                 </div>
             </div>
         </div>
@@ -710,27 +710,27 @@ body.ocean {
 </div>
 <input type="hidden" id="rateStars" value=""><br>
     <textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
-    <button onclick="sendRating()">Send rating</button>
-    <button onclick="document.getElementById('rateBox').style.display='none'">Close</button>
+    <button onclick="sendRating()" id="sendRatingBtnEl">Send rating</button>
+    <button onclick="document.getElementById('rateBox').style.display='none'" id="rateCloseBtnEl">Close</button>
 </div>
 
 <!-- FRIENDS BUTTON moved to #bottomNav -->
 
 <!-- FRIENDS BOX -->
 <div id="friendsBox">
-    <h2>Friends</h2>
+    <h2 id="friendsBoxTitle">Friends</h2>
     <input id="friendEmailInput" placeholder="Friend's email..." style="width:60%; display:inline-block;">
-    <button onclick="sendFriendRequest()">Add</button>
+    <button onclick="sendFriendRequest()" id="addFriendBtn">Add</button>
     <p id="friendStatus"></p>
 
-    <h3>Pending Requests</h3>
+    <h3 id="pendingTitleEl">Pending Requests</h3>
     <div id="pendingList"></div>
 
-    <h3>Friends list</h3>
+    <h3 id="friendsListTitleEl">Friends list</h3>
     <div id="friendsList"></div>
 
     <br>
-    <button onclick="closeFriends()">Close</button>
+    <button onclick="closeFriends()" id="closeFriendsBtn">Close</button>
 </div>
 
 <!-- CHAT BOX -->
@@ -765,18 +765,18 @@ body.ocean {
     z-index:9999;
     text-align:center;
 ">
-            <h2>Admin Panel</h2>
+            <h2 id="adminBoxTitle">Admin Panel</h2>
             <!-- Widoczne dla admina -->
             <div id="adminContent" style="margin-top:20px;">
-                <h3>Dodaj wynik</h3>
+                <h3 id="addResultTitleEl">Add result</h3>
                 <input id="adminTitle" placeholder="Title"><br>
                 <input id="adminDesc" placeholder="Description"><br>
                 <input id="adminLink" placeholder="Link"><br><br>
                 <div style="display:flex; gap:10px; justify-content:center; margin-bottom:16px;">
-                    <button onclick="addResult()">Add</button>
-                    <button onclick="closeAdmin()">Close</button>
+                    <button onclick="addResult()" id="adminAddBtn">Add</button>
+                    <button onclick="closeAdmin()" id="adminCloseBtn">Close</button>
                 </div>
-                <h3>Ban system</h3>
+                <h3 id="banSystemTitleEl">Ban system</h3>
 
 <input id="banEmail" placeholder="User email"><br><br>
 
@@ -785,7 +785,7 @@ body.ocean {
 
 <p id="banStatus"></p>
 
-<h3>Ratings</h3>
+<h3 id="ratingsTitleEl">Ratings</h3>
 <div id="ratingsList"></div>
 <p id="ratingAvg"></p>
             </div>
@@ -808,7 +808,7 @@ body.ocean {
     z-index:9999;
     text-align:center;
 ">
-    <h3>Report problem</h3>
+    <h3 id="reportBoxTitle">Report problem</h3>
 
     <input id="reportText" placeholder="Describe problem..."><br><br>
     <div id="privacyBox" style="
@@ -858,8 +858,8 @@ body.ocean {
 </div>
 
     <div style="display:flex; gap:10px; justify-content:center; margin-top:8px;">
-        <button onclick="sendReport()">Send</button>
-        <button onclick="closeReport()">Close</button>
+        <button onclick="sendReport()" id="reportSendBtn">Send</button>
+        <button onclick="closeReport()" id="reportCloseBtn">Close</button>
     </div>
 </div>
 </div>
@@ -886,7 +886,7 @@ z-index:9999;
 <div id="newsList"></div>
 
 <br>
-<button onclick="closeNews()">Close</button>
+<button onclick="closeNews()" id="newsCloseBtn">Close</button>
 </div>
 <div id="updates"></div>
 <!-- Firebase scripts -->
@@ -4992,6 +4992,19 @@ const translations = {
         banUser: "Ban user",
         unbanUser: "Unban user",
         noHistory: "No history",
+        close: "Close", add: "Add", send: "Send",
+        friends: "Friends", profile: "Profile", navReport: "Report",
+        pendingTitle: "Pending Requests", friendsListTitle: "Friends list",
+        noPending: "No pending requests", accept: "Accept", decline: "Decline",
+        chatBtnLabel: "Chat", noFriends: "No friends yet",
+        friendEmailPh: "Friend's email...",
+        adminPanelTitle: "Admin Panel", addResultTitle: "Add result",
+        titlePh: "Title", descPh: "Description", linkPh: "Link",
+        banSystemTitle: "Ban system", userEmailPh: "User email", ratingsTitle: "Ratings",
+        reportPh: "Describe problem...", messagePh: "Message...",
+        currentPassPh: "Current password", newPassPh: "New password",
+        repeatPassPh: "Repeat new password", savePasswordBtn: "Save password",
+        writeReviewPh: "Write review...", sendRatingBtn: "Send rating",
         didYouKnowTitle: "Did you know?",
         didYouKnow: [
     "NeoFind was created by a young developer.",
@@ -5027,6 +5040,19 @@ const translations = {
         banUser: "Zbanuj użytkownika",
         unbanUser: "Odbanuj użytkownika",
         noHistory: "Brak historii",
+        close: "Zamknij", add: "Dodaj", send: "Wyślij",
+        friends: "Znajomi", profile: "Profil", navReport: "Zgłoś",
+        pendingTitle: "Oczekujące zaproszenia", friendsListTitle: "Lista znajomych",
+        noPending: "Brak zaproszeń", accept: "Akceptuj", decline: "Odrzuć",
+        chatBtnLabel: "Czat", noFriends: "Brak znajomych",
+        friendEmailPh: "Email znajomego...",
+        adminPanelTitle: "Panel admina", addResultTitle: "Dodaj wynik",
+        titlePh: "Tytuł", descPh: "Opis", linkPh: "Link",
+        banSystemTitle: "System banów", userEmailPh: "Email użytkownika", ratingsTitle: "Oceny",
+        reportPh: "Opisz problem...", messagePh: "Wiadomość...",
+        currentPassPh: "Aktualne hasło", newPassPh: "Nowe hasło",
+        repeatPassPh: "Powtórz nowe hasło", savePasswordBtn: "Zapisz hasło",
+        writeReviewPh: "Napisz opinię...", sendRatingBtn: "Wyślij ocenę",
         didYouKnowTitle: "Czy wiesz, że?",
 didYouKnow: [
     "NeoFind został stworzony przez młodego developera.",
@@ -5062,6 +5088,19 @@ didYouKnow: [
         banUser: "Banear usuario",
         unbanUser: "Desbanear usuario",
         noHistory: "Sin historial",
+        close: "Cerrar", add: "Agregar", send: "Enviar",
+        friends: "Amigos", profile: "Perfil", navReport: "Reporte",
+        pendingTitle: "Solicitudes pendientes", friendsListTitle: "Lista de amigos",
+        noPending: "Sin solicitudes", accept: "Aceptar", decline: "Rechazar",
+        chatBtnLabel: "Chat", noFriends: "Sin amigos aún",
+        friendEmailPh: "Email del amigo...",
+        adminPanelTitle: "Panel Admin", addResultTitle: "Agregar resultado",
+        titlePh: "Título", descPh: "Descripción", linkPh: "Enlace",
+        banSystemTitle: "Sistema de ban", userEmailPh: "Email del usuario", ratingsTitle: "Calificaciones",
+        reportPh: "Describe el problema...", messagePh: "Mensaje...",
+        currentPassPh: "Contraseña actual", newPassPh: "Nueva contraseña",
+        repeatPassPh: "Repite la contraseña", savePasswordBtn: "Guardar contraseña",
+        writeReviewPh: "Escribe tu reseña...", sendRatingBtn: "Enviar calificación",
         didYouKnowTitle: "¿Sabías que?",
 didYouKnow: [
     "NeoFind fue creado por un joven desarrollador.",
@@ -5097,6 +5136,19 @@ didYouKnow: [
         banUser: "☀️ kick to winter",
         unbanUser: "☀️ invite to summer",
         noHistory: "☀️ No history",
+        close: "☀️ Close", add: "☀️ Add", send: "☀️ Send",
+        friends: "☀️ Friends", profile: "☀️ Profile", navReport: "🌞",
+        pendingTitle: "☀️ Waiting", friendsListTitle: "☀️ Friends",
+        noPending: "☀️ No pending", accept: "☀️ Accept", decline: "☀️ Decline",
+        chatBtnLabel: "☀️ Talk", noFriends: "☀️ No friends",
+        friendEmailPh: "☀️ email...",
+        adminPanelTitle: "☀️ God Panel", addResultTitle: "☀️ Add sun",
+        titlePh: "☀️ Title", descPh: "☀️ Description", linkPh: "☀️ Link",
+        banSystemTitle: "☀️ Banish winter", userEmailPh: "☀️ Email", ratingsTitle: "☀️ Sunny ratings",
+        reportPh: "☀️ Describe the winter...", messagePh: "☀️ Sunshine...",
+        currentPassPh: "☀️ Old password", newPassPh: "☀️ New password",
+        repeatPassPh: "☀️ Repeat", savePasswordBtn: "☀️ Save",
+        writeReviewPh: "☀️ Write something sunny...", sendRatingBtn: "☀️ Rate the sun",
         didYouKnowTitle: "☀️ Summer fact:",
 didYouKnow: [
     "The summer is watching.",
@@ -6384,19 +6436,21 @@ async function loadFriendRequests(){
             .get();
 
         if(snapshot.empty){
-            box.innerHTML = "<p style='opacity:0.5'>No pending requests</p>";
+            const t = translations[currentLang];
+            box.innerHTML = "<p style='opacity:0.5'>" + t.noPending + "</p>";
             return;
         }
 
         box.innerHTML = "";
         snapshot.forEach(doc => {
             const req = doc.data();
+            const t = translations[currentLang];
             box.innerHTML += `
                 <div class="friend-item">
-                    <span>📨 ${req.from}</span>
+                    <span>${req.from}</span>
                     <div>
-                        <button onclick="acceptFriend('${doc.id}', '${req.from}')">Accept</button>
-                        <button onclick="declineFriend('${doc.id}')">Decline</button>
+                        <button onclick="acceptFriend('${doc.id}', '${req.from}')">${t.accept}</button>
+                        <button onclick="declineFriend('${doc.id}')">${t.decline}</button>
                     </div>
                 </div>
             `;
@@ -6447,14 +6501,14 @@ async function loadFriends(){
         snap2.forEach(doc => friends.push(doc.data().from));
 
         if(!friends.length){
-            box.innerHTML = "<p style='opacity:0.5'>No friends yet</p>";
+            box.innerHTML = "<p style='opacity:0.5'>" + translations[currentLang].noFriends + "</p>";
             return;
         }
 
         box.innerHTML = friends.map(email => `
             <div class="friend-item">
-                <span>👤 ${email}</span>
-                <button onclick="openChat('${email}')">Chat</button>
+                <span>${email}</span>
+                <button onclick="openChat('${email}')">${translations[currentLang].chatBtnLabel}</button>
             </div>
         `).join("");
     } catch(e) {
@@ -6563,51 +6617,73 @@ function updateLanguage(){
         b.classList.toggle("lang-active", b.dataset.lang === currentLang);
     });
 
-    document.getElementById("search").placeholder = t.search;
+    const upd = (id, val, prop="innerText") => { const el=document.getElementById(id); if(el) el[prop]=val; };
 
-    const settingsTitle = document.getElementById("settingsTitle");
-    if(settingsTitle) settingsTitle.innerText = t.settings;
+    upd("search", t.search, "placeholder");
+    upd("newsText", t.news);
+    upd("newsTitle", t.news);
 
-    const langLabel = document.getElementById("langLabel");
-    if(langLabel) langLabel.innerText = t.language;
+    // bottom nav
+    upd("navFriendsLabel", t.friends);
+    upd("navProfileLabel", t.profile);
+    upd("navAdminLabel", t.admin);
+    upd("navReportLabel", t.navReport);
 
-    const themeLabel = document.getElementById("themeLabel");
-    if(themeLabel) themeLabel.innerText = t.theme;
+    // settings panel
+    upd("settingsTitle", t.settings);
+    upd("langLabel", t.language);
+    upd("themeLabel", t.theme);
+    upd("accountTitle", t.account);
+    upd("changeEmailBtn", t.change);
+    upd("changePassBtn", t.change);
+    upd("historyTitle", t.history);
+    upd("clearHistoryBtn", t.clearHistory);
+    upd("consoleBtn", t.console);
+    upd("saveBtn", t.save);
+    upd("logoutBtn", t.logout);
+    upd("rateBtn", t.rateUs);
+    upd("favTitle", t.favorites);
+    upd("currentPass", t.currentPassPh, "placeholder");
+    upd("newPass", t.newPassPh, "placeholder");
+    upd("repeatPass", t.repeatPassPh, "placeholder");
+    upd("savePasswordBtnEl", t.savePasswordBtn);
+    upd("rateText", t.writeReviewPh, "placeholder");
+    upd("sendRatingBtnEl", t.sendRatingBtn);
+    upd("rateCloseBtnEl", t.close);
 
-    const accountTitle = document.getElementById("accountTitle");
-    if(accountTitle) accountTitle.innerText = t.account;
+    // friends panel
+    upd("friendsBoxTitle", t.friends);
+    upd("friendEmailInput", t.friendEmailPh, "placeholder");
+    upd("addFriendBtn", t.add);
+    upd("pendingTitleEl", t.pendingTitle);
+    upd("friendsListTitleEl", t.friendsListTitle);
+    upd("closeFriendsBtn", t.close);
 
-    const changeEmailBtn = document.getElementById("changeEmailBtn");
-    if(changeEmailBtn) changeEmailBtn.innerText = t.change;
+    // admin panel
+    upd("adminBoxTitle", t.adminPanelTitle);
+    upd("addResultTitleEl", t.addResultTitle);
+    upd("adminTitle", t.titlePh, "placeholder");
+    upd("adminDesc", t.descPh, "placeholder");
+    upd("adminLink", t.linkPh, "placeholder");
+    upd("adminAddBtn", t.add);
+    upd("adminCloseBtn", t.close);
+    upd("banSystemTitleEl", t.banSystemTitle);
+    upd("banEmail", t.userEmailPh, "placeholder");
+    upd("banBtn", t.banUser);
+    upd("unbanBtn", t.unbanUser);
+    upd("ratingsTitleEl", t.ratingsTitle);
 
-    const changePassBtn = document.getElementById("changePassBtn");
-    if(changePassBtn) changePassBtn.innerText = t.change;
+    // report panel
+    upd("reportBoxTitle", t.report);
+    upd("reportText", t.reportPh, "placeholder");
+    upd("reportSendBtn", t.send);
+    upd("reportCloseBtn", t.close);
 
-    const historyTitle = document.getElementById("historyTitle");
-    if(historyTitle) historyTitle.innerText = t.history;
+    // news panel
+    upd("newsCloseBtn", t.close);
 
-    const clearBtn = document.getElementById("clearHistoryBtn");
-    if(clearBtn) clearBtn.innerText = t.clearHistory;
-
-    const consoleBtn = document.getElementById("consoleBtn");
-    if(consoleBtn) consoleBtn.innerText = t.console;
-
-    const saveBtn = document.getElementById("saveBtn");
-    if(saveBtn) saveBtn.innerText = t.save;
-
-    const logoutBtn = document.getElementById("logoutBtn");
-    if(logoutBtn) logoutBtn.innerText = t.logout;
-
-    const rateBtn = document.getElementById("rateBtn");
-    if(rateBtn) rateBtn.innerText = t.rateUs;
-
-    const favTitle = document.getElementById("favTitle");
-    if(favTitle) favTitle.innerText = t.favorites;
-
-    const newsText = document.getElementById("newsText");
-    if(newsText) newsText.innerText = t.news;
-    const newsTitle = document.getElementById("newsTitle");
-    if(newsTitle) newsTitle.innerText = t.news;
+    // chat
+    upd("chatInput", t.messagePh, "placeholder");
 
     showHistory();
 }
