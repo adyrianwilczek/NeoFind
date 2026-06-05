@@ -247,11 +247,12 @@ button:hover {
 }
 #chatPanel {
     position:fixed;
-    top:275px;
+    top:430px;
     left:50%;
     transform:translateX(-50%);
-    width:85%;
-    max-height:calc(100vh - 375px);
+    width:65%;
+    max-width:780px;
+    max-height:calc(100vh - 510px);
     background: linear-gradient(135deg, rgba(15,32,39,0.85), rgba(32,58,67,0.85), rgba(44,83,100,0.85));
     backdrop-filter: blur(12px);
     border-radius:15px;
@@ -6501,6 +6502,12 @@ async function openChatPanel() {
     closeAllPanels();
     document.getElementById("chatPanel").style.display = "flex";
     await loadChatContacts();
+    if (currentChatFriend) {
+        openChat(currentChatFriend);
+    } else {
+        const first = document.querySelector(".chat-contact-item");
+        if (first) first.click();
+    }
 }
 
 function openLastChat() {
