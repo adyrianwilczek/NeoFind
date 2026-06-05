@@ -5561,6 +5561,15 @@ function openPanel(id, onOpen){
     closeAllPanels();
     if(!isOpen){
         panel.style.display = "block";
+        const searchEl = document.getElementById("search");
+        const navEl = document.getElementById("bottomNav");
+        if(searchEl && navEl){
+            const margin = 20;
+            const top = searchEl.getBoundingClientRect().bottom + margin;
+            const maxH = navEl.getBoundingClientRect().top - margin - top;
+            panel.style.top = top + "px";
+            panel.style.maxHeight = maxH + "px";
+        }
         document.getElementById("backdrop").style.display = "block";
         if(onOpen) onOpen();
     }
