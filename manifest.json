@@ -1,15 +1,21 @@
 {
   "name": "NeoFind",
   "short_name": "NeoFind",
-  "start_url": "/",
+  "start_url": "/NeoFind/",
+  "scope": "/NeoFind/",
   "display": "standalone",
-  "background_color": "#0f0f0f",
+  "background_color": "#0f2027",
   "theme_color": "#4da6ff",
   "icons": [
     {
       "src": "icon.png",
       "sizes": "192x192",
       "type": "image/png"
+    },
+    {
+      "src": "favicon.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
     }
   ]
 }
