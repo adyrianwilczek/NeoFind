@@ -232,7 +232,9 @@ button:hover {
     width:85%;
     max-height:85vh;
     overflow-y:auto;
-    background:#111;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    border: 1px solid rgba(0,255,200,0.25);
+    box-shadow: 0 0 50px rgba(0,0,0,0.7);
     padding:20px;
     border-radius:15px;
     z-index:9999;
@@ -360,7 +362,10 @@ body.ocean {
 #settingsBox {
     max-width: 480px;
     margin: 20px auto;
-    padding: 0 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(15,32,39,0.7), rgba(44,83,100,0.7));
+    border-radius: 20px;
+    border: 1px solid rgba(0,255,200,0.15);
 }
 #settingsBox select {
     width: 60%;
@@ -6175,12 +6180,14 @@ let chatListener = null;
 
 function openFriends(){
     document.getElementById("friendsBox").style.display = "block";
+    document.body.style.overflow = "hidden";
     loadFriendRequests();
     loadFriends();
 }
 
 function closeFriends(){
     document.getElementById("friendsBox").style.display = "none";
+    document.body.style.overflow = "";
 }
 
 async function sendFriendRequest(){
