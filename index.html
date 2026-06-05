@@ -6994,7 +6994,14 @@ async function editMessage(chatId, msgId){
         text: newText
     });
 }
-    
+
+// PWA
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js")
+    .then(() => console.log("SW OK"))
+    .catch(err => console.log("SW ERROR", err));
+}
+
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
