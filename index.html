@@ -484,8 +484,11 @@ body.ocean {
         max-height: calc(100dvh - 136px);
     }
 
+    /* searchBox musi być pełnej szerokości we flex wrapperze */
+    .searchBox { width: 100%; }
+
     /* fullscreen nie ma sensu na telefonie */
-    #fullscreenBtn { display: none !important; }
+    #fsBtn { display: none !important; }
 }
 
 /* ⚙️ SETTINGS PANEL */
