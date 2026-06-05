@@ -1,4 +1,4 @@
-const CACHE = "neofind-v11";
+const CACHE = "neofind-v12";
 const ASSETS = [
   "/NeoFind/",
   "/NeoFind/index.html",
