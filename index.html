@@ -470,6 +470,22 @@ body.ocean {
     }
     #chatContactsList { display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; }
     .chat-contact-item { padding:4px 10px; font-size:12px; }
+
+    /* wyniki — pełna szerokość, 1 kolumna */
+    #results { width: 95%; grid-template-columns: 1fr; }
+
+    /* brak skoku layoutu przy tapnięciu w input */
+    input:focus { transform: none; }
+
+    /* panele — pełna szerokość, od topBara do bottomNava */
+    #friendsBox, #settingsBox, #profileBox, #reportBox, #adminBox {
+        width: 95%;
+        top: 56px;
+        max-height: calc(100dvh - 136px);
+    }
+
+    /* fullscreen nie ma sensu na telefonie */
+    #fullscreenBtn { display: none !important; }
 }
 
 /* ⚙️ SETTINGS PANEL */
