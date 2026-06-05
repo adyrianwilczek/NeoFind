@@ -106,4 +106,6 @@ Share ideas
 
 📄 License
 
-No license has been added yet.
+MIT License
+
+Copyright (c) 2026 Adrian-dev
