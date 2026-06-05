@@ -245,22 +245,71 @@ button:hover {
     z-index:9999;
     text-align:center;
 }
-#chatBox {
+#chatPanel {
     position:fixed;
     top:275px;
     left:50%;
     transform:translateX(-50%);
-    width:min(85%, 500px);
+    width:85%;
     max-height:calc(100vh - 375px);
     background: linear-gradient(135deg, rgba(15,32,39,0.85), rgba(32,58,67,0.85), rgba(44,83,100,0.85));
     backdrop-filter: blur(12px);
     border-radius:15px;
     z-index:9999;
-    display:flex;
-    flex-direction:column;
+    flex-direction:row;
     border:1px solid rgba(0,255,200,0.25);
     box-shadow: 0 0 50px rgba(0,0,0,0.7);
+    overflow:hidden;
 }
+#chatContacts {
+    width:170px;
+    min-width:170px;
+    border-right:1px solid rgba(0,255,200,0.12);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+#chatContactsHeader {
+    padding:12px 14px 8px;
+    font-size:11px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:rgba(0,255,200,0.5);
+    font-weight:500;
+    border-bottom:1px solid rgba(0,255,200,0.1);
+    flex-shrink:0;
+}
+#chatContactsList {
+    flex:1;
+    overflow-y:auto;
+    padding:6px;
+}
+.chat-contact-item {
+    padding:8px 10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:13px;
+    color:rgba(200,240,235,0.65);
+    transition:background 0.15s;
+    word-break:break-all;
+}
+.chat-contact-item:hover { background:rgba(0,255,200,0.08); color:rgba(200,240,235,0.9); }
+.chat-contact-item.active { background:rgba(0,255,200,0.14); color:rgba(200,240,235,1); }
+#chatConversation {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+}
+#chatConvHeader {
+    padding:10px 14px;
+    border-bottom:1px solid rgba(0,255,200,0.12);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-shrink:0;
+}
+#chatWithLabel { font-size:14px; color:rgba(200,240,235,0.85); }
 #chatMessages {
     flex:1;
     overflow-y:auto;
@@ -269,6 +318,13 @@ button:hover {
     display:flex;
     flex-direction:column;
     gap:6px;
+}
+#chatInputRow {
+    display:flex;
+    gap:5px;
+    padding:8px 10px 10px;
+    border-top:1px solid rgba(0,255,200,0.1);
+    flex-shrink:0;
 }
 .chat-row { display:flex; flex-direction:column; max-width:78%; }
 .chat-row-me { align-self:flex-end; align-items:flex-end; }
@@ -388,16 +444,21 @@ body.ocean {
     input, select, textarea { width: 95%; font-size: 15px; }
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
-    #chatBox {
-        top: 60px;
-        left: 50%;
-        transform: translateX(-50%);
+    #chatPanel {
+        top: 55px;
         width: 95%;
         max-height: calc(100vh - 130px);
-        bottom: unset;
-        right: unset;
-        border-radius: 15px;
+        flex-direction: column;
     }
+    #chatContacts {
+        width: 100%;
+        min-width: unset;
+        max-height: 120px;
+        border-right: none;
+        border-bottom: 1px solid rgba(0,255,200,0.12);
+    }
+    #chatContactsList { display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; }
+    .chat-contact-item { padding:4px 10px; font-size:12px; }
 }
 
 /* ⚙️ SETTINGS PANEL */
@@ -769,16 +830,22 @@ body.ocean {
     <button onclick="closeFriends()" id="closeFriendsBtn">Close</button>
 </div>
 
-<!-- CHAT BOX -->
-<div id="chatBox" style="display:none;">
-    <div style="padding:10px; border-bottom:1px solid rgba(0,255,200,0.15); display:flex; justify-content:space-between; align-items:center;">
-        <span id="chatWithLabel" style="font-size:13px; color:rgba(200,240,235,0.85);">Chat</span>
-        <button onclick="document.getElementById('chatBox').style.display='none'" style="padding:3px 8px; font-size:12px;">✕</button>
+<!-- CHAT PANEL -->
+<div id="chatPanel" style="display:none;">
+    <div id="chatContacts">
+        <div id="chatContactsHeader" id="chatContactsTitle">Chat</div>
+        <div id="chatContactsList"></div>
     </div>
-    <div id="chatMessages"></div>
-    <div style="display:flex; gap:5px; padding:0 10px 10px;">
-        <input id="chatInput" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChatMessage()">
-        <button onclick="sendChatMessage()" style="padding:6px 10px; border-radius:20px; flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor"/></svg></button>
+    <div id="chatConversation">
+        <div id="chatConvHeader">
+            <span id="chatWithLabel">—</span>
+            <button onclick="document.getElementById('chatPanel').style.display='none'" style="padding:3px 8px; font-size:12px;">✕</button>
+        </div>
+        <div id="chatMessages"></div>
+        <div id="chatInputRow">
+            <input id="chatInput" placeholder="Message..." onkeydown="if(event.key==='Enter') sendChatMessage()">
+            <button onclick="sendChatMessage()" style="padding:6px 10px; border-radius:20px; flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor"/></svg></button>
+        </div>
     </div>
 </div>
 
@@ -6430,11 +6497,36 @@ function escapeHtml(str) {
 ========================= */
 let currentChatFriend = null;
 
+async function openChatPanel() {
+    closeAllPanels();
+    document.getElementById("chatPanel").style.display = "flex";
+    await loadChatContacts();
+}
+
 function openLastChat() {
-    if (currentChatFriend) {
-        document.getElementById("chatBox").style.display = "flex";
-    } else {
-        openFriends();
+    openChatPanel();
+}
+
+async function loadChatContacts() {
+    const user = auth.currentUser;
+    if (!user) return;
+    const box = document.getElementById("chatContactsList");
+    box.innerHTML = "<div style='opacity:0.4;font-size:12px;padding:8px'>Ładowanie...</div>";
+    try {
+        const snap1 = await db.collection("friendRequests").where("from","==",user.email).where("status","==","accepted").get();
+        const snap2 = await db.collection("friendRequests").where("to","==",user.email).where("status","==","accepted").get();
+        let friends = [];
+        snap1.forEach(doc => friends.push(doc.data().to));
+        snap2.forEach(doc => friends.push(doc.data().from));
+        if (!friends.length) {
+            box.innerHTML = "<div style='opacity:0.4;font-size:12px;padding:8px'>Brak znajomych</div>";
+            return;
+        }
+        box.innerHTML = friends.map(email => `
+            <div class="chat-contact-item${currentChatFriend===email?' active':''}" onclick="openChat('${email}')">${email.split('@')[0]}</div>
+        `).join("");
+    } catch(e) {
+        box.innerHTML = "<div style='color:red;font-size:12px;padding:8px'>Błąd</div>";
     }
 }
 let chatListener = null;
@@ -6578,8 +6670,11 @@ function openChat(friendEmail){
     currentChatFriend = friendEmail;
     document.getElementById("chatWithLabel").innerText = friendEmail.split('@')[0];
     document.getElementById("friendsBox").style.display = "none";
-    document.getElementById("chatBox").style.display = "flex";
+    document.getElementById("chatPanel").style.display = "flex";
     document.getElementById("chatMessages").innerHTML = "";
+    document.querySelectorAll(".chat-contact-item").forEach(el => {
+        el.classList.toggle("active", el.textContent.trim() === friendEmail.split('@')[0]);
+    });
 
     if(chatListener) chatListener();
 
