@@ -28,34 +28,26 @@ body {
     font-size: 18px;
 }
 
-/* 🔥 NEON + MOVING GRADIENT LOGO */
+/* 🔥 LOGO IMAGE */
 #logo {
-    font-size: 65px !important;
     margin-top: 100px;
     margin-bottom: 10px;
-    letter-spacing: 3px;
+    line-height: 0;
+}
 
-    background: linear-gradient(
-        90deg,
-        #00ffcc,
-        #00aaff,
-        #ffffff,
-        #00ff66,
-        #00ccff,
-        #00ffcc
-    );
+#logo img {
+    width: 230px;
+    filter: drop-shadow(0 0 10px rgba(0,255,200,0.7)) drop-shadow(0 0 28px rgba(0,200,255,0.5));
+    animation: logoPulse 3s ease-in-out infinite;
+}
 
-    background-size: 600% 600%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    animation: gradientMove 7s linear infinite;
-
-    text-shadow:
-        0 0 8px rgba(0,255,200,0.7),
-        0 0 20px rgba(0,200,255,0.6),
-        0 0 35px rgba(0,255,120,0.4);
-
+@keyframes logoPulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 10px rgba(0,255,200,0.7)) drop-shadow(0 0 28px rgba(0,200,255,0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 20px rgba(0,255,200,0.95)) drop-shadow(0 0 45px rgba(0,200,255,0.75)) drop-shadow(0 0 65px rgba(0,255,150,0.35));
+    }
 }
 
 /* 🔍 normalna lupa (bez neonów) */
@@ -63,6 +55,7 @@ body {
     -webkit-text-fill-color: white !important;
     background: none !important;
     text-shadow: none !important;
+    display: none;
 
     font-size: 0.9em;
     margin-left: 8px;
@@ -369,7 +362,7 @@ body.ocean {
 }
 
 @media (max-width: 600px) {
-    #logo { font-size: 48px !important; }
+    #logo img { width: 170px; }
     input, select, textarea { width: 95%; font-size: 15px; }
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
@@ -582,6 +575,7 @@ body.ocean {
 
 <!-- 🔝 TOP BAR -->
 <div id="topBar">
+    <img src="favicon.jpeg" alt="NeoFind" style="height:34px; filter:drop-shadow(0 0 6px rgba(0,255,200,0.6)); position:absolute; left:50%; transform:translateX(-50%); pointer-events:none;">
     <div style="display:flex; gap:4px; align-items:center;">
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
@@ -619,7 +613,7 @@ body.ocean {
 
 <div id="tabContent"></div>
 
-    <h1 id="logo">NeoFind <span class="searchIcon">🔍</span></h1>
+    <h1 id="logo"><img src="favicon.jpeg" alt="NeoFind"></h1>
 
     <div id="didYouKnowTitle" style="text-align:center; margin-top:5px; font-size:15px;"></div>
     <div id="didYouKnow" style="text-align:center; margin-bottom:8px; opacity:0.8;"></div>
