@@ -617,6 +617,10 @@ body.ocean {
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M2 20c0-4 3.5-6 7-6s7 2 7 6"/><path d="M16 3a4 4 0 0 1 0 8"/><path d="M22 20c0-3.5-2.5-5-6-5"/></svg></span>
         <span class="nav-label" id="navFriendsLabel">Friends</span>
     </button>
+    <button onclick="openLastChat()">
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="nav-label" id="navChatLabel">Chat</span>
+    </button>
     <button onclick="openSettings()">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-5 3.6-8 8-8s8 3 8 8"/></svg></span>
         <span class="nav-label" id="navProfileLabel">Profile</span>
@@ -5022,7 +5026,7 @@ const translations = {
         unbanUser: "Unban user",
         noHistory: "No history",
         close: "Close", add: "Add", send: "Send",
-        friends: "Friends", profile: "Profile", navReport: "Report",
+        friends: "Friends", profile: "Profile", navReport: "Report", navChat: "Chat",
         pendingTitle: "Pending Requests", friendsListTitle: "Friends list",
         noPending: "No pending requests", accept: "Accept", decline: "Decline",
         chatBtnLabel: "Chat", noFriends: "No friends yet",
@@ -5070,7 +5074,7 @@ const translations = {
         unbanUser: "Odbanuj użytkownika",
         noHistory: "Brak historii",
         close: "Zamknij", add: "Dodaj", send: "Wyślij",
-        friends: "Znajomi", profile: "Profil", navReport: "Zgłoś",
+        friends: "Znajomi", profile: "Profil", navReport: "Zgłoś", navChat: "Czat",
         pendingTitle: "Oczekujące zaproszenia", friendsListTitle: "Lista znajomych",
         noPending: "Brak zaproszeń", accept: "Akceptuj", decline: "Odrzuć",
         chatBtnLabel: "Czat", noFriends: "Brak znajomych",
@@ -5118,7 +5122,7 @@ didYouKnow: [
         unbanUser: "Desbanear usuario",
         noHistory: "Sin historial",
         close: "Cerrar", add: "Agregar", send: "Enviar",
-        friends: "Amigos", profile: "Perfil", navReport: "Reporte",
+        friends: "Amigos", profile: "Perfil", navReport: "Reporte", navChat: "Chat",
         pendingTitle: "Solicitudes pendientes", friendsListTitle: "Lista de amigos",
         noPending: "Sin solicitudes", accept: "Aceptar", decline: "Rechazar",
         chatBtnLabel: "Chat", noFriends: "Sin amigos aún",
@@ -5166,7 +5170,7 @@ didYouKnow: [
         unbanUser: "☀️ invite to summer",
         noHistory: "☀️ No history",
         close: "☀️ Close", add: "☀️ Add", send: "☀️ Send",
-        friends: "☀️ Friends", profile: "☀️ Profile", navReport: "🌞",
+        friends: "☀️ Friends", profile: "☀️ Profile", navReport: "🌞", navChat: "☀️ Chat",
         pendingTitle: "☀️ Waiting", friendsListTitle: "☀️ Friends",
         noPending: "☀️ No pending", accept: "☀️ Accept", decline: "☀️ Decline",
         chatBtnLabel: "☀️ Talk", noFriends: "☀️ No friends",
@@ -6413,6 +6417,14 @@ if(visits % 50 === 0){
    FRIENDS SYSTEM
 ========================= */
 let currentChatFriend = null;
+
+function openLastChat() {
+    if (currentChatFriend) {
+        document.getElementById("chatBox").style.display = "flex";
+    } else {
+        openFriends();
+    }
+}
 let chatListener = null;
 
 function openFriends(){
@@ -6655,6 +6667,7 @@ function updateLanguage(){
 
     // bottom nav
     upd("navFriendsLabel", t.friends);
+    upd("navChatLabel", t.navChat);
     upd("navProfileLabel", t.profile);
     upd("navAdminLabel", t.admin);
     upd("navReportLabel", t.navReport);
