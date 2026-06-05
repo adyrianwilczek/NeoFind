@@ -6727,7 +6727,7 @@ function openChat(friendEmail){
                     </div>
                 `;
             });
-            box.scrollTop = box.scrollHeight;
+            setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
 
             if (chatListenerReady) {
                 snapshot.docChanges().forEach(change => {
