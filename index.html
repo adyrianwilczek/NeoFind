@@ -477,23 +477,27 @@ body.ocean {
     #results { width: 100%; grid-template-columns: 1fr; margin: 0; }
 
     /* ── panele: od topBara (56px) do bottomNava, marginesy 16px ── */
-    #friendsBox, #settingsBox, #profileBox, #reportBox, #adminBox {
-        width: calc(100% - 32px);
-        left: 16px;
-        right: 16px;
-        transform: none;
-        top: 56px;
-        max-height: calc(100dvh - 136px);
+    #friendsBox, #settingsBox, #profileBox, #reportBox, #adminBox,
+    #privacyBox, #newsBox, #consoleBox {
+        width: calc(100% - 32px) !important;
+        left: 16px !important;
+        right: auto !important;
+        transform: none !important;
+        top: 56px !important;
+        max-height: calc(100dvh - 136px) !important;
     }
 
     /* ── pozostałe ── */
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
     #chatPanel {
-        top: 55px;
-        width: calc(100% - 32px);
-        left: 16px;
-        max-height: calc(100vh - 130px);
+        top: 56px;
+        left: 0;
+        right: 0;
+        width: 100%;
+        transform: none;
+        border-radius: 0;
+        max-height: calc(100dvh - 136px);
         flex-direction: column;
     }
     #chatContacts {
