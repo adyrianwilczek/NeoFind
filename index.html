@@ -360,25 +360,49 @@ body.ocean {
 
 /* ⚙️ SETTINGS PANEL */
 #settingsBox {
-    max-width: 480px;
+    max-width: 900px;
     margin: 20px auto;
-    padding: 20px;
+    padding: 24px;
     background: linear-gradient(135deg, rgba(15,32,39,0.7), rgba(44,83,100,0.7));
     border-radius: 20px;
     border: 1px solid rgba(0,255,200,0.15);
 }
+.settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+.settings-col {
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+    padding: 16px;
+}
+.settings-col h4 { margin-top: 0; }
 #settingsBox select {
-    width: 60%;
-    max-width: 280px;
+    width: 100%;
+    max-width: 100%;
 }
 #settingsBox .result {
-    text-align: center;
-    justify-content: center;
+    text-align: left;
+    justify-content: space-between;
+    margin-top: 8px;
 }
-#settingsBox > button {
-    width: 200px;
-    display: block;
-    margin: 8px auto;
+.settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 16px;
+}
+.settings-actions button {
+    flex: 1;
+    min-width: 120px;
+    max-width: 200px;
+}
+@media (max-width: 600px) {
+    .settings-grid { grid-template-columns: 1fr; }
 }
 
 /* 🔝 TOP BAR */
@@ -538,63 +562,63 @@ body.ocean {
     <!-- ⚙️ SETTINGS -->
     <div id="settingsBox" style="display:none; text-align:center;">
         <h3>⚙️ Settings</h3>
-        <label>Language:</label><br>
-        <select id="settingsLang">
-            <option value="en">EN</option>
-            <option value="es">ES</option>
-            <option value="pl">PL</option>
-            <option value="Summer">☀️</option>
-        </select><br><br>
-        <label id="themeLabel">Theme:</label><br>
-        <select id="themeSelect">
-            <option value="classic">Classic</option>
-            <option value="space">Space</option>
-            <option value="matrix">Matrix</option>
-            <option value="ocean">Ocean</option>
-        </select><br><br>
-<h3 id="accountTitle">👤 Account</h3>
 
-<div class="result">
-    <b>Email:</b>
-    <span id="accountEmail"></span>
-    <button onclick="changeEmailPrompt()">✎ Change</button>
-</div>
+        <div class="settings-grid">
+            <div class="settings-col">
+                <h4>🌍 Language</h4>
+                <select id="settingsLang">
+                    <option value="en">EN</option>
+                    <option value="es">ES</option>
+                    <option value="pl">PL</option>
+                    <option value="Summer">☀️</option>
+                </select>
+                <h4 id="themeLabel" style="margin-top:16px;">🎨 Theme</h4>
+                <select id="themeSelect">
+                    <option value="classic">Classic</option>
+                    <option value="space">Space</option>
+                    <option value="matrix">Matrix</option>
+                    <option value="ocean">Ocean</option>
+                </select>
+            </div>
 
-<div id="premiumBadge" style="
-    display:none;
-    color:#00ffff;
-    font-weight:bold;
-    margin-top:10px;
-">
-    💎 Premium
-</div>
+            <div class="settings-col">
+                <h4 id="accountTitle">👤 Account</h4>
+                <div class="result">
+                    <b>Email:</b>
+                    <span id="accountEmail"></span>
+                    <button onclick="changeEmailPrompt()">✎ Change</button>
+                </div>
+                <div id="premiumBadge" style="display:none; color:#00ffff; font-weight:bold; margin-top:10px;">💎 Premium</div>
+                <div class="result" style="margin-top:8px;">
+                    <b>Password:</b>
+                    <span>******</span>
+                    <button onclick="openPasswordBox()">✎ Change</button>
+                </div>
+                <div id="passwordBox" style="display:none; margin-top:10px;">
+                    <input id="currentPass" type="password" placeholder="Current password"><br>
+                    <input id="newPass" type="password" placeholder="New password"><br>
+                    <input id="repeatPass" type="password" placeholder="Repeat new password"><br>
+                    <button onclick="changePassword()">Save password</button>
+                </div>
+            </div>
+        </div>
 
-<div class="result">
-    <b>Password:</b>
-    <span>******</span>
-    <button onclick="openPasswordBox()">✎ Change</button>
-</div>
+        <div class="settings-col" style="margin-bottom:16px; text-align:center;">
+            <h4>📜 History</h4>
+            <div id="historyList"></div>
+        </div>
 
-<div id="passwordBox" style="display:none; margin-top:10px;">
-    <input id="currentPass" type="password" placeholder="Current password"><br>
-    <input id="newPass" type="password" placeholder="New password"><br>
-    <input id="repeatPass" type="password" placeholder="Repeat new password"><br>
-    <button onclick="changePassword()">Save password</button>
-</div>
+        <div class="settings-actions">
+            <button onclick="clearHistory()">🧹 Clear history</button>
+            <button onclick="openConsole()">🪲 Debug Console</button>
+            <button onclick="saveSettings()">Save</button>
+            <button onclick="auth.signOut()" id="logoutBtn">Log Out</button>
+            <button onclick="document.getElementById('rateBox').style.display='block'">⭐ Rate us</button>
+        </div>
 
-        <h4>📜 History</h4>
-        <div id="historyList"></div><br>
-
-        <button onclick="clearHistory()">🧹 Clear history</button><br><br>
-        <button onclick="openConsole()">🪲 Debug Console</button><br><br>
-        <button onclick="saveSettings()">Save</button><br><br>
-        <button onclick="auth.signOut()" id="logoutBtn">Log Out</button>
-        <button onclick="document.getElementById('rateBox').style.display='block'">⭐ Rate us</button>
-        <h4 id="favTitle">⭐ Favorites</h4>
-        <div id="favoritesList"></div><br>
+        <h4 id="favTitle" style="margin-top:20px;">⭐ Favorites</h4>
+        <div id="favoritesList"></div>
     </div>
-
-        <h4>⭐ Rate us</h4>
 
 <div id="rateBox" style="display:none;">
     <h4>⭐ Rate us</h4>
