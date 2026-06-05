@@ -365,13 +365,23 @@ body.ocean {
 
 /* ⚙️ SETTINGS PANEL */
 #settingsBox {
+    display: none;
+    position: fixed;
+    top: 40%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 85%;
     max-width: 900px;
-    margin: 20px auto;
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
     padding: 24px;
     background: linear-gradient(135deg, rgba(15,32,39,0.55), rgba(44,83,100,0.55));
     backdrop-filter: blur(12px);
     border-radius: 20px;
     border: 1px solid rgba(0,255,200,0.15);
+    box-shadow: 0 0 50px rgba(0,0,0,0.7);
+    z-index: 9999;
+    text-align: center;
 }
 .settings-grid {
     display: grid;
