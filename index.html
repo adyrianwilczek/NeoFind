@@ -356,6 +356,26 @@ body.ocean {
     .container { margin-top: 40px; }
 }
 
+/* ⚙️ SETTINGS PANEL */
+#settingsBox {
+    max-width: 480px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+#settingsBox select {
+    width: 60%;
+    max-width: 280px;
+}
+#settingsBox .result {
+    text-align: center;
+    justify-content: center;
+}
+#settingsBox > button {
+    width: 200px;
+    display: block;
+    margin: 8px auto;
+}
+
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </style>
 </head>
@@ -426,6 +446,20 @@ body.ocean {
     <!-- ⚙️ SETTINGS -->
     <button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">👤 Profile</button>
 
+<button id="newsBtn" onclick="openNews()" style="
+position:fixed;
+top:20px;
+right:20px;
+padding:10px 15px;
+border-radius:12px;
+background:#ffcc00;
+color:black;
+font-weight:bold;
+z-index:9999;
+">
+📰 News <span id="newsBadge" style="color:red; display:none;">🔴</span>
+</button>
+
     <div id="settingsBox" style="display:none; text-align:center;">
         <h3>⚙️ Settings</h3>
         <label>Language:</label><br>
@@ -449,19 +483,6 @@ body.ocean {
     <span id="accountEmail"></span>
     <button onclick="changeEmailPrompt()">✎ Change</button>
 </div>
-<button id="newsBtn" onclick="openNews()" style="
-position:fixed;
-top:20px;
-right:20px;
-padding:10px 15px;
-border-radius:12px;
-background:#ffcc00;
-color:black;
-font-weight:bold;
-z-index:9999;
-">
-📰 News <span id="newsBadge" style="color:red; display:none;">🔴</span>
-</button>
 
 <div id="premiumBadge" style="
     display:none;
