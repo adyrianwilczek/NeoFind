@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>NeoFind</title>
 
 <link rel="icon" type="image/png" href="favicon.jpeg">
@@ -251,7 +251,6 @@ button:hover {
     text-align:center;
 }
 #chatBox {
-    display:none;
     position:fixed;
     bottom:20px;
     right:80px;
@@ -345,7 +344,7 @@ body.ocean {
 /* oko zamiast lupki */
 #neoPopup {
     position: fixed;
-    bottom: 20px;
+    bottom: 75px;
     right: 20px;
     background: #1e1e1e;
     color: white;
@@ -355,6 +354,7 @@ body.ocean {
     font-size: 14px;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
     animation: fadeIn 0.3s ease;
+    z-index: 1001;
 }
 
 #neoPopup::before {
@@ -368,6 +368,15 @@ body.ocean {
     #logo { font-size: 48px !important; }
     input, select, textarea { width: 95%; font-size: 15px; }
     .container { margin-top: 40px; }
+    #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
+    #chatBox {
+        right: 0;
+        left: 0;
+        width: 100%;
+        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+        height: 380px;
+        border-radius: 15px 15px 0 0;
+    }
 }
 
 /* ⚙️ SETTINGS PANEL */
@@ -490,7 +499,7 @@ body.ocean {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 6px 0 10px;
+    padding: 6px 0 calc(10px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid rgba(0,255,200,0.2);
 }
 
