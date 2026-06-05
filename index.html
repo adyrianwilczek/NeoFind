@@ -443,22 +443,56 @@ body.ocean {
 }
 
 @media (max-width: 600px) {
-    #logo img { width: 200px; }
-    #logo { margin-top: 0; }
+    /* ── homeWrapper: jedyne źródło marginesów bocznych (16px każda strona) ── */
     #homeWrapper {
         min-height: calc(100dvh - 144px);
         display: flex;
         flex-direction: column;
-        align-items: center;
+        align-items: stretch;
         justify-content: center;
         width: 100%;
+        padding: 0 16px;
+        box-sizing: border-box;
+        gap: 4px;
     }
-    input, select, textarea { width: 95%; font-size: 15px; }
+
+    /* ── logo ── */
+    #logo { margin-top: 0; text-align: center; }
+    #logo img { width: 200px; }
+
+    /* ── DYK ── */
+    #didYouKnowTitle, #didYouKnow { text-align: center; }
+
+    /* ── input: box-sizing:border-box = padding nie dodaje szerokości ── */
+    .searchBox { width: 100%; }
+    input, select, textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 16px; /* min 16px = iOS nie zoomuje */
+        padding: 12px 16px;
+    }
+    input:focus { transform: none; }
+
+    /* ── wyniki: 1 kolumna, te same marginesy co homeWrapper ── */
+    #results { width: 100%; grid-template-columns: 1fr; margin: 0; }
+
+    /* ── panele: od topBara (56px) do bottomNava, marginesy 16px ── */
+    #friendsBox, #settingsBox, #profileBox, #reportBox, #adminBox {
+        width: calc(100% - 32px);
+        left: 16px;
+        right: 16px;
+        transform: none;
+        top: 56px;
+        max-height: calc(100dvh - 136px);
+    }
+
+    /* ── pozostałe ── */
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
     #chatPanel {
         top: 55px;
-        width: 95%;
+        width: calc(100% - 32px);
+        left: 16px;
         max-height: calc(100vh - 130px);
         flex-direction: column;
     }
@@ -471,24 +505,6 @@ body.ocean {
     }
     #chatContactsList { display:flex; flex-direction:row; flex-wrap:wrap; gap:4px; }
     .chat-contact-item { padding:4px 10px; font-size:12px; }
-
-    /* wyniki — pełna szerokość, 1 kolumna */
-    #results { width: 95%; grid-template-columns: 1fr; }
-
-    /* brak skoku layoutu przy tapnięciu w input */
-    input:focus { transform: none; }
-
-    /* panele — pełna szerokość, od topBara do bottomNava */
-    #friendsBox, #settingsBox, #profileBox, #reportBox, #adminBox {
-        width: 95%;
-        top: 56px;
-        max-height: calc(100dvh - 136px);
-    }
-
-    /* searchBox musi być pełnej szerokości we flex wrapperze */
-    .searchBox { width: 100%; }
-
-    /* fullscreen nie ma sensu na telefonie */
     #fsBtn { display: none !important; }
 }
 
