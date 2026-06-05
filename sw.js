@@ -3,18 +3,10 @@ self.addEventListener("install", e => {
     caches.open("neofind-cache").then(cache => {
       return cache.addAll([
         "/",
-        "/index.html",
-        "/style.css",
-        "/app.js"
-      ]);
-    })
-  );
-});
-
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(res => {
-      return res || fetch(e.request);
+        "/index.html"
+      ]).catch(err => {
+        console.log("Cache error:", err);
+      });
     })
   );
 });
