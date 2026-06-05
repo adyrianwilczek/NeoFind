@@ -356,11 +356,7 @@ body.ocean {
     .container { margin-top: 40px; }
 }
 
-/* confetti effect */
-@keyframes confettiFall {
-    0% { transform: translateY(0) rotate(0deg); opacity:1; }
-    100% { transform: translateY(110vh) rotate(720deg); opacity:0; }
-}
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </style>
 </head>
 <body>
@@ -6572,59 +6568,25 @@ function updateStarDisplay(val){
 }
 
 // Konami code
-(function(){
-    const code = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
-    let pos = 0;
-    document.addEventListener("keydown", function(e){
-        if(e.key === code[pos]){
-            pos++;
-            if(pos === code.length){
-                pos = 0;
-                activateKonami();
-            }
-        } else {
+const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown",
+                 "ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+let pos = 0;
+
+document.addEventListener("keydown", (e) => {
+    if (e.key === KONAMI[pos]) {
+        pos++;
+        if (pos === KONAMI.length) {
             pos = 0;
+            confetti({
+    particleCount: 150,
+    spread: 70,
+    origin: { y: 0.6 }
+});
         }
-    });
-})();
-
-function activateKonami(){
-    const overlay = document.createElement("div");
-    overlay.style.cssText = `
-        position:fixed; top:0; left:0; width:100%; height:100%;
-        background:rgba(0,0,0,0.85); z-index:99999;
-        display:flex; flex-direction:column;
-        align-items:center; justify-content:center;
-        color:white; font-size:24px; text-align:center;
-    `;
-    overlay.innerHTML = `
-        <div style="font-size:80px; animation:gradientMove 2s linear infinite;">🎮</div>
-        <h2 style="color:#00ffcc; margin:10px 0;">KONAMI CODE ACTIVATED!</h2>
-        <p style="opacity:0.7">You found the secret cheat code 🎉</p>
-        <p style="font-size:16px; margin-top:20px; color:#ffcc00;">+30 lives added... just kidding 😄</p>
-        <button onclick="this.parentElement.remove()" style="margin-top:30px; padding:12px 30px; font-size:18px; border-radius:15px; background:#00ffcc; color:black; font-weight:bold;">
-            ✅ OK nice
-        </button>
-    `;
-    document.body.appendChild(overlay);
-
-    // Confetti efekt
-    for(let i = 0; i < 60; i++){
-        const dot = document.createElement("div");
-        dot.style.cssText = `
-            position:fixed;
-            left:${Math.random()*100}%;
-            top:-10px;
-            width:8px; height:8px;
-            border-radius:50%;
-            background:hsl(${Math.random()*360},100%,60%);
-            z-index:100000;
-            animation: confettiFall ${1.5 + Math.random()*2}s linear forwards;
-        `;
-        document.body.appendChild(dot);
-        setTimeout(()=> dot.remove(), 3500);
+    } else {
+        pos = 0;
     }
-}
+});
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
