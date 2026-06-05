@@ -828,7 +828,7 @@ border-radius:20px;
 z-index:9999;
 ">
 
-<h2>📰 News</h2>
+<h2 id="newsTitle">📰 News</h2>
 
 <div id="newsList"></div>
 
@@ -5060,71 +5060,85 @@ const newsData = [
     title: "Next Update",
     text: "Friends & chat coming soon 👀",
     date: "2026-05-30",
+    pl: { title: "Następna aktualizacja", text: "Friends i czat już wkrótce 👀" }
   },
   {
     title: "NeoFind 1.19",
     text: "NeoFind v1.19 what's new? bad words filter, more results, new news and much more",
-    date: "2026-05-25"
+    date: "2026-05-25",
+    pl: { title: "NeoFind 1.19", text: "NeoFind v1.19 co nowego? filtr wulgaryzmów, więcej wyników, nowe aktualności i wiele więcej" }
   },
   {
     title: "AI assistants becoming part of daily life",
     text: "More people are using AI assistants for school, work, and entertainment, making them a normal part of everyday life.",
-    date: "2026-05-26"
+    date: "2026-05-26",
+    pl: { title: "Asystenci AI częścią codziennego życia", text: "Coraz więcej osób korzysta z asystentów AI w szkole, pracy i rozrywce." }
   },
   {
     title: "Major update trends in indie apps",
     text: "Users are demanding more frequent updates from small apps, pushing developers to release new features faster.",
-    date: "2026-05-25"
+    date: "2026-05-25",
+    pl: { title: "Trendy aktualizacji w niezależnych aplikacjach", text: "Użytkownicy oczekują częstszych aktualizacji, co skłania deweloperów do szybszego wydawania nowych funkcji." }
   },
   {
     title: "Gaming platforms reach record activity",
     text: "Online games like sandbox and multiplayer titles are seeing record numbers of active players worldwide.",
-    date: "2026-05-24"
+    date: "2026-05-24",
+    pl: { title: "Platformy gamingowe biją rekordy aktywności", text: "Gry online przyciągają rekordową liczbę graczy na całym świecie." }
   },
   {
     title: "New safety features introduced online",
     text: "Apps are adding better moderation tools and AI detection systems to keep users safe from harmful content.",
-    date: "2026-05-23"
+    date: "2026-05-23",
+    pl: { title: "Nowe funkcje bezpieczeństwa w sieci", text: "Aplikacje dodają lepsze narzędzia moderacji i systemy AI chroniące użytkowników przed szkodliwymi treściami." }
   },
   {
     title: "Cloud storage usage keeps growing",
     text: "More users are saving files, images, and data in the cloud instead of local devices.",
-    date: "2026-05-22"
+    date: "2026-05-22",
+    pl: { title: "Przechowywanie w chmurze stale rośnie", text: "Coraz więcej użytkowników zapisuje pliki i dane w chmurze zamiast na dyskach lokalnych." }
   },
   {
     title: "Custom profiles and avatars trending",
     text: "Profile customization like avatars, badges, and cosmetics is becoming a standard feature in modern platforms.",
-    date: "2026-05-21"
+    date: "2026-05-21",
+    pl: { title: "Personalizacja profili i awatarów w modzie", text: "Opcje personalizacji jak awatary i odznaki stają się standardem nowoczesnych platform." }
   },
   {
     title: "Search engines evolving with AI",
     text: "Search platforms are integrating AI responses to provide faster and more helpful answers.",
-    date: "2026-05-20"
+    date: "2026-05-20",
+    pl: { title: "Wyszukiwarki rozwijają się dzięki AI", text: "Platformy wyszukiwania integrują odpowiedzi AI, oferując szybsze i bardziej przydatne wyniki." }
   },
   {
     title: "User experience becomes top priority",
     text: "Developers are focusing more on smooth UI, animations, and simplicity to improve user satisfaction.",
-    date: "2026-05-19"
+    date: "2026-05-19",
+    pl: { title: "Doświadczenie użytkownika priorytetem", text: "Deweloperzy skupiają się na płynnym interfejsie i prostocie, żeby zwiększyć satysfakcję użytkowników." }
   },
   {
     title: "Moderation systems becoming smarter",
     text: "AI is now able to detect inappropriate content faster and more accurately than before.",
-    date: "2026-05-18"
+    date: "2026-05-18",
+    pl: { title: "Systemy moderacji coraz inteligentniejsze", text: "AI wykrywa nieodpowiednie treści szybciej i dokładniej niż kiedykolwiek wcześniej." }
   },
   {
     title: "Personalized content everywhere",
     text: "Apps are increasingly showing content based on user behavior and preferences.",
-    date: "2026-05-17"
+    date: "2026-05-17",
+    pl: { title: "Spersonalizowane treści wszędzie", text: "Aplikacje coraz częściej pokazują treści dopasowane do zachowań i preferencji użytkownika." }
   },
   {
     title: "Rise of small independent platforms",
     text: "Smaller platforms like NeoFind are growing as users look for alternatives to big tech.",
-    date: "2026-05-16"
+    date: "2026-05-16",
+    pl: { title: "Wzrost małych niezależnych platform", text: "Mniejsze platformy jak NeoFind zyskują popularność wśród użytkowników szukających alternatyw dla wielkich firm technologicznych." }
   },
   {
     title: "More users care about privacy",
     text: "People are paying more attention to how their data is stored and used online.",
-    date: "2026-05-15"
+    date: "2026-05-15",
+    pl: { title: "Coraz więcej użytkowników dba o prywatność", text: "Ludzie coraz uważniej śledzą, jak ich dane są przechowywane i używane w internecie." }
   }
 ];
 
@@ -6211,14 +6225,14 @@ function closeNews(){ closeAllPanels(); }
 
 function loadNews(){
     const box = document.getElementById("newsList");
-
-    box.innerHTML = newsData.map(n => `
-        <div class="result">
-            <h3>${n.title}</h3>
-            <p>${n.text}</p>
+    box.innerHTML = newsData.map(n => {
+        const l = (currentLang !== "en" && n[currentLang]) ? n[currentLang] : n;
+        return `<div class="result">
+            <h3>${l.title}</h3>
+            <p>${l.text}</p>
             <small>${n.date}</small>
-        </div>
-    `).join("");
+        </div>`;
+    }).join("");
 }
 // 🔴 NOWE
 function checkNews(){
@@ -6500,6 +6514,8 @@ function updateLanguage(){
     // 📰 news
     const newsText = document.getElementById("newsText");
     if(newsText) newsText.innerText = t.news;
+    const newsTitle = document.getElementById("newsTitle");
+    if(newsTitle) newsTitle.innerText = t.news;
 
     // ⭐ rate
     const rateBtn = document.getElementById("rateBtn");
