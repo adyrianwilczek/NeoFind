@@ -481,7 +481,8 @@ body.ocean {
     transform: scale(1.05);
 }
 
-#bottomNav .nav-icon { font-size: 22px; }
+#bottomNav .nav-icon { display: flex; align-items: center; justify-content: center; height: 26px; }
+#bottomNav .nav-icon svg { width: 22px; height: 22px; }
 #bottomNav .nav-label { font-size: 10px; opacity: 0.7; }
 
 #app {
@@ -526,27 +527,28 @@ body.ocean {
 
 <!-- 🔝 TOP BAR -->
 <div id="topBar">
-    <button id="newsBtn" onclick="openNews()" style="background:#ffcc00; color:black; font-weight:bold; border-radius:12px; padding:8px 16px; font-size:14px;">
-        <span id="newsText">📰 News</span><span id="newsBadge" style="color:red; display:none;"> 🔴</span>
+    <button id="newsBtn" onclick="openNews()" style="background:linear-gradient(135deg,rgba(0,200,150,0.2),rgba(0,150,220,0.2)); border:1px solid rgba(0,255,200,0.45); color:#00ffc8; font-weight:bold; border-radius:12px; padding:8px 24px; font-size:14px; display:flex; align-items:center; gap:7px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor"/></svg>
+        <span id="newsText">NeoNews</span><span id="newsBadge" style="color:#ff4444; display:none; margin-left:2px;">●</span>
     </button>
 </div>
 
 <!-- ⬇️ BOTTOM NAV -->
 <div id="bottomNav">
     <button onclick="openFriends()">
-        <span class="nav-icon">👥</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M2 20c0-4 3.5-6 7-6s7 2 7 6"/><path d="M16 3a4 4 0 0 1 0 8"/><path d="M22 20c0-3.5-2.5-5-6-5"/></svg></span>
         <span class="nav-label">Friends</span>
     </button>
     <button onclick="openSettings()">
-        <span class="nav-icon">👤</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M4 20c0-5 3.6-8 8-8s8 3 8 8"/></svg></span>
         <span class="nav-label">Profile</span>
     </button>
     <button id="adminBtn" onclick="openAdmin()" style="display:none;">
-        <span class="nav-icon">🔐</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
         <span class="nav-label">Admin</span>
     </button>
     <button id="reportBtn" onclick="openReport()">
-        <span class="nav-icon">⚠️</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg></span>
         <span class="nav-label">Report</span>
     </button>
 </div>
@@ -4931,7 +4933,7 @@ const translations = {
         password: "Password",
         change: "Change",
         logout: "Log Out",
-        news: "📰 News",
+        news: "NeoNews",
         rateUs: "⭐ Rate us",
         premium: "💎 Premium",
         banUser: "Ban user",
@@ -4966,7 +4968,7 @@ const translations = {
         password: "Hasło",
         change: "Zmień",
         logout: "Wyloguj się",
-        news: "📰 Aktualności",
+        news: "NeoAktualności",
         rateUs: "⭐ Oceń nas",
         premium: "💎 Premium",
         banUser: "Zbanuj użytkownika",
@@ -5001,7 +5003,7 @@ didYouKnow: [
         password: "Contraseña",
         change: "Cambiar",
         logout: "Cerrar sesión",
-        news: "📰 Noticias",
+        news: "NeoNoticias",
         rateUs: "⭐ Califícanos",
         premium: "💎 Premium",
         banUser: "Banear usuario",
@@ -5036,7 +5038,7 @@ didYouKnow: [
         password: "☀️ Password",
         change: "☀️ Change",
         logout: "☀️ Log out",
-        news: "☀️ Summer news",
+        news: "☀️ NeoNews",
         rateUs: "☀️ Rate Us",
         premium: "💎 good summer",
         banUser: "☀️ kick to winter",
