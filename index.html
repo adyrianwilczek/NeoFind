@@ -36,9 +36,11 @@ body {
 }
 
 #logo img {
-    width: 280px;
+    width: 320px;
     mix-blend-mode: screen;
-    filter: drop-shadow(0 0 12px rgba(0,255,200,0.6)) drop-shadow(0 0 30px rgba(0,200,255,0.4));
+    -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, black 25%, transparent 75%);
+    mask-image: radial-gradient(ellipse 65% 60% at 50% 50%, black 25%, transparent 75%);
+    filter: brightness(1.15) drop-shadow(0 0 16px rgba(0,255,200,0.8)) drop-shadow(0 0 35px rgba(0,200,255,0.5));
     animation: logoPulse 3s ease-in-out infinite;
 }
 
@@ -576,7 +578,6 @@ body.ocean {
 
 <!-- 🔝 TOP BAR -->
 <div id="topBar">
-    <img src="favicon.jpeg" alt="NeoFind" style="height:38px; mix-blend-mode:screen; filter:drop-shadow(0 0 6px rgba(0,255,200,0.5)); position:absolute; left:50%; transform:translateX(-50%); pointer-events:none;">
     <div style="display:flex; gap:4px; align-items:center;">
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
