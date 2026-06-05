@@ -454,6 +454,15 @@ body.ocean {
     flex: 1;
 }
 
+#backdrop {
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,0.45);
+    z-index:9000;
+    cursor:pointer;
+}
 #bottomNav button:hover {
     background: rgba(0,255,200,0.1);
     transform: scale(1.05);
@@ -499,6 +508,8 @@ body.ocean {
 </div>
 
 <div id="app" class="container" style="display:none;">
+
+<div id="backdrop" onclick="closeAllPanels()"></div>
 
 <!-- 🔝 TOP BAR -->
 <div id="topBar">
@@ -5514,12 +5525,33 @@ function useSuggestion(text){
 
 /* ⚙️ SETTINGS */
 log("opened settings");
-function openSettings(){
-    document.getElementById("friendsBox").style.display = "none";
+function closeAllPanels(){
+    ["adminBox","reportBox","newsBox","friendsBox","settingsBox"].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = "none";
+    });
+    const bd = document.getElementById("backdrop");
+    if(bd) bd.style.display = "none";
     document.body.style.overflow = "";
-    document.getElementById("settingsBox").style.display = "block";
-    document.getElementById("settingsLang").value = currentLang;
-    showHistory();
+}
+
+function openPanel(id, onOpen){
+    const panel = document.getElementById(id);
+    if(!panel) return;
+    const isOpen = panel.style.display === "block";
+    closeAllPanels();
+    if(!isOpen){
+        panel.style.display = "block";
+        document.getElementById("backdrop").style.display = "block";
+        if(onOpen) onOpen();
+    }
+}
+
+function openSettings(){
+    openPanel("settingsBox", () => {
+        document.getElementById("settingsLang").value = currentLang;
+        showHistory();
+    });
 }
 
 function saveSettings(){
@@ -5540,12 +5572,9 @@ function openAdmin(){
         alert("🚫 Access denied.");
         return;
     }
-    document.getElementById("adminBox").style.display = "block";
-    loadRatings();
+    openPanel("adminBox", loadRatings);
 }
-function closeAdmin(){
-    document.getElementById("adminBox").style.display = "none";
-}
+function closeAdmin(){ closeAllPanels(); }
 function addResult(){
     const title = document.getElementById("adminTitle").value;
     const desc = document.getElementById("adminDesc").value;
@@ -6069,13 +6098,8 @@ function handleCommand(e){
 }
 
 // Report Problem
-function openReport(){
-    document.getElementById("reportBox").style.display = "block";
-}
-
-function closeReport(){
-    document.getElementById("reportBox").style.display = "none";
-}
+function openReport(){ openPanel("reportBox"); }
+function closeReport(){ closeAllPanels(); }
 
 function sendReport(){
     const text = document.getElementById("reportText").value.trim();
@@ -6155,9 +6179,7 @@ async function loadRatings(){
     }
 }
 
-function closeNews(){
-    document.getElementById("newsBox").style.display = "none";
-}
+function closeNews(){ closeAllPanels(); }
 
 function loadNews(){
     const box = document.getElementById("newsList");
@@ -6182,12 +6204,12 @@ function checkNews(){
 }
 
 function openNews(){
-    const newsBox = document.getElementById("newsBox");
-    const newsBadge = document.getElementById("newsBadge");
-    if(newsBox) newsBox.style.display = "block";
-    loadNews();
-    if(newsBadge) newsBadge.style.display = "none";
-    localStorage.setItem("lastNewsSeen", newsData[0]?.date);
+    openPanel("newsBox", () => {
+        loadNews();
+        const badge = document.getElementById("newsBadge");
+        if(badge) badge.style.display = "none";
+        localStorage.setItem("lastNewsSeen", newsData[0]?.date);
+    });
 }
 
 // Easter egg
@@ -6216,15 +6238,14 @@ let currentChatFriend = null;
 let chatListener = null;
 
 function openFriends(){
-    document.getElementById("settingsBox").style.display = "none";
-    document.getElementById("friendsBox").style.display = "block";
-    document.body.style.overflow = "hidden";
-    loadFriendRequests();
-    loadFriends();
+    openPanel("friendsBox", () => {
+        loadFriendRequests();
+        loadFriends();
+    });
 }
 
 function closeFriends(){
-    document.getElementById("friendsBox").style.display = "none";
+    closeAllPanels();
     document.body.style.overflow = "";
 }
 
@@ -6709,6 +6730,7 @@ const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown",
 let pos = 0;
 
 document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { closeAllPanels(); return; }
     if (e.key === KONAMI[pos]) {
         pos++;
         if (pos === KONAMI.length) {
