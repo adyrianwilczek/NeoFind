@@ -567,11 +567,14 @@ body.ocean {
 
 <!-- 🔝 TOP BAR -->
 <div id="topBar">
-    <div style="display:flex; gap:4px;">
+    <div style="display:flex; gap:4px; align-items:center;">
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
         <button class="lang-btn" data-lang="summer" onclick="switchLang('summer')">☀️</button>
+        <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
+            <svg id="fsIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
     </div>
     <button id="newsBtn" onclick="openNews()" style="background:linear-gradient(135deg,rgba(0,200,150,0.2),rgba(0,150,220,0.2)); border:1px solid rgba(0,255,200,0.45); color:#00ffc8; font-weight:bold; border-radius:12px; padding:8px 24px; font-size:14px; display:flex; align-items:center; gap:7px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor"/></svg>
@@ -6521,6 +6524,23 @@ async function sendChatMessage(){
 }
     
 // 🔄 UI Aktualizacje
+function toggleFullscreen(){
+    if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+}
+document.addEventListener("fullscreenchange", () => {
+    const icon = document.getElementById("fsIcon");
+    if(!icon) return;
+    if(document.fullscreenElement){
+        icon.innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/><path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>';
+    } else {
+        icon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>';
+    }
+});
+
 function switchLang(lang){
     currentLang = lang;
     localStorage.setItem("lang", lang);
