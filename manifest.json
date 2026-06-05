@@ -1,0 +1,15 @@
+{
+  "name": "NeoFind",
+  "short_name": "NeoFind",
+  "start_url": "/NeoFind/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#4da6ff",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
