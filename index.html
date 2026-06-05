@@ -376,6 +376,66 @@ body.ocean {
     margin: 8px auto;
 }
 
+/* 🔝 TOP BAR */
+#topBar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    background: rgba(15,32,39,0.92);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 8px 16px;
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(0,255,200,0.2);
+}
+
+/* ⬇️ BOTTOM NAV */
+#bottomNav {
+    position: fixed;
+    bottom: 0; left: 0;
+    width: 100%;
+    background: rgba(15,32,39,0.92);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 6px 0 10px;
+    border-top: 1px solid rgba(0,255,200,0.2);
+}
+
+#bottomNav button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 20px;
+    border-radius: 10px;
+    transition: 0.2s;
+    flex: 1;
+}
+
+#bottomNav button:hover {
+    background: rgba(0,255,200,0.1);
+    transform: scale(1.05);
+}
+
+#bottomNav .nav-icon { font-size: 22px; }
+#bottomNav .nav-label { font-size: 10px; opacity: 0.7; }
+
+#app {
+    margin-top: 0 !important;
+    padding-top: 64px;
+    padding-bottom: 80px;
+}
+
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </style>
 </head>
@@ -406,6 +466,33 @@ body.ocean {
 </div>
 
 <div id="app" class="container" style="display:none;">
+
+<!-- 🔝 TOP BAR -->
+<div id="topBar">
+    <button id="newsBtn" onclick="openNews()" style="background:#ffcc00; color:black; font-weight:bold; border-radius:12px; padding:8px 16px; font-size:14px;">
+        <span id="newsText">📰 News</span><span id="newsBadge" style="color:red; display:none;"> 🔴</span>
+    </button>
+</div>
+
+<!-- ⬇️ BOTTOM NAV -->
+<div id="bottomNav">
+    <button onclick="openFriends()">
+        <span class="nav-icon">👥</span>
+        <span class="nav-label">Friends</span>
+    </button>
+    <button onclick="openSettings()">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">Profile</span>
+    </button>
+    <button id="adminBtn" onclick="openAdmin()" style="display:none;">
+        <span class="nav-icon">🔐</span>
+        <span class="nav-label">Admin</span>
+    </button>
+    <button id="reportBtn" onclick="openReport()">
+        <span class="nav-icon">⚠️</span>
+        <span class="nav-label">Report</span>
+    </button>
+</div>
 
 <div id="tabContent"></div>
 
@@ -444,22 +531,6 @@ body.ocean {
     </div>
 
     <!-- ⚙️ SETTINGS -->
-    <button onclick="openSettings()" style="position:fixed; bottom:70px; right:20px;">👤 Profile</button>
-
-<button id="newsBtn" onclick="openNews()" style="
-position:fixed;
-top:20px;
-right:20px;
-padding:10px 15px;
-border-radius:12px;
-background:#ffcc00;
-color:black;
-font-weight:bold;
-z-index:9999;
-">
-📰 News <span id="newsBadge" style="color:red; display:none;">🔴</span>
-</button>
-
     <div id="settingsBox" style="display:none; text-align:center;">
         <h3>⚙️ Settings</h3>
         <label>Language:</label><br>
@@ -535,8 +606,7 @@ z-index:9999;
     <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
 </div>
 
-<!-- FRIENDS BUTTON -->
-<button onclick="openFriends()" style="position:fixed; bottom:120px; right:20px;">👥 Friends</button>
+<!-- FRIENDS BUTTON moved to #bottomNav -->
 
 <!-- FRIENDS BOX -->
 <div id="friendsBox">
@@ -608,10 +678,7 @@ z-index:9999;
             </div>
         </div>
                 
-    <!-- ADMIN BUTTON -->
-    <button id="adminBtn" onclick="openAdmin()" style="position:fixed; bottom:20px; right:20px;">🔐 Admin</button>
-    <!-- REPORT BUTTON -->
-    <button id="reportBtn" onclick="openReport()">⚠️ Report</button>
+    <!-- ADMIN + REPORT moved to #bottomNav -->
 <div id="reportBox" style="
     display:none;
     position:fixed;
@@ -6046,12 +6113,6 @@ async function loadRatings(){
     }
 }
 
-// WIADOMOŚCI II
-function openNews(){
-    document.getElementById("newsBox").style.display = "block";
-    loadNews();
-}
-
 function closeNews(){
     document.getElementById("newsBox").style.display = "none";
 }
@@ -6343,8 +6404,8 @@ function updateLanguage(){
     if(accountTitle) accountTitle.innerText = "👤 " + t.account;
 
     // 📰 news
-    const newsBtn = document.getElementById("newsBtn");
-    if(newsBtn) newsBtn.innerText = t.news;
+    const newsText = document.getElementById("newsText");
+    if(newsText) newsText.innerText = t.news;
 
     // ⭐ rate
     const rateBtn = document.getElementById("rateBtn");
