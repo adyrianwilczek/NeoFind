@@ -247,10 +247,11 @@ button:hover {
 }
 #chatBox {
     position:fixed;
-    bottom:20px;
-    right:80px;
-    width:320px;
-    height:420px;
+    top:275px;
+    left:50%;
+    transform:translateX(-50%);
+    width:min(85%, 500px);
+    max-height:calc(100vh - 375px);
     background: linear-gradient(135deg, rgba(15,32,39,0.85), rgba(32,58,67,0.85), rgba(44,83,100,0.85));
     backdrop-filter: blur(12px);
     border-radius:15px;
@@ -258,7 +259,7 @@ button:hover {
     display:flex;
     flex-direction:column;
     border:1px solid rgba(0,255,200,0.25);
-    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    box-shadow: 0 0 50px rgba(0,0,0,0.7);
 }
 #chatMessages {
     flex:1;
@@ -388,12 +389,14 @@ body.ocean {
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
     #chatBox {
-        right: 0;
-        left: 0;
-        width: 100%;
-        bottom: calc(60px + env(safe-area-inset-bottom, 0px));
-        height: 380px;
-        border-radius: 15px 15px 0 0;
+        top: 60px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 95%;
+        max-height: calc(100vh - 130px);
+        bottom: unset;
+        right: unset;
+        border-radius: 15px;
     }
 }
 
@@ -6573,7 +6576,8 @@ function getChatId(email1, email2){
 
 function openChat(friendEmail){
     currentChatFriend = friendEmail;
-    document.getElementById("chatWithLabel").innerText = friendEmail;
+    document.getElementById("chatWithLabel").innerText = friendEmail.split('@')[0];
+    document.getElementById("friendsBox").style.display = "none";
     document.getElementById("chatBox").style.display = "flex";
     document.getElementById("chatMessages").innerHTML = "";
 
