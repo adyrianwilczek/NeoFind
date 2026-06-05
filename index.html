@@ -407,6 +407,22 @@ body.ocean {
     justify-content: space-between;
     margin-top: 8px;
 }
+#newsBox .result {
+    padding: 8px 12px;
+    margin-bottom: 6px;
+}
+#newsBox .result h3 {
+    margin: 0 0 3px;
+    font-size: 14px;
+}
+#newsBox .result p {
+    margin: 0 0 3px;
+    font-size: 13px;
+}
+#newsBox .result small {
+    font-size: 11px;
+    opacity: 0.6;
+}
 .settings-actions {
     display: flex;
     flex-wrap: wrap;
@@ -593,18 +609,18 @@ body.ocean {
 
     <!-- ⚙️ SETTINGS -->
     <div id="settingsBox" style="display:none; text-align:center;">
-        <h3>⚙️ Settings</h3>
+        <h3 id="settingsTitle">Settings</h3>
 
         <div class="settings-grid">
             <div class="settings-col">
-                <h4>🌍 Language</h4>
+                <h4>Language</h4>
                 <select id="settingsLang">
                     <option value="en">EN</option>
                     <option value="es">ES</option>
                     <option value="pl">PL</option>
                     <option value="Summer">☀️</option>
                 </select>
-                <h4 id="themeLabel" style="margin-top:16px;">🎨 Theme</h4>
+                <h4 id="themeLabel" style="margin-top:16px;">Theme</h4>
                 <select id="themeSelect">
                     <option value="classic">Classic</option>
                     <option value="space">Space</option>
@@ -614,17 +630,17 @@ body.ocean {
             </div>
 
             <div class="settings-col">
-                <h4 id="accountTitle">👤 Account</h4>
+                <h4 id="accountTitle">Account</h4>
                 <div class="result">
                     <b>Email:</b>
                     <span id="accountEmail"></span>
-                    <button onclick="changeEmailPrompt()">✎ Change</button>
+                    <button onclick="changeEmailPrompt()">Change</button>
                 </div>
-                <div id="premiumBadge" style="display:none; color:#00ffff; font-weight:bold; margin-top:10px;">💎 Premium</div>
+                <div id="premiumBadge" style="display:none; color:#00ffff; font-weight:bold; margin-top:10px;">Premium</div>
                 <div class="result" style="margin-top:8px;">
                     <b>Password:</b>
                     <span>******</span>
-                    <button onclick="openPasswordBox()">✎ Change</button>
+                    <button onclick="openPasswordBox()">Change</button>
                 </div>
                 <div id="passwordBox" style="display:none; margin-top:10px;">
                     <input id="currentPass" type="password" placeholder="Current password"><br>
@@ -636,7 +652,7 @@ body.ocean {
         </div>
 
         <div class="settings-col" style="margin-bottom:16px; text-align:center;">
-            <h4>📜 History</h4>
+            <h4>History</h4>
             <div id="historyList"></div>
         </div>
 
@@ -648,7 +664,7 @@ body.ocean {
             <button onclick="document.getElementById('rateBox').style.display='block'" id="rateBtn">Rate us</button>
         </div>
 
-        <h4 id="favTitle" style="margin-top:20px;">⭐ Favorites</h4>
+        <h4 id="favTitle" style="margin-top:20px;">Favorites</h4>
         <div id="favoritesList"></div>
     </div>
 
@@ -4922,16 +4938,16 @@ const data = {
 const translations = {
     en: {
         search: "Search...",
-        settings: "⚙️ Settings",
+        settings: "Settings",
         language: "Language",
-        history: "📜 History",
-        clearHistory: "🧹 Clear history",
-        console: "🪲 Debug Console",
+        history: "History",
+        clearHistory: "Clear history",
+        console: "Debug Console",
         save: "Save",
-        report: "⚠️ Report problem",
-        admin: "🔐 Admin",
-        noResults: "Try something else 😕",
-        favorites: "⭐ Favorites",
+        report: "Report problem",
+        admin: "Admin",
+        noResults: "Try something else",
+        favorites: "Favorites",
         noFavorites: "No favorites",
         theme: "Theme",
         account: "Account",
@@ -4940,8 +4956,8 @@ const translations = {
         change: "Change",
         logout: "Log Out",
         news: "NeoNews",
-        rateUs: "⭐ Rate us",
-        premium: "💎 Premium",
+        rateUs: "Rate us",
+        premium: "Premium",
         banUser: "Ban user",
         unbanUser: "Unban user",
         noHistory: "No history",
@@ -4957,16 +4973,16 @@ const translations = {
 
     pl: {
         search: "Szukaj...",
-        settings: "⚙️ Ustawienia",
+        settings: "Ustawienia",
         language: "Język",
-        history: "📜 Historia",
-        clearHistory: "🧹 Wyczyść historię",
-        console: "🪲 Konsola debug",
+        history: "Historia",
+        clearHistory: "Wyczyść historię",
+        console: "Konsola debug",
         save: "Zapisz",
-        report: "⚠️ Zgłoś problem",
-        admin: "🔐 Admin",
-        noResults: "Spróbuj inaczej 😕",
-        favorites: "⭐ Ulubione",
+        report: "Zgłoś problem",
+        admin: "Admin",
+        noResults: "Spróbuj inaczej",
+        favorites: "Ulubione",
         noFavorites: "Brak ulubionych",
         theme: "Motyw",
         account: "Konto",
@@ -4975,8 +4991,8 @@ const translations = {
         change: "Zmień",
         logout: "Wyloguj się",
         news: "NeoAktualności",
-        rateUs: "⭐ Oceń nas",
-        premium: "💎 Premium",
+        rateUs: "Oceń nas",
+        premium: "Premium",
         banUser: "Zbanuj użytkownika",
         unbanUser: "Odbanuj użytkownika",
         noHistory: "Brak historii",
@@ -4992,16 +5008,16 @@ didYouKnow: [
 
     es: {
         search: "Buscar...",
-        settings: "⚙️ Ajustes",
+        settings: "Ajustes",
         language: "Idioma",
-        history: "📜 Historial",
-        clearHistory: "🧹 Borrar historial",
-        console: "🪲 Consola",
+        history: "Historial",
+        clearHistory: "Borrar historial",
+        console: "Consola",
         save: "Guardar",
-        report: "⚠️ Reportar problema",
-        admin: "🔐 Admin",
-        noResults: "Intenta otra cosa 😕",
-        favorites: "⭐ Favoritos",
+        report: "Reportar problema",
+        admin: "Admin",
+        noResults: "Intenta otra cosa",
+        favorites: "Favoritos",
         noFavorites: "Sin favoritos",
         theme: "Tema",
         account: "Cuenta",
@@ -5010,8 +5026,8 @@ didYouKnow: [
         change: "Cambiar",
         logout: "Cerrar sesión",
         news: "NeoNoticias",
-        rateUs: "⭐ Califícanos",
-        premium: "💎 Premium",
+        rateUs: "Califícanos",
+        premium: "Premium",
         banUser: "Banear usuario",
         unbanUser: "Desbanear usuario",
         noHistory: "Sin historial",
@@ -5586,9 +5602,10 @@ function openPanel(id, onOpen){
         if(searchEl && navEl){
             const margin = 20;
             const top = searchEl.getBoundingClientRect().bottom + margin;
-            const maxH = navEl.getBoundingClientRect().top - margin - top;
+            const bottom = window.innerHeight - navEl.getBoundingClientRect().top + margin;
             panel.style.top = top + "px";
-            panel.style.maxHeight = maxH + "px";
+            panel.style.bottom = bottom + "px";
+            panel.style.maxHeight = "none";
         }
         document.getElementById("backdrop").style.display = "block";
         if(onOpen) onOpen();
