@@ -205,8 +205,10 @@ button:hover {
     transform:translateX(-50%);
     width:80%;
     height:60%;
-    background:#111;
-    border-radius:15px;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    border:1px solid rgba(0,255,200,0.25);
+    box-shadow:0 0 50px rgba(0,0,0,0.7);
+    border-radius:20px;
     padding:10px;
     z-index:9999;
 }
@@ -673,15 +675,17 @@ body.ocean {
         <div id="adminBox" style="
     display:none;
     position:fixed;
-    top:10%;
+    top:5%;
     left:50%;
     transform:translateX(-50%);
-    width:80%;
-    max-height:80vh;
+    width:85%;
+    max-height:85vh;
     overflow-y:auto;
-    background:#111;
-    padding:20px;
-    border-radius:15px;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    border:1px solid rgba(0,255,200,0.25);
+    box-shadow:0 0 50px rgba(0,0,0,0.7);
+    padding:24px;
+    border-radius:20px;
     z-index:9999;
     text-align:center;
 ">
@@ -713,13 +717,15 @@ body.ocean {
 <div id="reportBox" style="
     display:none;
     position:fixed;
-    top:20%;
+    top:15%;
     left:50%;
     transform:translateX(-50%);
-    width:80%;
-    background:#111;
-    padding:20px;
-    border-radius:15px;
+    width:85%;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    border:1px solid rgba(0,255,200,0.25);
+    box-shadow:0 0 50px rgba(0,0,0,0.7);
+    padding:24px;
+    border-radius:20px;
     z-index:9999;
     text-align:center;
 ">
@@ -735,9 +741,10 @@ body.ocean {
     width:85%;
     max-height:85vh;
     overflow-y:auto;
-    background:#111;
+    background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    border:1px solid rgba(0,255,200,0.15);
     padding:30px;
-    border-radius:15px;
+    border-radius:20px;
     z-index:99999;
     text-align:left;
     line-height:1.7;
@@ -780,12 +787,14 @@ position:fixed;
 top:15%;
 left:50%;
 transform:translateX(-50%);
-width:80%;
-max-height:70%;
+width:85%;
+max-height:80%;
 overflow:auto;
-background:#111;
-padding:20px;
-border-radius:15px;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+border:1px solid rgba(0,255,200,0.25);
+box-shadow:0 0 50px rgba(0,0,0,0.7);
+padding:24px;
+border-radius:20px;
 z-index:9999;
 ">
 
@@ -5844,8 +5853,7 @@ document.getElementById("accountEmail").innerText = user.email;
 }
 
     if (ADMIN_EMAILS.includes(user.email)) {
-        document.getElementById("adminBox").style.display = "block";
-        document.getElementById("adminBtn").style.display = "block";
+        document.getElementById("adminBtn").style.display = "flex";
     } else {
         document.getElementById("adminBox").style.display = "none";
         document.getElementById("adminBtn").style.display = "none";
