@@ -182,18 +182,20 @@ select:focus {
 
 /* 🔘 BUTTONS */
 button {
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: none;
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,255,200,0.22);
     cursor: pointer;
-    background: #4da6ff;
-    color: white;
+    background: rgba(0,180,140,0.08);
+    color: rgba(200,240,235,0.9);
     transition: 0.2s;
+    font-size: 13px;
 }
 
 button:hover {
-    background: #3399ff;
-    transform: scale(1.05);
+    background: rgba(0,200,150,0.18);
+    border-color: rgba(0,255,200,0.45);
+    transform: scale(1.03);
 }
 
 /* 🧠 CONSOLE */
@@ -581,8 +583,8 @@ body.ocean {
         <div style="display:flex; justify-content:space-between; align-items:center;">
             <h3 id="consoleTitle">🖥️ Debug Console</h3>
             <div>
-                <button onclick="exportLogs()">📥 Export</button>
-                <button onclick="closeConsole()">❌</button>
+                <button onclick="exportLogs()">Export</button>
+                <button onclick="closeConsole()">Close</button>
             </div>
         </div>
         <div id="consoleLogs"></div>
@@ -639,11 +641,11 @@ body.ocean {
         </div>
 
         <div class="settings-actions">
-            <button onclick="clearHistory()">🧹 Clear history</button>
-            <button onclick="openConsole()">🪲 Debug Console</button>
-            <button onclick="saveSettings()">Save</button>
+            <button onclick="clearHistory()" id="clearHistoryBtn">Clear history</button>
+            <button onclick="openConsole()" id="consoleBtn">Debug Console</button>
+            <button onclick="saveSettings()" id="saveBtn">Save</button>
             <button onclick="auth.signOut()" id="logoutBtn">Log Out</button>
-            <button onclick="document.getElementById('rateBox').style.display='block'">⭐ Rate us</button>
+            <button onclick="document.getElementById('rateBox').style.display='block'" id="rateBtn">Rate us</button>
         </div>
 
         <h4 id="favTitle" style="margin-top:20px;">⭐ Favorites</h4>
@@ -651,7 +653,7 @@ body.ocean {
     </div>
 
 <div id="rateBox" style="display:none;">
-    <h4>⭐ Rate us</h4>
+    <h4>Rate us</h4>
     <div id="starRating" style="font-size:32px; cursor:pointer; margin:10px 0;">
     <span class="rateStar" data-val="1" onclick="setRating(1)" onmouseover="hoverRating(1)" onmouseout="resetRatingHover()">☆</span>
     <span class="rateStar" data-val="2" onclick="setRating(2)" onmouseover="hoverRating(2)" onmouseout="resetRatingHover()">☆</span>
@@ -662,26 +664,26 @@ body.ocean {
 <input type="hidden" id="rateStars" value=""><br>
     <textarea id="rateText" placeholder="Write review..." style="width:80%;"></textarea><br><br>
     <button onclick="sendRating()">Send rating</button>
-    <button onclick="document.getElementById('rateBox').style.display='none'">❌ Close</button>
+    <button onclick="document.getElementById('rateBox').style.display='none'">Close</button>
 </div>
 
 <!-- FRIENDS BUTTON moved to #bottomNav -->
 
 <!-- FRIENDS BOX -->
 <div id="friendsBox">
-    <h2>👥 Friends</h2>
+    <h2>Friends</h2>
     <input id="friendEmailInput" placeholder="Friend's email..." style="width:60%; display:inline-block;">
-    <button onclick="sendFriendRequest()">➕ Add</button>
+    <button onclick="sendFriendRequest()">Add</button>
     <p id="friendStatus"></p>
 
-    <h3>📨 Pending Requests</h3>
+    <h3>Pending Requests</h3>
     <div id="pendingList"></div>
 
-    <h3>✅ Friends</h3>
+    <h3>Friends list</h3>
     <div id="friendsList"></div>
 
     <br>
-    <button onclick="closeFriends()">❌ Close</button>
+    <button onclick="closeFriends()">Close</button>
 </div>
 
 <!-- CHAT BOX -->
@@ -716,16 +718,18 @@ body.ocean {
     z-index:9999;
     text-align:center;
 ">
-            <h2>🔐 Admin Panel</h2>
+            <h2>Admin Panel</h2>
             <!-- Widoczne dla admina -->
             <div id="adminContent" style="margin-top:20px;">
-                <h3>➕ Dodaj wynik</h3>
+                <h3>Dodaj wynik</h3>
                 <input id="adminTitle" placeholder="Title"><br>
                 <input id="adminDesc" placeholder="Description"><br>
                 <input id="adminLink" placeholder="Link"><br><br>
-                <button onclick="addResult()">Add</button><br><br>
-                <button onclick="closeAdmin()">❌ Close</button>
-                <h3>🚫 Ban system</h3>
+                <div style="display:flex; gap:10px; justify-content:center; margin-bottom:16px;">
+                    <button onclick="addResult()">Add</button>
+                    <button onclick="closeAdmin()">Close</button>
+                </div>
+                <h3>Ban system</h3>
 
 <input id="banEmail" placeholder="User email"><br><br>
 
@@ -734,7 +738,7 @@ body.ocean {
 
 <p id="banStatus"></p>
 
-<h3>⭐ Ratings</h3>
+<h3>Ratings</h3>
 <div id="ratingsList"></div>
 <p id="ratingAvg"></p>
             </div>
@@ -757,7 +761,7 @@ body.ocean {
     z-index:9999;
     text-align:center;
 ">
-    <h3>⚠️ Report problem</h3>
+    <h3>Report problem</h3>
 
     <input id="reportText" placeholder="Describe problem..."><br><br>
     <div id="privacyBox" style="
@@ -801,13 +805,15 @@ body.ocean {
     <h3>9. Contact</h3>
     <p>Questions? Email us: <b>support.neofind@gmail.com</b></p>
     <br>
-        <button id="closePolicy">❌ Close</button>
+        <button id="closePolicy">Close</button>
 
     </div>
 </div>
 
-    <button onclick="sendReport()">Send</button>
-    <button onclick="closeReport()">❌ Close</button>
+    <div style="display:flex; gap:10px; justify-content:center; margin-top:8px;">
+        <button onclick="sendReport()">Send</button>
+        <button onclick="closeReport()">Close</button>
+    </div>
 </div>
 </div>
 <div id="newsBox" style="
@@ -833,7 +839,7 @@ z-index:9999;
 <div id="newsList"></div>
 
 <br>
-<button onclick="closeNews()">❌ Close</button>
+<button onclick="closeNews()">Close</button>
 </div>
 <div id="updates"></div>
 <!-- Firebase scripts -->
@@ -6341,8 +6347,8 @@ async function loadFriendRequests(){
                 <div class="friend-item">
                     <span>📨 ${req.from}</span>
                     <div>
-                        <button onclick="acceptFriend('${doc.id}', '${req.from}')" style="background:#00cc66; margin-right:5px;">✅ Accept</button>
-                        <button onclick="declineFriend('${doc.id}')" style="background:#cc3300;">❌ Decline</button>
+                        <button onclick="acceptFriend('${doc.id}', '${req.from}')">Accept</button>
+                        <button onclick="declineFriend('${doc.id}')">Decline</button>
                     </div>
                 </div>
             `;
@@ -6400,7 +6406,7 @@ async function loadFriends(){
         box.innerHTML = friends.map(email => `
             <div class="friend-item">
                 <span>👤 ${email}</span>
-                <button onclick="openChat('${email}')" style="background:#4da6ff;">💬 Chat</button>
+                <button onclick="openChat('${email}')">Chat</button>
             </div>
         `).join("");
     } catch(e) {
