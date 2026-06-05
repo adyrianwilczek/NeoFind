@@ -1,4 +1,4 @@
-const CACHE = "neofind-v4";
+const CACHE = "neofind-v5";
 const ASSETS = [
   "/NeoFind/",
   "/NeoFind/index.html",
@@ -23,6 +23,8 @@ self.addEventListener("activate", e => {
 
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  const url = new URL(e.request.url);
+  if (url.origin !== location.origin) return;
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request))
   );

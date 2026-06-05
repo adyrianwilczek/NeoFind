@@ -6769,8 +6769,12 @@ async function sendChatMessage(){
 
 async function uploadChatImage(input) {
     const file = input.files[0];
-    if (!file || !currentChatFriend) return;
     input.value = "";
+    if (!file) return;
+    if (!currentChatFriend) {
+        alert("Wybierz najpierw rozmowę ze znajomym.");
+        return;
+    }
 
     const btn = document.getElementById("chatFileBtn");
     btn.disabled = true;
