@@ -1,0 +1,77 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isLoggedIn() && request.auth.token.email in [
+        "adrian.wilczek@hotmail.com",
+        "michal.szyszynski@outlook.com",
+        "Michal.szyszynski@outlook.com",
+        "account.neofind@gmail.com",
+        "support.neofind@gmail.com",
+        "Michal.wilkowski@outlook.com",
+        "michal.wilkowski@gmail.com",
+        "j.e.wilkowska@gmail.com"
+      ];
+    }
+
+    // Wyniki admina - odczyt dla zalogowanych, zapis tylko admin
+    match /customResults/{doc} {
+      allow read: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    // Zablokowani użytkownicy - odczyt: admin lub własny wpis, zapis: admin
+    match /bannedUsers/{email} {
+      allow read: if isAdmin() || (isLoggedIn() && request.auth.token.email == email);
+      allow write: if isAdmin();
+    }
+
+    // Zaproszenia znajomych - dostęp tylko dla zainteresowanych
+    match /friendRequests/{reqId} {
+      allow read: if isLoggedIn() && (
+        resource.data.from == request.auth.token.email ||
+        resource.data.to == request.auth.token.email
+      );
+      allow create: if isLoggedIn() && request.resource.data.from == request.auth.token.email;
+      allow update: if isLoggedIn() && resource.data.to == request.auth.token.email;
+      allow delete: if isAdmin();
+    }
+
+    // Wiadomości czatu - dostęp tylko dla uczestników rozmowy
+    match /chats/{chatId}/messages/{msgId} {
+      function isParticipant() {
+        return isLoggedIn() && (
+          chatId.split('__')[0] == request.auth.token.email ||
+          chatId.split('__')[1] == request.auth.token.email
+        );
+      }
+      allow read: if isParticipant();
+      allow create: if isParticipant() && request.resource.data.from == request.auth.token.email;
+      allow update: if isLoggedIn() && resource.data.from == request.auth.token.email;
+      allow delete: if isLoggedIn() && resource.data.from == request.auth.token.email;
+    }
+
+    // Oceny - odczyt i zapis dla zalogowanych
+    match /ratings/{doc} {
+      allow read: if isLoggedIn();
+      allow create: if isLoggedIn();
+      allow delete: if isAdmin();
+    }
+
+    // Zgłoszenia - zapis dla zalogowanych, odczyt tylko admin
+    match /reports/{doc} {
+      allow create: if isLoggedIn();
+      allow read, delete: if isAdmin();
+    }
+
+    // Blokuj wszystko inne
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
