@@ -36,8 +36,9 @@ body {
 }
 
 #logo img {
-    width: 230px;
-    filter: drop-shadow(0 0 10px rgba(0,255,200,0.7)) drop-shadow(0 0 28px rgba(0,200,255,0.5));
+    width: 280px;
+    mix-blend-mode: screen;
+    filter: drop-shadow(0 0 12px rgba(0,255,200,0.6)) drop-shadow(0 0 30px rgba(0,200,255,0.4));
     animation: logoPulse 3s ease-in-out infinite;
 }
 
@@ -362,7 +363,7 @@ body.ocean {
 }
 
 @media (max-width: 600px) {
-    #logo img { width: 170px; }
+    #logo img { width: 200px; }
     input, select, textarea { width: 95%; font-size: 15px; }
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
@@ -575,7 +576,7 @@ body.ocean {
 
 <!-- 🔝 TOP BAR -->
 <div id="topBar">
-    <img src="favicon.jpeg" alt="NeoFind" style="height:34px; filter:drop-shadow(0 0 6px rgba(0,255,200,0.6)); position:absolute; left:50%; transform:translateX(-50%); pointer-events:none;">
+    <img src="favicon.jpeg" alt="NeoFind" style="height:38px; mix-blend-mode:screen; filter:drop-shadow(0 0 6px rgba(0,255,200,0.5)); position:absolute; left:50%; transform:translateX(-50%); pointer-events:none;">
     <div style="display:flex; gap:4px; align-items:center;">
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
