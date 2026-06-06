@@ -5765,7 +5765,7 @@ if(/^[0-9+\-*/(). ]+$/.test(value)){
     const results = document.getElementById("results");
     const isAIQuery = aiKeywords.some(k => value.startsWith(k));
     if(isAIQuery){
-    results.innerHTML = "<div class='result'>Myślę...</div>";
+    results.innerHTML = "<div class='result'>Thinking...</div>";
     getAIResponse(value).then(answer => {
         results.innerHTML = `<div class='result'><p>${answer}</p></div>`;
     });
