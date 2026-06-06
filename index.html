@@ -5837,6 +5837,13 @@ function useSuggestion(text){
     document.getElementById("suggestions").innerHTML = "";
 }
 
+document.getElementById("search").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+        const firstLink = document.querySelector("#results .result a");
+        if(firstLink) firstLink.click();
+    }
+});
+
 /* ⚙️ SETTINGS */
 log("opened settings");
 function closeAllPanels(){
@@ -5856,15 +5863,17 @@ function openPanel(id, onOpen){
     closeAllPanels();
     if(!isOpen){
         panel.style.display = "block";
-        const searchEl = document.getElementById("search");
-        const navEl = document.getElementById("bottomNav");
-        if(searchEl && navEl){
-            const margin = 20;
-            const top = searchEl.getBoundingClientRect().bottom + margin;
-            const bottom = window.innerHeight - navEl.getBoundingClientRect().top + margin;
-            panel.style.top = top + "px";
-            panel.style.bottom = bottom + "px";
-            panel.style.maxHeight = "none";
+        if(window.innerWidth > 600){
+            const searchEl = document.getElementById("search");
+            const navEl = document.getElementById("bottomNav");
+            if(searchEl && navEl){
+                const margin = 20;
+                const top = searchEl.getBoundingClientRect().bottom + margin;
+                const bottom = window.innerHeight - navEl.getBoundingClientRect().top + margin;
+                panel.style.top = top + "px";
+                panel.style.bottom = bottom + "px";
+                panel.style.maxHeight = "none";
+            }
         }
         document.getElementById("backdrop").style.display = "block";
         if(onOpen) onOpen();
@@ -6585,6 +6594,7 @@ let currentChatFriend = null;
 async function openChatPanel() {
     closeAllPanels();
     document.getElementById("chatPanel").style.display = "flex";
+    document.getElementById("backdrop").style.display = "block";
     await loadChatContacts();
     if (currentChatFriend) {
         openChat(currentChatFriend);
