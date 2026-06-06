@@ -485,6 +485,7 @@ body.ocean {
         transform: none !important;
         top: 56px !important;
         max-height: calc(100dvh - 136px) !important;
+        box-sizing: border-box !important;
     }
 
     /* ── pozostałe ── */
@@ -497,8 +498,13 @@ body.ocean {
         width: 100%;
         transform: none;
         border-radius: 0;
-        max-height: calc(100dvh - 136px);
+        height: calc(100dvh - 136px);
+        max-height: none;
         flex-direction: column;
+    }
+    #chatConversation {
+        overflow: hidden;
+        min-height: 0;
     }
     #chatContacts {
         width: 100%;
