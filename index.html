@@ -6148,6 +6148,14 @@ window.logout = function () {
 /* =========================
    AUTH STATE + BAN CHECK
 ========================= */
+setTimeout(() => {
+    const ls = document.getElementById("loginScreen");
+    const ap = document.getElementById("app");
+    if (ls && ap && ls.style.display === "none" && ap.style.display === "none") {
+        ls.style.display = "block";
+    }
+}, 2500);
+
 auth.onAuthStateChanged(async user => {
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
