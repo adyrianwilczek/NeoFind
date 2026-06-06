@@ -5802,9 +5802,14 @@ async function getAIResponse(query) {
         (item.desc || "").toLowerCase().includes(value)
     );
     if(!filtered.length){
-        results.innerHTML = `<div class="result">${translations[currentLang].noResults}</div>`;
-        return;
-    }
+    results.innerHTML = `
+        <div class="result" style="text-align:center; padding:30px;">
+            <div style="font-size:48px; margin-bottom:10px;">🔍</div>
+            <h3 style="color:#ff8080; margin:0 0 8px;">No results for "${value}"</h3>
+            <p style="opacity:0.6; font-size:14px;">Try different keywords or check your spelling.</p>
+        </div>`;
+    return;
+}
     function highlight(text, query){
     if(!query) return text;
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
@@ -5953,22 +5958,25 @@ window.unbanUser = function () {
 /* 📜 HISTORY */
 function saveToHistory(query){
     if(!query) return;
-    let history = JSON.parse(localStorage.getItem("history")) || [];
-    if(history.includes(query)) return;
-    history.unshift(query);
+    let history = JSON.parse(localStorage.getItem("historyV2")) || [];
+    if(history.find(h => h.q === query)) return;
+    history.unshift({ q: query, t: Date.now() });
     if(history.length > 500) history.pop();
-    localStorage.setItem("history", JSON.stringify(history));
+    localStorage.setItem("historyV2", JSON.stringify(history));
 }
 
 function showHistory(){
     const box = document.getElementById("historyList");
-    let history = JSON.parse(localStorage.getItem("history")) || [];
+    let history = JSON.parse(localStorage.getItem("historyV2")) || [];
     if(!history.length){
-        box.innerHTML = "No history";
+        box.innerHTML = "<p style='opacity:0.5'>No history yet</p>";
         return;
     }
     box.innerHTML = history.map(h => `
-        <div class="result" onclick="useHistory('${h}')">${h}</div>
+        <div class="result" onclick="useHistory('${h.q}')" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>🔍 ${h.q}</span>
+            <span style="opacity:0.4; font-size:12px;">${timeAgo(h.t)}</span>
+        </div>
     `).join("");
 }
 
@@ -5978,6 +5986,7 @@ function useHistory(text){
 }
 
 function clearHistory(){
+    localStorage.removeItem("historyV2");
     localStorage.removeItem("history");
     log("cleared history");
     showHistory();
@@ -7320,6 +7329,29 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./sw.js")
     .then(() => console.log("SW OK"))
     .catch(err => console.log("SW ERROR", err));
+}
+
+// Enter = Pierwszy wynik
+document.getElementById("search").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){
+        const firstLink = document.querySelector("#results .result a");
+        if(firstLink){
+            window.open(firstLink.href, "_blank");
+        }
+    }
+});
+
+// Ile czasu temu w histori
+function timeAgo(timestamp){
+    if(!timestamp) return "";
+    const diff = Date.now() - new Date(timestamp).getTime();
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if(mins < 1) return "just now";
+    if(mins < 60) return `${mins}m ago`;
+    if(hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
 }
 
 // START
