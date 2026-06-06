@@ -5834,7 +5834,7 @@ function useSuggestion(text){
 /* ⚙️ SETTINGS */
 log("opened settings");
 function closeAllPanels(){
-    ["adminBox","reportBox","newsBox","friendsBox","settingsBox"].forEach(id => {
+    ["adminBox","reportBox","newsBox","friendsBox","settingsBox","chatPanel"].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = "none";
     });
@@ -6578,6 +6578,11 @@ async function openChatPanel() {
 }
 
 function openLastChat() {
+    const panel = document.getElementById("chatPanel");
+    if (panel && panel.style.display === "flex") {
+        panel.style.display = "none";
+        return;
+    }
     openChatPanel();
 }
 
