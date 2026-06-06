@@ -13,6 +13,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
 <style>
+:root {
+    --topbar-h: 56px;
+    --bottomnav-h: 80px;
+    --chrome-h: 136px; /* topbar + bottomnav */
+}
 body {
     margin: 0;
     font-family: 'Oxanium', sans-serif;
@@ -476,15 +481,15 @@ body.ocean {
     /* ── wyniki: 1 kolumna, te same marginesy co homeWrapper ── */
     #results { width: 100%; grid-template-columns: 1fr; margin: 0; }
 
-    /* ── panele: od topBara (56px) do bottomNava, marginesy 16px ── */
+    /* ── panele: od topBara do bottomNava, marginesy 16px ── */
     #friendsBox, #settingsBox, #profileBox, #reportBox, #adminBox,
     #privacyBox, #newsBox, #consoleBox {
         width: calc(100% - 32px) !important;
         left: 16px !important;
         right: auto !important;
         transform: none !important;
-        top: 56px !important;
-        max-height: calc(100dvh - 136px) !important;
+        top: var(--topbar-h) !important;
+        max-height: calc(100dvh - var(--chrome-h)) !important;
         box-sizing: border-box !important;
     }
 
@@ -492,13 +497,13 @@ body.ocean {
     .container { margin-top: 40px; }
     #newsBtn { padding: 6px 10px !important; font-size: 12px !important; }
     #chatPanel {
-        top: 56px;
+        top: var(--topbar-h);
         left: 16px;
         right: 16px;
         width: calc(100% - 32px);
         transform: none;
         border-radius: 15px;
-        height: calc(100dvh - 136px);
+        height: calc(100dvh - var(--chrome-h));
         max-height: none;
         flex-direction: column;
         box-sizing: border-box;
@@ -661,8 +666,8 @@ body.ocean {
 #backdrop {
     display:none;
     position:fixed;
-    top:56px; left:0;
-    right:0; bottom:80px;
+    top:var(--topbar-h); left:0;
+    right:0; bottom:var(--bottomnav-h);
     background:rgba(0,0,0,0.45);
     z-index:9000;
     cursor:pointer;
@@ -6149,7 +6154,9 @@ window.logout = function () {
 /* =========================
    AUTH STATE + BAN CHECK
 ========================= */
+let authResolved = false;
 setTimeout(() => {
+    if (authResolved) return;
     const ls = document.getElementById("loginScreen");
     const ap = document.getElementById("app");
     if (ls && ap && ls.style.display === "none" && ap.style.display === "none") {
@@ -6158,6 +6165,7 @@ setTimeout(() => {
 }, 2500);
 
 auth.onAuthStateChanged(async user => {
+    authResolved = true;
     const loginScreen = document.getElementById("loginScreen");
     const app = document.getElementById("app");
 
