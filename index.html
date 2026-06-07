@@ -6844,20 +6844,6 @@ function openChat(friendEmail){
     document.getElementById("chatTypingIndicator").innerHTML = "";
 
     const chatId = getChatId(auth.currentUser.email, friendEmail);
-const myKey = auth.currentUser.email.replace(/\./g, "_");
-
-db.collection("chats").doc(chatId).set(
-    { lastSeen: { [myKey]: new Date() } },
-    { merge: true }
-);
-    let friendSeen = null;
-
-db.collection("chats").doc(chatId).onSnapshot(snap => {
-    const data = snap.data();
-    const friendKey = friendEmail.replace(/\./g, "_");
-
-    friendSeen = data && data.lastSeen && data.lastSeen[friendKey];
-});
 
     const friendKey = sanitizeKey(friendEmail);
     typingListener = db.collection("chats").doc(chatId).onSnapshot(snap => {
@@ -6879,34 +6865,9 @@ db.collection("chats").doc(chatId).onSnapshot(snap => {
             const box = document.getElementById("chatMessages");
             box.innerHTML = "";
             snapshot.forEach(doc => {
-    const msg = doc.data();
-    const msgId = doc.id;
-    const isMe = msg.from === auth.currentUser.email;
-
-    let tick = "";
-
-    if(isMe){
-        const msgDate = msg.date.toDate();
-        const isRead = friendSeen && friendSeen.toDate() > msgDate;
-
-        tick = isRead
-            ? `<span style="color:#00c8a0;font-size:10px;">✓✓</span>`
-            : `<span style="color:gray;font-size:10px;">✓</span>`;
-    }
-
-    box.innerHTML += `
-        <div class="${isMe ? 'chat-msg-me' : 'chat-msg-them'}">
-            <b>${isMe ? 'You' : msg.from.split('@')[0]}:</b> ${msg.text}
-            
-            ${isMe ? tick : ""}
-
-            ${isMe ? `
-                <button onclick="editMessage('${chatId}', '${msgId}')">✏️</button>
-                <button onclick="deleteMessage('${chatId}', '${msgId}')">❌</button>
-            ` : ""}
-        </div>
-    `;
-});
+                const msg = doc.data();
+                const msgId = doc.id;
+                const isMe = msg.from === auth.currentUser.email;
                 const content = msg.imageUrl
                     ? `<img src="${escapeHtml(msg.imageUrl)}" class="chat-img" onclick="window.open(this.src,'_blank')">`
                     : escapeHtml(msg.text || '').replace(':)', '😊').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('&lt;3', '❤️').replace(':/', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job');
@@ -6943,7 +6904,8 @@ db.collection("chats").doc(chatId).onSnapshot(snap => {
             } else {
                 chatListenerReady = true;
             }
-        };
+        });
+}
 
 async function sendChatMessage(){
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
