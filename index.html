@@ -6916,7 +6916,7 @@ function renderChatMessages(snapshot, chatId) {
         const isMe = msg.from === auth.currentUser.email;
         const content = msg.imageUrl
             ? `<img src="${escapeHtml(msg.imageUrl)}" class="chat-img" onclick="window.open(this.src,'_blank')">`
-            : escapeHtml(msg.text || '').replace(':)', '😊').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('&lt;3', '❤️').replace(':/', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job');
+            : escapeHtml(msg.text || '').replace(':)', '🙂').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('<3', '❤️').replace(':\', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job').replace('@Adrian_dev', 'Omgg');
 
         let tick = "";
         if(isMe && msg.date){
