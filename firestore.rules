@@ -42,6 +42,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Dokument czatu (typing, lastSeen) - dostęp tylko dla uczestników
+    match /chats/{chatId} {
+      allow read, write: if isLoggedIn() && (
+        chatId.split('__')[0] == request.auth.token.email ||
+        chatId.split('__')[1] == request.auth.token.email
+      );
+    }
+
     // Wiadomości czatu - dostęp tylko dla uczestników rozmowy
     match /chats/{chatId}/messages/{msgId} {
       function isParticipant() {
