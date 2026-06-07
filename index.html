@@ -6944,7 +6944,6 @@ db.collection("chats").doc(chatId).onSnapshot(snap => {
                 chatListenerReady = true;
             }
         };
-}
 
 async function sendChatMessage(){
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
