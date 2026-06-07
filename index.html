@@ -326,6 +326,26 @@ button:hover {
     flex-direction:column;
     gap:6px;
 }
+#chatTypingIndicator {
+    min-height: 18px;
+    padding: 0 12px 2px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    flex-shrink: 0;
+}
+@keyframes typingDot {
+    0%, 60%, 100% { opacity: 0.2; }
+    30% { opacity: 1; }
+}
+.typing-dot {
+    display: inline-block;
+    animation: typingDot 1.2s infinite;
+    font-size: 15px;
+    line-height: 1;
+    vertical-align: middle;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
 #chatInputRow {
     display:flex;
     gap:5px;
@@ -908,6 +928,7 @@ body.ocean {
             <button onclick="document.getElementById('chatPanel').style.display='none'" style="padding:3px 8px; font-size:12px;">✕</button>
         </div>
         <div id="chatMessages"></div>
+        <div id="chatTypingIndicator"></div>
         <div id="chatInputRow">
             <input type="file" id="chatFileInput" accept="image/*" style="display:none" onchange="uploadChatImage(this)">
             <button onclick="document.getElementById('chatFileInput').click()" id="chatFileBtn" style="padding:6px 8px; border-radius:20px; flex-shrink:0; opacity:0.6;" title="Wyślij zdjęcie"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
@@ -5866,6 +5887,9 @@ function closeAllPanels(){
     const bd = document.getElementById("backdrop");
     if(bd) bd.style.display = "none";
     document.body.style.overflow = "";
+    clearTimeout(typingTimeout);
+    setTyping(false);
+    if(typingListener){ typingListener(); typingListener = null; }
 }
 
 function openPanel(id, onOpen){
@@ -6652,6 +6676,23 @@ async function loadChatContacts() {
     }
 }
 let chatListener = null;
+let typingListener = null;
+let typingTimeout = null;
+
+function sanitizeKey(email){ return email.replace(/\./g,'_dot_').replace(/@/g,'_at_'); }
+
+function setTyping(active){
+    if(!auth.currentUser || !currentChatFriend) return;
+    const chatId = getChatId(auth.currentUser.email, currentChatFriend);
+    const myKey = sanitizeKey(auth.currentUser.email);
+    if(active){
+        db.collection("chats").doc(chatId).set({ typing: { [myKey]: true } }, { merge: true });
+    } else {
+        const upd = {};
+        upd[`typing.${myKey}`] = firebase.firestore.FieldValue.delete();
+        db.collection("chats").doc(chatId).update(upd).catch(()=>{});
+    }
+}
 
 function openFriends(){
     openPanel("friendsBox", () => {
@@ -6799,8 +6840,22 @@ function openChat(friendEmail){
     });
 
     if(chatListener) chatListener();
+    if(typingListener) { typingListener(); typingListener = null; }
+    document.getElementById("chatTypingIndicator").innerHTML = "";
 
     const chatId = getChatId(auth.currentUser.email, friendEmail);
+
+    const friendKey = sanitizeKey(friendEmail);
+    typingListener = db.collection("chats").doc(chatId).onSnapshot(snap => {
+        const data = snap.data();
+        const isTyping = data && data.typing && data.typing[friendKey];
+        const ind = document.getElementById("chatTypingIndicator");
+        if(isTyping){
+            ind.innerHTML = `${friendEmail.split('@')[0]} pisze <span class="typing-dot">•</span><span class="typing-dot">•</span><span class="typing-dot">•</span>`;
+        } else {
+            ind.innerHTML = "";
+        }
+    });
     let chatListenerReady = false;
 
     chatListener = db.collection("chats").doc(chatId)
@@ -6859,6 +6914,9 @@ async function sendChatMessage(){
     const input = document.getElementById("chatInput");
     const text = input.value.trim();
     if(!text || !currentChatFriend) return;
+
+    clearTimeout(typingTimeout);
+    setTyping(false);
 
     const chatId = getChatId(auth.currentUser.email, currentChatFriend);
 
@@ -7260,6 +7318,13 @@ function updateStarDisplay(val){
 const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown",
                  "ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
 let pos = 0;
+
+document.getElementById("chatInput").addEventListener("input", function(){
+    if(!currentChatFriend) return;
+    setTyping(true);
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => setTyping(false), 3000);
+});
 
 document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { closeAllPanels(); return; }
