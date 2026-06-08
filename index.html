@@ -6938,6 +6938,11 @@ function renderChatMessages(snapshot, chatId) {
                 : `<span style="color:rgba(255,255,255,0.3);font-size:10px;margin-left:3px;">✓</span>`;
         }
 
+        if (msg.type === "audio") {
+    content = `<audio controls src="${msg.url}" style="max-width:200px;"></audio>`;
+} else {
+    content = msg.text;
+}
         box.innerHTML += `
             <div class="chat-row ${isMe ? 'chat-row-me' : 'chat-row-them'}">
                 ${!isMe ? `<span class="chat-sender">${escapeHtml(msg.from.split('@')[0])}</span>` : ''}
@@ -7469,17 +7474,12 @@ function timeAgo(timestamp){
 
 // Wiadomości głosowe
 let mediaRecorder;
-let audioChunks = [];
-let isRecording = false;
+let chunks = [];
 
 async function startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
     mediaRecorder = new MediaRecorder(stream);
-    chunks = [];
-
     mediaRecorder.ondataavailable = e => chunks.push(e.data);
-
     mediaRecorder.start();
 }
 
@@ -7487,48 +7487,25 @@ function stopRecording() {
     return new Promise(resolve => {
         mediaRecorder.onstop = () => {
             const blob = new Blob(chunks, { type: "audio/webm" });
+            chunks = [];
             resolve(blob);
         };
         mediaRecorder.stop();
     });
 }
-
+    
 async function sendVoiceMessage() {
     const blob = await stopRecording();
-
-    const storageRef = storage.ref("voiceMessages/" + Date.now() + ".webm");
-
-    await storageRef.put(blob);
-
-    const url = await storageRef.getDownloadURL();
-
+    const ref = storage.ref(`voiceMessages/${Date.now()}.webm`);
+    await ref.put(blob);
+    const url = await ref.getDownloadURL();
     const chatId = getChatId(auth.currentUser.email, currentChatFriend);
-
-    await db.collection("chats").doc(chatId)
-        .collection("messages")
-        .add({
-            from: auth.currentUser.email,
-            type: "audio",
-            url: url,
-            date: new Date()
-        });
-}
-
-async function toggleRecording(){
-    const btn = document.getElementById("voiceBtn");
-    if(!isRecording){
-        try {
-            await startRecording();
-            btn.style.color = "#ff4444";
-            btn.title = "Stop recording";
-        } catch(e) {
-            alert("Microphone access denied: " + e.message);
-        }
-    } else {
-        btn.style.color = "rgba(200,240,235,0.6)";
-        btn.title = "Voice message";
-        await sendVoiceMessage();
-    }
+    await db.collection("chats").doc(chatId).collection("messages").add({
+        from: auth.currentUser.email,
+        type: "audio",
+        url: url,
+        date: new Date()
+    });
 }
 
 // START
