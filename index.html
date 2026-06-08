@@ -7479,6 +7479,7 @@ async function startRecording(){
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
     mediaRecorder.start();
     isRecording = true;
+    window._audioStream = stream;
 }
 
 function stopRecording(){
@@ -7486,6 +7487,9 @@ function stopRecording(){
         mediaRecorder.onstop = () => {
             const blob = new Blob(audioChunks, { type: "audio/webm" });
             audioChunks = [];
+            if (window._audioStream) {
+        window._audioStream.getTracks().forEach(t => t.stop());
+            }
             resolve(blob);
         };
         mediaRecorder.stop();
@@ -7493,18 +7497,22 @@ function stopRecording(){
     });
 }
 
-async function sendVoiceMessage(){
-    const blob = await stopRecording();
-    const ref = storage.ref(`voiceMessages/${Date.now()}.webm`);
-    await ref.put(blob);
-    const url = await ref.getDownloadURL();
-    const chatId = getChatId(auth.currentUser.email, currentChatFriend);
-    await db.collection("chats").doc(chatId).collection("messages").add({
-        from: auth.currentUser.email,
-        type: "audio",
-        url: url,
-        date: new Date()
-    });
+async function sendVoiceMessage() {
+    try {
+        const blob = await stopRecording();
+        const ref = storage.ref(`voiceMessages/${Date.now()}.webm`);
+        await ref.put(blob);
+        const url = await ref.getDownloadURL();
+        const chatId = getChatId(auth.currentUser.email, currentChatFriend);
+        await db.collection("chats").doc(chatId).collection("messages").add({
+            from: auth.currentUser.email,
+            type: "audio",
+            url: url,
+            date: new Date()
+        });
+    } catch(e) {
+        alert("Błąd wiadomości głosowej: " + e.message);
+    }
 }
 
 async function toggleRecording(){
