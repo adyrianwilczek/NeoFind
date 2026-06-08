@@ -6938,11 +6938,6 @@ function renderChatMessages(snapshot, chatId) {
                 : `<span style="color:rgba(255,255,255,0.3);font-size:10px;margin-left:3px;">✓</span>`;
         }
 
-        if (msg.type === "audio") {
-    content = `<audio controls src="${msg.url}" style="max-width:200px;"></audio>`;
-} else {
-    content = msg.text;
-}
         box.innerHTML += `
             <div class="chat-row ${isMe ? 'chat-row-me' : 'chat-row-them'}">
                 ${!isMe ? `<span class="chat-sender">${escapeHtml(msg.from.split('@')[0])}</span>` : ''}
@@ -7474,27 +7469,31 @@ function timeAgo(timestamp){
 
 // Wiadomości głosowe
 let mediaRecorder;
-let chunks = [];
+let audioChunks = [];
+let isRecording = false;
 
-async function startRecording() {
+async function startRecording(){
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaRecorder = new MediaRecorder(stream);
-    mediaRecorder.ondataavailable = e => chunks.push(e.data);
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
     mediaRecorder.start();
+    isRecording = true;
 }
 
-function stopRecording() {
+function stopRecording(){
     return new Promise(resolve => {
         mediaRecorder.onstop = () => {
-            const blob = new Blob(chunks, { type: "audio/webm" });
-            chunks = [];
+            const blob = new Blob(audioChunks, { type: "audio/webm" });
+            audioChunks = [];
             resolve(blob);
         };
         mediaRecorder.stop();
+        isRecording = false;
     });
 }
-    
-async function sendVoiceMessage() {
+
+async function sendVoiceMessage(){
     const blob = await stopRecording();
     const ref = storage.ref(`voiceMessages/${Date.now()}.webm`);
     await ref.put(blob);
@@ -7506,6 +7505,23 @@ async function sendVoiceMessage() {
         url: url,
         date: new Date()
     });
+}
+
+async function toggleRecording(){
+    const btn = document.getElementById("voiceBtn");
+    if(!isRecording){
+        try {
+            await startRecording();
+            btn.style.color = "#ff4444";
+            btn.title = "Stop recording";
+        } catch(e) {
+            alert("Microphone access denied: " + e.message);
+        }
+    } else {
+        btn.style.color = "rgba(200,240,235,0.6)";
+        btn.title = "Voice message";
+        await sendVoiceMessage();
+    }
 }
 
 // START
