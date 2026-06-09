@@ -7473,8 +7473,8 @@ let audioChunks = [];
 let isRecording = false;
 
 async function startRecording(){
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    mediaRecorder = new MediaRecorder(stream);
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4";
+    mediaRecorder = new MediaRecorder(stream, { mimeType });
     audioChunks = [];
     mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
     mediaRecorder.start();
@@ -7485,7 +7485,7 @@ async function startRecording(){
 function stopRecording(){
     return new Promise(resolve => {
         mediaRecorder.onstop = () => {
-            const blob = new Blob(audioChunks, { type: "audio/webm" });
+            const blob = new Blob(audioChunks, { type: mimeType });
             audioChunks = [];
             if (window._audioStream) {
         window._audioStream.getTracks().forEach(t => t.stop());
@@ -7493,6 +7493,7 @@ function stopRecording(){
             resolve(blob);
         };
         mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(t => t.stop());
         isRecording = false;
     });
 }
@@ -7530,6 +7531,24 @@ async function toggleRecording(){
         btn.title = "Voice message";
         await sendVoiceMessage();
     }
+}
+
+async function sendVoiceMessage(){
+try {
+const blob = await stopRecording();
+const ref = storage.ref(voiceMessages/${Date.now()}.webm);
+await ref.put(blob);
+const url = await ref.getDownloadURL();
+const chatId = getChatId(auth.currentUser.email, currentChatFriend);
+await db.collection("chats").doc(chatId).collection("messages").add({
+from: auth.currentUser.email,
+type: "audio",
+url: url,
+date: new Date()
+});
+} catch(e) {
+    alert("Błąd nagrywania: " + e.message);
+  }
 }
 
 // START
