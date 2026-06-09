@@ -7536,7 +7536,6 @@ async function toggleRecording(){
 async function sendVoiceMessage(){
 try {
 const blob = await stopRecording();
-const ref = storage.ref(voiceMessages/${Date.now()}.webm);
 await ref.put(blob);
 const url = await ref.getDownloadURL();
 const chatId = getChatId(auth.currentUser.email, currentChatFriend);
