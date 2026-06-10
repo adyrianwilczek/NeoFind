@@ -5703,15 +5703,22 @@ function updateDidYouKnow(){
 
 /* 🔍 SEARCH + HISTORY */
 let searchDebounceTimer = null;
-document.getElementById("search").addEventListener("input", function() {
-    const value = this.value.toLowerCase().trim();
-const url = new URL(window.location);
-if(value) url.searchParams.set("q", value);
-else url.searchParams.delete("q");
-window.history.replaceState({}, "", url);
-const warning = document.getElementById("neoWarning");
+document.getElementById("search").addEventListener("keydown", function(e) {
+    if(e.key === "Enter"){
+        const value = this.value.toLowerCase().trim();
+        if(!value) return;
 
-const badWord = containsBadWord(value);
+        performSearch(value);
+
+        const url = new URL(window.location);
+        if(value) url.searchParams.set("q", value);
+        else url.searchParams.delete("q");
+        window.history.replaceState({}, "", url);
+
+        const warning = document.getElementById("neoWarning");
+        const badWord = containsBadWord(value);
+    }
+});
 
 if(badWord){
     if(warning){
