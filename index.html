@@ -6937,17 +6937,6 @@ function openChat(friendEmail){
         });
 }
 
-function toggleEmojiPicker() {
-    const picker = document.getElementById("emojiPicker");
-    picker.style.display = picker.style.display === "none" ? "flex" : "none";
-}
-
-function insertEmoji(emoji) {
-    const input = document.getElementById("chatInput");
-    input.value += emoji;
-    input.focus();
-}
-
 function renderChatMessages(snapshot, chatId) {
     const box = document.getElementById("chatMessages");
     box.innerHTML = "";
@@ -7565,6 +7554,18 @@ async function toggleRecording(){
     }
 }
 
+// przycisk Emoji
+function toggleEmojiPicker() {
+    const picker = document.getElementById("emojiPicker");
+    picker.style.display = picker.style.display === "none" ? "flex" : "none";
+}
+
+function insertEmoji(emoji) {
+    const input = document.getElementById("chatInput");
+    input.value += emoji;
+    input.focus();
+}
+    
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
