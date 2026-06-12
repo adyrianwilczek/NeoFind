@@ -929,9 +929,24 @@ body.ocean {
         </div>
         <div id="chatMessages"></div>
         <div id="chatTypingIndicator"></div>
+        <div id="emojiPicker" style="display:none; flex-wrap:wrap; gap:4px; padding:8px; background:rgba(30,40,50,0.95); border-radius:12px; margin:4px 0;">
+    <span onclick="insertEmoji('😊')" style="cursor:pointer; font-size:20px;">😊</span>
+    <span onclick="insertEmoji('😂')" style="cursor:pointer; font-size:20px;">😂</span>
+    <span onclick="insertEmoji('❤️')" style="cursor:pointer; font-size:20px;">❤️</span>
+    <span onclick="insertEmoji('👍')" style="cursor:pointer; font-size:20px;">👍</span>
+    <span onclick="insertEmoji('🔥')" style="cursor:pointer; font-size:20px;">🔥</span>
+    <span onclick="insertEmoji('😎')" style="cursor:pointer; font-size:20px;">😎</span>
+    <span onclick="insertEmoji('🤔')" style="cursor:pointer; font-size:20px;">🤔</span>
+    <span onclick="insertEmoji('😭')" style="cursor:pointer; font-size:20px;">😭</span>
+    <span onclick="insertEmoji('🎉')" style="cursor:pointer; font-size:20px;">🎉</span>
+    <span onclick="insertEmoji('💀')" style="cursor:pointer; font-size:20px;">💀</span>
+    <span onclick="insertEmoji('😤')" style="cursor:pointer; font-size:20px;">😤</span>
+    <span onclick="insertEmoji('🥶')" style="cursor:pointer; font-size:20px;">🥶</span>
+</div>
         <div id="chatInputRow">
             <input type="file" id="chatFileInput" accept="image/*" style="display:none" onchange="uploadChatImage(this)">
             <button id="voiceBtn" onclick="toggleRecording()" style="padding:6px 8px; border-radius:20px; flex-shrink:0; opacity:0.6; color:rgba(200,240,235,0.6);" title="Voice message">
+            <button onclick="toggleEmojiPicker()" style="padding:6px 8px; border-radius:20px; flex-shrink:0; opacity:0.6;" title="Emoji">😊</button>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 0-6 0V5a3 3 0 0 1 3-3z" fill="currentColor"/>
         <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
@@ -7531,6 +7546,8 @@ async function toggleRecording(){
         await sendVoiceMessage();
     }
 }
+
+// emoji
 
 // START
 const savedLang = localStorage.getItem("lang");
