@@ -5963,20 +5963,72 @@ results.innerHTML += filtered.map((item, index) => `
 
 /* 🔍 SUGGESTIONS */
 const suggestionsBox = document.getElementById("suggestions");
+
+// --- 1. NOWOŚĆ: Funkcja pobierająca wyniki w tle (uruchamia się od razu po wczytaniu strony) ---
+let fifaResultsHtml = ""; // Tu zapiszemy pobrany z API kod HTML meczów
+
+function loadFifaResults() {
+    const apiUrl = "https://githubusercontent.com";
+    
+    fetch(apiUrl)
+        .then(response => response.ok ? response.json() : [])
+        .then(matches => {
+            const finishedMatches = matches.filter(match => match.homeScore !== undefined && match.awayScore !== undefined);
+            
+            if (finishedMatches.length === 0) {
+                fifaResultsHtml = '<div style="margin-top:6px;">No results available.</div>';
+                return;
+            }
+
+            // Generujemy kod HTML identyczny z Twoim wzorem
+            fifaResultsHtml = finishedMatches.map((match, index) => {
+                const marginTop = index === 0 ? ' style="margin-top:6px;"' : '';
+                return `<div${marginTop}>${match.homeTeam} <b>${match.homeScore} - ${match.awayScore}</b> ${match.awayTeam}</div>`;
+            }).join("");
+        })
+        .catch(() => {
+            fifaResultsHtml = '<div style="margin-top:6px; color:red;">Could not display results.</div>';
+        });
+}
+// Wywołujemy pobieranie od razu przy starcie strony
+loadFifaResults();
+// -----------------------------------------------------------------------------------------
+
 document.getElementById("search").addEventListener("input", function(){
     const value = this.value.toLowerCase();
     const list = data[currentLang] || [];
+
     if(!value){
         suggestionsBox.innerHTML = "";
         return;
     }
+
+    // ⚽ FIFA BOX (POD INPUTEM)
+    if(value.includes("fifa") || value.includes("match") || value.includes("score")){
+        // Wstrzykujemy strukturę FIFA BOX, a do środka wkładamy zmienną fifaResultsHtml
+        suggestionsBox.innerHTML = `
+            <div style="
+                background:#1e2832;
+                padding:12px;
+                border-radius:10px;
+                margin-top:5px;
+            ">
+                <b>⚽ FIFA Results</b>
+                ${fifaResultsHtml || '<div style="margin-top:6px; color:gray;">Loading current results...</div>'}
+            </div>
+        `;
+        return;
+    }
+
+    // 🔎 NORMALNE SUGESTIE
     const matches = list.filter(item =>
         (item.title || "").toLowerCase().includes(value)
     ).slice(0,5);
+
     suggestionsBox.innerHTML = matches.map(item =>
         `<div onclick="useSuggestion('${item.title}')">${item.title}</div>`
     ).join("");
-});
+}); // <- Tutaj zamknęliśmy poprawnie zdarzenie "input" (w Twoim kodzie brakowało klamry)
 
 function useSuggestion(text){
     document.getElementById("search").value = text;
@@ -5989,6 +6041,7 @@ document.getElementById("search").addEventListener("keydown", function(e){
         if(firstLink) firstLink.click();
     }
 });
+
 
 /* ⚙️ SETTINGS */
 log("opened settings");
@@ -7058,6 +7111,17 @@ async function sendChatMessage(){
         try { Notification.requestPermission(); } catch(e) {}
     }
     const input = document.getElementById("chatInput");
+const text = input.value.trim();
+
+if(!text) return;
+
+// 🤖 KOMENDY
+if(text.startsWith("/")){
+    handleCommand(text);
+    input.value = "";
+    return;
+}
+    const input = document.getElementById("chatInput");
     const text = input.value.trim();
     if(!text || !currentChatFriend) return;
 
@@ -7641,6 +7705,91 @@ function insertEmoji(emoji) {
     const input = document.getElementById("chatInput");
     input.value += emoji;
     input.focus();
+}
+
+// Chat: Komendy
+function handleCommand(cmd){
+
+    const args = cmd.split(" ");
+    const base = args[0].toLowerCase();
+
+    let res = "";
+
+    // 🪙 flipcoin
+    if(base === "/flipcoin"){
+        res = Math.random() < 0.5 ? "Heads" : "Tails";
+    }
+
+    // 🎲 rolldice
+    else if(base === "/rolldice"){
+        res = "🎲 " + (Math.floor(Math.random()*6)+1);
+    }
+
+    // ✊ rps
+    else if(base === "/rps"){
+        const choices = ["rock","paper","scissors"];
+        const user = args[1];
+        const bot = choices[Math.floor(Math.random()*3)];
+
+        if(!user || !choices.includes(user)){
+            res = "Use: /rps rock|paper|scissors";
+        } else if(user === bot){
+            res = `Draw (${user} vs ${bot})`;
+        } else if(
+            (user==="rock" && bot==="scissors") ||
+            (user==="paper" && bot==="rock") ||
+            (user==="scissors" && bot==="paper")
+        ){
+            res = `You win (${user} vs ${bot})`;
+        } else {
+            res = `You lose (${user} vs ${bot})`;
+        }
+    }
+
+    // 😂 joke
+    else if(base === "/joke"){
+        const jokes = [
+            "Why did the computer crash? It had a virus.",
+            "404 joke not found",
+            "I ate a clock. It was time-consuming."
+        ];
+        res = jokes[Math.floor(Math.random()*jokes.length)];
+    }
+
+    // 🎯 random
+    else if(base === "/random"){
+        res = "Number: " + Math.floor(Math.random()*100);
+    }
+
+    // 🧠 8ball
+    else if(base === "/8ball"){
+        const answers = ["Yes","No","Maybe","Ask later","Definitely"];
+        res = answers[Math.floor(Math.random()*answers.length)];
+    }
+
+    // ⏰ time
+    else if(base === "/time"){
+        res = new Date().toLocaleTimeString();
+    }
+
+    else{
+        res = "Unknown command";
+    }
+
+    addNeoMessage(res);
+}
+
+// Wiadomość od neo
+function addNeoMessage(text){
+    const box = document.getElementById("chatMessages");
+
+    box.innerHTML += `
+        <div class="chat-msg-them">
+            <b>Neo:</b> ${text}
+        </div>
+    `;
+
+    box.scrollTop = box.scrollHeight;
 }
 
 // START
