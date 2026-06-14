@@ -5963,17 +5963,15 @@ results.innerHTML += filtered.map((item, index) => `
 
 /* 🔍 SUGGESTIONS */
 const suggestionsBox = document.getElementById("suggestions");
-
 document.getElementById("search").addEventListener("input", function(){
     const value = this.value.toLowerCase();
     const list = data[currentLang] || [];
-
     if(!value){
         suggestionsBox.innerHTML = "";
         return;
     }
 
-    // ⚽ FIFA BOX (Pokazuje gotowe wyniki od razu po wpisaniu frazy)
+        // ⚽ FIFA BOX (Pokazuje gotowe wyniki od razu po wpisaniu frazy)
     if(value.includes("fifa") || value.includes("match") || value.includes("score")){
         suggestionsBox.innerHTML = `
             <div style="
@@ -5983,7 +5981,7 @@ document.getElementById("search").addEventListener("input", function(){
                 margin-top:5px;
                 color: #fff;
             ">
-                <b>🏆 FIFA Results</b>
+                <b>⚽ FIFA Results</b>
                 <div style="margin-top:6px;">Meksyk <b>2 - 0</b> RPA</div>
                 <div>Korea Południowa <b>2 - 1</b> Czechy</div>
                 <div>Kanada <b>1 - 1</b> Bośnia i Hercegowina</div>
@@ -5996,12 +5994,10 @@ document.getElementById("search").addEventListener("input", function(){
         `;
         return;
     }
-
-    // 🔎 NORMALNE SUGESTIE
+    
     const matches = list.filter(item =>
         (item.title || "").toLowerCase().includes(value)
     ).slice(0,5);
-
     suggestionsBox.innerHTML = matches.map(item =>
         `<div onclick="useSuggestion('${item.title}')">${item.title}</div>`
     ).join("");
@@ -6012,14 +6008,12 @@ function useSuggestion(text){
     document.getElementById("suggestions").innerHTML = "";
 }
 
-
 document.getElementById("search").addEventListener("keydown", function(e){
     if(e.key === "Enter"){
         const firstLink = document.querySelector("#results .result a");
         if(firstLink) firstLink.click();
     }
 });
-
 
 /* ⚙️ SETTINGS */
 log("opened settings");
@@ -7089,9 +7083,28 @@ async function sendChatMessage(){
         try { Notification.requestPermission(); } catch(e) {}
     }
     const input = document.getElementById("chatInput");
-const text = input.value.trim();
+    const text = input.value.trim();
+    if(!text || !currentChatFriend) return;
 
-if(!text) return;
+    input.value = "";
+    clearTimeout(typingTimeout);
+    setTyping(false);
+
+    const chatId = getChatId(auth.currentUser.email, currentChatFriend);
+
+    try {
+        await db.collection("chats").doc(chatId)
+            .collection("messages")
+            .add({
+                from: auth.currentUser.email,
+                text: text,
+                date: new Date()
+            });
+    } catch(e) {
+        input.value = text;
+        alert("Error sending: " + e.message);
+    }
+}
 
 async function uploadChatImage(input) {
     const file = input.files[0];
@@ -7122,35 +7135,6 @@ async function uploadChatImage(input) {
     } finally {
         btn.disabled = false;
         btn.style.opacity = "0.6";
-    }
-}
-
-    // 🤖 KOMENDY
-    if (text.startsWith("/")) {
-        handleCommand(text);
-        chatInputField.value = "";
-        return;
-    }
-
-    if (!currentChatFriend) return;
-
-    chatInputField.value = "";
-    clearTimeout(typingTimeout);
-    setTyping(false);
-
-    const chatId = getChatId(auth.currentUser.email, currentChatFriend);
-
-    try {
-        await db.collection("chats").doc(chatId)
-            .collection("messages")
-            .add({
-                from: auth.currentUser.email,
-                text: text,
-                date: new Date()
-            });
-    } catch(e) {
-        chatInputField.value = text; // Przywrócenie tekstu w razie błędu
-        alert("Error sending: " + e.message);
     }
 }
 
@@ -7682,91 +7666,6 @@ function insertEmoji(emoji) {
     const input = document.getElementById("chatInput");
     input.value += emoji;
     input.focus();
-}
-
-// Chat: Komendy
-function handleCommand(cmd){
-
-    const args = cmd.split(" ");
-    const base = args[0].toLowerCase();
-
-    let res = "";
-
-    // 🪙 flipcoin
-    if(base === "/flipcoin"){
-        res = Math.random() < 0.5 ? "Heads" : "Tails";
-    }
-
-    // 🎲 rolldice
-    else if(base === "/rolldice"){
-        res = "🎲 " + (Math.floor(Math.random()*6)+1);
-    }
-
-    // ✊ rps
-    else if(base === "/rps"){
-        const choices = ["rock","paper","scissors"];
-        const user = args[1];
-        const bot = choices[Math.floor(Math.random()*3)];
-
-        if(!user || !choices.includes(user)){
-            res = "Use: /rps rock|paper|scissors";
-        } else if(user === bot){
-            res = `Draw (${user} vs ${bot})`;
-        } else if(
-            (user==="rock" && bot==="scissors") ||
-            (user==="paper" && bot==="rock") ||
-            (user==="scissors" && bot==="paper")
-        ){
-            res = `You win (${user} vs ${bot})`;
-        } else {
-            res = `You lose (${user} vs ${bot})`;
-        }
-    }
-
-    // 😂 joke
-    else if(base === "/joke"){
-        const jokes = [
-            "Why did the computer crash? It had a virus.",
-            "404 joke not found",
-            "I ate a clock. It was time-consuming."
-        ];
-        res = jokes[Math.floor(Math.random()*jokes.length)];
-    }
-
-    // 🎯 random
-    else if(base === "/random"){
-        res = "Number: " + Math.floor(Math.random()*100);
-    }
-
-    // 🧠 8ball
-    else if(base === "/8ball"){
-        const answers = ["Yes","No","Maybe","Ask later","Definitely"];
-        res = answers[Math.floor(Math.random()*answers.length)];
-    }
-
-    // ⏰ time
-    else if(base === "/time"){
-        res = new Date().toLocaleTimeString();
-    }
-
-    else{
-        res = "Unknown command";
-    }
-
-    addNeoMessage(res);
-}
-
-// Wiadomość od neo
-function addNeoMessage(text){
-    const box = document.getElementById("chatMessages");
-
-    box.innerHTML += `
-        <div class="chat-msg-them">
-            <b>Neo:</b> ${text}
-        </div>
-    `;
-
-    box.scrollTop = box.scrollHeight;
 }
 
 // START
