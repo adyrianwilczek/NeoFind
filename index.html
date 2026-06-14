@@ -7093,36 +7093,6 @@ const text = input.value.trim();
 
 if(!text) return;
 
-    // 🤖 KOMENDY
-    if (text.startsWith("/")) {
-        handleCommand(text);
-        chatInputField.value = "";
-        return;
-    }
-
-    if (!currentChatFriend) return;
-
-    chatInputField.value = "";
-    clearTimeout(typingTimeout);
-    setTyping(false);
-
-    const chatId = getChatId(auth.currentUser.email, currentChatFriend);
-
-    try {
-        await db.collection("chats").doc(chatId)
-            .collection("messages")
-            .add({
-                from: auth.currentUser.email,
-                text: text,
-                date: new Date()
-            });
-    } catch(e) {
-        chatInputField.value = text; // Przywrócenie tekstu w razie błędu
-        alert("Error sending: " + e.message);
-    }
-}
-
-
 async function uploadChatImage(input) {
     const file = input.files[0];
     input.value = "";
@@ -7152,6 +7122,35 @@ async function uploadChatImage(input) {
     } finally {
         btn.disabled = false;
         btn.style.opacity = "0.6";
+    }
+}
+
+    // 🤖 KOMENDY
+    if (text.startsWith("/")) {
+        handleCommand(text);
+        chatInputField.value = "";
+        return;
+    }
+
+    if (!currentChatFriend) return;
+
+    chatInputField.value = "";
+    clearTimeout(typingTimeout);
+    setTyping(false);
+
+    const chatId = getChatId(auth.currentUser.email, currentChatFriend);
+
+    try {
+        await db.collection("chats").doc(chatId)
+            .collection("messages")
+            .add({
+                from: auth.currentUser.email,
+                text: text,
+                date: new Date()
+            });
+    } catch(e) {
+        chatInputField.value = text; // Przywrócenie tekstu w razie błędu
+        alert("Error sending: " + e.message);
     }
 }
 
