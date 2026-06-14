@@ -7115,17 +7115,16 @@ const text = input.value.trim();
 
 if(!text) return;
 
-// 🤖 KOMENDY
-if(text.startsWith("/")){
-    handleCommand(text);
-    input.value = "";
-    return;
-}
-    const input = document.getElementById("chatInput");
-    const text = input.value.trim();
-    if(!text || !currentChatFriend) return;
+    // 🤖 KOMENDY
+    if (text.startsWith("/")) {
+        handleCommand(text);
+        chatInputField.value = "";
+        return;
+    }
 
-    input.value = "";
+    if (!currentChatFriend) return;
+
+    chatInputField.value = "";
     clearTimeout(typingTimeout);
     setTyping(false);
 
@@ -7140,10 +7139,11 @@ if(text.startsWith("/")){
                 date: new Date()
             });
     } catch(e) {
-        input.value = text;
+        chatInputField.value = text; // Przywrócenie tekstu w razie błędu
         alert("Error sending: " + e.message);
     }
 }
+
 
 async function uploadChatImage(input) {
     const file = input.files[0];
