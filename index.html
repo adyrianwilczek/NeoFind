@@ -5870,21 +5870,58 @@ if(badWord && badWord !== lastBadWord){
 
     }, 2000);
 }
-    // 🧠 CALCULATOR
-if(/^[0-9+\-*/(). ]+$/.test(value)){
-    try{
-        const result = eval(value);
+function checkInstantAnswer(value) {
+    const box = document.getElementById("instantAnswer");
+    box.innerHTML = "";
 
-        if(result !== undefined){
-            document.getElementById("results").innerHTML = `
-                <div class="result">
-                    <h2>= ${result}</h2>
-                </div>
-            `;
+    // kalkulator
+    if (/^[\d\s\+\-\*\/\.\(\)]+$/.test(value)) {
+        try {
+            const result = eval(value);
+            box.innerHTML = `<div class="instant-box">🧮 ${value} = <b>${result}</b></div>`;
             return;
-        }
-    }catch(e){}
-}
+        } catch(e) {}
+    }
+
+    // godzina
+    if (value === "godzina" || value === "czas") {
+        const now = new Date();
+        box.innerHTML = `<div class="instant-box">🕐 ${now.toLocaleTimeString("pl-PL")}</div>`;
+        return;
+    }
+
+    // losowanie
+    const losuj = value.match(/^losuj (\d+)[- ](\d+)$/);
+    if (losuj) {
+        const min = parseInt(losuj[1]), max = parseInt(losuj[2]);
+        const wynik = Math.floor(Math.random() * (max - min + 1)) + min;
+        box.innerHTML = `<div class="instant-box">🎲 Wylosowano: <b>${wynik}</b></div>`;
+        return;
+    }
+
+    // fifa
+    if(value.includes("fifa") || value.includes("match") || value.includes("score")){
+        suggestionsBox.innerHTML = `
+            <div style="
+                background:#1e2832;
+                padding:12px;
+                border-radius:10px;
+                margin-top:5px;
+                color: #fff;
+            ">
+                <b>⚽ FIFA Results</b>
+                <div style="margin-top:6px;">Meksyk <b>2 - 0</b> RPA</div>
+                <div>Korea Południowa <b>2 - 1</b> Czechy</div>
+                <div>Kanada <b>1 - 1</b> Bośnia i Hercegowina</div>
+                <div>USA <b>4 - 1</b> Paragwaj</div>
+                <div>Katar <b>1 - 1</b> Szwajcaria</div>
+                <div>Brazylia <b>1 - 1</b> Maroko</div>
+                <div>Australia <b>2 - 0</b> Turcja</div>
+                <div>Haiti <b>0 - 1</b> Szkocja</div>
+            </div>
+        `;
+        return;
+    }
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(() => {
     log('searched "' + value + '"');
@@ -5970,31 +6007,6 @@ document.getElementById("search").addEventListener("input", function(){
         suggestionsBox.innerHTML = "";
         return;
     }
-
-        // ⚽ FIFA BOX (Pokazuje gotowe wyniki od razu po wpisaniu frazy)
-    if(value.includes("fifa") || value.includes("match") || value.includes("score")){
-        suggestionsBox.innerHTML = `
-            <div style="
-                background:#1e2832;
-                padding:12px;
-                border-radius:10px;
-                margin-top:5px;
-                color: #fff;
-            ">
-                <b>⚽ FIFA Results</b>
-                <div style="margin-top:6px;">Meksyk <b>2 - 0</b> RPA</div>
-                <div>Korea Południowa <b>2 - 1</b> Czechy</div>
-                <div>Kanada <b>1 - 1</b> Bośnia i Hercegowina</div>
-                <div>USA <b>4 - 1</b> Paragwaj</div>
-                <div>Katar <b>1 - 1</b> Szwajcaria</div>
-                <div>Brazylia <b>1 - 1</b> Maroko</div>
-                <div>Australia <b>2 - 0</b> Turcja</div>
-                <div>Haiti <b>0 - 1</b> Szkocja</div>
-            </div>
-        `;
-        return;
-    }
-    
     const matches = list.filter(item =>
         (item.title || "").toLowerCase().includes(value)
     ).slice(0,5);
