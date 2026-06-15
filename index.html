@@ -5800,6 +5800,24 @@ function updateDidYouKnow(){
     document.getElementById("didYouKnow").innerText = random;
 }
 
+/* 🤖 AI */
+async function getAIResponse(query) {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer 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"
+        },
+        body: JSON.stringify({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: query }],
+            max_tokens: 150
+        })
+    });
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
 /* 🔍 SEARCH + HISTORY */
 let searchDebounceTimer = null;
 document.getElementById("search").addEventListener("input", function() {
@@ -5922,23 +5940,6 @@ if(badWord && badWord !== lastBadWord){
     });
     return;
 }
-
-async function getAIResponse(query) {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
-        },
-        body: JSON.stringify({
-            model: "gpt-4o-mini",
-            messages: [{ role: "user", content: query }],
-            max_tokens: 150
-        })
-    });
-    const data = await response.json();
-    return data.choices[0].message.content;
-}
     if(value === "neo"){
         spawnNeo();
         return;
@@ -5967,14 +5968,17 @@ async function getAIResponse(query) {
     return text.replace(regex, '<mark style="background:#00ccff33; color:white; border-radius:3px; padding:0 2px;">$1</mark>');
 }
 
-results.innerHTML += filtered.map((item, index) => `
+results.innerHTML += filtered.map((item) => {
+    const fullIndex = list.indexOf(item);
+    return `
     <div class="result">
         <a href="${item.link}" target="_blank">${highlight(item.title, value)}</a>
-        <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${index})">★</span>
+        <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${fullIndex})">★</span>
         <button onclick="copyLink('${item.link}')" style="padding:3px 8px; font-size:12px; margin-left:8px; border-radius:8px;">🔗 Copy</button>
         <p>${highlight(item.desc, value)}</p>
     </div>
-    `).join("");
+    `;
+}).join("");
     }, 400);
 });
 
@@ -5999,13 +6003,6 @@ function useSuggestion(text){
     document.getElementById("search").value = text;
     document.getElementById("suggestions").innerHTML = "";
 }
-
-document.getElementById("search").addEventListener("keydown", function(e){
-    if(e.key === "Enter"){
-        const firstLink = document.querySelector("#results .result a");
-        if(firstLink) firstLink.click();
-    }
-});
 
 /* ⚙️ SETTINGS */
 log("opened settings");
@@ -7394,10 +7391,6 @@ function spawnNeo(){
         speech.remove();
     }, 9500);
 }
-function getAIResponse(query){
-    return "🤖 I am AI. You asked: " + query;
-}
-
 // PRIVACY POLICY
 function openPrivacy(){
     document.getElementById("privacyBox").style.display = "block";
