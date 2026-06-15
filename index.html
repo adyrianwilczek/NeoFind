@@ -5804,6 +5804,7 @@ function updateDidYouKnow(){
 let searchDebounceTimer = null;
 document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
+    const box = document.getElementById("results");
 const url = new URL(window.location);
 if(value) url.searchParams.set("q", value);
 else url.searchParams.delete("q");
@@ -5893,7 +5894,7 @@ if(badWord && badWord !== lastBadWord){
             `${m.homeTeam.shortName} <b>${m.score.fullTime.home ?? "-"} - ${m.score.fullTime.away ?? "-"}</b> ${m.awayTeam.shortName}`
         ).join("<br>");
 
-        box.innerHTML = `<div class="instant-box">⚽ <b🔴 Live scores</b><br>${mecze || "No matches right now"}</div>`;
+        box.innerHTML = `<div class="instant-box">⚽ <b>🔴 Live scores</b><br>${mecze || "No matches right now"}</div>`;
     })
     .catch(() => {
         box.innerHTML = `<div class="instant-box">⚽ Failed to download results.</div>`;
