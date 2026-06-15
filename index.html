@@ -5870,9 +5870,6 @@ if(badWord && badWord !== lastBadWord){
 
     }, 2000);
 }
-function checkInstantAnswer(value) {
-    const box = document.getElementById("instantAnswer");
-    box.innerHTML = "";
 
     // kalkulator
     if (/^[\d\s\+\-\*\/\.\(\)]+$/.test(value)) {
@@ -5883,45 +5880,27 @@ function checkInstantAnswer(value) {
         } catch(e) {}
     }
 
-    // godzina
-    if (value === "godzina" || value === "czas") {
-        const now = new Date();
-        box.innerHTML = `<div class="instant-box">🕐 ${now.toLocaleTimeString("pl-PL")}</div>`;
-        return;
-    }
-
-    // losowanie
-    const losuj = value.match(/^losuj (\d+)[- ](\d+)$/);
-    if (losuj) {
-        const min = parseInt(losuj[1]), max = parseInt(losuj[2]);
-        const wynik = Math.floor(Math.random() * (max - min + 1)) + min;
-        box.innerHTML = `<div class="instant-box">🎲 Wylosowano: <b>${wynik}</b></div>`;
-        return;
-    }
-
     // fifa
-    if(value.includes("fifa") || value.includes("match") || value.includes("score")){
-        suggestionsBox.innerHTML = `
-            <div style="
-                background:#1e2832;
-                padding:12px;
-                border-radius:10px;
-                margin-top:5px;
-                color: #fff;
-            ">
-                <b>⚽ FIFA Results</b>
-                <div style="margin-top:6px;">Meksyk <b>2 - 0</b> RPA</div>
-                <div>Korea Południowa <b>2 - 1</b> Czechy</div>
-                <div>Kanada <b>1 - 1</b> Bośnia i Hercegowina</div>
-                <div>USA <b>4 - 1</b> Paragwaj</div>
-                <div>Katar <b>1 - 1</b> Szwajcaria</div>
-                <div>Brazylia <b>1 - 1</b> Maroko</div>
-                <div>Australia <b>2 - 0</b> Turcja</div>
-                <div>Haiti <b>0 - 1</b> Szkocja</div>
-            </div>
-        `;
-        return;
-    }
+    if (value.includes("fifa") || value.includes("wyniki") || value.includes("mecze")) {
+    box.innerHTML = `<div class="instant-box">⚽ Loading results...</div>`;
+
+    fetch("https://api.football-data.org/v4/matches?status=LIVE,FINISHED", {
+        headers: { "X-Auth-Token": "1b21a1d06ab6474fa9178156ac99282c" }
+    })
+    .then(r => r.json())
+    .then(data => {
+        const mecze = data.matches.slice(0, 5).map(m =>
+            `${m.homeTeam.shortName} <b>${m.score.fullTime.home ?? "-"} - ${m.score.fullTime.away ?? "-"}</b> ${m.awayTeam.shortName}`
+        ).join("<br>");
+
+        box.innerHTML = `<div class="instant-box">⚽ <b🔴 Live scores</b><br>${mecze || "No matches right now"}</div>`;
+    })
+    .catch(() => {
+        box.innerHTML = `<div class="instant-box">⚽ Failed to download results.</div>`;
+    });
+
+    return;
+}
     clearTimeout(searchDebounceTimer);
     searchDebounceTimer = setTimeout(() => {
     log('searched "' + value + '"');
