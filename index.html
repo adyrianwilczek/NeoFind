@@ -484,6 +484,7 @@ body.ocean {
 
     /* ── DYK ── */
     #didYouKnowTitle, #didYouKnow { text-align: center; }
+    #didYouKnow { transition: opacity 0.9s; }
 
     /* ── input: box-sizing:border-box = padding nie dodaje szerokości ── */
     .searchBox { width: 100%; }
@@ -7420,6 +7421,19 @@ function insertEmoji(emoji) {
     input.value += emoji;
     input.focus();
 }
+
+// animowane did you know
+function rotateTip() {
+    const el = document.getElementById('didYouKnow');
+    el.style.opacity = '0';
+    setTimeout(() => {
+        const tips = translations[currentLang]?.didYouKnow;
+        if (!tips) return;
+        el.textContent = tips[Math.floor(Math.random() * tips.length)];
+        el.style.opacity = '1';
+    }, 400);
+}
+setInterval(rotateTip, 5000);
 
 // START
 const savedLang = localStorage.getItem("lang");
