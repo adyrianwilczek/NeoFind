@@ -7435,6 +7435,23 @@ function rotateTip() {
 }
 setInterval(rotateTip, 5000);
 
+// Efekt kursora: piłeczki lecą za myszą
+document.addEventListener('mousemove', (e) => {
+    const dot = document.createElement('div');
+    dot.textContent = '⚽';
+    dot.style.cssText = `
+        position: fixed;
+        left: ${e.clientX}px;
+        top: ${e.clientY}px;
+        pointer-events: none;
+        font-size: 16px;
+        transition: opacity 0.5s;
+        z-index: 9999;
+    `;
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 500);
+});
+
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
