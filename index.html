@@ -6149,12 +6149,20 @@ if (!user.emailVerified) {
 loginScreen.style.display = "none";
 app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
-fetch('https://api.open-meteo.com/v1/forecast?latitude=52.23&longitude=21.01&current_weather=true')
-    .then(r => r.json())
-    .then(weather => {
-        const temp = Math.round(weather.current_weather.temperature);
-        document.getElementById('greeting').textContent = `Cześć ${name}! Dziś ${temp}°C 🌤`;
-    });
+
+navigator.geolocation.getCurrentPosition(position => {
+
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+        .then(r => r.json())
+        .then(weather => {
+            const temp = Math.round(weather.current_weather.temperature);
+            document.getElementById('greeting').textContent = `Cześć ${name}! Dziś ${temp}°C 🌤`;
+        });
+
+});
 updateLanguage();
 
 db.collection("customResults").get().then(snapshot => {
