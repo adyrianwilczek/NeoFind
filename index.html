@@ -746,6 +746,7 @@ body.ocean {
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
         <button class="lang-btn" data-lang="summer" onclick="switchLang('summer')">☀️</button>
+        <button class="lang-btn" onclick="toggleMundialMode()">⚽</button>
         <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
             <svg id="fsIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
         </button>
@@ -7467,6 +7468,18 @@ document.addEventListener('mousemove', (e) => {
     document.body.appendChild(dot);
     setTimeout(() => dot.remove(), 500);
 });
+
+// tryb mundialowy
+function toggleMundialMode() {
+    const on = localStorage.getItem('mundial') === 'on';
+    if (on) {
+        localStorage.setItem('mundial', 'off');
+        document.documentElement.style.setProperty('--bg', '');
+    } else {
+        localStorage.setItem('mundial', 'on');
+        document.documentElement.style.setProperty('--bg', '#1a4a2e');
+    }
+}
 
 // START
 const savedLang = localStorage.getItem("lang");
