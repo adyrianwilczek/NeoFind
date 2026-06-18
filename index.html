@@ -784,6 +784,7 @@ body.ocean {
 
     <div id="homeWrapper">
     <h1 id="logo"><img src="logo.png" alt="NeoFind"></h1>
+    <div id="greeting" style="text-align:center; font-size:15px; margin-bottom:8px; opacity:0.8;"></div>
 
     <div id="didYouKnowTitle" style="text-align:center; margin-top:8px; font-size:13px; letter-spacing:1.5px; text-transform:uppercase; color:rgba(0,220,200,0.5); font-weight:500;"></div>
     <div id="didYouKnow" style="text-align:center; margin-bottom:10px; font-size:17px; font-style:italic; color:rgba(160,235,225,0.75); line-height:1.5;"></div>
@@ -6147,6 +6148,13 @@ if (!user.emailVerified) {
 
 loginScreen.style.display = "none";
 app.style.display = "block";
+const name = user.displayName || user.email.split('@')[0];
+fetch('https://api.open-meteo.com/v1/forecast?latitude=52.23&longitude=21.01&current_weather=true')
+    .then(r => r.json())
+    .then(weather => {
+        const temp = Math.round(weather.current_weather.temperature);
+        document.getElementById('greeting').textContent = `Cześć ${name}! Dziś ${temp}°C 🌤`;
+    });
 updateLanguage();
 
 db.collection("customResults").get().then(snapshot => {
