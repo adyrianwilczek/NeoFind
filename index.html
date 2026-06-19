@@ -7504,7 +7504,9 @@ function toggleMundialMode() {
         document.documentElement.style.setProperty('--bg', '');
     } else {
         localStorage.setItem('mundial', 'on');
-        document.documentElement.style.setProperty('--bg', '#1a4a2e');
+ document.documentElement.style.setProperty(
+    '--bg',
+    'repeating-linear-gradient(90deg, #1a4a2e, #1a4a2e 20px, white 20px, white 40px)');
     }
 }
 
