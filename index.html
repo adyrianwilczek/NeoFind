@@ -7,7 +7,7 @@
 
 <link rel="icon" type="image/png" href="icon_nobg.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="4da6ff">
+<meta name="theme-color" content="#4da6ff">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -196,6 +196,19 @@ button:hover {
     background: rgba(0,200,150,0.18);
     border-color: rgba(0,255,200,0.45);
     transform: scale(1.03);
+}
+
+button:focus-visible, input:focus-visible, a:focus-visible {
+    outline: 2px solid rgba(0,255,200,0.7);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
 }
 
 /* 🧠 CONSOLE */
@@ -613,6 +626,7 @@ body.ocean {
 }
 @media (max-width: 600px) {
     .settings-grid { grid-template-columns: 1fr; }
+    .lang-btn { padding: 7px 10px; font-size: 13px; }
 }
 
 /* 🔝 TOP BAR */
@@ -706,19 +720,19 @@ body.ocean {
 }
 
 
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 <body>
 <div id="loginScreen" style="display:none; text-align:center; margin-top:100px;">
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
-    <input id="logUser" placeholder="E-mail"><br>
-    <input id="logPass" type="password" placeholder="Password"><br>
+    <input id="logUser" placeholder="E-mail" aria-label="E-mail" autocomplete="email"><br>
+    <input id="logPass" type="password" placeholder="Password" aria-label="Hasło" autocomplete="current-password"><br>
     <button onclick="login()">Login</button>
     <h3>Register</h3>
-    <input id="regUser" placeholder="E-mail"><br>
-    <input id="regPass" type="password" placeholder="Password" oninput="checkPasswordStrength(this.value)"><br>
+    <input id="regUser" placeholder="E-mail" aria-label="E-mail do rejestracji" autocomplete="email"><br>
+    <input id="regPass" type="password" placeholder="Password" aria-label="Hasło do rejestracji" autocomplete="new-password" oninput="checkPasswordStrength(this.value)"><br>
 <div id="strengthBar" style="height:6px; width:80%; margin:4px auto; border-radius:3px; background:#333; max-width:400px;">
     <div id="strengthFill" style="height:100%; width:0%; border-radius:3px; transition:0.3s;"></div>
 </div>
@@ -746,8 +760,8 @@ body.ocean {
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
         <button class="lang-btn" data-lang="summer" onclick="switchLang('summer')">☀️</button>
-        <button class="lang-btn" onclick="toggleMundialMode()">⚽</button>
-        <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
+        <button class="lang-btn" onclick="toggleMundialMode()" aria-label="Tryb mundialowy">⚽</button>
+        <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" aria-label="Pełny ekran" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
             <svg id="fsIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
         </button>
     </div>
@@ -5735,7 +5749,7 @@ if(badWord && badWord !== lastBadWord){
     saveToHistory(value);
 
     const results = document.getElementById("results");
-    const isAIQuery = aiKeywords.some(k => value.startsWith(k));
+    const isAIQuery = aiKeywords.some(k => value === k || value.startsWith(k + " "));
     if(isAIQuery){
     results.innerHTML = "<div class='result'>Thinking...</div>";
     getAIResponse(value).then(answer => {
@@ -5890,25 +5904,6 @@ function addResult(){
     db.collection("customResults").add(newResult)
         .then(() => alert("Added!"))
         .catch(err => alert("Added locally. Firebase error: " + err.message));
-    window.banUser = function () {
-    const email = document.getElementById("banEmail").value.trim();
-
-    if (!email) return alert("Enter email!");
-
-    db.collection("bannedUsers").doc(email).set({
-        reason: "Banned by admin",
-        date: new Date()
-    })
-    .then(() => alert("User banned!"))
-    .catch(err => alert(err.message));
-};
-window.unbanUser = function () {
-    const email = document.getElementById("banEmail").value.trim();
-
-    db.collection("bannedUsers").doc(email).delete()
-        .then(() => alert("User unbanned!"))
-        .catch(err => alert(err.message));
-};
     closeAdmin();
 }
 
@@ -5930,8 +5925,8 @@ function showHistory(){
         return;
     }
     box.innerHTML = history.map(h => `
-        <div class="result" onclick="useHistory('${h.q}')" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>🔍 ${h.q}</span>
+        <div class="result" onclick="useHistory('${escapeHtml(h.q).replace(/'/g, "\\'")}')" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>🔍 ${escapeHtml(h.q)}</span>
             <span style="opacity:0.4; font-size:12px;">${timeAgo(h.t)}</span>
         </div>
     `).join("");
@@ -6188,19 +6183,26 @@ loginScreen.style.display = "none";
 app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
 
-navigator.geolocation.getCurrentPosition(position => {
+// Powitanie ustawiamy od razu, temperaturę dopisujemy jak przyjdzie z pogody
+document.getElementById('greeting').textContent = `Cześć ${name}! 👋`;
 
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(position => {
 
-    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
-        .then(r => r.json())
-        .then(weather => {
-            const temp = Math.round(weather.current_weather.temperature);
-            document.getElementById('greeting').textContent = `Cześć ${name}! Dziś ${temp}°C 🌤`;
-        });
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
 
-});
+        fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`)
+            .then(r => r.json())
+            .then(weather => {
+                if (weather && weather.current_weather) {
+                    const temp = Math.round(weather.current_weather.temperature);
+                    document.getElementById('greeting').textContent = `Cześć ${name}! Dziś ${temp}°C 🌤`;
+                }
+            })
+            .catch(() => {});
+    }, () => {});
+}
 updateLanguage();
 
 db.collection("customResults").get().then(snapshot => {
@@ -7510,17 +7512,25 @@ document.addEventListener('mousemove', (e) => {
 });
 
 // tryb mundialowy
-function toggleMundialMode() {
-    const on = localStorage.getItem('mundial') === 'on';
+const MUNDIAL_BG = 'repeating-linear-gradient(90deg, #1a4a2e 0px, #1a4a2e 60px, #3fbf6f 60px, #3fbf6f 120px)';
+
+function setMundialMode(on) {
     if (on) {
+        localStorage.setItem('mundial', 'on');
+        document.documentElement.style.setProperty('--bg', MUNDIAL_BG);
+    } else {
         localStorage.setItem('mundial', 'off');
         document.documentElement.style.setProperty('--bg', '');
-    } else {
-        localStorage.setItem('mundial', 'on');
- document.documentElement.style.setProperty(
-    '--bg',
-    'repeating-linear-gradient(90deg, #1a4a2e 0px, #1a4a2e 60px, #3fbf6f 60px, #3fbf6f 120px)');
     }
+}
+
+function toggleMundialMode() {
+    setMundialMode(localStorage.getItem('mundial') !== 'on');
+}
+
+// Przywróć tryb mundialowy po odświeżeniu strony
+if (localStorage.getItem('mundial') === 'on') {
+    setMundialMode(true);
 }
 
 // START
