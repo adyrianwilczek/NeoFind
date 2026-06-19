@@ -5608,7 +5608,7 @@ async function getAIResponse(query) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            model: "gpt-4o-mini",
+            model: "mistral-small-latest",
             messages: [{ role: "user", content: query }],
             max_tokens: 150
         })
