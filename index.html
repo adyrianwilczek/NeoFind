@@ -5736,6 +5736,10 @@ if(badWord && badWord !== lastBadWord){
         p.textContent = answer;
         const div = document.createElement("div");
         div.className = "result";
+            const header = document.createElement("div");
+    header.textContent = "✨ Review from AI";
+    header.style.cssText = "font-size:13px; opacity:0.6; margin-bottom:8px;";
+    div.appendChild(header);
         div.appendChild(p);
         results.innerHTML = "";
         results.appendChild(div);
