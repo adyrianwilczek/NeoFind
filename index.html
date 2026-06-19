@@ -7477,7 +7477,10 @@ function rotateTip() {
 setInterval(rotateTip, 5000);
 
 // Efekt kursora: piłeczki lecą za myszą
+let lastBall = 0;
 document.addEventListener('mousemove', (e) => {
+    if (Date.now() - lastBall < 50) return;
+    lastBall = Date.now();
     const dot = document.createElement('div');
     dot.textContent = '⚽';
     dot.style.cssText = `
