@@ -5602,11 +5602,10 @@ function highlight(text, query){
 
 /* 🤖 AI */
 async function getAIResponse(query) {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
         method: "POST",
         headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer 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"
+            "Content-Type": "application/json"
         },
         body: JSON.stringify({
             model: "gpt-4o-mini",
