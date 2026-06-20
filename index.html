@@ -5913,7 +5913,7 @@ function saveToHistory(query){
     let history = JSON.parse(localStorage.getItem("historyV2")) || [];
     if(history.find(h => h.q === query)) return;
     history.unshift({ q: query, t: Date.now() });
-    const historyLimit = PREMIUM_EMAILS.includes(auth.currentUser?.email) ? [1500] : 500;
+    const historyLimit = PREMIUM_EMAILS.includes(auth.currentUser?.email) ? 1500 : 500;
     if(history.length > historyLimit) history.pop();
     localStorage.setItem("historyV2", JSON.stringify(history));
 }
@@ -6378,15 +6378,6 @@ function exportLogs(){
     URL.revokeObjectURL(url);
     log("logs exported");
 }
-
-function handleCommand(e){
-    if(e.key !== "Enter") return;
-    const input = e.target.value.trim();
-    e.target.value = "";
-    if(!input.startsWith("/")){
-        log("❌ wrong format. example: /command");
-        return;
-    }
 function openCustomCommandModal(){
     const command = prompt("Command (what after /):") || "";
     const say = prompt("Say (optional):") || "";
@@ -6396,7 +6387,15 @@ function openCustomCommandModal(){
     customs.push({ command, say, fn });
     localStorage.setItem("customCommands", JSON.stringify(customs));
     log("✅ command /" + command + "saved");
-};
+}
+function handleCommand(e){
+    if(e.key !== "Enter") return;
+    const input = e.target.value.trim();
+    e.target.value = "";
+    if(!input.startsWith("/")){
+        log("❌ wrong format. example: /command");
+        return;
+    }
     if(input === "/help"){
         log("📜 commands:");
         log("/help");
@@ -6457,6 +6456,7 @@ function openCustomCommandModal(){
         }
     } else {
         log("unknown command");
+       }
     }
 }
 
