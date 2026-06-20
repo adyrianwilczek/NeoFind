@@ -6386,6 +6386,7 @@ function handleCommand(e){
     if(!input.startsWith("/")){
         log("❌ wrong format. example: /command");
         return;
+    }
 function openCustomCommandModal(){
     const command = prompt("Command (what after /):") || "";
     const say = prompt("Say (optional):") || "";
