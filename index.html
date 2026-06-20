@@ -6899,12 +6899,6 @@ async function sendChatMessage(){
     const input = document.getElementById("chatInput");
     const text = input.value.trim();
     if(!text || !currentChatFriend) return;
-    
-        if (text.startsWith("!")) {
-        await handleBotCommand(text);
-        input.value = "";
-        return;
-    }
 
     input.value = "";
     clearTimeout(typingTimeout);
@@ -7538,34 +7532,6 @@ function toggleMundialMode() {
 if (localStorage.getItem('mundial') === 'on') {
     setMundialMode(true);
 }
-
-// Neo czat komendy
-async function handleBotCommand(text) {
-    const parts = text.slice(1).split(" ");
-    const cmd = parts[0].toLowerCase();
-    let odpowiedz = "";
-
-    if (cmd === "help") {
-        odpowiedz = "Neo Commands: !help, !time, !FlipCoin, !Randomize [min] [max], !Search [phrase]";
-    } else if (cmd === "Time") {
-        odpowiedz = "Time: " + new Date().toLocaleString("pl-PL");
-    } else if (cmd === "FlipCoin") {
-        odpowiedz = Math.random() > 0.5 ? "🪙 Orzeł!" : "🪙 Reszka!";
-    } else if (cmd === "Randomize") {
-        const min = parseInt(parts[1]) || 1;
-        const max = parseInt(parts[2]) || 100;
-        odpowiedz = "🎲 Drawn: " + (Math.floor(Math.random() * (max - min + 1)) + min);
-    } else if (cmd === "search") {
-        const fraza = parts.slice(1).join(" ").toLowerCase();
-        const wyniki = (data[currentLang] || [])
-            .filter(i => i.title.toLowerCase().includes(fraza))
-            .slice(0, 3)
-            .map(i => `• ${i.title}: ${i.link}`)
-            .join("\n");
-        odpowiedz = wyniki || "No results for: " + fraza;
-    } else {
-        odpowiedz = "I don't know the command!" + cmd + ". Type !help to show list.";
-    }
 
 // START
 const savedLang = localStorage.getItem("lang");
