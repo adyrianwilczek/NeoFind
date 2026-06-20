@@ -6390,13 +6390,13 @@ function handleCommand(e){
 function openCustomCommandModal(){
     const command = prompt("Command (what after /):") || "";
     const say = prompt("Say (optional):") || "";
-    const fn = prompt("Function:\nopen_[link] — Opens link\nopen_page_[page] — e.g. open_page_friends") || "";
+    const fn = prompt("Function:\nopen_[link] — Opens link/nopen_page_[page] — e.g. open_page_friends") || "";
     if(!command) return;
     const customs = JSON.parse(localStorage.getItem("customCommands") || "[]");
     customs.push({ command, say, fn });
     localStorage.setItem("customCommands", JSON.stringify(customs));
-    log("✅ command /" + command + " saved");
-}
+    log("✅ command /" + command + "saved");
+};
     if(input === "/help"){
         log("📜 commands:");
         log("/help");
