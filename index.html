@@ -7567,16 +7567,6 @@ async function handleBotCommand(text) {
         odpowiedz = "I don't know the command!" + cmd + ". Type !help to show list.";
     }
 
-    // zapisz do Firestore jak normalną wiadomość ale od "Neo"
-    await addDoc(collection(db, "chat"), {
-        text: odpowiedz,
-        author: "Neo",
-        authorId: "neo-bot",
-        timestamp: serverTimestamp(),
-        isBot: true
-    });
-}
-
 // START
 const savedLang = localStorage.getItem("lang");
 if (savedLang) {
