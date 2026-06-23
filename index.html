@@ -6524,9 +6524,9 @@ async function loadRatings(){
 
         box.innerHTML += `
             <div class="result">
-                <b>${r.user}</b><br>
+                <b>${escapeHtml(r.user || "")}</b><br>
                 ⭐ ${r.stars}/5<br>
-                ${r.text || ""}
+                ${escapeHtml(r.text || "")}
             </div>
         `;
     });
