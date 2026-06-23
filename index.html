@@ -730,6 +730,9 @@ body.ocean {
     <input id="logUser" placeholder="E-mail" aria-label="E-mail" autocomplete="email"><br>
     <input id="logPass" type="password" placeholder="Password" aria-label="Hasło" autocomplete="current-password"><br>
     <button onclick="login()">Login</button>
+    <div style="margin:8px 0; font-size:13px;">
+        <span onclick="resetPassword()" style="color:#4da6ff; cursor:pointer; text-decoration:underline;">Forgot password?</span>
+    </div>
     <h3>Register</h3>
     <input id="regUser" placeholder="E-mail" aria-label="E-mail do rejestracji" autocomplete="email"><br>
     <input id="regPass" type="password" placeholder="Password" aria-label="Hasło do rejestracji" autocomplete="new-password" oninput="checkPasswordStrength(this.value)"><br>
@@ -6121,6 +6124,17 @@ window.login = function () {
     if (!email || !pass) return alert("Fill all!");
 
     auth.signInWithEmailAndPassword(email, pass)
+        .catch(err => alert(err.message));
+};
+
+/* =========================
+   RESET PASSWORD
+========================= */
+window.resetPassword = function () {
+    const email = document.getElementById("logUser").value.trim();
+    if (!email) return alert("Enter your e-mail first!");
+    auth.sendPasswordResetEmail(email)
+        .then(() => alert("Password reset link sent to " + email))
         .catch(err => alert(err.message));
 };
 
