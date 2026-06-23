@@ -6380,13 +6380,13 @@ function exportLogs(){
 }
 function openCustomCommandModal(){
     const command = prompt("Command (what after /):") || "";
-    const say = prompt("Say (optional):") || "";
-    const fn = prompt("Function:\nopen_[link] — Opens link/nopen_page_[page] — e.g. open_page_friends") || "";
     if(!command) return;
+    const say = prompt("Say (optional):") || "";
+    const fn = prompt("Function:\nopen_[link] — Opens link\nopen_page_[page] — e.g. open_page_friends") || "";
     const customs = JSON.parse(localStorage.getItem("customCommands") || "[]");
     customs.push({ command, say, fn });
     localStorage.setItem("customCommands", JSON.stringify(customs));
-    log("✅ command /" + command + "saved");
+    log("✅ command /" + command + " saved");
 }
 function handleCommand(e){
     if(e.key !== "Enter") return;
@@ -6406,6 +6406,7 @@ function handleCommand(e){
         log("/date");
         log("/about");
         log("/export");
+        log("/customcommand");
     }
     else if(input === "/clearhistory"){
         localStorage.removeItem("history");
@@ -6452,7 +6453,12 @@ function handleCommand(e){
             const page = cmd.fn.replace("open_page_", "") + "Box";
             openPanel(page);
         } else if(cmd.fn.startsWith("open_")){
-            window.open(cmd.fn.replace("open_", ""), "_blank");
+            const url = cmd.fn.replace("open_", "");
+            if(url.startsWith("https://") || url.startsWith("http://")){
+                window.open(url, "_blank");
+            } else {
+                log("❌ link must start with https://");
+            }
         }
     } else {
         log("unknown command");
