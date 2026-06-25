@@ -6073,8 +6073,6 @@ const storage = firebase.storage();
 /* =========================
    ADMIN EMAILS
 ========================= */
-const OWNER_EMAILS = ["adrian.wilczek@hotmail.com"];
-    
 const ADMIN_EMAILS = [
     "adrian.wilczek@hotmail.com",
     "michal.szyszynski@outlook.com",
@@ -7583,10 +7581,6 @@ function toggleMundialMode() {
 if (localStorage.getItem('mundial') === 'on') {
     setMundialMode(true);
 }
-
-// Admin / Owner
-function isOwner(email){ return OWNER_EMAILS.includes(email); }
-function isAdmin(email){ return ADMIN_EMAILS.includes(email); }
 
 // START
 const savedLang = localStorage.getItem("lang");
