@@ -6073,6 +6073,8 @@ const storage = firebase.storage();
 /* =========================
    ADMIN EMAILS
 ========================= */
+const OWNER_EMAILS = ["adrian.wilczek@hotmail.com"];
+    
 const ADMIN_EMAILS = [
     "adrian.wilczek@hotmail.com",
     "michal.szyszynski@outlook.com",
@@ -6177,7 +6179,7 @@ auth.onAuthStateChanged(async user => {
         const doc = await db.collection("bannedUsers").doc(user.email).get();
 
         if (doc.exists) {
-            alert("🚫 You are banned!");
+            alert("🚫 Your account are banned!");
             await auth.signOut();
             return;
         }
@@ -6203,7 +6205,7 @@ app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
 
 // Powitanie ustawiamy od razu, temperaturę dopisujemy jak przyjdzie z pogody
-document.getElementById('greeting').textContent = `Cześć ${name}! 👋`;
+document.getElementById('greeting').textContent = `Hi ${name}! good to see you 👋`;
 
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(position => {
@@ -6216,7 +6218,7 @@ if (navigator.geolocation) {
             .then(weather => {
                 if (weather && weather.current_weather) {
                     const temp = Math.round(weather.current_weather.temperature);
-                    document.getElementById('greeting').textContent = `Cześć ${name}! Dziś ${temp}°C 🌤`;
+                    document.getElementById('greeting').textContent = `Hi ${name}! it's ${temp}°C 🌤`;
                 }
             })
             .catch(() => {});
@@ -6252,6 +6254,10 @@ document.getElementById("accountEmail").innerText = user.email;
 window.banUser = function () {
     const email = document.getElementById("banEmail").value.trim();
     if (!email) return alert("Enter email!");
+
+    if (isOwner(email)) {
+        return alert("You can't ban Owner");
+    }
 
     db.collection("bannedUsers").doc(email).set({
         reason: "Banned by admin",
@@ -7581,6 +7587,10 @@ function toggleMundialMode() {
 if (localStorage.getItem('mundial') === 'on') {
     setMundialMode(true);
 }
+
+// Admin / Owner
+function isOwner(email){ return OWNER_EMAILS.includes(email); }
+function isAdmin(email){ return ADMIN_EMAILS.includes(email); }
 
 // START
 const savedLang = localStorage.getItem("lang");
