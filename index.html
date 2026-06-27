@@ -734,6 +734,10 @@ body.ocean {
 </head>
 <body>
 <div id="loginScreen" style="display:none; text-align:center; margin-top:100px;">
+    <div class="neoCountdownContainer" style="display:none; text-align:center; font-size:1.2rem; margin-bottom:20px; letter-spacing:2px; text-shadow:0 0 10px rgba(77,166,255,0.5);">
+        <span class="neoCountdownLabel"></span>
+        <span class="neoCountdownTime" style="font-weight:bold; color:#4da6ff;">--:--:--</span>
+    </div>
     <h1>NeoFind Login</h1>
     <h3>Login</h3>
     <input id="logUser" placeholder="E-mail" aria-label="E-mail" autocomplete="email"><br>
@@ -762,9 +766,9 @@ body.ocean {
 </div>
 
 <div id="app" class="container" style="display:none;">
-        <div id="neoCountdownContainer" style="display: none; text-align: center; font-size: 1.2rem; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(77, 166, 255, 0.5);">
-    <span id="countdownLabel">Code will expire in: </span>
-    <span id="countdownTime" style="font-weight: bold; color: #4da6ff;">--:--:--</span>
+        <div id="neoCountdownContainer" class="neoCountdownContainer" style="display: none; text-align: center; font-size: 1.2rem; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(77, 166, 255, 0.5);">
+    <span id="countdownLabel" class="neoCountdownLabel">Code will expire in: </span>
+    <span id="countdownTime" class="neoCountdownTime" style="font-weight: bold; color: #4da6ff;">--:--:--</span>
 </div>
 
 <div id="backdrop" onclick="closeAllPanels()"></div>
@@ -1118,6 +1122,13 @@ body.ocean {
 <h3 id="ratingsTitleEl">Ratings</h3>
 <div id="ratingsList"></div>
 <p id="ratingAvg"></p>
+
+<h3 id="countdownTitleEl">Odliczanie</h3>
+<label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+    <input type="checkbox" id="countdownLoginToggle" onchange="setCountdownOnLogin(this.checked)">
+    <span>Pokaż licznik na ekranie logowania</span>
+</label>
+<p id="countdownToggleStatus" style="font-size:12px; opacity:0.7; margin-top:6px;"></p>
             </div>
         </div>
                 
@@ -5946,6 +5957,11 @@ function openAdmin(){
         return;
     }
     openPanel("adminBox", loadRatings);
+    // wczytaj aktualny stan przełącznika licznika na ekranie logowania
+    db.collection("config").doc("countdown").get().then(doc => {
+        const cb = document.getElementById("countdownLoginToggle");
+        if (cb) cb.checked = doc.exists && doc.data().showOnLogin === true;
+    }).catch(()=>{});
 }
 function closeAdmin(){ closeAllPanels(); }
 function addResult(){
@@ -7677,25 +7693,40 @@ function isAdmin(email){ return ADMIN_EMAILS.includes(email); }
 // ========================================================
 // ⏱️ OSPALONY SYSTEM ODLICZANIA NAD LOGIEM
 // ========================================================
+// Pokaż/ukryj licznik na ekranie logowania
+function applyLoginCountdownVisibility(show) {
+    document.querySelectorAll("#loginScreen .neoCountdownContainer").forEach(c => {
+        c.style.display = show ? "block" : "none";
+    });
+}
+
+// Admin: zapisz w Firestore czy licznik ma być na ekranie logowania
+function setCountdownOnLogin(checked) {
+    const statusEl = document.getElementById("countdownToggleStatus");
+    db.collection("config").doc("countdown").set({ showOnLogin: checked }, { merge: true })
+        .then(() => {
+            applyLoginCountdownVisibility(checked);
+            if (statusEl) statusEl.innerText = checked ? "Włączone" : "Wyłączone";
+        })
+        .catch(err => { if (statusEl) statusEl.innerText = "Błąd zapisu: " + err.message; });
+}
+
 function startNeoCountdown(labelText, targetDateString) {
     document.addEventListener("DOMContentLoaded", function() {
-        const logoContainer = document.getElementById("logo");
-        if (!logoContainer) return;
+        // wszystkie liczniki na stronie (ekran logowania + ekran #app)
+        const labelEls = document.querySelectorAll(".neoCountdownLabel");
+        const timeEls = document.querySelectorAll(".neoCountdownTime");
+        if (timeEls.length === 0) return;
 
-        let container = document.getElementById("neoCountdownContainer");
-        if (!container) {
-            container = document.createElement("div");
-            container.id = "neoCountdownContainer";
-            container.style.cssText = "text-align:center; font-size:1.3rem; margin-top:10px; margin-bottom:15px; letter-spacing:2px; text-shadow:0 0 10px rgba(77,166,255,0.6); color:white; width:100%; display:block;";
-            container.innerHTML = `<span id="countdownLabel"></span> <span id="countdownTime" style="font-weight:bold; color:#4da6ff;">--:--:--</span>`;
-            logoContainer.parentNode.insertBefore(container, logoContainer);
-        }
-        // pokaż licznik (kontener w HTML ma display:none)
-        container.style.display = "block";
+        // licznik w aplikacji pokazujemy zawsze (jest wewnątrz #app)
+        const appContainer = document.getElementById("neoCountdownContainer");
+        if (appContainer) appContainer.style.display = "block";
+        labelEls.forEach(el => el.innerText = labelText + " ");
 
-        const labelEl = document.getElementById("countdownLabel");
-        const timeEl = document.getElementById("countdownTime");
-        if (labelEl) labelEl.innerText = labelText + " ";
+        // ekran logowania: licznik tylko jeśli admin włączył to w panelu (Firestore)
+        db.collection("config").doc("countdown").get()
+            .then(doc => applyLoginCountdownVisibility(doc.exists && doc.data().showOnLogin === true))
+            .catch(() => {});
 
         const targetTime = new Date(targetDateString).getTime();
         if (isNaN(targetTime)) return;
@@ -7706,7 +7737,7 @@ function startNeoCountdown(labelText, targetDateString) {
 
             if (difference <= 0) {
                 clearInterval(interval);
-                timeEl.innerText = "🎉";
+                timeEls.forEach(el => el.innerText = "🎉");
                 return;
             }
 
@@ -7717,7 +7748,8 @@ function startNeoCountdown(labelText, targetDateString) {
             const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
             const formatNum = (num) => String(num).padStart(2, '0');
-            timeEl.innerText = `${formatNum(days)}:${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
+            const text = `${formatNum(days)}:${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
+            timeEls.forEach(el => el.innerText = text);
         }
 
         updateTimer();

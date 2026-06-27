@@ -25,6 +25,12 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Konfiguracja (np. licznik na ekranie logowania) - odczyt publiczny, zapis tylko admin
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Zablokowani użytkownicy - odczyt: admin lub własny wpis, zapis: admin
     match /bannedUsers/{email} {
       allow read: if isAdmin() || (isLoggedIn() && request.auth.token.email == email);
