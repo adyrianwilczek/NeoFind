@@ -762,6 +762,10 @@ body.ocean {
 </div>
 
 <div id="app" class="container" style="display:none;">
+        <div id="neoCountdownContainer" style="display: none; text-align: center; font-size: 1.2rem; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(77, 166, 255, 0.5);">
+    <span id="countdownLabel">Code will expire in: </span>
+    <span id="countdownTime" style="font-weight: bold; color: #4da6ff;">--:--:--</span>
+</div>
 
 <div id="backdrop" onclick="closeAllPanels()"></div>
 
@@ -810,10 +814,7 @@ body.ocean {
 <div id="tabContent"></div>
 
     <div id="homeWrapper">
-    <div id="neoCountdownContainer" style="display: none; text-align: center; font-size: 1.2rem; margin-bottom: 15px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(77, 166, 255, 0.5);">
-    <span id="countdownLabel">Tekst: </span>
-    <span id="countdownTime" style="font-weight: bold; color: #4da6ff;">--:--:--</span>
-    </div>
+        
     <h1 id="logo"><img src="logo.png" alt="NeoFind"></h1>
     <div id="greeting" style="text-align:center; font-size:15px; margin-bottom:8px; opacity:0.8;"></div>
 
@@ -7673,50 +7674,45 @@ if (localStorage.getItem('mundial') === 'on') {
 function isOwner(email){ return OWNER_EMAILS.includes(email); }
 function isAdmin(email){ return ADMIN_EMAILS.includes(email); }
 
-// ⏱️ SYSTEM ODLICZANIA NAD LOGIEM
+// ⏱️ POPRAWIONY GLOBALNY SYSTEM ODLICZANIA NAD LOGIEM
 function startNeoCountdown(labelText, targetDateString) {
     const container = document.getElementById("neoCountdownContainer");
     const labelEl = document.getElementById("countdownLabel");
     const timeEl = document.getElementById("countdownTime");
 
+    // Jeśli elementy nie istnieją jeszcze w HTML, przerywamy bezpiecznie
     if (!container || !labelEl || !timeEl) return;
 
     const targetTime = new Date(targetDateString).getTime();
-    
-    // Jeśli podana data jest niepoprawna, przerywamy
     if (isNaN(targetTime)) return;
 
-    // Ustawiamy wpisany przez Ciebie tekst i pokazujemy licznik
     labelEl.innerText = labelText + " ";
-    container.style.display = "block";
+    container.style.display = "block"; // Pokazuje licznik na stronie
 
-    const interval = setInterval(() => {
+    function updateTimer() {
         const now = new Date().getTime();
         const difference = targetTime - now;
 
-        // Jeśli czas minął
         if (difference <= 0) {
             clearInterval(interval);
-            timeEl.innerText = "Code expired!";
+            timeEl.innerText = "00:00:00";
             return;
         }
 
-        // Obliczanie dni, godzin, minut i sekund
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + (days * 24); // Zamienia dni na godziny, żeby zachować format --:----
+        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + (days * 24);
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-        // Formatowanie do dwóch cyfr (np. 05 zamiast 5)
         const formatNum = (num) => String(num).padStart(2, '0');
-
-        // Wstrzykiwanie sformatowanego czasu --:--:--
         timeEl.innerText = `${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
-    }, 1000);
+    }
+
+    updateTimer(); // Odpala od razu bez opóźnienia
+    const interval = setInterval(updateTimer, 1000);
 }
 
-// ⚙️ TUTAJ USTAWASZ OD ILE I JAKI TEKST:
-// Format daty: "YYYY-MM-DDTHH:MM:SS"
+// ⚙️ WYWOŁANIE ODPOWIEDZIALNE ZA URUCHOMIENIE LICZNIKA:
 startNeoCountdown("Code will expire in:", "2026-07-01T00:00:00");
 
 // START
