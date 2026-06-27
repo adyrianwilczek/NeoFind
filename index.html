@@ -7675,76 +7675,54 @@ function isOwner(email){ return OWNER_EMAILS.includes(email); }
 function isAdmin(email){ return ADMIN_EMAILS.includes(email); }
 
 // ========================================================
-// ⏱️ OSTATECZNY SYSTEM ODLICZANIA NAD LOGIEM
+// ⏱️ OSPALONY SYSTEM ODLICZANIA NAD LOGIEM
 // ========================================================
 function startNeoCountdown(labelText, targetDateString) {
-    // 1. Szukamy kontenera loga za pomocą poprawnego ID #logo
-    const logoContainer = document.getElementById("logo");
-    if (!logoContainer) {
-        console.error("Nie znaleziono elementu #logo!");
-        return;
-    }
+    document.addEventListener("DOMContentLoaded", function() {
+        const logoContainer = document.getElementById("logo");
+        if (!logoContainer) return;
 
-    // 2. Sprawdzamy czy licznik już nie istnieje, żeby go nie dublować
-    let container = document.getElementById("neoCountdownContainer");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "neoCountdownContainer";
-        
-        // Stylowanie dopasowane do struktury NeoFind
-        container.style.cssText = `
-            text-align: center;
-            font-size: 1.3rem;
-            margin-top: 10px;
-            margin-bottom: 15px;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(77, 166, 255, 0.6);
-            color: white;
-            width: 100%;
-            display: block;
-        `;
-        
-        container.innerHTML = `
-            <span id="countdownLabel"></span>
-            <span id="countdownTime" style="font-weight: bold; color: #4da6ff;">--:--:--</span>
-        `;
-        
-        // Wpychamy licznik dokładnie NAD logo
-        logoContainer.parentNode.insertBefore(container, logoContainer);
-    }
-
-    const labelEl = document.getElementById("countdownLabel");
-    const timeEl = document.getElementById("countdownTime");
-    
-    if (labelEl) labelEl.innerText = labelText + " ";
-
-    const targetTime = new Date(targetDateString).getTime();
-    if (isNaN(targetTime)) return;
-
-    function updateTimer() {
-        const now = new Date().getTime();
-        const difference = targetTime - now;
-
-        if (difference <= 0) {
-            clearInterval(interval);
-            timeEl.innerText = "Code expired!";
-            return;
+        let container = document.getElementById("neoCountdownContainer");
+        if (!container) {
+            container = document.createElement("div");
+            container.id = "neoCountdownContainer";
+            container.style.cssText = "text-align:center; font-size:1.3rem; margin-top:10px; margin-bottom:15px; letter-spacing:2px; text-shadow:0 0 10px rgba(77,166,255,0.6); color:white; width:100%; display:block;";
+            container.innerHTML = `<span id="countdownLabel"></span> <span id="countdownTime" style="font-weight:bold; color:#4da6ff;">--:--:--</span>`;
+            logoContainer.parentNode.insertBefore(container, logoContainer);
         }
 
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + (days * 24);
-        const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+        const labelEl = document.getElementById("countdownLabel");
+        const timeEl = document.getElementById("countdownTime");
+        if (labelEl) labelEl.innerText = labelText + " ";
 
-        const formatNum = (num) => String(num).padStart(2, '0');
-        timeEl.innerText = `${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
-    }
+        const targetTime = new Date(targetDateString).getTime();
+        if (isNaN(targetTime)) return;
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+        function updateTimer() {
+            const now = new Date().getTime();
+            const difference = targetTime - now;
+
+            if (difference <= 0) {
+                clearInterval(interval);
+                timeEl.innerText = "Code expired!";
+                return;
+            }
+
+            const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + (days * 24);
+            const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+
+            const formatNum = (num) => String(num).padStart(2, '0');
+            timeEl.innerText = `${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
+        }
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+    });
 }
 
-// ⚙️ AKTYWACJA ODLICZANIA (Zostawiamy Twoją datę i tekst):
+// URUCHOMIENIE LICZNIKA:
 startNeoCountdown("Code will expire in:", "2026-07-01T00:00:00");
 
 // START
