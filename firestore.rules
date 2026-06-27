@@ -45,7 +45,10 @@ service cloud.firestore {
       );
       allow create: if isLoggedIn() && request.resource.data.from == request.auth.token.email;
       allow update: if isLoggedIn() && resource.data.to == request.auth.token.email;
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || (isLoggedIn() && (
+        resource.data.from == request.auth.token.email ||
+        resource.data.to == request.auth.token.email
+      ));
     }
 
     // Dokument czatu (typing, lastSeen) - dostęp tylko dla uczestników

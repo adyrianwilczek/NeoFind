@@ -867,7 +867,7 @@ body.ocean {
                     <option value="en">EN</option>
                     <option value="es">ES</option>
                     <option value="pl">PL</option>
-                    <option value="Summer">☀️</option>
+                    <option value="summer">☀️</option>
                 </select>
                 <h4 id="themeLabel" style="margin-top:16px;">Theme</h4>
                 <select id="themeSelect">
@@ -5675,6 +5675,7 @@ async function getAIResponse(query) {
 
 /* 🔍 SEARCH + HISTORY */
 let searchDebounceTimer = null;
+let lastBadWord = ""; // poza listenerem: dedup raportu o wulgaryzmie (inaczej reset co znak)
 document.getElementById("search").addEventListener("input", function() {
     // 1. Pobieramy i oczyszczamy wpisany tekst
     const value = this.value.toLowerCase().trim();
@@ -5736,7 +5737,6 @@ setTimeout(() => {
         warning.style.display = "none";
     }
 }
-let lastBadWord = "";
 
 if(badWord && badWord !== lastBadWord){
     lastBadWord = badWord;
@@ -6491,7 +6491,7 @@ function handleCommand(e){
         log("/help");
         log("/clearhistory");
         log("/search text");
-        log("/language en/es/pl/easter");
+        log("/language en/es/pl/summer");
         log("/time");
         log("/date");
         log("/about");
@@ -6499,7 +6499,7 @@ function handleCommand(e){
         log("/customcommand");
     }
     else if(input === "/clearhistory"){
-        localStorage.removeItem("history");
+        clearHistory();
         log("history cleared");
     }
     else if(input.startsWith("/search")){
@@ -6509,7 +6509,7 @@ function handleCommand(e){
     }
     else if(input.startsWith("/language")){
         const lang = input.replace("/language ","").toLowerCase();
-        if(["en","es","pl","easter"].includes(lang)){
+        if(["en","es","pl","summer"].includes(lang)){
             currentLang = lang;
             localStorage.setItem("lang", lang);
             document.getElementById("langSelect").value = lang;
@@ -6962,7 +6962,7 @@ function openChat(friendEmail){
                             if (Notification.permission === 'granted') {
                                 new Notification(msg.from.split('@')[0], {
                                     body: msg.imageUrl ? '📷 Zdjęcie' : (msg.text || ''),
-                                    icon: '/NeoFind/favicon.jpeg'
+                                    icon: '/NeoFind/icon_round.png'
                                 });
                             }
                         }

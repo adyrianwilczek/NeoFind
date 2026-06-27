@@ -1,8 +1,7 @@
-const CACHE = "neofind-v14";
+const CACHE = "neofind-v15";
 const ASSETS = [
   "/NeoFind/",
   "/NeoFind/index.html",
-  "/NeoFind/favicon.jpeg",
   "/NeoFind/icon.png",
   "/NeoFind/icon_round.png",
   "/NeoFind/icon_nobg.png",

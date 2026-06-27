@@ -13,9 +13,9 @@
       "type": "image/png"
     },
     {
-      "src": "favicon.jpeg",
+      "src": "icon_round.png",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/png"
     }
   ]
 }
