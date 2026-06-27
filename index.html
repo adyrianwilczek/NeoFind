@@ -5655,10 +5655,10 @@ document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
 
     // 2. SPRAWDZANIE KODU PREMIUM
-    if (value === "test") {
+    if (value === "holidays26") {
         // Jeśli kod był już użyty
         if (localStorage.getItem("premium_claimed") === "true") {
-            alert("❌ Code arleady re!"); 
+            alert("❌ Code arleady redemned!"); 
             // Użyliśmy zwykłego alertu na wypadek, gdyby neoWarning nie istniał w HTML
             this.value = "";
             return; 
