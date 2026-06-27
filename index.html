@@ -7690,6 +7690,8 @@ function startNeoCountdown(labelText, targetDateString) {
             container.innerHTML = `<span id="countdownLabel"></span> <span id="countdownTime" style="font-weight:bold; color:#4da6ff;">--:--:--</span>`;
             logoContainer.parentNode.insertBefore(container, logoContainer);
         }
+        // pokaż licznik (kontener w HTML ma display:none)
+        container.style.display = "block";
 
         const labelEl = document.getElementById("countdownLabel");
         const timeEl = document.getElementById("countdownTime");
@@ -7704,17 +7706,18 @@ function startNeoCountdown(labelText, targetDateString) {
 
             if (difference <= 0) {
                 clearInterval(interval);
-                timeEl.innerText = "Code expired!";
+                timeEl.innerText = "🎉";
                 return;
             }
 
+            // DNI:GG:MM:SS  (dni liczone osobno, nie doklejane do godzin)
             const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)) + (days * 24);
+            const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
             const formatNum = (num) => String(num).padStart(2, '0');
-            timeEl.innerText = `${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
+            timeEl.innerText = `${formatNum(days)}:${formatNum(hours)}:${formatNum(minutes)}:${formatNum(seconds)}`;
         }
 
         updateTimer();
@@ -7722,8 +7725,17 @@ function startNeoCountdown(labelText, targetDateString) {
     });
 }
 
+// ⏳ KONFIGURACJA ODLICZANIA (zmień tekst i datę poniżej):
+const NEO_COUNTDOWN = {
+    enabled: true,                      // false = ukryj licznik
+    label:  "Do końca wakacji:",        // ← tekst przed licznikiem
+    target: "2026-09-01T00:00:00"       // ← data do której odliczamy (RRRR-MM-DDTGG:MM:SS)
+};
+
 // URUCHOMIENIE LICZNIKA:
-startNeoCountdown("Code will expire in:", "2026-07-01T00:00:00");
+if (NEO_COUNTDOWN.enabled) {
+    startNeoCountdown(NEO_COUNTDOWN.label, NEO_COUNTDOWN.target);
+}
 
 // START
 const savedLang = localStorage.getItem("lang");
