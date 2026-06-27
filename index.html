@@ -7023,7 +7023,6 @@ function parseCustomEmojis(text) {
         const regex = new RegExp(shortcut, "g"); 
         resultText = resultText.replace(regex, `<img src="${url}" class="custom-emoji" alt="${shortcut}">`);
     }
-}
 
 async function sendChatMessage(){
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
