@@ -5651,34 +5651,41 @@ async function getAIResponse(query) {
 /* 🔍 SEARCH + HISTORY */
 let searchDebounceTimer = null;
 document.getElementById("search").addEventListener("input", function() {
+    // 1. Pobieramy i oczyszczamy wpisany tekst
     const value = this.value.toLowerCase().trim();
 
-    // 🎁 SYSTEM KODÓW PREMIUM (7 DNI)
-    if (value === "NeoAIisnerd") { // kod
+    // 2. SPRAWDZANIE KODU PREMIUM
+    if (value === "test") {
+        // Jeśli kod był już użyty
         if (localStorage.getItem("premium_claimed") === "true") {
-            const warning = document.getElementById("neoWarning");
-            if (warning) {
-                warning.style.display = "block";
-                warning.innerText = "❌ You arleady redemned this code!";
-                setTimeout(() => { warning.style.display = "none"; }, 4000);
-            }
-        } else {
-            localStorage.setItem("premium_claimed", "true");
-            const expiryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-            localStorage.setItem("premium_expires", expiryDate.toISOString());
-            this.value = ""; 
-
-            // Wyświetlenie komunikatu w dymku NeoPopup
-            const popup = document.getElementById("neoPopup");
-            if (popup) {
-                popup.style.display = "block";
-                popup.innerText = "🎁 Code correct! Actived premium for 7 days!";
-                setTimeout(() => { popup.style.display = "none"; }, 5000);
-            }
-            if (typeof confetti === "function") {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            }
+            alert("❌ Code arleady re!"); 
+            // Użyliśmy zwykłego alertu na wypadek, gdyby neoWarning nie istniał w HTML
+            this.value = "";
+            return; 
         }
+
+        // Aktywacja kodu
+        localStorage.setItem("premium_claimed", "true");
+        const expiryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        localStorage.setItem("premium_expires", expiryDate.toISOString());
+        
+        this.value = ""; // Czyszczenie inputu
+
+        // Wyświetlenie komunikatu
+        const popup = document.getElementById("neoPopup");
+        if (popup) {
+            popup.style.display = "block";
+            popup.innerText = "🎁 Correct code! Actived premium for 7 days!";
+            setTimeout(() => { popup.style.display = "none"; }, 5000);
+        } else {
+            alert("🎁 Correct code! Actived premium for 7 days!");
+        }
+
+        // Efekt konfetti
+        if (typeof confetti === "function") {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+
         return;
     }
     const box = document.getElementById("results");
