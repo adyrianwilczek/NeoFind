@@ -143,6 +143,15 @@ select:focus {
     box-shadow: 0 0 15px rgba(0,255,200,0.5);
 }
 
+/* Custom emoji */
+.custom-emoji {
+    height: 24px;
+    width: auto;
+    display: inline-block;
+    vertical-align: middle;
+    margin: 0 2px;
+}
+
 /* 📊 RESULTS */
 #results {
     display: grid;
@@ -6981,6 +6990,41 @@ function renderChatMessages(snapshot, chatId) {
         `;
     });
     setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
+}
+function parseCustomEmojis(text) {
+    const emojiMap = {
+    ":love:": "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3ZjJibXFsNzBsZWs2NHA0OWt4dWRmZnFnbXBtd2Fsd2xubzF0ejlwZyZlcD12MV9naWZzX3RyZW5kaW5nJmN0PWc/l4Ki4biBSwhjyrS48/giphy.gif",
+    ":neologo:": "https://adyrianwilczek.github.io/NeoFind/logo.png",
+    ":67:": "https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2xlZzZiMThmYThxenkxemkybnhyOXlvNnI0Z3Ric2JqZW02MDVjYyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/zIatAEDb9NwwAd3cYE/giphy.gif",
+    ":working_cat:": "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif",
+    ":happy:": "https://media.giphy.com/media/ICOgUNjpvO0PC/giphy.gif",
+    ":dance:": "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+    ":party:": "https://media.giphy.com/media/3KC2jD2QcBOSc/giphy.gif",
+    ":wow:": "https://media.giphy.com/media/xTiTnuhyBF54B852nK/giphy.gif",
+    ":clap:": "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif",
+    ":thumbsup:": "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
+    ":cry:": "https://media.giphy.com/media/ROF8OQvDmxytW/giphy.gif",
+    ":angry:": "https://media.giphy.com/media/11tTNkNy1SdXGg/giphy.gif",
+    ":laugh:": "https://media.giphy.com/media/QBd2kLB5qDmysEXre9/giphy.gif",
+    ":fire:": "https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif",
+    ":gg:": "https://media.giphy.com/media/3o7TKMt1VVNkHV2PaE/giphy.gif",
+    ":sus:": "https://media.giphy.com/media/H5C8CevNMbpBqNqFjl/giphy.gif",
+    ":minecraft:": "https://media.giphy.com/media/U3qYN8S0j3bpK/giphy.gif",
+    ":loading:": "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
+    ":ok:": "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif",
+};
+    };
+
+    let resultText = text;
+
+    // Przechodzimy po wszystkich emotkach ze słownika i podmieniamy tekst na tag <img>
+    for (const [shortcut, url] of Object.entries(emojiMap)) {
+        // "g" oznacza, że podmieni wszystkie wystąpienia w jednej wiadomości
+        const regex = new RegExp(shortcut, "g"); 
+        resultText = resultText.replace(regex, `<img src="${url}" class="custom-emoji" alt="${shortcut}">`);
+    }
+
+    return resultText;
 }
 
 async function sendChatMessage(){
