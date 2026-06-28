@@ -6005,9 +6005,6 @@ if(badWord && badWord !== lastBadWord){
 results.innerHTML = filtered.map((item) => {
     const fullIndex = list.indexOf(item);
     return `
-    <img src="https://www.google.com/s2/favicons?domain=${domena}&sz=32"
-     width="16" height="16" style="vertical-align:middle; margin-right:8px"
-     onerror="this.style.display='none'">
     <div class="result">
         <a href="${item.link}" target="_blank">${highlight(item.title, value)}</a>
         <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${fullIndex})">★</span>
