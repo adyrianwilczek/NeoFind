@@ -848,7 +848,6 @@ body.ocean {
         <option value="en" selected>EN</option>
         <option value="es">ES</option>
         <option value="pl">PL</option>
-        <option value="summer">Summer ☀️</option>
     </select>
 
     <!-- CONSOLE -->
@@ -875,7 +874,6 @@ body.ocean {
                     <option value="en">EN</option>
                     <option value="es">ES</option>
                     <option value="pl">PL</option>
-                    <option value="summer">☀️</option>
                 </select>
                 <h4 id="themeLabel" style="margin-top:16px;">Theme</h4>
                 <select id="themeSelect">
@@ -5802,7 +5800,7 @@ function currentTips(){
     if(localStorage.getItem('mundial') === 'on'){
         const f = footballFacts[l]; return (f && f.length) ? f : FOOTBALL_FACTS_FALLBACK;
     }
-    if(currentLang === "summer"){
+    if(localStorage.getItem('summer') === 'on'){
         const f = summerFacts[l]; return (f && f.length) ? f : SUMMER_FACTS_FALLBACK;
     }
     const f = techFacts[l];
@@ -6672,7 +6670,10 @@ function handleCommand(e){
     }
     else if(input.startsWith("/language")){
         const lang = input.replace("/language ","").toLowerCase();
-        if(["en","es","pl","summer"].includes(lang)){
+        if(lang === "summer"){
+            toggleSummerMode();
+            log("summer mode toggled");
+        } else if(["en","es","pl"].includes(lang)){
             currentLang = lang;
             localStorage.setItem("lang", lang);
             document.getElementById("langSelect").value = lang;
@@ -7316,43 +7317,47 @@ document.addEventListener("fullscreenchange", () => {
     }
 });
 
-// ☀️ summer jako przełącznik: klik włącza, kolejny klik wraca do poprzedniego języka
-function toggleSummerMode(){
-    const active = localStorage.getItem("lang") || currentLang;
-    if(active === "summer"){
-        switchLang(localStorage.getItem("langBeforeSummer") || "en");
+// ☀️ summer jako przełącznik motywu (jak mundial): nakładka na język, NIE osobny język
+function setSummerMode(on, fresh){
+    const btn = document.querySelector('.lang-btn[data-lang="summer"]');
+    if(on){
+        localStorage.setItem('summer', 'on');
+        document.body.classList.add('summer-theme');
+        if(btn) btn.classList.add('lang-active');
+        loadSummerFacts(fresh).then(updateDidYouKnow); // letnie ciekawostki w języku systemu
     } else {
-        localStorage.setItem("langBeforeSummer", active);
-        localStorage.removeItem("summerFacts"); // świeża paczka ciekawostek przy każdym włączeniu
-        switchLang("summer");
+        localStorage.setItem('summer', 'off');
+        document.body.classList.remove('summer-theme');
+        if(btn) btn.classList.remove('lang-active');
+        updateDidYouKnow(); // powrót do normalnych ciekawostek
     }
+}
+function toggleSummerMode(){
+    const turningOn = localStorage.getItem('summer') !== 'on';
+    setSummerMode(turningOn, turningOn); // świeża paczka przy każdym włączeniu
 }
 
 function switchLang(lang){
     localStorage.setItem("lang", lang);
-    if(lang === "summer"){
-        const flash = document.createElement("div");
-        flash.style.cssText = "position:fixed;inset:0;z-index:99999;pointer-events:none;background:linear-gradient(135deg,rgba(255,180,0,0.35),rgba(255,100,0,0.25),rgba(255,200,50,0.3));opacity:0;transition:opacity 0.15s";
-        document.body.appendChild(flash);
-        requestAnimationFrame(() => { flash.style.opacity = "1"; });
-        setTimeout(() => { location.reload(); }, 400);
-    } else {
-        location.reload();
-    }
+    location.reload();
 }
 
 function updateLanguage(){
     renderGreeting();
     const t = translations[currentLang];
     document.querySelectorAll(".lang-btn").forEach(b => {
-        b.classList.toggle("lang-active", b.dataset.lang === currentLang);
+        if(b.dataset.lang === "summer"){
+            b.classList.toggle("lang-active", localStorage.getItem('summer') === 'on');
+        } else {
+            b.classList.toggle("lang-active", b.dataset.lang === currentLang);
+        }
     });
-    // trwały ciepły motyw gdy summer aktywny
-    document.body.classList.toggle("summer-theme", currentLang === "summer");
+    // trwały ciepły motyw gdy summer aktywny (flaga niezależna od języka)
+    document.body.classList.toggle("summer-theme", localStorage.getItem('summer') === 'on');
     // ciekawostki z AI wg trybu i języka systemu - odśwież wyświetlaną po pobraniu
     if(localStorage.getItem('mundial') === 'on'){
         loadFootballFacts().then(updateDidYouKnow);
-    } else if(currentLang === "summer"){
+    } else if(localStorage.getItem('summer') === 'on'){
         loadSummerFacts().then(updateDidYouKnow);
     } else {
         loadTechFacts().then(updateDidYouKnow); // tryb normalny: IT/programowanie/Linux/gry/NeoFind
@@ -8003,7 +8008,12 @@ if (NEO_COUNTDOWN.enabled) {
 }
 
 // START
-const savedLang = localStorage.getItem("lang");
+let savedLang = localStorage.getItem("lang");
+if (savedLang === "summer") {            // migracja: summer był kiedyś "językiem", teraz to osobny tryb
+    localStorage.setItem("summer", "on");
+    savedLang = localStorage.getItem("langBeforeSummer") || "en";
+    localStorage.setItem("lang", savedLang);
+}
 if (savedLang) {
     currentLang = savedLang;
     document.getElementById("langSelect").value = savedLang;
