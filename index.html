@@ -7033,7 +7033,6 @@ function parseCustomEmojis(text) {
     ":minecraft:": "https://media.giphy.com/media/U3qYN8S0j3bpK/giphy.gif",
     ":loading:": "https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif",
     ":ok:": "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif",
-};
     };
 
     let resultText = text;
@@ -7044,6 +7043,8 @@ function parseCustomEmojis(text) {
         const regex = new RegExp(shortcut, "g"); 
         resultText = resultText.replace(regex, `<img src="${url}" class="custom-emoji" alt="${shortcut}">`);
     }
+    return resultText;
+}
 
 async function sendChatMessage(){
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
