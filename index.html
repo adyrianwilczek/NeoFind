@@ -5657,10 +5657,11 @@ let currentLang = "en";
 
 function updateDidYouKnow(){
     const t = translations[currentLang];
-    if(!t.didYouKnow) return;
-    const random = t.didYouKnow[Math.floor(Math.random() * t.didYouKnow.length)];
-    document.getElementById("didYouKnowTitle").innerText = t.didYouKnowTitle;
-    document.getElementById("didYouKnow").innerText = random;
+    const tips = currentTips();
+    const titleEl = document.getElementById("didYouKnowTitle");
+    if(titleEl) titleEl.innerText = (t && t.didYouKnowTitle) || "☀️ Summer fact:";
+    if(!tips || !tips.length) return;
+    document.getElementById("didYouKnow").innerText = tips[Math.floor(Math.random() * tips.length)];
 }
 
 /* 🔎 HIGHLIGHT */
@@ -5692,6 +5693,65 @@ async function getAIResponse(query) {
     } catch (e) {
         return "AI jest teraz niedostępne. Sprawdź połączenie i spróbuj ponownie.";
     }
+}
+
+/* ☀️ CIEKAWOSTKI O LECIE (AI, paczka + rotacja lokalna) */
+let summerFacts = [];
+let summerFactsLoading = false;
+const SUMMER_FACTS_FALLBACK = [
+    "Przesilenie letnie (około 21 czerwca) to najdłuższy dzień roku na półkuli północnej.",
+    "Pory roku wynikają z nachylenia osi Ziemi, a nie z odległości od Słońca - latem Ziemia jest nawet nieco dalej od niego.",
+    "Cykady w upalne dni potrafią hałasować z głośnością bliską 100 decybeli.",
+    "Pierwsze nowożytne igrzyska olimpijskie odbyły się latem 1896 roku w Atenach.",
+    "Rozgrzane powietrze nad asfaltem ugina światło i tworzy miraże przypominające kałuże wody.",
+    "Najwyższą temperaturę na Ziemi zmierzono w Dolinie Śmierci: około 56,7 stopnia Celsjusza."
+];
+
+async function loadSummerFacts(force){
+    try {
+        const cached = JSON.parse(localStorage.getItem("summerFacts") || "null");
+        if(!force && cached && Array.isArray(cached.list) && cached.list.length >= 6
+           && (Date.now() - cached.ts) < 6*60*60*1000){
+            summerFacts = cached.list;
+            return;
+        }
+    } catch(e){}
+    if(summerFactsLoading) return;
+    summerFactsLoading = true;
+    try {
+        const prompt = "Podaj 15 krótkich, prawdziwych ciekawostek o lecie. Każda w osobnej linii, bez numeracji i bez myślników. Różne dziedziny: historia, astronomia, fizyka, nauka, matematyka, przyroda, kultura. Każda maksymalnie jedno zdanie, po polsku.";
+        const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "mistral-small-latest",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 600
+            })
+        });
+        const data = await response.json();
+        const text = (data.choices && data.choices[0]) ? data.choices[0].message.content : "";
+        const list = text.split("\n")
+            .map(s => s.replace(/^\s*[\d).•\-\*]+\s*/, "").trim())
+            .filter(s => s.length > 8);
+        if(list.length >= 4){
+            summerFacts = list;
+            localStorage.setItem("summerFacts", JSON.stringify({ ts: Date.now(), list }));
+        }
+    } catch(e){
+        // zostaw to co już mamy
+    } finally {
+        summerFactsLoading = false;
+    }
+    if(summerFacts.length === 0) summerFacts = SUMMER_FACTS_FALLBACK.slice();
+}
+
+// pula ciekawostek dla aktualnego trybu
+function currentTips(){
+    if(currentLang === "summer"){
+        return summerFacts.length ? summerFacts : SUMMER_FACTS_FALLBACK;
+    }
+    return translations[currentLang] ? translations[currentLang].didYouKnow : null;
 }
 
 /* 🔍 SEARCH + HISTORY */
@@ -7222,6 +7282,8 @@ function updateLanguage(){
     });
     // trwały ciepły motyw gdy summer aktywny
     document.body.classList.toggle("summer-theme", currentLang === "summer");
+    // ciekawostki o lecie z AI (paczka, cache 6h) - odśwież wyświetlaną po pobraniu
+    if(currentLang === "summer"){ loadSummerFacts().then(updateDidYouKnow); }
 
     const upd = (id, val, prop="innerText") => { const el=document.getElementById(id); if(el) el[prop]=val; };
 
@@ -7718,8 +7780,8 @@ function rotateTip() {
     const el = document.getElementById('didYouKnow');
     el.style.opacity = '0';
     setTimeout(() => {
-        const tips = translations[currentLang]?.didYouKnow;
-        if (!tips) return;
+        const tips = currentTips();
+        if (!tips || !tips.length) return;
         el.textContent = tips[Math.floor(Math.random() * tips.length)];
         el.style.opacity = '1';
     }, 400);
