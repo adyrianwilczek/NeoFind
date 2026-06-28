@@ -779,7 +779,7 @@ body.ocean {
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
-        <button class="lang-btn" data-lang="summer" onclick="switchLang('summer')">☀️</button>
+        <button class="lang-btn" data-lang="summer" onclick="toggleSummerMode()">☀️</button>
         <button class="lang-btn" onclick="toggleMundialMode()" aria-label="Tryb mundialowy">⚽</button>
         <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" aria-label="Pełny ekran" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
             <svg id="fsIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
@@ -7181,6 +7181,17 @@ document.addEventListener("fullscreenchange", () => {
         icon.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>';
     }
 });
+
+// ☀️ summer jako przełącznik: klik włącza, kolejny klik wraca do poprzedniego języka
+function toggleSummerMode(){
+    const active = localStorage.getItem("lang") || currentLang;
+    if(active === "summer"){
+        switchLang(localStorage.getItem("langBeforeSummer") || "en");
+    } else {
+        localStorage.setItem("langBeforeSummer", active);
+        switchLang("summer");
+    }
+}
 
 function switchLang(lang){
     localStorage.setItem("lang", lang);
