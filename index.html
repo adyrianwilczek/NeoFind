@@ -27,6 +27,14 @@ body {
     overflow-x: hidden;
 }
 
+/* ☀️ summer mode: trwały ciepły kolor (taki jak flash przy włączeniu) */
+body.summer-theme {
+    background:
+        linear-gradient(135deg, rgba(255,180,0,0.35), rgba(255,100,0,0.25), rgba(255,200,50,0.3)),
+        linear-gradient(135deg, #0f2027, #203a43, #2c5364) !important;
+    background-attachment: fixed !important;
+}
+
 /* 📦 container */
 .container {
     text-align: center;
@@ -7212,6 +7220,8 @@ function updateLanguage(){
     document.querySelectorAll(".lang-btn").forEach(b => {
         b.classList.toggle("lang-active", b.dataset.lang === currentLang);
     });
+    // trwały ciepły motyw gdy summer aktywny
+    document.body.classList.toggle("summer-theme", currentLang === "summer");
 
     const upd = (id, val, prop="innerText") => { const el=document.getElementById(id); if(el) el[prop]=val; };
 
