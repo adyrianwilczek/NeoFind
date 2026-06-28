@@ -7257,6 +7257,7 @@ function toggleSummerMode(){
         switchLang(localStorage.getItem("langBeforeSummer") || "en");
     } else {
         localStorage.setItem("langBeforeSummer", active);
+        localStorage.removeItem("summerFacts"); // świeża paczka ciekawostek przy każdym włączeniu
         switchLang("summer");
     }
 }
