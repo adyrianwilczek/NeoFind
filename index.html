@@ -885,6 +885,11 @@ body.ocean {
                     <span id="accountEmail"></span>
                     <button onclick="changeEmailPrompt()" id="changeEmailBtn">Change</button>
                 </div>
+                <div class="result" style="margin-top:8px;">
+                    <b>Name:</b>
+                    <span id="accountName"></span>
+                    <button onclick="changeDisplayName()" id="changeNameBtn">Change</button>
+                </div>
                 <div id="premiumBadge" style="display:none; color:#00ffff; font-weight:bold; margin-top:10px;">Premium</div>
                 <div class="result" style="margin-top:8px;">
                     <b>Password:</b>
@@ -6300,6 +6305,7 @@ db.collection("customResults").get().then(snapshot => {
 });
 
 document.getElementById("accountEmail").innerText = user.email;
+document.getElementById("accountName").innerText = user.displayName || user.email.split('@')[0];
     if (PREMIUM_EMAILS.includes(user.email)) {
     document.getElementById("premiumBadge").style.display = "block";
 } else {
@@ -6960,7 +6966,7 @@ function openChat(friendEmail){
                         const panelHidden = document.getElementById("chatPanel").style.display === 'none';
                         if (msg.from !== auth.currentUser.email && (document.hidden || panelHidden)) {
                             if (Notification.permission === 'granted') {
-                                new Notification(msg.from.split('@')[0], {
+                                new Notification(msg.fromName || msg.from.split('@')[0], {
                                     body: msg.imageUrl ? '📷 Zdjęcie' : (msg.text || ''),
                                     icon: '/NeoFind/icon_round.png'
                                 });
@@ -6999,7 +7005,7 @@ function renderChatMessages(snapshot, chatId) {
 
         box.innerHTML += `
             <div class="chat-row ${isMe ? 'chat-row-me' : 'chat-row-them'}">
-                ${!isMe ? `<span class="chat-sender">${escapeHtml(msg.from.split('@')[0])}</span>` : ''}
+                ${!isMe ? `<span class="chat-sender">${escapeHtml(msg.fromName || msg.from.split('@')[0])}</span>` : ''}
                 <div class="${isMe ? 'chat-msg-me' : 'chat-msg-them'}">${content}${isMe ? tick : ""}</div>
                 ${isMe ? `
                     <div class="chat-actions">
@@ -7046,6 +7052,34 @@ function parseCustomEmojis(text) {
     return resultText;
 }
 
+// nazwa wyświetlana: displayName z konta, w razie braku część maila
+function chatDisplayName(){
+    const u = auth.currentUser;
+    if(!u) return "";
+    return u.displayName ? u.displayName : u.email.split('@')[0];
+}
+
+// zmiana nazwy wyświetlanej (Firebase updateProfile)
+async function changeDisplayName(){
+    const u = auth.currentUser;
+    if(!u) return;
+    let name = prompt("Nowa nazwa wyświetlana (imię lub pseudonim):", u.displayName || "");
+    if(name === null) return;
+    name = name.trim();
+    if(!name){ alert("Nazwa nie może być pusta."); return; }
+    if(name.length > 20){ alert("Maksymalnie 20 znaków."); return; }
+    try {
+        await u.updateProfile({ displayName: name });
+        const span = document.getElementById("accountName");
+        if(span) span.innerText = name;
+        const g = document.getElementById("greeting");
+        if(g) g.textContent = `Hi ${name}! good to see you 👋`;
+        alert("Zapisano nazwę: " + name);
+    } catch(e){
+        alert("Błąd zapisu nazwy: " + e.message);
+    }
+}
+
 async function sendChatMessage(){
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         try { Notification.requestPermission(); } catch(e) {}
@@ -7065,6 +7099,7 @@ async function sendChatMessage(){
             .collection("messages")
             .add({
                 from: auth.currentUser.email,
+                fromName: chatDisplayName(),
                 text: text,
                 date: new Date()
             });
@@ -7094,6 +7129,7 @@ async function uploadChatImage(input) {
         const url = await ref.getDownloadURL();
         await db.collection("chats").doc(chatId).collection("messages").add({
             from: auth.currentUser.email,
+            fromName: chatDisplayName(),
             text: "",
             imageUrl: url,
             date: new Date()
@@ -7594,6 +7630,7 @@ async function sendVoiceMessage() {
         const chatId = getChatId(auth.currentUser.email, currentChatFriend);
         await db.collection("chats").doc(chatId).collection("messages").add({
             from: auth.currentUser.email,
+            fromName: chatDisplayName(),
             type: "audio",
             url: url,
             date: new Date()
