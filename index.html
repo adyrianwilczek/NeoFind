@@ -5752,7 +5752,7 @@ async function loadFactsPack(cacheKey, prompt, fallback, force){
         const data = await response.json();
         const text = (data.choices && data.choices[0]) ? data.choices[0].message.content : "";
         list = text.split("\n")
-            .map(s => s.replace(/^\s*[\d).•\-\*]+\s*/, "").trim())
+            .map(s => s.replace(/^\s*[\d).•\-\*]+\s*/, "").replace(/\*+/g, "").trim())
             .filter(s => s.length > 8);
         if(list.length >= 4){
             localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), list }));
