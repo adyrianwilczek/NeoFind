@@ -5746,7 +5746,7 @@ async function loadFactsPack(cacheKey, prompt, fallback, force){
             body: JSON.stringify({
                 model: "mistral-small-latest",
                 messages: [{ role: "user", content: prompt }],
-                max_tokens: 600
+                max_tokens: 1000
             })
         });
         const data = await response.json();
@@ -5781,20 +5781,20 @@ function factsPrompt(topic, lang){
             es: "sobre el fútbol y el Mundial (historia del Mundial, récords, jugadores, curiosidades, reglas)"
         },
         tech: {
-            pl: "o informatyce, programowaniu, Linuksie, grach komputerowych i o wyszukiwarce NeoFind tworzonej przez młodego programistę",
-            en: "about computer science, programming, Linux, video games and the NeoFind search engine built by a young developer",
-            es: "sobre informática, programación, Linux, videojuegos y el buscador NeoFind creado por un joven programador"
+            pl: "o informatyce, programowaniu, Linuksie i grach komputerowych. O samej wyszukiwarce NeoFind pisz tylko ogólnie (że to wyszukiwarka tworzona przez młodego programistę) i nie wymyślaj jej funkcji - nie twierdź, że ma coś, czego nie masz pewności (np. tryb ciemny). Reszta tematów dowolnie",
+            en: "about computer science, programming, Linux and video games. Mention the NeoFind search engine only in general terms (a search engine built by a young developer) and do not invent its features - never claim it has something you are not sure about (e.g. a dark mode). Other topics freely",
+            es: "sobre informática, programación, Linux y videojuegos. Menciona el buscador NeoFind solo en términos generales (un buscador creado por un joven programador) y no inventes sus funciones - nunca afirmes que tiene algo de lo que no estés seguro (por ejemplo, un modo oscuro). Otros temas libremente"
         }
     };
     const t = (topics[topic] && topics[topic][lang]) || topics[topic].en;
-    if(lang === "pl") return `Podaj 15 prawdziwych ciekawostek ${t}. Pisz po polsku ładnym, lekko młodzieżowym i odrobinę ironicznym językiem, ale z bezbłędną ortografią, gramatyką, składnią i interpunkcją. Mieszaj poważne z lżejszymi, tak by zaciekawiły 11-latka i starsze dzieciaki. Każda w osobnej linii, bez numeracji i bez myślników, maksymalnie jedno zdanie. Nie dodawaj żadnego wstępu, komentarza ani podsumowania - wypisz tylko same ciekawostki, każda w nowej linii.`;
+    if(lang === "pl") return `Podaj 15 prawdziwych ciekawostek ${t}. Pisz po polsku ładnym, lekko młodzieżowym i odrobinę ironicznym językiem, ale z bezbłędną ortografią, gramatyką, składnią i interpunkcją. Mieszaj poważne z lżejszymi, tak by zaciekawiły 11-latka i starsze dzieciaki. Zwroty grzecznościowe do czytelnika (Ty, Twój, Twoja, Twoje, Twoich, Twoim, Ciebie, Tobie, Cię, Ci) pisz wielką literą. Każda w osobnej linii, bez numeracji i bez myślników, maksymalnie jedno zdanie. Nie dodawaj żadnego wstępu, komentarza ani podsumowania - wypisz tylko same ciekawostki, każda w nowej linii.`;
     if(lang === "es") return `Da 15 curiosidades reales ${t}. Escribe en español con un lenguaje bonito, algo juvenil y un punto irónico, pero con ortografía, gramática, sintaxis y puntuación impecables. Mezcla serias con más ligeras, para enganchar a chicos de 11 años y mayores. Cada una en una línea, sin numeración ni guiones, máximo una frase. No añadas introducción, comentario ni resumen: escribe solo las curiosidades, una por línea.`;
     return `Give 15 true, genuinely interesting facts ${t}. Write in English with nice, slightly youthful and a touch ironic language, but with flawless spelling, grammar, syntax and punctuation. Mix serious with lighter ones, to hook 11-year-olds and older kids. One per line, no numbering, no dashes, max one sentence each. Do not add any intro, comment or summary - output only the facts, one per line.`;
 }
 
-async function loadSummerFacts(force){ const l = factsLang(); summerFacts[l] = await loadFactsPack("summerFacts_" + l, factsPrompt("summer", l), SUMMER_FACTS_FALLBACK, force); }
-async function loadFootballFacts(force){ const l = factsLang(); footballFacts[l] = await loadFactsPack("footballFacts_" + l, factsPrompt("football", l), FOOTBALL_FACTS_FALLBACK, force); }
-async function loadTechFacts(force){ const l = factsLang(); techFacts[l] = await loadFactsPack("techFacts_" + l, factsPrompt("tech", l), TECH_FACTS_FALLBACK, force); }
+async function loadSummerFacts(force){ const l = factsLang(); summerFacts[l] = await loadFactsPack("summerFacts_v2_" + l, factsPrompt("summer", l), SUMMER_FACTS_FALLBACK, force); }
+async function loadFootballFacts(force){ const l = factsLang(); footballFacts[l] = await loadFactsPack("footballFacts_v2_" + l, factsPrompt("football", l), FOOTBALL_FACTS_FALLBACK, force); }
+async function loadTechFacts(force){ const l = factsLang(); techFacts[l] = await loadFactsPack("techFacts_v2_" + l, factsPrompt("tech", l), TECH_FACTS_FALLBACK, force); }
 
 // pula ciekawostek dla aktualnego trybu (mundial > summer > tech), w języku systemu
 function currentTips(){
@@ -5807,7 +5807,7 @@ function currentTips(){
     }
     const f = techFacts[l];
     if(f && f.length) return f;
-    return (translations[currentLang] && translations[currentLang].didYouKnow) || TECH_FACTS_FALLBACK;
+    return TECH_FACTS_FALLBACK;
 }
 
 // tytuł nad ciekawostką wg trybu, w języku systemu
@@ -7849,13 +7849,21 @@ function insertEmoji(emoji) {
 }
 
 // animowane did you know
+let _lastTip = "";
 function rotateTip() {
     const el = document.getElementById('didYouKnow');
     el.style.opacity = '0';
     setTimeout(() => {
         const tips = currentTips();
         if (!tips || !tips.length) return;
-        el.textContent = tips[Math.floor(Math.random() * tips.length)];
+        let tip = tips[Math.floor(Math.random() * tips.length)];
+        // przy puli > 1 nie powtarzaj tej samej ciekawostki pod rząd
+        if (tips.length > 1) {
+            let guard = 0;
+            while (tip === _lastTip && guard++ < 8) tip = tips[Math.floor(Math.random() * tips.length)];
+        }
+        _lastTip = tip;
+        el.textContent = tip;
         el.style.opacity = '1';
     }, 400);
 }
