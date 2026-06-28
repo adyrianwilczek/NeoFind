@@ -5340,6 +5340,8 @@ const data = {
 const translations = {
     en: {
         search: "Search...",
+        greet: "Hi {name}! good to see you 👋",
+        greetW: "Hi {name}! it's {temp}°C 🌤",
         settings: "Settings",
         language: "Language",
         history: "History",
@@ -5389,6 +5391,8 @@ const translations = {
 
     pl: {
         search: "Szukaj...",
+        greet: "Cześć {name}! miło Cię widzieć 👋",
+        greetW: "Cześć {name}! jest {temp}°C 🌤",
         settings: "Ustawienia",
         language: "Język",
         history: "Historia",
@@ -5438,6 +5442,8 @@ didYouKnow: [
 
     es: {
         search: "Buscar...",
+        greet: "¡Hola {name}! qué bueno verte 👋",
+        greetW: "¡Hola {name}! hace {temp}°C 🌤",
         settings: "Ajustes",
         language: "Idioma",
         history: "Historial",
@@ -5487,6 +5493,8 @@ didYouKnow: [
 
     summer: {
         search: "☀️ search...",
+        greet: "Hi {name}! enjoy summer ☀️",
+        greetW: "Hi {name}! it's {temp}°C ☀️",
         settings: "☀️ Settings",
         language: "☀️ Language",
         history: "☀️ History",
@@ -6235,6 +6243,19 @@ setTimeout(() => {
     }
 }, 2500);
 
+// powitanie zależne od języka (renderowane też przy zmianie języka)
+let greetTemp = null;
+function renderGreeting(){
+    const el = document.getElementById('greeting');
+    const u = auth.currentUser;
+    if(!el || !u) return;
+    const name = u.displayName || u.email.split('@')[0];
+    const t = translations[currentLang] || translations.en;
+    const tpl = (greetTemp !== null) ? (t.greetW || translations.en.greetW)
+                                     : (t.greet  || translations.en.greet);
+    el.textContent = tpl.replace('{name}', name).replace('{temp}', greetTemp);
+}
+
 auth.onAuthStateChanged(async user => {
     authResolved = true;
     const loginScreen = document.getElementById("loginScreen");
@@ -6276,7 +6297,8 @@ app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
 
 // Powitanie ustawiamy od razu, temperaturę dopisujemy jak przyjdzie z pogody
-document.getElementById('greeting').textContent = `Hi ${name}! good to see you 👋`;
+greetTemp = null;
+renderGreeting();
 
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(position => {
@@ -6289,7 +6311,8 @@ if (navigator.geolocation) {
             .then(weather => {
                 if (weather && weather.current_weather) {
                     const temp = Math.round(weather.current_weather.temperature);
-                    document.getElementById('greeting').textContent = `Hi ${name}! it's ${temp}°C 🌤`;
+                    greetTemp = temp;
+                    renderGreeting();
                 }
             })
             .catch(() => {});
@@ -7072,8 +7095,7 @@ async function changeDisplayName(){
         await u.updateProfile({ displayName: name });
         const span = document.getElementById("accountName");
         if(span) span.innerText = name;
-        const g = document.getElementById("greeting");
-        if(g) g.textContent = `Hi ${name}! good to see you 👋`;
+        renderGreeting();
         alert("Zapisano nazwę: " + name);
     } catch(e){
         alert("Błąd zapisu nazwy: " + e.message);
@@ -7174,6 +7196,7 @@ function switchLang(lang){
 }
 
 function updateLanguage(){
+    renderGreeting();
     const t = translations[currentLang];
     document.querySelectorAll(".lang-btn").forEach(b => {
         b.classList.toggle("lang-active", b.dataset.lang === currentLang);
