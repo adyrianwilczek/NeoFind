@@ -5696,8 +5696,12 @@ async function getAIResponse(query) {
 }
 
 /* ☀️ CIEKAWOSTKI O LECIE (AI, paczka + rotacja lokalna) */
-let summerFacts = [];
-let summerFactsLoading = false;
+/* 💡 CIEKAWOSTKI Z AI (summer / mundial / tech) - paczka + rotacja lokalna */
+let summerFacts = {};          // per język
+let footballFacts = {};        // per język
+let techFacts = {};            // per język: { pl:[...], en:[...], es:[...] }
+const factsLoading = {};       // proste blokady wg klucza cache
+
 const SUMMER_FACTS_FALLBACK = [
     "Przesilenie letnie (około 21 czerwca) to najdłuższy dzień roku na półkuli północnej.",
     "Pory roku wynikają z nachylenia osi Ziemi, a nie z odległości od Słońca - latem Ziemia jest nawet nieco dalej od niego.",
@@ -5706,49 +5710,6 @@ const SUMMER_FACTS_FALLBACK = [
     "Rozgrzane powietrze nad asfaltem ugina światło i tworzy miraże przypominające kałuże wody.",
     "Najwyższą temperaturę na Ziemi zmierzono w Dolinie Śmierci: około 56,7 stopnia Celsjusza."
 ];
-
-async function loadSummerFacts(force){
-    try {
-        const cached = JSON.parse(localStorage.getItem("summerFacts") || "null");
-        if(!force && cached && Array.isArray(cached.list) && cached.list.length >= 6
-           && (Date.now() - cached.ts) < 6*60*60*1000){
-            summerFacts = cached.list;
-            return;
-        }
-    } catch(e){}
-    if(summerFactsLoading) return;
-    summerFactsLoading = true;
-    try {
-        const prompt = "Podaj 15 krótkich, prawdziwych ciekawostek o lecie. Każda w osobnej linii, bez numeracji i bez myślników. Różne dziedziny: historia, astronomia, fizyka, nauka, matematyka, przyroda, kultura. Każda maksymalnie jedno zdanie, po polsku.";
-        const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                model: "mistral-small-latest",
-                messages: [{ role: "user", content: prompt }],
-                max_tokens: 600
-            })
-        });
-        const data = await response.json();
-        const text = (data.choices && data.choices[0]) ? data.choices[0].message.content : "";
-        const list = text.split("\n")
-            .map(s => s.replace(/^\s*[\d).•\-\*]+\s*/, "").trim())
-            .filter(s => s.length > 8);
-        if(list.length >= 4){
-            summerFacts = list;
-            localStorage.setItem("summerFacts", JSON.stringify({ ts: Date.now(), list }));
-        }
-    } catch(e){
-        // zostaw to co już mamy
-    } finally {
-        summerFactsLoading = false;
-    }
-    if(summerFacts.length === 0) summerFacts = SUMMER_FACTS_FALLBACK.slice();
-}
-
-/* ⚽ CIEKAWOSTKI O PIŁCE/MUNDIALU (AI, paczka + rotacja lokalna) */
-let footballFacts = [];
-let footballFactsLoading = false;
 const FOOTBALL_FACTS_FALLBACK = [
     "Pierwszy mundial odbył się w 1930 roku w Urugwaju, który został pierwszym mistrzem świata.",
     "Brazylia to jedyna reprezentacja, która zagrała na każdym mundialu w historii.",
@@ -5757,20 +5718,28 @@ const FOOTBALL_FACTS_FALLBACK = [
     "Klasyczna piłka uszyta jest z 32 łatek: 12 pięciokątów i 20 sześciokątów.",
     "Reprezentacja Brazylii zdobyła mistrzostwo świata rekordowe pięć razy."
 ];
+const TECH_FACTS_FALLBACK = [
+    "Pierwszy komputerowy „bug” to była prawdziwa ćma, którą w 1947 roku wyjęto z przekaźnika.",
+    "Linux działa na większości superkomputerów świata i w prawie każdym telefonie z Androidem.",
+    "Pierwszą grę wideo „Tennis for Two” zrobiono w 1958 roku na oscyloskopie.",
+    "Klawisze F i J mają wypustki, żeby palce same trafiały na środek klawiatury bez patrzenia.",
+    "Słowo „robot” pochodzi z czeskiej sztuki z 1920 roku i znaczy mniej więcej „ciężka praca”.",
+    "NeoFind powstaje krok po kroku, bo tworzy go młody programista i wciąż dochodzą nowe funkcje."
+];
 
-async function loadFootballFacts(force){
+// generyczny loader paczki ciekawostek z AI (Worker Mistral), cache 6h, fallback
+async function loadFactsPack(cacheKey, prompt, fallback, force){
     try {
-        const cached = JSON.parse(localStorage.getItem("footballFacts") || "null");
+        const cached = JSON.parse(localStorage.getItem(cacheKey) || "null");
         if(!force && cached && Array.isArray(cached.list) && cached.list.length >= 6
            && (Date.now() - cached.ts) < 6*60*60*1000){
-            footballFacts = cached.list;
-            return;
+            return cached.list;
         }
     } catch(e){}
-    if(footballFactsLoading) return;
-    footballFactsLoading = true;
+    if(factsLoading[cacheKey]) return fallback.slice();
+    factsLoading[cacheKey] = true;
+    let list = [];
     try {
-        const prompt = "Podaj 15 krótkich, prawdziwych ciekawostek o piłce nożnej i mistrzostwach świata (mundialu). Każda w osobnej linii, bez numeracji i bez myślników. Różne wątki: historia mundiali, rekordy, słynni zawodnicy, reguły gry, pamiętne mecze, reprezentacje. Każda maksymalnie jedno zdanie, po polsku.";
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -5782,37 +5751,73 @@ async function loadFootballFacts(force){
         });
         const data = await response.json();
         const text = (data.choices && data.choices[0]) ? data.choices[0].message.content : "";
-        const list = text.split("\n")
+        list = text.split("\n")
             .map(s => s.replace(/^\s*[\d).•\-\*]+\s*/, "").trim())
             .filter(s => s.length > 8);
         if(list.length >= 4){
-            footballFacts = list;
-            localStorage.setItem("footballFacts", JSON.stringify({ ts: Date.now(), list }));
-        }
-    } catch(e){
-        // zostaw to co już mamy
-    } finally {
-        footballFactsLoading = false;
-    }
-    if(footballFacts.length === 0) footballFacts = FOOTBALL_FACTS_FALLBACK.slice();
+            localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), list }));
+        } else { list = []; }
+    } catch(e){ list = []; }
+    finally { factsLoading[cacheKey] = false; }
+    return list.length ? list : fallback.slice();
 }
 
-// pula ciekawostek dla aktualnego trybu (mundial > summer > język)
+// język ciekawostek = język systemu (summer ma UI po angielsku -> en)
+function factsLang(){
+    return (currentLang === "pl" || currentLang === "es") ? currentLang : "en";
+}
+
+// prompt wg tematu i języka; ton: ładny, lekko młodzieżowy i ironiczny, ale poprawny
+function factsPrompt(topic, lang){
+    const topics = {
+        summer: {
+            pl: "o lecie (historia, astronomia, fizyka, przyroda, kultura, rekordy)",
+            en: "about summer (history, astronomy, physics, nature, culture, records)",
+            es: "sobre el verano (historia, astronomía, física, naturaleza, cultura, récords)"
+        },
+        football: {
+            pl: "o piłce nożnej i mistrzostwach świata (historia mundiali, rekordy, zawodnicy, kurioza, reguły)",
+            en: "about football and the World Cup (World Cup history, records, players, oddities, rules)",
+            es: "sobre el fútbol y el Mundial (historia del Mundial, récords, jugadores, curiosidades, reglas)"
+        },
+        tech: {
+            pl: "o informatyce, programowaniu, Linuksie, grach komputerowych i o wyszukiwarce NeoFind tworzonej przez młodego programistę",
+            en: "about computer science, programming, Linux, video games and the NeoFind search engine built by a young developer",
+            es: "sobre informática, programación, Linux, videojuegos y el buscador NeoFind creado por un joven programador"
+        }
+    };
+    const t = (topics[topic] && topics[topic][lang]) || topics[topic].en;
+    if(lang === "pl") return `Podaj 15 prawdziwych ciekawostek ${t}. Pisz po polsku ładnym, lekko młodzieżowym i odrobinę ironicznym językiem, ale z bezbłędną ortografią, gramatyką, składnią i interpunkcją. Mieszaj poważne z lżejszymi, tak by zaciekawiły 11-latka i starsze dzieciaki. Każda w osobnej linii, bez numeracji i bez myślników, maksymalnie jedno zdanie.`;
+    if(lang === "es") return `Da 15 curiosidades reales ${t}. Escribe en español con un lenguaje bonito, algo juvenil y un punto irónico, pero con ortografía, gramática, sintaxis y puntuación impecables. Mezcla serias con más ligeras, para enganchar a chicos de 11 años y mayores. Cada una en una línea, sin numeración ni guiones, máximo una frase.`;
+    return `Give 15 true, genuinely interesting facts ${t}. Write in English with nice, slightly youthful and a touch ironic language, but with flawless spelling, grammar, syntax and punctuation. Mix serious with lighter ones, to hook 11-year-olds and older kids. One per line, no numbering, no dashes, max one sentence each.`;
+}
+
+async function loadSummerFacts(force){ const l = factsLang(); summerFacts[l] = await loadFactsPack("summerFacts_" + l, factsPrompt("summer", l), SUMMER_FACTS_FALLBACK, force); }
+async function loadFootballFacts(force){ const l = factsLang(); footballFacts[l] = await loadFactsPack("footballFacts_" + l, factsPrompt("football", l), FOOTBALL_FACTS_FALLBACK, force); }
+async function loadTechFacts(force){ const l = factsLang(); techFacts[l] = await loadFactsPack("techFacts_" + l, factsPrompt("tech", l), TECH_FACTS_FALLBACK, force); }
+
+// pula ciekawostek dla aktualnego trybu (mundial > summer > tech), w języku systemu
 function currentTips(){
+    const l = factsLang();
     if(localStorage.getItem('mundial') === 'on'){
-        return footballFacts.length ? footballFacts : FOOTBALL_FACTS_FALLBACK;
+        const f = footballFacts[l]; return (f && f.length) ? f : FOOTBALL_FACTS_FALLBACK;
     }
     if(currentLang === "summer"){
-        return summerFacts.length ? summerFacts : SUMMER_FACTS_FALLBACK;
+        const f = summerFacts[l]; return (f && f.length) ? f : SUMMER_FACTS_FALLBACK;
     }
-    return translations[currentLang] ? translations[currentLang].didYouKnow : null;
+    const f = techFacts[l];
+    if(f && f.length) return f;
+    return (translations[currentLang] && translations[currentLang].didYouKnow) || TECH_FACTS_FALLBACK;
 }
 
-// tytuł nad ciekawostką wg trybu
+// tytuł nad ciekawostką wg trybu, w języku systemu
 function currentTipTitle(){
-    if(localStorage.getItem('mundial') === 'on') return "⚽ Ciekawostka piłkarska:";
+    const l = factsLang();
+    if(localStorage.getItem('mundial') === 'on'){
+        return l === "pl" ? "⚽ Ciekawostka piłkarska:" : (l === "es" ? "⚽ Dato futbolero:" : "⚽ Football fact:");
+    }
     const t = translations[currentLang];
-    return (t && t.didYouKnowTitle) || "Czy wiesz, że?";
+    return (t && t.didYouKnowTitle) || "Did you know?";
 }
 
 /* 🔍 SEARCH + HISTORY */
@@ -7344,8 +7349,14 @@ function updateLanguage(){
     });
     // trwały ciepły motyw gdy summer aktywny
     document.body.classList.toggle("summer-theme", currentLang === "summer");
-    // ciekawostki o lecie z AI (paczka, cache 6h) - odśwież wyświetlaną po pobraniu
-    if(currentLang === "summer"){ loadSummerFacts().then(updateDidYouKnow); }
+    // ciekawostki z AI wg trybu i języka systemu - odśwież wyświetlaną po pobraniu
+    if(localStorage.getItem('mundial') === 'on'){
+        loadFootballFacts().then(updateDidYouKnow);
+    } else if(currentLang === "summer"){
+        loadSummerFacts().then(updateDidYouKnow);
+    } else {
+        loadTechFacts().then(updateDidYouKnow); // tryb normalny: IT/programowanie/Linux/gry/NeoFind
+    }
 
     const upd = (id, val, prop="innerText") => { const el=document.getElementById(id); if(el) el[prop]=val; };
 
