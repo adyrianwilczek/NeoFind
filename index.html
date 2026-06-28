@@ -5659,7 +5659,7 @@ function updateDidYouKnow(){
     const t = translations[currentLang];
     const tips = currentTips();
     const titleEl = document.getElementById("didYouKnowTitle");
-    if(titleEl) titleEl.innerText = (t && t.didYouKnowTitle) || "☀️ Summer fact:";
+    if(titleEl) titleEl.innerText = currentTipTitle();
     if(!tips || !tips.length) return;
     document.getElementById("didYouKnow").innerText = tips[Math.floor(Math.random() * tips.length)];
 }
@@ -5746,12 +5746,73 @@ async function loadSummerFacts(force){
     if(summerFacts.length === 0) summerFacts = SUMMER_FACTS_FALLBACK.slice();
 }
 
-// pula ciekawostek dla aktualnego trybu
+/* ⚽ CIEKAWOSTKI O PIŁCE/MUNDIALU (AI, paczka + rotacja lokalna) */
+let footballFacts = [];
+let footballFactsLoading = false;
+const FOOTBALL_FACTS_FALLBACK = [
+    "Pierwszy mundial odbył się w 1930 roku w Urugwaju, który został pierwszym mistrzem świata.",
+    "Brazylia to jedyna reprezentacja, która zagrała na każdym mundialu w historii.",
+    "Najszybszego gola mundialu strzelił Hakan Şükür w 2002 roku, już po 11 sekundach.",
+    "Pierwsze przepisy gry w piłkę nożną spisano w Anglii w 1863 roku.",
+    "Klasyczna piłka uszyta jest z 32 łatek: 12 pięciokątów i 20 sześciokątów.",
+    "Reprezentacja Brazylii zdobyła mistrzostwo świata rekordowe pięć razy."
+];
+
+async function loadFootballFacts(force){
+    try {
+        const cached = JSON.parse(localStorage.getItem("footballFacts") || "null");
+        if(!force && cached && Array.isArray(cached.list) && cached.list.length >= 6
+           && (Date.now() - cached.ts) < 6*60*60*1000){
+            footballFacts = cached.list;
+            return;
+        }
+    } catch(e){}
+    if(footballFactsLoading) return;
+    footballFactsLoading = true;
+    try {
+        const prompt = "Podaj 15 krótkich, prawdziwych ciekawostek o piłce nożnej i mistrzostwach świata (mundialu). Każda w osobnej linii, bez numeracji i bez myślników. Różne wątki: historia mundiali, rekordy, słynni zawodnicy, reguły gry, pamiętne mecze, reprezentacje. Każda maksymalnie jedno zdanie, po polsku.";
+        const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: "mistral-small-latest",
+                messages: [{ role: "user", content: prompt }],
+                max_tokens: 600
+            })
+        });
+        const data = await response.json();
+        const text = (data.choices && data.choices[0]) ? data.choices[0].message.content : "";
+        const list = text.split("\n")
+            .map(s => s.replace(/^\s*[\d).•\-\*]+\s*/, "").trim())
+            .filter(s => s.length > 8);
+        if(list.length >= 4){
+            footballFacts = list;
+            localStorage.setItem("footballFacts", JSON.stringify({ ts: Date.now(), list }));
+        }
+    } catch(e){
+        // zostaw to co już mamy
+    } finally {
+        footballFactsLoading = false;
+    }
+    if(footballFacts.length === 0) footballFacts = FOOTBALL_FACTS_FALLBACK.slice();
+}
+
+// pula ciekawostek dla aktualnego trybu (mundial > summer > język)
 function currentTips(){
+    if(localStorage.getItem('mundial') === 'on'){
+        return footballFacts.length ? footballFacts : FOOTBALL_FACTS_FALLBACK;
+    }
     if(currentLang === "summer"){
         return summerFacts.length ? summerFacts : SUMMER_FACTS_FALLBACK;
     }
     return translations[currentLang] ? translations[currentLang].didYouKnow : null;
+}
+
+// tytuł nad ciekawostką wg trybu
+function currentTipTitle(){
+    if(localStorage.getItem('mundial') === 'on') return "⚽ Ciekawostka piłkarska:";
+    const t = translations[currentLang];
+    return (t && t.didYouKnowTitle) || "Czy wiesz, że?";
 }
 
 /* 🔍 SEARCH + HISTORY */
@@ -7817,23 +7878,26 @@ const MUNDIAL_BG =
     `radial-gradient(ellipse 75% 75% at 50% 45%, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%) fixed,` +
     `repeating-linear-gradient(0deg, #2f7d4f 0px, #2f7d4f 70px, #348a57 70px, #348a57 140px) fixed`;
 
-function setMundialMode(on) {
+function setMundialMode(on, fresh) {
     if (on) {
         localStorage.setItem('mundial', 'on');
         document.documentElement.style.setProperty('--bg', MUNDIAL_BG);
+        loadFootballFacts(fresh).then(updateDidYouKnow); // ciekawostki piłkarskie
     } else {
         localStorage.setItem('mundial', 'off');
         document.documentElement.style.setProperty('--bg', '');
+        updateDidYouKnow(); // powrót do normalnych ciekawostek
     }
 }
 
 function toggleMundialMode() {
-    setMundialMode(localStorage.getItem('mundial') !== 'on');
+    const turningOn = localStorage.getItem('mundial') !== 'on';
+    setMundialMode(turningOn, turningOn); // świeża paczka przy każdym włączeniu
 }
 
-// Przywróć tryb mundialowy po odświeżeniu strony
+// Przywróć tryb mundialowy po odświeżeniu strony (z cache, nie świeże)
 if (localStorage.getItem('mundial') === 'on') {
-    setMundialMode(true);
+    setMundialMode(true, false);
 }
 
 // Admin / Owner
