@@ -259,29 +259,6 @@ button:focus-visible, input:focus-visible, a:focus-visible {
     margin-top:10px;
 }
 
-/* Prawdziwy panel logów systemowych */
-#real-logger-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: #090a0f;
-    color: #4af626; /* hakerska zieleń dla statusów OK */
-    font-family: 'Consolas', 'Courier New', monospace;
-    padding: 30px;
-    box-sizing: border-box;
-    z-index: 9999999;
-    display: none;
-    overflow-y: auto;
-    font-size: 13px;
-    line-height: 1.5;
-}
-.log-row { margin-bottom: 6px; white-space: pre-wrap; }
-.log-ts { color: #6272a4; margin-right: 12px; } /* niebiesko-szary timestamp */
-.log-tag { font-weight: bold; margin-right: 8px; }
-.log-msg { color: #f8f8f2; } /* biały tekst komunikatu */
-
 /* 👥 FRIENDS SYSTEM */
 #friendsBox {
     display:none;
@@ -886,41 +863,6 @@ body.ocean {
         <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
     </div>
 
-    <!-- F1 -->
-    <div id="panic-overlay">
-    <h1>📊 SYSTEM LOGS & DATA ANALYSIS // HOST_ID: 8841-A</h1>
-    <p>Status: <span style="color: #4cbd79;">ACTIVE</span> | Database Link: SECURE</p>
-    <p>Last Sync: Today, 14:32:11 UTC</p>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Timestamp</th>
-                <th>Process ID</th>
-                <th>Memory Allocation</th>
-                <th>Query Load</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr><td>2026-06-30 22:15:01</td><td>PID_4412</td><td>245.1 MB</td><td>0.04s</td><td style="color:#4cbd79">OK</td></tr>
-            <tr><td>2026-06-30 22:15:05</td><td>PID_9011</td><td>1,024.8 MB</td><td>0.12s</td><td style="color:#4cbd79">OK</td></tr>
-            <tr><td>2026-06-30 22:16:00</td><td>PID_3321</td><td>88.4 MB</td><td>0.01s</td><td style="color:#4cbd79">OK</td></tr>
-            <tr><td>2026-06-30 22:18:42</td><td>PID_0045</td><td>512.0 MB</td><td>0.05s</td><td style="color:#e53e3e">DELAYED</td></tr>
-        </tbody>
-    </table>
-    
-    <p style="margin-top: 30px; font-size: 11px; color: #4a5568;">[System operating normally. Press F9 to refresh cache...]</p>
-</div>
-
-    <!-- Logi -->
-    <div id="real-logger-overlay">
-    <div style="color: #50fa7b; border-bottom: 1px solid #282a36; padding-bottom: 10px; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
-        System Application Logger v1.0.0 // Active Session
-    </div>
-    <div id="logger-output"></div>
-</div>
-    
     <!-- ⚙️ SETTINGS -->
     <div id="settingsBox" style="display:none; text-align:center;">
         <h3 id="settingsTitle">Settings</h3>
@@ -6145,6 +6087,8 @@ function saveSettings(){
     const lang = document.getElementById("settingsLang").value;
     currentLang = lang;
     localStorage.setItem("lang", lang);
+    if (typeof logAction === 'function') {
+            logAction("UI_EVENT", `User manually toggled language layout to: ${currentLang.toUpperCase()}`);
     const theme = document.getElementById("themeSelect").value;
     applyTheme(theme);
     updateLanguage();
@@ -6734,7 +6678,6 @@ function handleCommand(e){
         } else if(["en","es","pl"].includes(lang)){
             currentLang = lang;
             localStorage.setItem("lang", lang);
-            logAction("USER", `Language changed manually to: ${btn.dataset.lang.toUpperCase()}`);
             document.getElementById("langSelect").value = lang;
             updateLanguage();
             log("language changed to " + lang);
@@ -8009,7 +7952,6 @@ function setCountdownOnLogin(checked) {
 }
 
 function startNeoCountdown(labelText, targetDateString) {
-logAction("TIMER", `Countdown active. Target expiration: ${targetDate}`, "INFO");
     document.addEventListener("DOMContentLoaded", function() {
         // wszystkie liczniki na stronie (ekran logowania + ekran #app)
         const labelEls = document.querySelectorAll(".neoCountdownLabel");
@@ -8076,70 +8018,104 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
-// Tablica, w której aplikacja będzie zapisywać PRAWDZIWE wydarzenia
+// ==========================================
+// REAL-TIME APPLICATION LOGGER (F1)
+// ==========================================
+
+// 1. Automatyczne dodanie stylów dla ukrytego okna diagnostycznego
+const loggerStyles = document.createElement('style');
+loggerStyles.textContent = `
+    #real-logger-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #090a0f;
+        color: #f8f8f2;
+        font-family: 'Consolas', 'Courier New', monospace;
+        padding: 30px;
+        box-sizing: border-box;
+        z-index: 9999999;
+        display: none; /* Domyślnie schowane */
+        overflow-y: auto;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    .log-row { margin-bottom: 6px; white-space: pre-wrap; }
+    .log-ts { color: #6272a4; margin-right: 12px; }
+    .log-tag { font-weight: bold; margin-right: 8px; color: #50fa7b; }
+    .log-msg { color: #f8f8f2; }
+`;
+document.head.appendChild(loggerStyles);
+
+// 2. Automatyczne stworzenie ukrytego okna w HTML
+const loggerDiv = document.createElement('div');
+loggerDiv.id = 'real-logger-overlay';
+loggerDiv.innerHTML = `
+    <div style="color: #50fa7b; border-bottom: 1px solid #282a36; padding-bottom: 10px; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
+        ⚙️ NEODATA SYSTEM APPLICATION LOG INTERFACE // ACTIVE SESSION
+    </div>
+    <div id="logger-output" style="color: #888;">[ No events recorded yet. Perform actions in the app to generate logs... ]</div>
+`;
+document.body.appendChild(loggerDiv);
+
+// 3. Pusta baza danych na PRAWDZIWE logi
 const APP_LOG_DATABASE = [];
 
-// Główna funkcja do rejestrowania zdarzeń
-function logAction(tag, message, type = "INFO") {
+// 4. Główna funkcja logująca (czysta, bez fejków)
+function logAction(tag, message) {
     const now = new Date();
     const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
     
-    // Zapisujemy obiekt z prawdziwymi danymi w pamięci
+    // Zapisujemy TYLKO autentyczne zdarzenie przekazane z kodu
     APP_LOG_DATABASE.push({
         timestamp: timeStr,
         tag: tag.toUpperCase(),
-        message: message,
-        type: type
+        message: message
     });
     
-    // Jeśli konsola jest akurat otwarta, od razu renderujemy nowy log na ekranie
-    const output = document.getElementById('logger-output');
-    if (output && document.getElementById('real-logger-overlay').style.display === 'block') {
+    // Jeśli okno jest otwarte, od razu odświeżamy widok
+    if (document.getElementById('real-logger-overlay').style.display === 'block') {
         renderLogs();
     }
 }
 
-// Funkcja rysująca logi w oknie
+// 5. Funkcja wyświetlająca zebrane logi w oknie
 function renderLogs() {
     const output = document.getElementById('logger-output');
+    if (APP_LOG_DATABASE.length === 0) {
+        output.innerHTML = `<div style="color: #44475a;">[ Console idle. No application events captured. ]</div>`;
+        return;
+    }
+    
     output.innerHTML = APP_LOG_DATABASE.map(log => {
-        let typeColor = "#50fa7b"; // zielony dla INFO
-        if (log.type === "WARN") typeColor = "#ffb86c"; // pomarańczowy
-        if (log.type === "ERROR") typeColor = "#ff5555"; // czerwony
-        
         return `<div class="log-row">` +
                `<span class="log-ts">[${log.timestamp}]</span>` +
-               `<span class="log-tag" style="color: ${typeColor}">[${log.tag}]</span>` +
+               `<span class="log-tag">[${log.tag}]</span>` +
                `<span class="log-msg">${log.message}</span>` +
                `</div>`;
     }).join('');
 }
 
-// Obsługa klawisza F1 do włączania/wyłączania widoku logów
+// 6. Obsługa klawisza F1 (Pokonuje domyślną pomoc Windowsa i przełącza okno)
 window.addEventListener('keydown', function(event) {
     if (event.key === 'F1') {
-        event.preventDefault(); // Blokujemy pomoc systemową Windows
+        event.preventDefault(); // CAŁKOWITE SCHOWANIE POMOCY SYSTEMOWEJ WINDOWS
         
         const overlay = document.getElementById('real-logger-overlay');
         if (overlay.style.display === 'block') {
-            overlay.style.display = 'none';
+            overlay.style.display = 'none'; // Jeśli otwarte -> zamknij
         } else {
-            renderLogs(); // Odśwież widok przed pokazaniem
-            overlay.style.display = 'block';
-            // Automatyczny scroll na sam dół do najnowszych logów
-            overlay.scrollTop = overlay.scrollHeight;
+            renderLogs(); // Zbuduj widok z realnych danych
+            overlay.style.display = 'block'; // Jeśli schowane -> pokaż specjalne okno
+            overlay.scrollTop = overlay.scrollHeight; // Zjedź na dół
         }
     }
 });
 
-// --- PIERWSZE AUTENTYCZNE LOGI STARTOWE ---
-logAction("SYS", "Initializing NeoFind application kernel...");
-logAction("ENV", `User Agent: ${navigator.userAgent}`);
-logAction("ENV", `Screen resolution: ${window.innerWidth}x${window.innerHeight}px`);
-    
 // START
 let savedLang = localStorage.getItem("lang");
-logAction("LANG", `Loaded language configuration: ${currentLang}`);
 if (savedLang === "summer") {            // migracja: summer był kiedyś "językiem", teraz to osobny tryb
     localStorage.setItem("summer", "on");
     savedLang = localStorage.getItem("langBeforeSummer") || "en";
