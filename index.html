@@ -259,26 +259,28 @@ button:focus-visible, input:focus-visible, a:focus-visible {
     margin-top:10px;
 }
 
-/* Styl dla fałszywego panelu analitycznego */
-#panic-overlay {
+/* Prawdziwy panel logów systemowych */
+#real-logger-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: #111216;
-    color: #a0aec0;
-    font-family: 'Courier New', monospace;
+    background: #090a0f;
+    color: #4af626; /* hakerska zieleń dla statusów OK */
+    font-family: 'Consolas', 'Courier New', monospace;
     padding: 30px;
     box-sizing: border-box;
-    z-index: 999999; /* Musi być na samym wierzchu */
-    display: none; /* Domyślnie ukryty */
-    overflow: auto;
+    z-index: 9999999;
+    display: none;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.5;
 }
-#panic-overlay h1 { color: #4cbd79; font-size: 20px; margin-bottom: 20px; }
-#panic-overlay table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-#panic-overlay th, #panic-overlay td { border: 1px solid #2d3748; padding: 10px; text-align: left; font-size: 13px; }
-#panic-overlay th { background: #1a202c; color: #edf2f7; }
+.log-row { margin-bottom: 6px; white-space: pre-wrap; }
+.log-ts { color: #6272a4; margin-right: 12px; } /* niebiesko-szary timestamp */
+.log-tag { font-weight: bold; margin-right: 8px; }
+.log-msg { color: #f8f8f2; } /* biały tekst komunikatu */
 
 /* 👥 FRIENDS SYSTEM */
 #friendsBox {
@@ -909,6 +911,14 @@ body.ocean {
     </table>
     
     <p style="margin-top: 30px; font-size: 11px; color: #4a5568;">[System operating normally. Press F9 to refresh cache...]</p>
+</div>
+
+    <!-- Logi -->
+    <div id="real-logger-overlay">
+    <div style="color: #50fa7b; border-bottom: 1px solid #282a36; padding-bottom: 10px; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
+        System Application Logger v1.0.0 // Active Session
+    </div>
+    <div id="logger-output"></div>
 </div>
     
     <!-- ⚙️ SETTINGS -->
@@ -6724,6 +6734,7 @@ function handleCommand(e){
         } else if(["en","es","pl"].includes(lang)){
             currentLang = lang;
             localStorage.setItem("lang", lang);
+            logAction("USER", `Language changed manually to: ${btn.dataset.lang.toUpperCase()}`);
             document.getElementById("langSelect").value = lang;
             updateLanguage();
             log("language changed to " + lang);
@@ -7998,6 +8009,7 @@ function setCountdownOnLogin(checked) {
 }
 
 function startNeoCountdown(labelText, targetDateString) {
+logAction("TIMER", `Countdown active. Target expiration: ${targetDate}`, "INFO");
     document.addEventListener("DOMContentLoaded", function() {
         // wszystkie liczniki na stronie (ekran logowania + ekran #app)
         const labelEls = document.querySelectorAll(".neoCountdownLabel");
@@ -8064,24 +8076,70 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
-// 🚨 PANIC BUTTON  2 (F1) TRYB INCOGNITO / KAMUFLAŻ
+// Tablica, w której aplikacja będzie zapisywać PRAWDZIWE wydarzenia
+const APP_LOG_DATABASE = [];
+
+// Główna funkcja do rejestrowania zdarzeń
+function logAction(tag, message, type = "INFO") {
+    const now = new Date();
+    const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    
+    // Zapisujemy obiekt z prawdziwymi danymi w pamięci
+    APP_LOG_DATABASE.push({
+        timestamp: timeStr,
+        tag: tag.toUpperCase(),
+        message: message,
+        type: type
+    });
+    
+    // Jeśli konsola jest akurat otwarta, od razu renderujemy nowy log na ekranie
+    const output = document.getElementById('logger-output');
+    if (output && document.getElementById('real-logger-overlay').style.display === 'block') {
+        renderLogs();
+    }
+}
+
+// Funkcja rysująca logi w oknie
+function renderLogs() {
+    const output = document.getElementById('logger-output');
+    output.innerHTML = APP_LOG_DATABASE.map(log => {
+        let typeColor = "#50fa7b"; // zielony dla INFO
+        if (log.type === "WARN") typeColor = "#ffb86c"; // pomarańczowy
+        if (log.type === "ERROR") typeColor = "#ff5555"; // czerwony
+        
+        return `<div class="log-row">` +
+               `<span class="log-ts">[${log.timestamp}]</span>` +
+               `<span class="log-tag" style="color: ${typeColor}">[${log.tag}]</span>` +
+               `<span class="log-msg">${log.message}</span>` +
+               `</div>`;
+    }).join('');
+}
+
+// Obsługa klawisza F1 do włączania/wyłączania widoku logów
 window.addEventListener('keydown', function(event) {
     if (event.key === 'F1') {
-        event.preventDefault(); // Blokuje domyślne systemowe akcje F9
+        event.preventDefault(); // Blokujemy pomoc systemową Windows
         
-        const overlay = document.getElementById('panic-overlay');
-        
-        // Przełączanie widoczności: jeśli jest ukryty -> pokaż, jeśli otwarty -> ukryj
+        const overlay = document.getElementById('real-logger-overlay');
         if (overlay.style.display === 'block') {
             overlay.style.display = 'none';
         } else {
+            renderLogs(); // Odśwież widok przed pokazaniem
             overlay.style.display = 'block';
+            // Automatyczny scroll na sam dół do najnowszych logów
+            overlay.scrollTop = overlay.scrollHeight;
         }
     }
 });
+
+// --- PIERWSZE AUTENTYCZNE LOGI STARTOWE ---
+logAction("SYS", "Initializing NeoFind application kernel...");
+logAction("ENV", `User Agent: ${navigator.userAgent}`);
+logAction("ENV", `Screen resolution: ${window.innerWidth}x${window.innerHeight}px`);
     
 // START
 let savedLang = localStorage.getItem("lang");
+logAction("LANG", `Loaded language configuration: ${currentLang}`);
 if (savedLang === "summer") {            // migracja: summer był kiedyś "językiem", teraz to osobny tryb
     localStorage.setItem("summer", "on");
     savedLang = localStorage.getItem("langBeforeSummer") || "en";
