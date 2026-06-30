@@ -259,6 +259,27 @@ button:focus-visible, input:focus-visible, a:focus-visible {
     margin-top:10px;
 }
 
+/* Styl dla fałszywego panelu analitycznego */
+#panic-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #111216;
+    color: #a0aec0;
+    font-family: 'Courier New', monospace;
+    padding: 30px;
+    box-sizing: border-box;
+    z-index: 999999; /* Musi być na samym wierzchu */
+    display: none; /* Domyślnie ukryty */
+    overflow: auto;
+}
+#panic-overlay h1 { color: #4cbd79; font-size: 20px; margin-bottom: 20px; }
+#panic-overlay table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+#panic-overlay th, #panic-overlay td { border: 1px solid #2d3748; padding: 10px; text-align: left; font-size: 13px; }
+#panic-overlay th { background: #1a202c; color: #edf2f7; }
+
 /* 👥 FRIENDS SYSTEM */
 #friendsBox {
     display:none;
@@ -863,6 +884,33 @@ body.ocean {
         <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
     </div>
 
+    <!-- F1 -->
+    <div id="panic-overlay">
+    <h1>📊 SYSTEM LOGS & DATA ANALYSIS // HOST_ID: 8841-A</h1>
+    <p>Status: <span style="color: #4cbd79;">ACTIVE</span> | Database Link: SECURE</p>
+    <p>Last Sync: Today, 14:32:11 UTC</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Process ID</th>
+                <th>Memory Allocation</th>
+                <th>Query Load</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>2026-06-30 22:15:01</td><td>PID_4412</td><td>245.1 MB</td><td>0.04s</td><td style="color:#4cbd79">OK</td></tr>
+            <tr><td>2026-06-30 22:15:05</td><td>PID_9011</td><td>1,024.8 MB</td><td>0.12s</td><td style="color:#4cbd79">OK</td></tr>
+            <tr><td>2026-06-30 22:16:00</td><td>PID_3321</td><td>88.4 MB</td><td>0.01s</td><td style="color:#4cbd79">OK</td></tr>
+            <tr><td>2026-06-30 22:18:42</td><td>PID_0045</td><td>512.0 MB</td><td>0.05s</td><td style="color:#e53e3e">DELAYED</td></tr>
+        </tbody>
+    </table>
+    
+    <p style="margin-top: 30px; font-size: 11px; color: #4a5568;">[System operating normally. Press F9 to refresh cache...]</p>
+</div>
+    
     <!-- ⚙️ SETTINGS -->
     <div id="settingsBox" style="display:none; text-align:center;">
         <h3 id="settingsTitle">Settings</h3>
@@ -8016,6 +8064,22 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
+// 🚨 PANIC BUTTON  2 (F1) TRYB INCOGNITO / KAMUFLAŻ
+window.addEventListener('keydown', function(event) {
+    if (event.key === 'F1') {
+        event.preventDefault(); // Blokuje domyślne systemowe akcje F9
+        
+        const overlay = document.getElementById('panic-overlay');
+        
+        // Przełączanie widoczności: jeśli jest ukryty -> pokaż, jeśli otwarty -> ukryj
+        if (overlay.style.display === 'block') {
+            overlay.style.display = 'none';
+        } else {
+            overlay.style.display = 'block';
+        }
+    }
+});
+    
 // START
 let savedLang = localStorage.getItem("lang");
 if (savedLang === "summer") {            // migracja: summer był kiedyś "językiem", teraz to osobny tryb
