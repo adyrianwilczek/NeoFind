@@ -6089,6 +6089,7 @@ function saveSettings(){
     localStorage.setItem("lang", lang);
     if (typeof logAction === 'function') {
             logAction("UI_EVENT", `User manually toggled language layout to: ${currentLang.toUpperCase()}`);
+    }
     const theme = document.getElementById("themeSelect").value;
     applyTheme(theme);
     updateLanguage();
