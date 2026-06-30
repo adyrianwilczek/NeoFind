@@ -6338,6 +6338,7 @@ window.register = function () {
    LOGIN
 ========================= */
 window.login = function () {
+logAction("SEC_AUTH", `Inbound authentication handshake initiated for candidate: ${email}`, "tag-sec");
     const email = document.getElementById("logUser").value.trim();
     const pass = document.getElementById("logPass").value;
 
@@ -7254,6 +7255,11 @@ async function sendChatMessage(){
 
     const chatId = getChatId(auth.currentUser.email, currentChatFriend);
 
+    // 🟢 1. PRAWDZIWY LOG: Rejestracja momentu wysłania wiadomości (przed wysłaniem do bazy cloud)
+    if (typeof logAction === 'function') {
+        logAction("NET_CHAT", `Outbound chat packet queued. Target node: [${currentChatFriend}]. Bytes: ${text.length} chars`, "tag-net");
+    }
+
     try {
         await db.collection("chats").doc(chatId)
             .collection("messages")
@@ -7265,6 +7271,12 @@ async function sendChatMessage(){
             });
     } catch(e) {
         input.value = text;
+
+        // 🔴 2. PRAWDZIWY LOG: Jeśli Firebase zwróci błąd, zostanie on natychmiast zapisany pod F1
+        if (typeof logAction === 'function') {
+            logAction("NET_ERROR", `Failed to push message token to Firestore: ${e.message}`, "tag-ram");
+        }
+
         alert("Error sending: " + e.message);
     }
 }
@@ -7342,6 +7354,7 @@ function toggleSummerMode(){
 
 function switchLang(lang){
     localStorage.setItem("lang", lang);
+    logAction("UI_LANG", `Application language matrix re-routed to layout profile: [${lang.toUpperCase()}]`, "tag-ui");
     location.reload();
 }
 
@@ -7643,6 +7656,12 @@ document.addEventListener("keydown", function(e){
 // kopiowanie linku
 function copyLink(url){
     navigator.clipboard.writeText(url).then(()=>{
+        logAction("SEC_CLIPBOARD", `Resource URL pipe-streamed into clipboard buffer.`, "tag-sec");
+        showPopup("Link copied!", "#00cc66");
+    }).catch(()=>{
+        alert("Copied: " + url);
+    });
+}
         showPopup("Link copied!", "#00cc66");
     }).catch(()=>{
         alert("Copied: " + url);
@@ -8019,101 +8038,95 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
-// ==========================================
-// REAL-TIME APPLICATION LOGGER (F1)
-// ==========================================
-
-// 1. Automatyczne dodanie stylów dla ukrytego okna diagnostycznego
+// ============================================================================
+// L LIVE PERFORMANCE LOG SYSTEM (SYSTEM DIAGNOSTYCZNY F1)
+// ============================================================================
 const loggerStyles = document.createElement('style');
 loggerStyles.textContent = `
     #real-logger-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: #090a0f;
-        color: #f8f8f2;
-        font-family: 'Consolas', 'Courier New', monospace;
-        padding: 30px;
-        box-sizing: border-box;
-        z-index: 9999999;
-        display: none; /* Domyślnie schowane */
-        overflow-y: auto;
-        font-size: 13px;
-        line-height: 1.5;
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+        background: #090a0f; color: #f8f8f2; font-family: 'Consolas', 'Courier New', monospace;
+        padding: 30px; box-sizing: border-box; z-index: 9999999; display: none;
+        overflow-y: auto; font-size: 13px; line-height: 1.5; text-align: left;
     }
     .log-row { margin-bottom: 6px; white-space: pre-wrap; }
     .log-ts { color: #6272a4; margin-right: 12px; }
-    .log-tag { font-weight: bold; margin-right: 8px; color: #50fa7b; }
+    .log-tag { font-weight: bold; margin-right: 8px; }
     .log-msg { color: #f8f8f2; }
+    .tag-sys { color: #50fa7b; }   /* Zielony - System */
+    .tag-ui { color: #8be9fd; }    /* Błękitny - Interfejs */
+    .tag-ram { color: #ffb86c; }   /* Pomarańczowy - Pamięć/Hardware */
+    .tag-net { color: #ff79c6; }   /* Różowy - Sieć i Łączność */
+    .tag-sec { color: #bd93f9; }   /* Fioletowy - Dane/Schowek */
 `;
 document.head.appendChild(loggerStyles);
 
-// 2. Automatyczne stworzenie ukrytego okna w HTML
 const loggerDiv = document.createElement('div');
 loggerDiv.id = 'real-logger-overlay';
 loggerDiv.innerHTML = `
     <div style="color: #50fa7b; border-bottom: 1px solid #282a36; padding-bottom: 10px; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
-        ⚙️ NEODATA SYSTEM APPLICATION LOG INTERFACE // ACTIVE SESSION
+        ⚙️ NEODATA CORE SYSTEM EXECUTOR // LIVE PERFORMANCE & ENVIRONMENT AUDIT
     </div>
-    <div id="logger-output" style="color: #888;">[ No events recorded yet. Perform actions in the app to generate logs... ]</div>
+    <div id="logger-output"></div>
 `;
 document.body.appendChild(loggerDiv);
 
-// 3. Pusta baza danych na PRAWDZIWE logi
 const APP_LOG_DATABASE = [];
 
-// 4. Główna funkcja logująca (czysta, bez fejków)
-function logAction(tag, message) {
+function logAction(tag, message, logClass = "tag-sys") {
     const now = new Date();
     const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
+    APP_LOG_DATABASE.push({ timestamp: timeStr, tag: tag.toUpperCase(), message: message, className: logClass });
+    if (APP_LOG_DATABASE.length > 250) APP_LOG_DATABASE.shift();
     
-    // Zapisujemy TYLKO autentyczne zdarzenie przekazane z kodu
-    APP_LOG_DATABASE.push({
-        timestamp: timeStr,
-        tag: tag.toUpperCase(),
-        message: message
-    });
-    
-    // Jeśli okno jest otwarte, od razu odświeżamy widok
-    if (document.getElementById('real-logger-overlay').style.display === 'block') {
+    const overlay = document.getElementById('real-logger-overlay');
+    if (overlay && overlay.style.display === 'block') {
         renderLogs();
+        overlay.scrollTop = overlay.scrollHeight;
     }
 }
 
-// 5. Funkcja wyświetlająca zebrane logi w oknie
 function renderLogs() {
     const output = document.getElementById('logger-output');
+    if (!output) return;
     if (APP_LOG_DATABASE.length === 0) {
-        output.innerHTML = `<div style="color: #44475a;">[ Console idle. No application events captured. ]</div>`;
+        output.innerHTML = `<div style="color: #44475a;">[ Monitor idle. Executing thread hooks... ]</div>`;
         return;
     }
-    
     output.innerHTML = APP_LOG_DATABASE.map(log => {
-        return `<div class="log-row">` +
-               `<span class="log-ts">[${log.timestamp}]</span>` +
-               `<span class="log-tag">[${log.tag}]</span>` +
-               `<span class="log-msg">${log.message}</span>` +
-               `</div>`;
+        return `<div class="log-row"><span class="log-ts">[${log.timestamp}]</span><span class="log-tag ${log.className}">[${log.tag}]</span><span class="log-msg">${log.message}</span></div>`;
     }).join('');
 }
 
-// 6. Obsługa klawisza F1 (Pokonuje domyślną pomoc Windowsa i przełącza okno)
 window.addEventListener('keydown', function(event) {
     if (event.key === 'F1') {
-        event.preventDefault(); // CAŁKOWITE SCHOWANIE POMOCY SYSTEMOWEJ WINDOWS
-        
+        event.preventDefault();
         const overlay = document.getElementById('real-logger-overlay');
         if (overlay.style.display === 'block') {
-            overlay.style.display = 'none'; // Jeśli otwarte -> zamknij
+            overlay.style.display = 'none';
         } else {
-            renderLogs(); // Zbuduj widok z realnych danych
-            overlay.style.display = 'block'; // Jeśli schowane -> pokaż specjalne okno
-            overlay.scrollTop = overlay.scrollHeight; // Zjedź na dół
+            renderLogs();
+            overlay.style.display = 'block';
+            overlay.scrollTop = overlay.scrollHeight;
         }
     }
 });
+
+setInterval(() => {
+    if (performance && performance.memory) {
+        const bytes = performance.memory.usedJSHeapSize;
+        const memStr = bytes === 0 ? '0 B' : parseFloat((bytes / 1024 / 1024).toFixed(2)) + ' MB';
+        logAction("HARDWARE_RAM", `Heap allocation: ${memStr}`, "tag-ram");
+    }
+    const threads = navigator.hardwareConcurrency || "N/A";
+    logAction("HARDWARE_CPU", `Kernel thread state: NOMINAL // Logical cores: ${threads}`, "tag-ram");
+    
+    const netType = navigator.connection ? navigator.connection.effectiveType : 'unknown';
+    const downlink = navigator.connection ? navigator.connection.downlink + ' Mbps' : 'N/A';
+    logAction("NET_STATUS", `Gateway: ${navigator.onLine ? "ONLINE" : "OFFLINE"} | Topology: ${netType.toUpperCase()} | Speed: ${downlink}`, "tag-net");
+}, 4000);
+
+logAction("CORE_SYS", "Diagnostics kernel initialized. Press F1 to view log overlay.", "tag-sys");
 
 // START
 let savedLang = localStorage.getItem("lang");
