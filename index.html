@@ -6019,7 +6019,6 @@ results.innerHTML = filtered.map((item) => {
 
 /* 🔍 SUGGESTIONS */
 const suggestionsBox = document.getElementById("suggestions");
-document.getElementById("search").addEventListener("input", function(){
     const value = this.value.toLowerCase();
     const list = data[currentLang] || [];
     if(!value){
