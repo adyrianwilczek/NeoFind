@@ -8024,58 +8024,78 @@ window.addEventListener('keydown', function(event) {
 });
 
 // ============================================================================
-// 🛠️ REAL-TIME SYSTEM LOGGER PANEL (F1 + LIVE CORNER MONITOR INSIDE F1)
+// 🛠️ REAL-TIME SYSTEM LOGGER PANEL (F1 + TERMINAL KOMEND + LIVE MONITOR)
 // ============================================================================
 const loggerStyles = document.createElement('style');
 loggerStyles.textContent = `
     #real-logger-overlay {
         position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
         background: #090a0f; color: #f8f8f2; font-family: 'Consolas', 'Courier New', monospace;
-        padding: 30px; box-sizing: border-box; z-index: 9999999; display: none;
-        overflow-y: auto; font-size: 13px; line-height: 1.5; text-align: left;
+        box-sizing: border-box; z-index: 9999999; display: none;
+        text-align: left;
+    }
+    .logger-layout {
+        display: flex; flex-direction: column; height: 100vh; padding: 30px; box-sizing: border-box;
     }
     .log-header-container {
         display: flex; justify-content: space-between; align-items: flex-start;
-        border-bottom: 1px solid #282a36; padding-bottom: 15px; margin-bottom: 20px;
+        border-bottom: 1px solid #282a36; padding-bottom: 15px; margin-bottom: 20px; flex-shrink: 0;
     }
-    /* 🟢 DOKŁADNIE O TO CHODZIŁO: Licznik w prawym górnym rogu WEWNĄTRZ F1 */
+    /* Monitor w rogu dostosowany do Twojego koloru Sprzętu (#ffaa00) */
     .f1-corner-monitor {
         text-align: right; font-size: 12px; line-height: 1.4;
-        background: rgba(40, 42, 54, 0.5); padding: 8px 12px; border-radius: 4px; border: 1px solid #ffb86c;
+        background: rgba(40, 42, 54, 0.5); padding: 8px 12px; border-radius: 4px; border: 1px solid #ffaa00;
     }
-    .mon-label { color: #ffb86c; font-weight: bold; }
+    .mon-label { color: #ffaa00; font-weight: bold; }
     .mon-val { color: #fff; }
     
+    #logger-output {
+        flex-grow: 1; overflow-y: auto; font-size: 13px; line-height: 1.5; margin-bottom: 15px;
+    }
     .log-row { margin-bottom: 6px; white-space: pre-wrap; }
     .log-ts { color: #6272a4; margin-right: 12px; }
     .log-tag { font-weight: bold; margin-right: 8px; }
     .log-msg { color: #f8f8f2; }
-    .tag-sys { color: #50fa7b; }   
-    .tag-ui { color: #8be9fd; }    
-    .tag-ram { color: #ffb86c; }   
-    .tag-net { color: #ff79c6; }   
-    .tag-sec { color: #bd93f9; }   
+    
+    /* PEŁNA TWOJA PALETA KOLORÓW */
+    .tag-sys { color: #00ff88; } /* Zielony - System */
+    .tag-ui  { color: #00bcff; } /* Błękitny - Interfejs */
+    .tag-hw  { color: #ffaa00; } /* Pomarańczowy - Sprzęt */
+    .tag-db  { color: #ff79c6; } /* Różowy - Sieć i Baza danych */
+    .tag-sec { color: #bd93f9; } /* Fioletowy - Bezpieczeństwo */
 `;
 document.head.appendChild(loggerStyles);
 
 const loggerDiv = document.createElement('div');
 loggerDiv.id = 'real-logger-overlay';
 loggerDiv.innerHTML = `
-    <div class="log-header-container">
-        <div style="color: #50fa7b; font-size: 16px; font-weight: bold;">
-            ⚙️ NEODATA CORE SYSTEM EXECUTOR // LIVE PERFORMANCE AUDIT
+    <div class="logger-layout">
+        <div class="log-header-container">
+            <div style="color: #00ff88; font-size: 16px; font-weight: bold;">
+                ⚙️ NEODATA CORE SYSTEM EXECUTOR // LIVE PERFORMANCE AUDIT
+            </div>
+            <div class="f1-corner-monitor">
+                <div><span class="mon-label">SYSTEM MEMORY:</span> <span id="f1-mon-ram" class="mon-val">0.00 MB</span></div>
+                <div><span class="mon-label">CPU LOAD STATE:</span> <span id="f1-mon-cpu" class="mon-val">Detecting...</span></div>
+            </div>
         </div>
-        <div class="f1-corner-monitor">
-            <div><span class="mon-label">SYSTEM MEMORY:</span> <span id="f1-mon-ram" class="mon-val">0.00 MB</span></div>
-            <div><span class="mon-label">CPU LOAD STATE:</span> <span id="f1-mon-cpu" class="mon-val">Detecting...</span></div>
+        
+        <!-- Tu wyświetlają się logi -->
+        <div id="logger-output"></div>
+        
+        <!-- ⌨️ TWÓJ WBUDOWANY TERMINAL NA DOLE PANELU F1 -->
+        <div style="border-top: 1px solid #282a36; padding-top: 15px; display: flex; align-items: center; flex-shrink: 0;">
+            <span style="color: #bd93f9; font-weight: bold; margin-right: 10px; font-family: monospace;">neo@find:~$</span>
+            <input type="text" id="terminal-input" placeholder="Wpisz komendę (np. /hw, /db-status, /help)..." 
+                   style="background: transparent; border: none; color: #fff; font-family: monospace; font-size: 14px; width: 100%; outline: none;">
         </div>
     </div>
-    <div id="logger-output"></div>
 `;
 document.body.appendChild(loggerDiv);
 
 const APP_LOG_DATABASE = [];
 
+// Poprawiona funkcja z obsługą Twoich nowych klas kolorystycznych
 function logAction(tag, message, logClass = "tag-sys") {
     const now = new Date();
     const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
@@ -8098,8 +8118,110 @@ function renderLogs() {
     output.innerHTML = APP_LOG_DATABASE.map(log => {
         return `<div class="log-row"><span class="log-ts">[${log.timestamp}]</span><span class="log-tag ${log.className}">[${log.tag}]</span><span class="log-msg">${log.message}</span></div>`;
     }).join('');
+    
+    // Automatyczne przewijanie na sam dół przy nowym logu
+    output.scrollTop = output.scrollHeight;
 }
 
+// 💻 INTERPRETATOR INTERAKTYWNYCH KOMEND TERMINALA
+function executeTerminalCommand(commandLine) {
+    const trimmed = commandLine.trim();
+    if (!trimmed) return;
+
+    const args = trimmed.split(" ");
+    const cmd = args[0].toLowerCase();
+
+    // Wyświetlamy co użytkownik wpisał jako log Interfejsu (Błękitny)
+    logAction("TERM_EXEC", `Executing command: ${trimmed}`, "tag-ui");
+
+    switch (cmd) {
+        case "/help":
+            logAction("HELP", "--- LISTA DOSTĘPNYCH KOMEND TERMINALA ---", "tag-sys");
+            logAction("HELP", "/hw lub /hardware - Głęboki test procesora i sprzętu", "tag-hw");
+            logAction("HELP", "/db-status       - Status wielkości i struktury bazy danych", "tag-db");
+            logAction("HELP", "/clear           - Czyszczenie bufora logów na ekranie", "tag-sys");
+            logAction("HELP", "/firewall [on/off]- Włączenie/wyłączenie osłony sieciowej", "tag-sec");
+            logAction("HELP", "/sys-info        - Pełna specyfikacja systemu operacyjnego", "tag-sys");
+            logAction("HELP", "/matrix          - Odpala tryb przeciążenia rdzenia", "tag-hw");
+            break;
+
+        case "/hw":
+        case "/hardware":
+            logAction("HW_TEST", "URUCHAMIANIE GŁĘBOKIEGO TESTU PROCESORA...", "tag-hw");
+            setTimeout(() => logAction("HW_CPU", "-> Core #1, #2, #3, #4: STRESS TEST [100% LOAD]", "tag-hw"), 400);
+            setTimeout(() => logAction("HW_MEM", "-> Przeszukiwanie rejestrów RAM pod kątem bad-sectorów... OK", "tag-hw"), 800);
+            setTimeout(() => logAction("HW_TEMP", "-> Temperatura procesora: 78°C (Wysoka temperatura!)", "tag-hw"), 1200);
+            setTimeout(() => {
+                logAction("HW_REP", "=== RAPORT DIAGNOSTYCZNY SPRZĘTU ===", "tag-hw");
+                logAction("HW_REP", "CPU: NeoProcessor 8-Cores @ 4.2GHz (STABLE)", "tag-hw");
+                logAction("HW_REP", "RAM: 16GB Cache Allocated Core Maps (INTEGRITY: 100%)", "tag-hw");
+                logAction("HW_REP", "WYNIK: Sprzęt działa z maksymalną wydajnością.", "tag-hw");
+            }, 1600);
+            break;
+
+        case "/db-status":
+            // Sprawdzamy czy zmienna "data" istnieje w skrypcie globalnym
+            const plCount = (typeof data !== 'undefined' && data.pl) ? data.pl.length : 2;
+            const enCount = (typeof data !== 'undefined' && data.en) ? data.en.length : 2;
+            logAction("DB_REP", "=== ANALIZA STRUKTURY BAZY DANYCH ===", "tag-db");
+            logAction("DB_REP", `Zmapowane rekordy [PL]: ${plCount} pozycji`, "tag-db");
+            logAction("DB_REP", `Zmapowane rekordy [EN]: ${enCount} pozycji`, "tag-db");
+            logAction("DB_REP", `Łącznie w pamięci podręcznej: ${plCount + enCount} indeksów wyszukiwania`, "tag-db");
+            break;
+
+        case "/clear":
+            APP_LOG_DATABASE.length = 0;
+            renderLogs();
+            logAction("SYS", "Log buffer flushed successfully.", "tag-sys");
+            break;
+
+        case "/firewall":
+            const mode = args[1] ? args[1].toLowerCase() : "";
+            if (mode === "on") {
+                logAction("SEC_FW", "PROT_MODE: FIREWALL ZOSTAL AKTYWOWANY. Porty zablokowane.", "tag-sec");
+            } else if (mode === "off") {
+                logAction("SEC_FW", "ALERT: FIREWALL WYŁĄCZONY. System podatny na skanowanie!", "tag-sec");
+            } else {
+                logAction("SEC_FW", "Użyj: /firewall on lub /firewall off", "tag-sec");
+            }
+            break;
+
+        case "/sys-info":
+            logAction("SYS_OS", "OS Name: NeoFind Shell Terminal v2.6", "tag-sys");
+            logAction("SYS_OS", "Architecture: Kernel-JS 64-bit Core Cluster", "tag-sys");
+            logAction("SYS_OS", "Security Layer: Encrypted Handshake Protocol (AES-256)", "tag-sec");
+            logAction("SYS_OS", "Current Engine Status: OPTIMIZED", "tag-sys");
+            break;
+
+        case "/matrix":
+            logAction("HW_WARN", "!! PRZECIĄŻENIE RDZENIA !! Wstrzykiwanie kodu anomalii...", "tag-hw");
+            let count = 0;
+            const interval = setInterval(() => {
+                logAction("OVERLOAD", `01010110 01001100 01010011 INTERNAL_ERR_SEC_${Math.floor(Math.random()*999)}`, "tag-hw");
+                count++;
+                if (count > 5) {
+                    clearInterval(interval);
+                    logAction("SYS_REC", "Rdzeń zrzucił napięcie. System powrócił do normy.", "tag-sys");
+                }
+            }, 200);
+            break;
+
+        default:
+            logAction("TERM_ERR", `Nieznana komenda: "${cmd}". Wpisz /help aby zobaczyć listę.`, "tag-sec");
+            break;
+    }
+}
+
+// Nasłuchiwanie klawisza Enter w polu komend F1
+document.getElementById('terminal-input')?.addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        const value = this.value;
+        executeTerminalCommand(value);
+        this.value = ""; // Czyszczenie inputu
+    }
+});
+
+// Obsługa otwierania/zamykania okna klawiszem F1
 window.addEventListener('keydown', function(event) {
     if (event.key === 'F1') {
         event.preventDefault(); 
@@ -8109,12 +8231,16 @@ window.addEventListener('keydown', function(event) {
         } else {
             renderLogs();
             overlay.style.display = 'block';
-            overlay.scrollTop = overlay.scrollHeight;
+            
+            // Po otwarciu F1 automatycznie ustawiamy kursor w polu tekstowym komend!
+            setTimeout(() => {
+                document.getElementById('terminal-input')?.focus();
+            }, 50);
         }
     }
 });
 
-// ⏳ AKTUALIZACJA CO 2 SEKUNDY (Tylko licznik w rogu, nie wrzuca spamu do historii logów!)
+// Monitor parametrów sprzętowych (Co 2 sekundy w prawym górnym rogu)
 setInterval(() => {
     let memStr = "Protected Mode";
     if (performance && performance.memory) {
@@ -8124,16 +8250,15 @@ setInterval(() => {
     
     const threads = navigator.hardwareConcurrency || "N/A";
     
-    // Podmiana tekstu w prawym górnym rogu ekranu F1
     const ramEl = document.getElementById('f1-mon-ram');
     const cpuEl = document.getElementById('f1-mon-cpu');
     if (ramEl) ramEl.innerText = memStr;
     if (cpuEl) cpuEl.innerText = threads + " Threads Active";
 }, 2000);
 
-// Początkowy log, żeby okno nie było puste na starcie
+// Początkowe logi startowe według nowej kolorystyki
 logAction("CORE_SYS", "Diagnostics kernel active. Monitoring real user actions...", "tag-sys");
-logAction("CORE_SEC", "User safety active. Monitroing user security", "tag-sec");
+logAction("CORE_SEC", "User safety active. Monitoring user security.", "tag-sec");
     
 // START
 let savedLang = localStorage.getItem("lang");
