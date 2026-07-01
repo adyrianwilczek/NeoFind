@@ -8041,7 +8041,6 @@ loggerStyles.textContent = `
         display: flex; justify-content: space-between; align-items: flex-start;
         border-bottom: 1px solid #282a36; padding-bottom: 15px; margin-bottom: 20px; flex-shrink: 0;
     }
-    /* Monitor w rogu dostosowany do Twojego koloru Sprzętu (#ffaa00) */
     .f1-corner-monitor {
         text-align: right; font-size: 12px; line-height: 1.4;
         background: rgba(40, 42, 54, 0.5); padding: 8px 12px; border-radius: 4px; border: 1px solid #ffaa00;
@@ -8057,12 +8056,26 @@ loggerStyles.textContent = `
     .log-tag { font-weight: bold; margin-right: 8px; }
     .log-msg { color: #f8f8f2; }
     
-    /* PEŁNA TWOJA PALETA KOLORÓW */
     .tag-sys { color: #00ff88; } /* Zielony - System */
     .tag-ui  { color: #00bcff; } /* Błękitny - Interfejs */
     .tag-hw  { color: #ffaa00; } /* Pomarańczowy - Sprzęt */
     .tag-db  { color: #ff79c6; } /* Różowy - Sieć i Baza danych */
     .tag-sec { color: #bd93f9; } /* Fioletowy - Bezpieczeństwo */
+
+    /* Animacja trzęsienia strony podczas anomalii Matrixa */
+    @keyframes matrixGlitch {
+        0% { transform: translate(0, 0) skewX(0deg); filter: hue-rotate(0deg); }
+        20% { transform: translate(-3px, 2px) skewX(3deg); filter: hue-rotate(90deg); }
+        40% { transform: translate(3px, -1px) skewX(-2deg); }
+        60% { transform: translate(-2px, -2px) skewX(1deg); filter: hue-rotate(180deg); }
+        80% { transform: translate(2px, 2px) skewX(-1deg); }
+        100% { transform: translate(0, 0) skewX(0deg); filter: hue-rotate(360deg); }
+    }
+    .matrix-corrupted {
+        animation: matrixGlitch 0.15s infinite !important;
+        background: #001100 !important;
+        color: #00ff00 !important;
+    }
 `;
 document.head.appendChild(loggerStyles);
 
@@ -8075,18 +8088,14 @@ loggerDiv.innerHTML = `
                 ⚙️ NEODATA CORE SYSTEM EXECUTOR // LIVE PERFORMANCE AUDIT
             </div>
             <div class="f1-corner-monitor">
-                <div><span class="mon-label">SYSTEM MEMORY:</span> <span id="f1-mon-ram" class="mon-val">0.00 MB</span></div>
-                <div><span class="mon-label">CPU LOAD STATE:</span> <span id="f1-mon-cpu" class="mon-val">Detecting...</span></div>
+                <div><span class="mon-label">APP MEMORY:</span> <span id="f1-mon-ram" class="mon-val">0.00 MB</span></div>
+                <div><span class="mon-label">CPU CORES:</span> <span id="f1-mon-cpu" class="mon-val">Detecting...</span></div>
             </div>
         </div>
-        
-        <!-- Tu wyświetlają się logi -->
         <div id="logger-output"></div>
-        
-        <!-- ⌨️ TWÓJ WBUDOWANY TERMINAL NA DOLE PANELU F1 -->
         <div style="border-top: 1px solid #282a36; padding-top: 15px; display: flex; align-items: center; flex-shrink: 0;">
             <span style="color: #bd93f9; font-weight: bold; margin-right: 10px; font-family: monospace;">neo@find:~$</span>
-            <input type="text" id="terminal-input" placeholder="Wpisz komendę (np. /hw, /db-status, /help)..." 
+            <input type="text" id="terminal-input" placeholder="Wpisz komendę (np. /hw, /matrix, /help)..." 
                    style="background: transparent; border: none; color: #fff; font-family: monospace; font-size: 14px; width: 100%; outline: none;">
         </div>
     </div>
@@ -8095,7 +8104,6 @@ document.body.appendChild(loggerDiv);
 
 const APP_LOG_DATABASE = [];
 
-// Poprawiona funkcja z obsługą Twoich nowych klas kolorystycznych
 function logAction(tag, message, logClass = "tag-sys") {
     const now = new Date();
     const timeStr = now.toTimeString().split(' ')[0] + '.' + String(now.getMilliseconds()).padStart(3, '0');
@@ -8118,12 +8126,64 @@ function renderLogs() {
     output.innerHTML = APP_LOG_DATABASE.map(log => {
         return `<div class="log-row"><span class="log-ts">[${log.timestamp}]</span><span class="log-tag ${log.className}">[${log.tag}]</span><span class="log-msg">${log.message}</span></div>`;
     }).join('');
-    
-    // Automatyczne przewijanie na sam dół przy nowym logu
     output.scrollTop = output.scrollHeight;
 }
 
-// 💻 INTERPRETATOR INTERAKTYWNYCH KOMEND TERMINALA
+// 🔍 Wyszukiwarka lokalna z blokadą na czas anomalii
+function performLocalSearch() {
+    const inputEl = document.getElementById('search');
+    const resultsContainer = document.getElementById('results');
+    if (!inputEl || !resultsContainer) return;
+    const query = inputEl.value.toLowerCase().trim();
+
+    logAction("UI_INPUT", `User typed: "${query}"`, "tag-ui");
+
+    // CRITICAL REAL ANOMALY BLOCK: Baza danych odmawia posłuszeństwa
+    if (isMatrixAnomalyActive) {
+        logAction("DB_CORRUPTED", `CRITICAL: Search blocked. Matrix sector data unreadable for: "${query}"`, "tag-db");
+        resultsContainer.innerHTML = `
+            <div class="result" style="text-align: center; color: #ff79c6; font-weight: bold; border-color: #ff79c6;">
+                [ DB_CORRUPTED ] MATRIX ANOMALY DETECTED // INTEGRITY OVERFLOW
+            </div>`;
+        return;
+    }
+
+    if (query === "") {
+        resultsContainer.innerHTML = "";
+        logAction("SYS_CLEAN", "Search container cleared.", "tag-sys");
+        return;
+    }
+
+    logAction("DB_SCAN", `Querying local database for: "${query}"`, "tag-db");
+
+    const currentData = data[currentLang] || data["pl"];
+    const filtered = currentData.filter(item => 
+        item.title.toLowerCase().includes(query) || 
+        item.desc.toLowerCase().includes(query)
+    );
+
+    resultsContainer.innerHTML = "";
+
+    if (filtered.length === 0) {
+        logAction("DB_EMPTY", `Zero records matched for: "${query}"`, "tag-db");
+        resultsContainer.innerHTML = `<div class="result" style="text-align: center; color: #ff5555;">[ SYSTEM ] Brak wyników w bazie danych.</div>`;
+        return;
+    }
+
+    logAction("DB_FETCH", `Successfully fetched ${filtered.length} record(s).`, "tag-db");
+
+    filtered.forEach(item => {
+        resultsContainer.innerHTML += `
+            <div class="result">
+                <a href="${item.url}" target="_blank">> ${item.title}</a>
+                <p>${item.desc}</p>
+            </div>`;
+    });
+}
+
+document.getElementById('search')?.addEventListener('input', performLocalSearch);
+
+// 💻 INTERPRETATOR KOMEND TERMINALA
 function executeTerminalCommand(commandLine) {
     const trimmed = commandLine.trim();
     if (!trimmed) return;
@@ -8131,42 +8191,79 @@ function executeTerminalCommand(commandLine) {
     const args = trimmed.split(" ");
     const cmd = args[0].toLowerCase();
 
-    // Wyświetlamy co użytkownik wpisał jako log Interfejsu (Błękitny)
     logAction("TERM_EXEC", `Executing command: ${trimmed}`, "tag-ui");
 
     switch (cmd) {
         case "/help":
-            logAction("HELP", "--- LISTA DOSTĘPNYCH KOMEND TERMINALA ---", "tag-sys");
-            logAction("HELP", "/hw lub /hardware - Głęboki test procesora i sprzętu", "tag-hw");
-            logAction("HELP", "/db-status       - Status wielkości i struktury bazy danych", "tag-db");
-            logAction("HELP", "/clear           - Czyszczenie bufora logów na ekranie", "tag-sys");
-            logAction("HELP", "/firewall [on/off]- Włączenie/wyłączenie osłony sieciowej", "tag-sec");
-            logAction("HELP", "/sys-info        - Pełna specyfikacja systemu operacyjnego", "tag-sys");
-            logAction("HELP", "/matrix          - Odpala tryb przeciążenia rdzenia", "tag-hw");
+            logAction("HELP", "--- LISTA REALNYCH KOMEND SYSTEMOWYCH ---", "tag-sys");
+            logAction("HELP", "/hw lub /hardware - REALNY benchmark i test wydajności procesora", "tag-hw");
+            logAction("HELP", "/db-status       - Oblicza realną wagę bajtową bazy w RAM", "tag-db");
+            logAction("HELP", "/matrix          - WSTRZYKNIJ PRAWDZIWĄ ANOMALIĘ DO STRONY NEOFIND", "tag-hw");
+            logAction("HELP", "/clear           - Czyszczenie historii logów", "tag-sys");
+            logAction("HELP", "/sys-info        - Odczytuje prawdziwy system i stan baterii", "tag-sys");
             break;
 
         case "/hw":
         case "/hardware":
-            logAction("HW_TEST", "URUCHAMIANIE GŁĘBOKIEGO TESTU PROCESORA...", "tag-hw");
-            setTimeout(() => logAction("HW_CPU", "-> Core #1, #2, #3, #4: STRESS TEST [100% LOAD]", "tag-hw"), 400);
-            setTimeout(() => logAction("HW_MEM", "-> Przeszukiwanie rejestrów RAM pod kątem bad-sectorów... OK", "tag-hw"), 800);
-            setTimeout(() => logAction("HW_TEMP", "-> Temperatura procesora: 78°C (Wysoka temperatura!)", "tag-hw"), 1200);
+            logAction("HW_BENCH", "URUCHAMIANIE REALNEGO BENCHMARKU PROCESORA (3 SEKUNDY)...", "tag-hw");
             setTimeout(() => {
-                logAction("HW_REP", "=== RAPORT DIAGNOSTYCZNY SPRZĘTU ===", "tag-hw");
-                logAction("HW_REP", "CPU: NeoProcessor 8-Cores @ 4.2GHz (STABLE)", "tag-hw");
-                logAction("HW_REP", "RAM: 16GB Cache Allocated Core Maps (INTEGRITY: 100%)", "tag-hw");
-                logAction("HW_REP", "WYNIK: Sprzęt działa z maksymalną wydajnością.", "tag-hw");
-            }, 1600);
+                const startTime = performance.now();
+                let operations = 0;
+                while (performance.now() - startTime < 3000) {
+                    Math.sqrt(Math.random() * 999999) * Math.sin(Math.random());
+                    operations++;
+                }
+                const cores = navigator.hardwareConcurrency || "Nieznana";
+                logAction("HW_REP", "=== WYNIKI PRAWDZIWEGO TESTU SPRZĘTU ===", "tag-hw");
+                logAction("HW_REP", `Wykryte fizyczne/wątkowe rdzenie CPU: ${cores}`, "tag-hw");
+                logAction("HW_REP", `Wykonane operacje matematyczne: ${operations.toLocaleString()} cykli`, "tag-hw");
+                logAction("HW_REP", `Wydajność rdzenia testowego: ${(operations / 3).toFixed(0)} operacji/sekundę`, "tag-hw");
+            }, 50);
             break;
 
         case "/db-status":
-            // Sprawdzamy czy zmienna "data" istnieje w skrypcie globalnym
-            const plCount = (typeof data !== 'undefined' && data.pl) ? data.pl.length : 2;
-            const enCount = (typeof data !== 'undefined' && data.en) ? data.en.length : 2;
-            logAction("DB_REP", "=== ANALIZA STRUKTURY BAZY DANYCH ===", "tag-db");
-            logAction("DB_REP", `Zmapowane rekordy [PL]: ${plCount} pozycji`, "tag-db");
-            logAction("DB_REP", `Zmapowane rekordy [EN]: ${enCount} pozycji`, "tag-db");
-            logAction("DB_REP", `Łącznie w pamięci podręcznej: ${plCount + enCount} indeksów wyszukiwania`, "tag-db");
+            const stringified = JSON.stringify(data);
+            const bytes = new Blob([stringified]).size;
+            logAction("DB_SIZE", "=== REALNY STATUS KLUSTRA BAZY ===", "tag-db");
+            logAction("DB_SIZE", `Lokalna baza danych waży dokładnie: ${bytes} bajtów.`, "tag-db");
+            break;
+
+        case "/matrix":
+            if (isMatrixAnomalyActive) {
+                logAction("SYS_WARN", "Anomalia Matrixa jest już aktywna w rdzeniu.", "tag-hw");
+                return;
+            }
+            
+            isMatrixAnomalyActive = true;
+            logAction("HW_ALERT", "!! CRITICAL ANOMALY WSTRZYKNIĘTA !! Destabilizacja interfejsu NeoFind...", "tag-hw");
+            
+            // PRAWDZIWY SABOTAŻ WIZUALNY: Wstrzykujemy klasę błędu do całego body strony!
+            document.body.classList.add('matrix-corrupted');
+            
+            // Kaskada błędów w konsoli
+            let matrixTicks = 0;
+            const matrixInterval = setInterval(() => {
+                logAction("OVERLOAD", `ERR_STREAM_0x${Math.floor(Math.random()*16777215).toString(16).toUpperCase()} // INTRUSION_DETECTED`, "tag-hw");
+                matrixTicks++;
+                
+                if (matrixTicks >= 8) {
+                    clearInterval(matrixInterval);
+                    
+                    // SYSTEM RECOVERY: Automatyczna, prawdziwa naprawa strony po 6 sekundach
+                    setTimeout(() => {
+                        document.body.classList.remove('matrix-corrupted');
+                        isMatrixAnomalyActive = false;
+                        
+                        logAction("SYS_REC", "=== KERNEL EMERGENCY RECOVERY ===", "tag-sys");
+                        logAction("SYS_REC", "Zrzut napięcia wykonany. Wszystkie style CSS zresetowane.", "tag-sys");
+                        logAction("SEC_OK", "Baza danych została pomyślnie oczyszczona i podniesiona.", "tag-sec");
+                        logAction("SYS_OK", "NeoFind powrócił do stabilnego stanu operacyjnego.", "tag-sys");
+                        
+                        // Jeśli użytkownik miał coś wpisane, odświeżamy wyszukiwanie już na sprawnej bazie
+                        performLocalSearch();
+                    }, 2500);
+                }
+            }, 400);
             break;
 
         case "/clear":
@@ -8175,35 +8272,15 @@ function executeTerminalCommand(commandLine) {
             logAction("SYS", "Log buffer flushed successfully.", "tag-sys");
             break;
 
-        case "/firewall":
-            const mode = args[1] ? args[1].toLowerCase() : "";
-            if (mode === "on") {
-                logAction("SEC_FW", "PROT_MODE: FIREWALL ZOSTAL AKTYWOWANY. Porty zablokowane.", "tag-sec");
-            } else if (mode === "off") {
-                logAction("SEC_FW", "ALERT: FIREWALL WYŁĄCZONY. System podatny na skanowanie!", "tag-sec");
-            } else {
-                logAction("SEC_FW", "Użyj: /firewall on lub /firewall off", "tag-sec");
-            }
-            break;
-
         case "/sys-info":
-            logAction("SYS_OS", "OS Name: NeoFind Shell Terminal v2.6", "tag-sys");
-            logAction("SYS_OS", "Architecture: Kernel-JS 64-bit Core Cluster", "tag-sys");
-            logAction("SYS_OS", "Security Layer: Encrypted Handshake Protocol (AES-256)", "tag-sec");
-            logAction("SYS_OS", "Current Engine Status: OPTIMIZED", "tag-sys");
-            break;
-
-        case "/matrix":
-            logAction("HW_WARN", "!! PRZECIĄŻENIE RDZENIA !! Wstrzykiwanie kodu anomalii...", "tag-hw");
-            let count = 0;
-            const interval = setInterval(() => {
-                logAction("OVERLOAD", `01010110 01001100 01010011 INTERNAL_ERR_SEC_${Math.floor(Math.random()*999)}`, "tag-hw");
-                count++;
-                if (count > 5) {
-                    clearInterval(interval);
-                    logAction("SYS_REC", "Rdzeń zrzucił napięcie. System powrócił do normy.", "tag-sys");
-                }
-            }, 200);
+            logAction("SYS_INF", "=== PRAWDZIWA SPECYFIKACJA URZĄDZENIA ===", "tag-sys");
+            logAction("SYS_INF", `Platforma/OS: ${navigator.platform}`, "tag-sys");
+            logAction("SYS_INF", `Połączenie sieciowe: ${navigator.onLine ? "ONLINE" : "OFFLINE"}`, "tag-db");
+            if (navigator.getBattery) {
+                navigator.getBattery().then(battery => {
+                    logAction("SYS_BATT", `Poziom baterii: ${(battery.level * 100).toFixed(0)}% [${battery.charging ? "ŁADUJE" : "BATERIA"}]`, "tag-sys");
+                });
+            }
             break;
 
         default:
@@ -8212,16 +8289,14 @@ function executeTerminalCommand(commandLine) {
     }
 }
 
-// Nasłuchiwanie klawisza Enter w polu komend F1
 document.getElementById('terminal-input')?.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
         const value = this.value;
         executeTerminalCommand(value);
-        this.value = ""; // Czyszczenie inputu
+        this.value = "";
     }
 });
 
-// Obsługa otwierania/zamykania okna klawiszem F1
 window.addEventListener('keydown', function(event) {
     if (event.key === 'F1') {
         event.preventDefault(); 
@@ -8231,34 +8306,28 @@ window.addEventListener('keydown', function(event) {
         } else {
             renderLogs();
             overlay.style.display = 'block';
-            
-            // Po otwarciu F1 automatycznie ustawiamy kursor w polu tekstowym komend!
-            setTimeout(() => {
-                document.getElementById('terminal-input')?.focus();
-            }, 50);
+            setTimeout(() => { document.getElementById('terminal-input')?.focus(); }, 50);
         }
     }
 });
 
-// Monitor parametrów sprzętowych (Co 2 sekundy w prawym górnym rogu)
+// Prawdziwy monitor RAM-u przypisanego do karty karty
 setInterval(() => {
     let memStr = "Protected Mode";
     if (performance && performance.memory) {
         const bytes = performance.memory.usedJSHeapSize;
         memStr = parseFloat((bytes / 1024 / 1024).toFixed(2)) + ' MB';
     }
-    
     const threads = navigator.hardwareConcurrency || "N/A";
-    
     const ramEl = document.getElementById('f1-mon-ram');
     const cpuEl = document.getElementById('f1-mon-cpu');
     if (ramEl) ramEl.innerText = memStr;
-    if (cpuEl) cpuEl.innerText = threads + " Threads Active";
+    if (cpuEl) cpuEl.innerText = threads + " Cores";
 }, 2000);
 
-// Początkowe logi startowe według nowej kolorystyki
-logAction("CORE_SYS", "Diagnostics kernel active. Monitoring real user actions...", "tag-sys");
-logAction("CORE_SEC", "User safety active. Monitoring user security.", "tag-sec");
+// Inicjalizacja przy rozruchu
+logAction("CORE_SYS", "Diagnostics kernel active. Real-time telemetry connected.", "tag-sys");
+logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed.", "tag-sec");
     
 // START
 let savedLang = localStorage.getItem("lang");
