@@ -835,6 +835,7 @@ body.ocean {
 
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
+<div id="neofind-results-container" style="max-width: 800px; margin: 20px auto; font-family: monospace; text-align: left;"></div>
 <div id="neoPopup" style="display:none;"></div>
 <div id="neoWarning" style="display:none;"></div>
 <div id="suggestions"></div>
@@ -8133,6 +8134,58 @@ setInterval(() => {
 
 // Początkowy log, żeby okno nie było puste na starcie
 logAction("CORE_SYS", "Diagnostics kernel active. Monitoring real user actions...", "tag-sys");
+
+async function executeGlobalSearch() {
+    // 1. Łapiemy Twoje ładne pole tekstowe i kontener na wyniki
+    const inputEl = document.getElementById('search-input'); // <-- zmień jeśli masz inne ID pola
+    const resultsContainer = document.getElementById('neofind-results-container');
+    
+    if (!inputEl || !resultsContainer) return;
+    const query = inputEl.value.trim();
+
+    if (query.length < 2) return;
+
+    resultsContainer.innerHTML = `<div style="color: #ffb86c;">[ SYSTEM ] Skanowanie sieci w toku...</div>`;
+
+    // 🔴 TUTAJ wklejasz adres URL swojego Workera z Kroku 1:
+    const WORKER_URL = `https://holy-silence-fd70.adrian-wilczek.workers.dev?q=${encodeURIComponent(query)}`;
+
+    try {
+        const response = await fetch(WORKER_URL);
+        const data = await response.json();
+
+        // Czyścimy kontener i przygotowujemy na wyniki
+        resultsContainer.innerHTML = "";
+
+        if (!data.items || data.items.length === 0) {
+            resultsContainer.innerHTML = `<div style="color: #ff5555;">[ SYSTEM ] Brak wyników w bazie danych dla: ${query}</div>`;
+            return;
+        }
+
+        // 2. Renderujemy wyniki w Twoim własnym, pięknym stylu!
+        data.items.forEach(item => {
+            const resultHTML = `
+                <div style="background: #121420; border: 1px solid #ffb86c; padding: 15px; margin-bottom: 15px; border-radius: 4px;">
+                    <a href="${item.link}" target="_blank" style="color: #50fa7b; font-size: 16px; font-weight: bold; text-decoration: none; display: block; margin-bottom: 5px;">
+                        > ${item.title}
+                    </a>
+                    <span style="color: #8be9fd; font-size: 11px; display: block; margin-bottom: 8px;">${item.link}</span>
+                    <p style="color: #f8f8f2; margin: 0; font-size: 13px; line-height: 1.4;">${item.snippet}</p>
+                </div>
+            `;
+            resultsContainer.innerHTML += resultHTML;
+        });
+
+    } catch (error) {
+        resultsContainer.innerHTML = `<div style="color: #ff5555;">[ ERROR ] Handshake failed. Sprawdź połączenie serwera.</div>`;
+    }
+}
+
+// Podpięcie pod Twój przycisk i klawisz Enter
+document.getElementById('search-btn')?.addEventListener('click', executeGlobalSearch); // <-- zmień jeśli masz inne ID przycisku
+document.getElementById('search-input')?.addEventListener('keydown', function(event) { // <-- zmień jeśli masz inne ID pola
+    if (event.key === 'Enter') executeGlobalSearch();
+});
     
 // START
 let savedLang = localStorage.getItem("lang");
