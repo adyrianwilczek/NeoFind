@@ -8085,7 +8085,6 @@ function logAction(tag, message, logClass = "tag-sys") {
     const overlay = document.getElementById('real-logger-overlay');
     if (overlay && overlay.style.display === 'block') {
         renderLogs();
-        overlay.scrollTop = overlay.scrollHeight;
     }
 }
 
