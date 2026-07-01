@@ -8024,7 +8024,7 @@ window.addEventListener('keydown', function(event) {
 });
 
 // ============================================================================
-// 🛠️ REAL-TIME SYSTEM LOGGER KERNEL (POWŁOKA F1)
+// 🛠️ REAL-TIME SYSTEM LOGGER PANEL (F1 + LIVE CORNER MONITOR INSIDE F1)
 // ============================================================================
 const loggerStyles = document.createElement('style');
 loggerStyles.textContent = `
@@ -8034,23 +8034,41 @@ loggerStyles.textContent = `
         padding: 30px; box-sizing: border-box; z-index: 9999999; display: none;
         overflow-y: auto; font-size: 13px; line-height: 1.5; text-align: left;
     }
+    .log-header-container {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        border-bottom: 1px solid #282a36; padding-bottom: 15px; margin-bottom: 20px;
+    }
+    /* 🟢 DOKŁADNIE O TO CHODZIŁO: Licznik w prawym górnym rogu WEWNĄTRZ F1 */
+    .f1-corner-monitor {
+        text-align: right; font-size: 12px; line-height: 1.4;
+        background: rgba(40, 42, 54, 0.5); padding: 8px 12px; border-radius: 4px; border: 1px solid #ffb86c;
+    }
+    .mon-label { color: #ffb86c; font-weight: bold; }
+    .mon-val { color: #fff; }
+    
     .log-row { margin-bottom: 6px; white-space: pre-wrap; }
     .log-ts { color: #6272a4; margin-right: 12px; }
     .log-tag { font-weight: bold; margin-right: 8px; }
     .log-msg { color: #f8f8f2; }
-    .tag-sys { color: #50fa7b; }   /* Zielony - System */
-    .tag-ui { color: #8be9fd; }    /* Błękitny - Interfejs */
-    .tag-ram { color: #ffb86c; }   /* Pomarańczowy - Pamięć/Hardware */
-    .tag-net { color: #ff79c6; }   /* Różowy - Sieć i Łączność */
-    .tag-sec { color: #bd93f9; }   /* Fioletowy - Autoryzacja/Dane */
+    .tag-sys { color: #50fa7b; }   
+    .tag-ui { color: #8be9fd; }    
+    .tag-ram { color: #ffb86c; }   
+    .tag-net { color: #ff79c6; }   
+    .tag-sec { color: #bd93f9; }   
 `;
 document.head.appendChild(loggerStyles);
 
 const loggerDiv = document.createElement('div');
 loggerDiv.id = 'real-logger-overlay';
 loggerDiv.innerHTML = `
-    <div style="color: #50fa7b; border-bottom: 1px solid #282a36; padding-bottom: 10px; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
-        ⚙️ NEODATA CORE SYSTEM EXECUTOR // LIVE PERFORMANCE & ENVIRONMENT AUDIT
+    <div class="log-header-container">
+        <div style="color: #50fa7b; font-size: 16px; font-weight: bold;">
+            ⚙️ NEODATA CORE SYSTEM EXECUTOR // LIVE PERFORMANCE AUDIT
+        </div>
+        <div class="f1-corner-monitor">
+            <div><span class="mon-label">SYSTEM MEMORY:</span> <span id="f1-mon-ram" class="mon-val">0.00 MB</span></div>
+            <div><span class="mon-label">CPU LOAD STATE:</span> <span id="f1-mon-cpu" class="mon-val">Detecting...</span></div>
+        </div>
     </div>
     <div id="logger-output"></div>
 `;
@@ -8065,7 +8083,7 @@ function logAction(tag, message, logClass = "tag-sys") {
     if (APP_LOG_DATABASE.length > 200) APP_LOG_DATABASE.shift();
     
     const overlay = document.getElementById('real-logger-overlay');
-    if (overlay && overlay.style.with === 'block' || overlay && overlay.style.display === 'block') {
+    if (overlay && overlay.style.display === 'block') {
         renderLogs();
         overlay.scrollTop = overlay.scrollHeight;
     }
@@ -8085,7 +8103,7 @@ function renderLogs() {
 
 window.addEventListener('keydown', function(event) {
     if (event.key === 'F1') {
-        event.preventDefault(); // CAŁKOWITA BLOKADA POMOCY WINDOWS
+        event.preventDefault(); 
         const overlay = document.getElementById('real-logger-overlay');
         if (overlay.style.display === 'block') {
             overlay.style.display = 'none';
@@ -8097,19 +8115,26 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
+// ⏳ AKTUALIZACJA CO 2 SEKUNDY (Tylko licznik w rogu, nie wrzuca spamu do historii logów!)
 setInterval(() => {
+    let memStr = "Protected Mode";
     if (performance && performance.memory) {
         const bytes = performance.memory.usedJSHeapSize;
-        const memStr = parseFloat((bytes / 1024 / 1024).toFixed(2)) + ' MB';
-        logAction("HARDWARE_RAM", `Heap allocation: ${memStr}`, "tag-ram");
+        memStr = parseFloat((bytes / 1024 / 1024).toFixed(2)) + ' MB';
     }
+    
     const threads = navigator.hardwareConcurrency || "N/A";
-    logAction("HARDWARE_CPU", `Kernel core state: ACTIVE // Logical threads: ${threads}`, "tag-ram");
-    logAction("NET_STATUS", `Gateway link status: ${navigator.onLine ? "ONLINE" : "OFFLINE"}`, "tag-net");
-}, 4000);
+    
+    // Podmiana tekstu w prawym górnym rogu ekranu F1
+    const ramEl = document.getElementById('f1-mon-ram');
+    const cpuEl = document.getElementById('f1-mon-cpu');
+    if (ramEl) ramEl.innerText = memStr;
+    if (cpuEl) cpuEl.innerText = threads + " Threads Active";
+}, 2000);
 
-logAction("CORE_SYS", "Diagnostics kernel initialized. Press F1 to view real logs.", "tag-sys");
-
+// Początkowy log, żeby okno nie było puste na starcie
+logAction("CORE_SYS", "Diagnostics kernel active. Monitoring real user actions...", "tag-sys");
+    
 // START
 let savedLang = localStorage.getItem("lang");
 if (savedLang === "summer") {            // migracja: summer był kiedyś "językiem", teraz to osobny tryb
