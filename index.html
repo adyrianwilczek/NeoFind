@@ -5826,7 +5826,7 @@ document.getElementById("search").addEventListener("input", function() {
     const value = this.value.toLowerCase().trim();
 
     // 2. SPRAWDZANIE KODU PREMIUM
-    if (value === "holidays26") {
+    /* if (value === "holidays26") {
         // Jeśli kod był już użyty
         if (localStorage.getItem("premium_claimed") === "true") {
             alert("❌ Code arleady redemned!"); 
@@ -5858,7 +5858,7 @@ document.getElementById("search").addEventListener("input", function() {
         }
 
         return;
-    }
+    } */
     const box = document.getElementById("results");
 const url = new URL(window.location);
 if(value) url.searchParams.set("q", value);
@@ -8004,9 +8004,9 @@ function startNeoCountdown(labelText, targetDateString) {
 
 // ⏳ KONFIGURACJA ODLICZANIA (zmień tekst i datę poniżej):
 const NEO_COUNTDOWN = {
-    enabled: true,                      // false = ukryj licznik
-    label:  "Code will expire in:",        // ← tekst przed licznikiem
-    target: "2026-07-01T00:00:00"       // ← data do której odliczamy (RRRR-MM-DDTGG:MM:SS)
+    enabled: true,                      // false = ukryj licznik true = pokaż licznik
+    label:  "end of holidays:",        // ← tekst przed licznikiem
+    target: "2026-09-01T00:00:00"       // ← data do której odliczamy (RRRR-MM-DDTGG:MM:SS)
 };
 
 // URUCHOMIENIE LICZNIKA:
