@@ -8026,7 +8026,7 @@ window.addEventListener('keydown', function(event) {
 });
 
 // ============================================================================
-// 🛠️ REAL-TIME SYSTEM LOGGER PANEL (F1 + TERMINAL KOMEND + LIVE MONITOR)
+// 🛠️ REAL-TIME SYSTEM LOGGER PANEL (F1 + COMMAND TERMINAL + LIVE MONITOR)
 // ============================================================================
 const loggerStyles = document.createElement('style');
 loggerStyles.textContent = `
@@ -8058,13 +8058,13 @@ loggerStyles.textContent = `
     .log-tag { font-weight: bold; margin-right: 8px; }
     .log-msg { color: #f8f8f2; }
     
-    .tag-sys { color: #00ff88; } /* Zielony - System */
-    .tag-ui  { color: #00bcff; } /* Błękitny - Interfejs */
-    .tag-hw  { color: #ffaa00; } /* Pomarańczowy - Sprzęt */
-    .tag-db  { color: #ff79c6; } /* Różowy - Sieć i Baza danych */
-    .tag-sec { color: #bd93f9; } /* Fioletowy - Bezpieczeństwo */
+    .tag-sys { color: #00ff88; } /* Green - System */
+    .tag-ui  { color: #00bcff; } /* Blue - UI / Interface */
+    .tag-hw  { color: #ffaa00; } /* Orange - Hardware */
+    .tag-db  { color: #ff79c6; } /* Pink - Network & Database */
+    .tag-sec { color: #bd93f9; } /* Purple - Security */
 
-    /* Bezpieczny, nakładany efekt anomalii (Glitch Matrixa) */
+    /* Safe, overlay glitch effect (Matrix Anomaly) */
     #matrix-overlay-glitch {
         position: fixed; top:0; left:0; width:100vw; height:100vh;
         pointer-events: none; background: rgba(0, 40, 0, 0.15);
@@ -8074,7 +8074,7 @@ loggerStyles.textContent = `
 `;
 document.head.appendChild(loggerStyles);
 
-// Tworzymy bezpieczną nakładkę wizualną, która nie psuje elementów HTML strony
+// Create a safe visual overlay that doesn't break the page layout
 const glitchDiv = document.createElement('div');
 glitchDiv.id = 'matrix-overlay-glitch';
 document.body.appendChild(glitchDiv);
@@ -8095,7 +8095,7 @@ loggerDiv.innerHTML = `
         <div id="logger-output"></div>
         <div style="border-top: 1px solid #282a36; padding-top: 15px; display: flex; align-items: center; flex-shrink: 0;">
             <span style="color: #bd93f9; font-weight: bold; margin-right: 10px; font-family: monospace;">neo@find:~$</span>
-            <input type="text" id="terminal-input" placeholder="Wpisz komendę (np. /hw, /matrix, /help)..." 
+            <input type="text" id="terminal-input" placeholder="Type a command (e.g., /hw, /matrix, /help)..." 
                    style="background: transparent; border: none; color: #fff; font-family: monospace; font-size: 14px; width: 100%; outline: none;">
         </div>
     </div>
@@ -8103,7 +8103,7 @@ loggerDiv.innerHTML = `
 document.body.appendChild(loggerDiv);
 
 const APP_LOG_DATABASE = [];
-let isMatrixAnomalyActive = false; // deklaracja: bez niej performLocalSearch rzucał ReferenceError przy każdym wpisaniu znaku
+let isMatrixAnomalyActive = false; 
 
 function logAction(tag, message, logClass = "tag-sys") {
     const now = new Date();
@@ -8130,9 +8130,7 @@ function renderLogs() {
     output.scrollTop = output.scrollHeight;
 }
 
-// 🔍 Logger wyszukiwarki F1 + blokada wyników na czas anomalii Matrixa.
-// Właściwe renderowanie wyników robi główny listener wyszukiwarki (kalkulator, FIFA, AI, baza),
-// więc tutaj tylko logujemy akcje i nadpisujemy wyniki komunikatem tylko podczas anomalii /matrix.
+// 🔍 Search bar logger + result blocker for Matrix Anomaly.
 function performLocalSearch() {
     const inputEl = document.getElementById('search');
     const resultsContainer = document.getElementById('results');
@@ -8141,7 +8139,7 @@ function performLocalSearch() {
 
     logAction("UI_INPUT", `User typed: "${query}"`, "tag-ui");
 
-    // Jeśli anomalia /matrix jest aktywna, blokujemy wyszukiwarkę komunikatem o błędzie
+    // If the matrix anomaly is triggered, block search execution with an error status
     if (isMatrixAnomalyActive) {
         logAction("DB_CORRUPTED", `CRITICAL: Search blocked. Matrix sector data unreadable for: "${query}"`, "tag-db");
         resultsContainer.innerHTML = `
@@ -8158,7 +8156,7 @@ function performLocalSearch() {
 
 document.getElementById('search')?.addEventListener('input', performLocalSearch);
 
-// 💻 INTERPRETATOR KOMEND TERMINALA
+// 💻 TERMINAL COMMAND INTERPRETER
 function executeTerminalCommand(commandLine) {
     const trimmed = commandLine.trim();
     if (!trimmed) return;
@@ -8170,12 +8168,12 @@ function executeTerminalCommand(commandLine) {
 
     switch (cmd) {
         case "/help":
-            logAction("HELP", "--- LISTA REALNYCH KOMEND SYSTEMOWYCH ---", "tag-sys");
-            logAction("HELP", "/hw lub /hardware - REALNY benchmark i test wydajności procesora", "tag-hw");
-            logAction("HELP", "/db-status       - Oblicza realną wagę bajtową bazy w RAM", "tag-db");
-            logAction("HELP", "/matrix          - WSTRZYKNIJ ANOMALIĘ DO STRONY NEOFIND", "tag-hw");
-            logAction("HELP", "/clear           - Czyszczenie historii logów", "tag-sys");
-            logAction("HELP", "/sys-info        - Odczytuje prawdziwy system i stan baterii", "tag-sys");
+            logAction("HELP", "--- LIST OF CORE SYSTEM COMMANDS ---", "tag-sys");
+            logAction("HELP", "/hw or /hardware   - Run a REAL hardware benchmark & CPU stress test", "tag-hw");
+            logAction("HELP", "/db-status         - Calculate real byte weight of database in RAM", "tag-db");
+            logAction("HELP", "/matrix            - INJECT SECTOR ANOMALY INTO NEOFIND CORE", "tag-hw");
+            logAction("HELP", "/clear             - Flush log terminal buffer history", "tag-sys");
+            logAction("HELP", "/sys-info          - Retrieve hardware platform and battery telemetry", "tag-sys");
             break;
 
         case "/hw":
@@ -8188,11 +8186,11 @@ function executeTerminalCommand(commandLine) {
                     Math.sqrt(Math.random() * 999999) * Math.sin(Math.random());
                     operations++;
                 }
-                const cores = navigator.hardwareConcurrency || "Nieznana";
+                const cores = navigator.hardwareConcurrency || "Unknown";
                 logAction("HW_REP", "=== HARDWARE TEST RESULTS ===", "tag-hw");
                 logAction("HW_REP", `Detected physical/threaded CPU cores: ${cores}`, "tag-hw");
-                logAction("HW_REP", `Mathematical operations performed: ${operations.toLocaleString()} cykli`, "tag-hw");
-                logAction("HW_REP", `Test core performance: ${(operations / 3).toFixed(0)} operacji/sekundę`, "tag-hw");
+                logAction("HW_REP", `Mathematical operations performed: ${operations.toLocaleString()} cycles`, "tag-hw");
+                logAction("HW_REP", `Test core performance: ${(operations / 3).toFixed(0)} ops/second`, "tag-hw");
             }, 50);
             break;
 
@@ -8200,19 +8198,19 @@ function executeTerminalCommand(commandLine) {
             const stringified = JSON.stringify(data);
             const bytes = new Blob([stringified]).size;
             logAction("DB_SIZE", "=== REAL STATUS OF THE DATABASE CLUSTER ===", "tag-db");
-            logAction("DB_SIZE", `The local database weighs exactly: ${bytes} bajtów.`, "tag-db");
+            logAction("DB_SIZE", `The local database weighs exactly: ${bytes} bytes.`, "tag-db");
             break;
 
         case "/matrix":
             if (isMatrixAnomalyActive) {
-                logAction("SYS_WARN", "Matrix anomaly is active.", "tag-hw");
+                logAction("SYS_WARN", "Matrix anomaly is already active.", "tag-hw");
                 return;
             }
             
             isMatrixAnomalyActive = true;
-            logAction("HW_ALERT", "!! CRITICAL ANOMALY INJECTED !! Destabilizacja obrazu...", "tag-hw");
+            logAction("HW_ALERT", "!! CRITICAL ANOMALY INJECTED !! Destabilizing display filters...", "tag-hw");
             
-            // Włączamy bezpieczną nakładkę graficzną glitcha
+            // Turn on the safe graphics overlay filter
             const glitchLayer = document.getElementById('matrix-overlay-glitch');
             if (glitchLayer) glitchLayer.style.display = 'block';
             
@@ -8224,17 +8222,17 @@ function executeTerminalCommand(commandLine) {
                 if (matrixTicks >= 8) {
                     clearInterval(matrixInterval);
                     
-                    // SYSTEM RECOVERY - Automatyczne, stabilne wyłączenie anomalii po kilku sekundach
+                    // SYSTEM RECOVERY - Automated stable rollback after a few seconds
                     setTimeout(() => {
                         if (glitchLayer) glitchLayer.style.display = 'none';
                         isMatrixAnomalyActive = false;
                         
                         logAction("SYS_REC", "=== KERNEL EMERGENCY RECOVERY ===", "tag-sys");
-                        logAction("SYS_REC", "Voltage dump completed. Graphic filters reset..", "tag-sys");
-                        logAction("SEC_OK", "Data base has been sucessfully raised.", "tag-sec");
-                        logAction("SYS_OK", "NeoFind returned to stabilize.", "tag-sys");
+                        logAction("SYS_REC", "Voltage dump completed. Graphic filters reset.", "tag-sys");
+                        logAction("SEC_OK", "Database cluster has been successfully raised.", "tag-sec");
+                        logAction("SYS_OK", "NeoFind returned to stable operational status.", "tag-sys");
 
-                        // po zdjęciu anomalii odświeżamy prawdziwe wyniki głównym listenerem wyszukiwarki
+                        // Trigger the main input listener to refresh original results automatically
                         const searchEl = document.getElementById('search');
                         if (searchEl) searchEl.dispatchEvent(new Event('input'));
                     }, 3000);
@@ -8251,10 +8249,10 @@ function executeTerminalCommand(commandLine) {
         case "/sys-info":
             logAction("SYS_INF", "=== DEVICE SPECIFICATIONS ===", "tag-sys");
             logAction("SYS_INF", `Platform/OS: ${navigator.platform}`, "tag-sys");
-            logAction("SYS_INF", `WIFI Connect: ${navigator.onLine ? "ONLINE" : "OFFLINE"}`, "tag-db");
+            logAction("SYS_INF", `Network Link: ${navigator.onLine ? "ONLINE" : "OFFLINE"}`, "tag-db");
             if (navigator.getBattery) {
                 navigator.getBattery().then(battery => {
-                    logAction("SYS_BATT", `Batery: ${(battery.level * 100).toFixed(0)}% [${battery.charging ? "CHARGING" : "BATERY"}]`, "tag-sys");
+                    logAction("SYS_BATT", `Battery: ${(battery.level * 100).toFixed(0)}% [${battery.charging ? "CHARGING" : "BATTERY"}]`, "tag-sys");
                 });
             }
             break;
@@ -8287,7 +8285,7 @@ window.addEventListener('keydown', function(event) {
     }
 });
 
-// Prawdziwy monitor RAM-u przydzielonego do karty
+// Real memory tracker allocation link
 setInterval(() => {
     let memStr = "Protected Mode";
     if (performance && performance.memory) {
