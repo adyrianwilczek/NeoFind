@@ -8101,6 +8101,7 @@ loggerDiv.innerHTML = `
 document.body.appendChild(loggerDiv);
 
 const APP_LOG_DATABASE = [];
+let isMatrixAnomalyActive = false; // deklaracja: bez niej performLocalSearch rzucał ReferenceError przy każdym wpisaniu znaku
 
 function logAction(tag, message, logClass = "tag-sys") {
     const now = new Date();
