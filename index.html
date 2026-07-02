@@ -7976,6 +7976,8 @@ function startNeoCountdown(labelText, targetDateString) {
         const targetTime = new Date(targetDateString).getTime();
         if (isNaN(targetTime)) return;
 
+        let interval; // deklaracja przed updateTimer: gdy strona ładuje się już po dacie, clearInterval(undefined) jest bezpieczne i 🎉 się pokazuje
+
         function updateTimer() {
             const now = new Date().getTime();
             const difference = targetTime - now;
@@ -7998,7 +8000,7 @@ function startNeoCountdown(labelText, targetDateString) {
         }
 
         updateTimer();
-        const interval = setInterval(updateTimer, 1000);
+        interval = setInterval(updateTimer, 1000);
     });
 }
 
@@ -8128,7 +8130,9 @@ function renderLogs() {
     output.scrollTop = output.scrollHeight;
 }
 
-// 🔍 Wyszukiwarka lokalna ze stabilną blokadą błędu Matrixa
+// 🔍 Logger wyszukiwarki F1 + blokada wyników na czas anomalii Matrixa.
+// Właściwe renderowanie wyników robi główny listener wyszukiwarki (kalkulator, FIFA, AI, baza),
+// więc tutaj tylko logujemy akcje i nadpisujemy wyniki komunikatem tylko podczas anomalii /matrix.
 function performLocalSearch() {
     const inputEl = document.getElementById('search');
     const resultsContainer = document.getElementById('results');
@@ -8137,7 +8141,7 @@ function performLocalSearch() {
 
     logAction("UI_INPUT", `User typed: "${query}"`, "tag-ui");
 
-    // Jeśli anomalia jest aktywna, wyszukiwarka bezpiecznie wyświetla komunikat o błędzie
+    // Jeśli anomalia /matrix jest aktywna, blokujemy wyszukiwarkę komunikatem o błędzie
     if (isMatrixAnomalyActive) {
         logAction("DB_CORRUPTED", `CRITICAL: Search blocked. Matrix sector data unreadable for: "${query}"`, "tag-db");
         resultsContainer.innerHTML = `
@@ -8147,37 +8151,9 @@ function performLocalSearch() {
         return;
     }
 
-    if (query === "") {
-        resultsContainer.innerHTML = "";
-        logAction("SYS_CLEAN", "Search container cleared.", "tag-sys");
-        return;
+    if (query !== "") {
+        logAction("DB_SCAN", `Querying local database for: "${query}"`, "tag-db");
     }
-
-    logAction("DB_SCAN", `Querying local database for: "${query}"`, "tag-db");
-
-    const currentData = data[currentLang] || data["pl"];
-    const filtered = currentData.filter(item => 
-        item.title.toLowerCase().includes(query) || 
-        item.desc.toLowerCase().includes(query)
-    );
-
-    resultsContainer.innerHTML = "";
-
-    if (filtered.length === 0) {
-        logAction("DB_EMPTY", `Zero records matched for: "${query}"`, "tag-db");
-        resultsContainer.innerHTML = `<div class="result" style="text-align: center; color: #ff5555;">[ SYSTEM ] Brak wyników w bazie danych.</div>`;
-        return;
-    }
-
-    logAction("DB_FETCH", `Successfully fetched ${filtered.length} record(s).`, "tag-db");
-
-    filtered.forEach(item => {
-        resultsContainer.innerHTML += `
-            <div class="result">
-                <a href="${item.url}" target="_blank">> ${item.title}</a>
-                <p>${item.desc}</p>
-            </div>`;
-    });
 }
 
 document.getElementById('search')?.addEventListener('input', performLocalSearch);
@@ -8257,8 +8233,10 @@ function executeTerminalCommand(commandLine) {
                         logAction("SYS_REC", "Zrzut napięcia wykonany. Filtry graficzne zresetowane.", "tag-sys");
                         logAction("SEC_OK", "Baza danych została pomyślnie podniesiona.", "tag-sec");
                         logAction("SYS_OK", "NeoFind powrócił do stabilnego stanu.", "tag-sys");
-                        
-                        performLocalSearch();
+
+                        // po zdjęciu anomalii odświeżamy prawdziwe wyniki głównym listenerem wyszukiwarki
+                        const searchEl = document.getElementById('search');
+                        if (searchEl) searchEl.dispatchEvent(new Event('input'));
                     }, 3000);
                 }
             }, 300);
