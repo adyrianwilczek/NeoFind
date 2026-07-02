@@ -8180,7 +8180,7 @@ function executeTerminalCommand(commandLine) {
 
         case "/hw":
         case "/hardware":
-            logAction("HW_BENCH", "URUCHAMIANIE REALNEGO BENCHMARKU PROCESORA (3 SEKUNDY)...", "tag-hw");
+            logAction("HW_BENCH", "RUNNING A REAL CPU BENCHMARK (3 SECONDS)...", "tag-hw");
             setTimeout(() => {
                 const startTime = performance.now();
                 let operations = 0;
@@ -8189,28 +8189,28 @@ function executeTerminalCommand(commandLine) {
                     operations++;
                 }
                 const cores = navigator.hardwareConcurrency || "Nieznana";
-                logAction("HW_REP", "=== WYNIKI PRAWDZIWEGO TESTU SPRZĘTU ===", "tag-hw");
-                logAction("HW_REP", `Wykryte fizyczne/wątkowe rdzenie CPU: ${cores}`, "tag-hw");
-                logAction("HW_REP", `Wykonane operacje matematyczne: ${operations.toLocaleString()} cykli`, "tag-hw");
-                logAction("HW_REP", `Wydajność rdzenia testowego: ${(operations / 3).toFixed(0)} operacji/sekundę`, "tag-hw");
+                logAction("HW_REP", "=== HARDWARE TEST RESULTS ===", "tag-hw");
+                logAction("HW_REP", `Detected physical/threaded CPU cores: ${cores}`, "tag-hw");
+                logAction("HW_REP", `Mathematical operations performed: ${operations.toLocaleString()} cykli`, "tag-hw");
+                logAction("HW_REP", `Test core performance: ${(operations / 3).toFixed(0)} operacji/sekundę`, "tag-hw");
             }, 50);
             break;
 
         case "/db-status":
             const stringified = JSON.stringify(data);
             const bytes = new Blob([stringified]).size;
-            logAction("DB_SIZE", "=== REALNY STATUS KLUSTRA BAZY ===", "tag-db");
-            logAction("DB_SIZE", `Lokalna baza danych waży dokładnie: ${bytes} bajtów.`, "tag-db");
+            logAction("DB_SIZE", "=== REAL STATUS OF THE DATABASE CLUSTER ===", "tag-db");
+            logAction("DB_SIZE", `The local database weighs exactly: ${bytes} bajtów.`, "tag-db");
             break;
 
         case "/matrix":
             if (isMatrixAnomalyActive) {
-                logAction("SYS_WARN", "Anomalia Matrixa jest już aktywna.", "tag-hw");
+                logAction("SYS_WARN", "Matrix anomaly is active.", "tag-hw");
                 return;
             }
             
             isMatrixAnomalyActive = true;
-            logAction("HW_ALERT", "!! CRITICAL ANOMALY WSTRZYKNIĘTA !! Destabilizacja obrazu...", "tag-hw");
+            logAction("HW_ALERT", "!! CRITICAL ANOMALY INJECTED !! Destabilizacja obrazu...", "tag-hw");
             
             // Włączamy bezpieczną nakładkę graficzną glitcha
             const glitchLayer = document.getElementById('matrix-overlay-glitch');
@@ -8230,9 +8230,9 @@ function executeTerminalCommand(commandLine) {
                         isMatrixAnomalyActive = false;
                         
                         logAction("SYS_REC", "=== KERNEL EMERGENCY RECOVERY ===", "tag-sys");
-                        logAction("SYS_REC", "Zrzut napięcia wykonany. Filtry graficzne zresetowane.", "tag-sys");
-                        logAction("SEC_OK", "Baza danych została pomyślnie podniesiona.", "tag-sec");
-                        logAction("SYS_OK", "NeoFind powrócił do stabilnego stanu.", "tag-sys");
+                        logAction("SYS_REC", "Voltage dump completed. Graphic filters reset..", "tag-sys");
+                        logAction("SEC_OK", "Data base has been sucessfully raised.", "tag-sec");
+                        logAction("SYS_OK", "NeoFind returned to stabilize.", "tag-sys");
 
                         // po zdjęciu anomalii odświeżamy prawdziwe wyniki głównym listenerem wyszukiwarki
                         const searchEl = document.getElementById('search');
@@ -8249,18 +8249,18 @@ function executeTerminalCommand(commandLine) {
             break;
 
         case "/sys-info":
-            logAction("SYS_INF", "=== PRAWDZIWA SPECYFIKACJA URZĄDZENIA ===", "tag-sys");
-            logAction("SYS_INF", `Platforma/OS: ${navigator.platform}`, "tag-sys");
-            logAction("SYS_INF", `Połączenie sieciowe: ${navigator.onLine ? "ONLINE" : "OFFLINE"}`, "tag-db");
+            logAction("SYS_INF", "=== DEVICE SPECIFICATIONS ===", "tag-sys");
+            logAction("SYS_INF", `Platform/OS: ${navigator.platform}`, "tag-sys");
+            logAction("SYS_INF", `WIFI Connect: ${navigator.onLine ? "ONLINE" : "OFFLINE"}`, "tag-db");
             if (navigator.getBattery) {
                 navigator.getBattery().then(battery => {
-                    logAction("SYS_BATT", `Poziom baterii: ${(battery.level * 100).toFixed(0)}% [${battery.charging ? "ŁADUJE" : "BATERIA"}]`, "tag-sys");
+                    logAction("SYS_BATT", `Batery: ${(battery.level * 100).toFixed(0)}% [${battery.charging ? "CHARGING" : "BATERY"}]`, "tag-sys");
                 });
             }
             break;
 
         default:
-            logAction("TERM_ERR", `Nieznana komenda: "${cmd}". Wpisz /help aby zobaczyć listę.`, "tag-sec");
+            logAction("TERM_ERR", `Unknown command: "${cmd}". Type /help to see list.`, "tag-sec");
             break;
     }
 }
