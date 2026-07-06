@@ -8399,7 +8399,7 @@ window.openHiddenNeoChat = function() {
 
     // 2. Podmieniamy nagłówek na Neo AI
     const chatWithLabel = document.getElementById('chatWithLabel');
-    if (chatWithLabel) chatWithLabel.innerText = "🤖 Neo AI";
+    if (chatWithLabel) chatWithLabel.innerText = "Neo";
 
     // 3. Czyścimy okno wiadomości i wrzucamy powitanie od bota
     const chatMessages = document.getElementById('chatMessages');
@@ -8407,7 +8407,7 @@ window.openHiddenNeoChat = function() {
         chatMessages.innerHTML = `
             <div class="chat-row chat-row-them">
                 <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Cześć! Jestem Twoim asystentem Neo AI. O co chcesz mnie zapytać? ✨</div>
+                <div class="chat-msg-them">Hi! Im Neo how can i help you today?</div>
             </div>
         `;
     }
@@ -8444,17 +8444,18 @@ window.sendHiddenNeoMessage = async function() {
     // Włączamy oryginalny wskaźnik pisania
     const typingIndicator = document.getElementById('chatTypingIndicator');
     if (typingIndicator) {
-        typingIndicator.innerHTML = `Neo AI pisze<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>`;
+        typingIndicator.innerHTML = `Neo is typing<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>`;
     }
 
     try {
-        // Dodajemy wymagany parametr "model". 
-        // Jeśli twój worker woli gemini, to w większości uniwersalnych adapterów zadziała też "gpt-3.5-turbo" lub "gpt-4" przekierowane wewnętrznie.
+        // Dodajemy max_tokens oraz alternatywną strukturę dla Gemini, jeśli "gpt-4o" nie przechodzi
         const requestBody = {
-            model: "gpt-4o", // Dodany wymagany parametr modelu
+            model: "mistral-small-latest", // możesz też zmienić na "gemini-1.5-flash" lub "gpt-3.5-turbo" jeśli znasz dokładną nazwę w swoim Workerze
             messages: [
                 { role: "user", content: msgText }
-            ]
+            ],
+            max_tokens: 1000,
+            temperature: 0.7
         };
 
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
@@ -8471,6 +8472,9 @@ window.sendHiddenNeoMessage = async function() {
             
             if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                 aiReply = resData.choices[0].message.content;
+            } else if (resData.error) {
+                // Jeśli serwer nadal zwraca błąd w formacie JSON, wyświetl go bezpośrednio do debugowania
+                aiReply = `Błąd API: ${resData.error.message || JSON.stringify(resData.error)}`;
             } else {
                 aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
             }
@@ -8483,7 +8487,7 @@ window.sendHiddenNeoMessage = async function() {
         // Wstrzykujemy odpowiedź bota
         chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
+                <span class="chat-sender">Neo</span>
                 <div class="chat-msg-them">${aiReply}</div>
             </div>
         `;
@@ -8492,7 +8496,7 @@ window.sendHiddenNeoMessage = async function() {
         chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
                 <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Błąd połączenia z procesorem. Spróbuj ponownie. ⚡</div>
+                <div class="chat-msg-them">Connection Error. Try again. ⚡</div>
             </div>
         `;
     }
