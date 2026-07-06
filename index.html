@@ -8448,8 +8448,10 @@ window.sendHiddenNeoMessage = async function() {
     }
 
     try {
-        // Konstruujemy strukturę z polem "messages" wymagane przez Worker
+        // Dodajemy wymagany parametr "model". 
+        // Jeśli twój worker woli gemini, to w większości uniwersalnych adapterów zadziała też "gpt-3.5-turbo" lub "gpt-4" przekierowane wewnętrznie.
         const requestBody = {
+            model: "gpt-4o", // Dodany wymagany parametr modelu
             messages: [
                 { role: "user", content: msgText }
             ]
