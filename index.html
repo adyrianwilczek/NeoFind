@@ -8448,11 +8448,18 @@ window.sendHiddenNeoMessage = async function() {
     }
 
     try {
-        // Dodajemy max_tokens oraz alternatywną strukturę dla Gemini, jeśli "gpt-4o" nie przechodzi
         const requestBody = {
-            model: "mistral-small-latest", // możesz też zmienić na "gemini-1.5-flash" lub "gpt-3.5-turbo" jeśli znasz dokładną nazwę w swoim Workerze
+            model: "mistral-small-latest", // Zmień na swój właściwy model, jeśli ten wypluwa błąd
             messages: [
-                { role: "user", content: msgText }
+                // 🧠 TUTAJ KONFIGURUJESZ TOŻSAMOŚĆ NEO AI:
+                { 
+                    role: "system", 
+                    content: "Nazywasz się Neo AI. Jesteś inteligentnym, pomocnym i nowoczesnym asystentem wbudowanym w aplikację NeoFind. Odpowiadasz krótko, zwięźle, konkretnie Masz unikalny, technologiczny styl, jesteś uprzejmy, ale bezpośredni. Nie rozpisuj się bez potrzeby." 
+                },
+                { 
+                    role: "Neo", 
+                    content: msgText 
+                }
             ],
             max_tokens: 1000,
             temperature: 0.7
@@ -8473,7 +8480,6 @@ window.sendHiddenNeoMessage = async function() {
             if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                 aiReply = resData.choices[0].message.content;
             } else if (resData.error) {
-                // Jeśli serwer nadal zwraca błąd w formacie JSON, wyświetl go bezpośrednio do debugowania
                 aiReply = `Błąd API: ${resData.error.message || JSON.stringify(resData.error)}`;
             } else {
                 aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
@@ -8495,8 +8501,8 @@ window.sendHiddenNeoMessage = async function() {
         if (typingIndicator) typingIndicator.innerHTML = '';
         chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Connection Error. Try again. ⚡</div>
+                <span class="chat-sender">Neo</span>
+                <div class="chat-msg-them">Connection error try again ⚡</div>
             </div>
         `;
     }
