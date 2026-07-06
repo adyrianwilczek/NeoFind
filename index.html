@@ -1239,7 +1239,7 @@ body.ocean {
 </div>
     
 <!-- 🔮 FLOATING NEO AI BUTTON (LEFT BOTTOM CORNER ABOVE FRIENDS) -->
-<button id="neoAiFloatBtn" onclick="openHiddenNeoChat()" title="Talk with Neo" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">Neo</button>
+<button id="neoAiFloatBtn" onclick="openHiddenNeoChat()" title="Talk with Neo AI" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</button>
 
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
@@ -8388,8 +8388,43 @@ setInterval(() => {
 logAction("CORE_SYS", "Diagnostics kernel active. Real-time telemetry connected.", "tag-sys");
 logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed.", "tag-sec");
 
-// Neo czat
-async function sendHiddenNeoMessage() {
+// ========================================================
+// UKRYTY CZAT NEO AI - SPROWADZONY DO GLOBALNEGO ZASIĘGU
+// ========================================================
+
+window.openHiddenNeoChat = function() {
+    // 1. Otwieramy standardowy panel czatu
+    const chatPanel = document.getElementById('chatPanel');
+    if (chatPanel) chatPanel.style.display = 'flex';
+
+    // 2. Podmieniamy nagłówek na Neo AI
+    const chatWithLabel = document.getElementById('chatWithLabel');
+    if (chatWithLabel) chatWithLabel.innerText = "🤖 Neo AI";
+
+    // 3. Czyścimy okno wiadomości i wrzucamy powitanie od bota
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.innerHTML = `
+            <div class="chat-row chat-row-them">
+                <span class="chat-sender">Neo AI</span>
+                <div class="chat-msg-them">Cześć! Jestem Twoim asystentem Neo AI. O co chcesz mnie zapytać? ✨</div>
+            </div>
+        `;
+    }
+
+    // 4. Nadpisujemy zachowanie pola input
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.onkeydown = function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendHiddenNeoMessage();
+            }
+        };
+    }
+};
+
+window.sendHiddenNeoMessage = async function() {
     const chatInput = document.getElementById('chatInput');
     const msgText = chatInput.value.trim();
     if (!msgText) return;
@@ -8397,7 +8432,7 @@ async function sendHiddenNeoMessage() {
     chatInput.value = '';
     const chatMessages = document.getElementById('chatMessages');
 
-    // Pokazujemy wiadomość użytkownika w normalnym oknie czatu
+    // Pokazujemy wiadomość użytkownika w oknie czatu
     chatMessages.innerHTML += `
         <div class="chat-row chat-row-me">
             <span class="chat-sender">Ty</span>
@@ -8413,7 +8448,7 @@ async function sendHiddenNeoMessage() {
     }
 
     try {
-        // Konstruujemy dokładnie taką strukturę, jakiej wymaga Twój Worker ("messages")
+        // Konstruujemy strukturę z polem "messages" wymagane przez Worker
         const requestBody = {
             messages: [
                 { role: "user", content: msgText }
@@ -8432,7 +8467,6 @@ async function sendHiddenNeoMessage() {
         if (contentType && contentType.includes("application/json")) {
             const resData = await response.json();
             
-            // Mapowanie standardowych odpowiedzi dla obiektów typu ChatCompletion
             if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                 aiReply = resData.choices[0].message.content;
             } else {
@@ -8456,12 +8490,12 @@ async function sendHiddenNeoMessage() {
         chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
                 <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Błąd procesora. Spróbuj ponownie. ⚡</div>
+                <div class="chat-msg-them">Błąd połączenia z procesorem. Spróbuj ponownie. ⚡</div>
             </div>
         `;
     }
     chatMessages.scrollTop = chatMessages.scrollHeight;
-}
+};
     
 // START
 let savedLang = localStorage.getItem("lang");
