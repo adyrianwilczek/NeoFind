@@ -8388,40 +8388,7 @@ setInterval(() => {
 logAction("CORE_SYS", "Diagnostics kernel active. Real-time telemetry connected.", "tag-sys");
 logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed.", "tag-sec");
 
-/* Funkcja otwierająca normalny panel czatu, ale sfokusowana na ukrytym Neo AI */
-function openHiddenNeoChat() {
-    // 1. Otwieramy Twój standardowy, istniejący panel czatu
-    const chatPanel = document.getElementById('chatPanel');
-    if (chatPanel) chatPanel.style.display = 'flex';
-
-    // 2. Podmieniamy nagłówek na Neo AI
-    const chatWithLabel = document.getElementById('chatWithLabel');
-    if (chatWithLabel) chatWithLabel.innerText = "Neo";
-
-    // 3. Czyścimy okno wiadomości i wrzucamy powitanie od bota
-    const chatMessages = document.getElementById('chatMessages');
-    if (chatMessages) {
-        chatMessages.innerHTML = `
-            <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Hi! Im your assistant. How can i help you today? ✨</div>
-            </div>
-        `;
-    }
-
-    // 4. Nadpisujemy zachowanie Twojego standardowego pola input, żeby strzelało do Workera, a nie do Firebase
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-        chatInput.onkeydown = function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendHiddenNeoMessage();
-            }
-        };
-    }
-}
-
-/* Obsługa wysyłania wiadomości wewnątrz oryginalnego czatu bezpośrednio do Workera */
+// Neo czat
 async function sendHiddenNeoMessage() {
     const chatInput = document.getElementById('chatInput');
     const msgText = chatInput.value.trim();
@@ -8433,41 +8400,54 @@ async function sendHiddenNeoMessage() {
     // Pokazujemy wiadomość użytkownika w normalnym oknie czatu
     chatMessages.innerHTML += `
         <div class="chat-row chat-row-me">
-            <span class="chat-sender"></span>
+            <span class="chat-sender">Ty</span>
             <div class="chat-msg-me">${msgText}</div>
         </div>
     `;
     chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Włączamy Twój oryginalny wskaźnik pisania, jeśli istnieje
+    // Włączamy oryginalny wskaźnik pisania
     const typingIndicator = document.getElementById('chatTypingIndicator');
     if (typingIndicator) {
         typingIndicator.innerHTML = `Neo AI pisze<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>`;
     }
 
     try {
-        // Strzał prosto do Twojego Cloudflare Workera
+        // Konstruujemy dokładnie taką strukturę, jakiej wymaga Twój Worker ("messages")
+        const requestBody = {
+            messages: [
+                { role: "user", content: msgText }
+            ]
+        };
+
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text: msgText })
+            body: JSON.stringify(requestBody)
         });
 
         let aiReply = "";
         const contentType = response.headers.get("content-type");
+        
         if (contentType && contentType.includes("application/json")) {
             const resData = await response.json();
-            aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
+            
+            // Mapowanie standardowych odpowiedzi dla obiektów typu ChatCompletion
+            if (resData.choices && resData.choices[0] && resData.choices[0].message) {
+                aiReply = resData.choices[0].message.content;
+            } else {
+                aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
+            }
         } else {
             aiReply = await response.text();
         }
 
         if (typingIndicator) typingIndicator.innerHTML = '';
 
-        // Wstrzykujemy odpowiedź bota jako normalną wiadomość typu "them"
+        // Wstrzykujemy odpowiedź bota
         chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo</span>
+                <span class="chat-sender">Neo AI</span>
                 <div class="chat-msg-them">${aiReply}</div>
             </div>
         `;
@@ -8475,8 +8455,8 @@ async function sendHiddenNeoMessage() {
         if (typingIndicator) typingIndicator.innerHTML = '';
         chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo</span>
-                <div class="chat-msg-them">Connection Error, Try again ⚡</div>
+                <span class="chat-sender">Neo AI</span>
+                <div class="chat-msg-them">Błąd procesora. Spróbuj ponownie. ⚡</div>
             </div>
         `;
     }
