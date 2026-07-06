@@ -1237,8 +1237,9 @@ body.ocean {
     <input id="reportText" placeholder="Describe problem..."><br><br>
     <button type="button" id="send-report-btn">Send Report</button>
 </div>
-    <!-- 🔮 GUZIK NEO AI W LEWYM DOLNYM ROGU -->
-<button id="neoAiFloatBtn" onclick="toggleNeoAiChat()" title="Talk with Neo AI">🤖</button>
+    
+<!-- 🔮 FLOATING NEO AI BUTTON (LEFT BOTTOM CORNER ABOVE FRIENDS) -->
+<button id="neoAiFloatBtn" onclick="openHiddenNeoChat()" title="Talk with Neo" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">Neo</button>
 
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
@@ -8387,84 +8388,99 @@ setInterval(() => {
 logAction("CORE_SYS", "Diagnostics kernel active. Real-time telemetry connected.", "tag-sys");
 logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed.", "tag-sec");
 
-/* Funkcje obsługujące chwilowy czat Neo AI */
-function toggleNeoAiChat() {
-    const chat = document.getElementById('neoAiTmpChat');
-    if (chat.style.display === 'none') {
-        chat.style.display = 'flex';
-    } else {
-        chat.style.display = 'none';
+/* Funkcja otwierająca normalny panel czatu, ale sfokusowana na ukrytym Neo AI */
+function openHiddenNeoChat() {
+    // 1. Otwieramy Twój standardowy, istniejący panel czatu
+    const chatPanel = document.getElementById('chatPanel');
+    if (chatPanel) chatPanel.style.display = 'flex';
+
+    // 2. Podmieniamy nagłówek na Neo AI
+    const chatWithLabel = document.getElementById('chatWithLabel');
+    if (chatWithLabel) chatWithLabel.innerText = "Neo";
+
+    // 3. Czyścimy okno wiadomości i wrzucamy powitanie od bota
+    const chatMessages = document.getElementById('chatMessages');
+    if (chatMessages) {
+        chatMessages.innerHTML = `
+            <div class="chat-row chat-row-them">
+                <span class="chat-sender">Neo AI</span>
+                <div class="chat-msg-them">Hi! Im your assistant. How can i help you today? ✨</div>
+            </div>
+        `;
+    }
+
+    // 4. Nadpisujemy zachowanie Twojego standardowego pola input, żeby strzelało do Workera, a nie do Firebase
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.onkeydown = function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendHiddenNeoMessage();
+            }
+        };
     }
 }
 
-async function sendNeoAiMessage() {
-    const inputEl = document.getElementById('neoAiInput');
-    const msgText = inputEl.value.trim();
+/* Obsługa wysyłania wiadomości wewnątrz oryginalnego czatu bezpośrednio do Workera */
+async function sendHiddenNeoMessage() {
+    const chatInput = document.getElementById('chatInput');
+    const msgText = chatInput.value.trim();
     if (!msgText) return;
 
-    inputEl.value = '';
-    const messagesContainer = document.getElementById('neoAiMessages');
+    chatInput.value = '';
+    const chatMessages = document.getElementById('chatMessages');
 
-    // Dodaj wiadomość użytkownika do UI
-    messagesContainer.innerHTML += `
+    // Pokazujemy wiadomość użytkownika w normalnym oknie czatu
+    chatMessages.innerHTML += `
         <div class="chat-row chat-row-me">
-            <span class="chat-sender">Ty</span>
+            <span class="chat-sender"></span>
             <div class="chat-msg-me">${msgText}</div>
         </div>
     `;
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 
-    // Utwórz unikalne ID dla animacji pisania AI
-    const typingId = 'ai-typing-' + Date.now();
-    messagesContainer.innerHTML += `
-        <div class="chat-row chat-row-them" id="${typingId}">
-            <span class="chat-sender">Neo AI</span>
-            <div class="chat-msg-them"><span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></div>
-        </div>
-    `;
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // Włączamy Twój oryginalny wskaźnik pisania, jeśli istnieje
+    const typingIndicator = document.getElementById('chatTypingIndicator');
+    if (typingIndicator) {
+        typingIndicator.innerHTML = `Neo AI pisze<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>`;
+    }
 
     try {
-        // Zapytanie do Twojego Workera
+        // Strzał prosto do Twojego Cloudflare Workera
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                text: msgText
-            })
+            body: JSON.stringify({ text: msgText })
         });
-        
-        const resData = await response.json();
-        let aiReply = "Przepraszam, wystąpił problem z połączeniem z moim procesorem. 🧠";
-        
-        // Wyciągamy odpowiedź (zakładając standardową strukturę odpowiedzi z Twojego Workera)
-        if (resData && resData.reply) {
-            aiReply = resData.reply;
-        } else if (resData && resData.text) {
-            aiReply = resData.text;
-        } else if (typeof resData === "string") {
-            aiReply = resData;
+
+        let aiReply = "";
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            const resData = await response.json();
+            aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
+        } else {
+            aiReply = await response.text();
         }
 
-        document.getElementById(typingId).remove();
-        messagesContainer.innerHTML += `
+        if (typingIndicator) typingIndicator.innerHTML = '';
+
+        // Wstrzykujemy odpowiedź bota jako normalną wiadomość typu "them"
+        chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
+                <span class="chat-sender">Neo</span>
                 <div class="chat-msg-them">${aiReply}</div>
             </div>
         `;
-    } catch(e) {
-        if (document.getElementById(typingId)) {
-            document.getElementById(typingId).remove();
-        }
-        messagesContainer.innerHTML += `
+    } catch (e) {
+        if (typingIndicator) typingIndicator.innerHTML = '';
+        chatMessages.innerHTML += `
             <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Jestem teraz offline, ale chętnie pogadam jak naprawisz sieć! ⚡</div>
+                <span class="chat-sender">Neo</span>
+                <div class="chat-msg-them">Connection Error, Try again ⚡</div>
             </div>
         `;
     }
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
     
 // START
