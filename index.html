@@ -907,6 +907,15 @@ body.ocean {
 
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
+<div id="momBirthdayContainer" style="display: none; text-align: center; margin-top: 10px;">
+    <span id="cakeIcon" onclick="openMomBirthdayCard()" style="font-size: 35px; cursor: pointer; display: inline-block; animation: logoPulse 2s ease-in-out infinite;">🎂</span>
+</div>
+
+<div id="momBirthdayCard" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 400px; background: linear-gradient(135deg, #ffe6e6, #fff5f5); border: 3px solid #ff4d6d; border-radius: 20px; box-shadow: 0 0 30px rgba(255, 77, 109, 0.6); padding: 25px; z-index: 10000; color: #4a0010; text-align: center; font-family: 'Oxanium', sans-serif;">
+    <h2 style="color: #ff4d6d; margin-top: 0;">Wszystkiego Najlepszego Mamo! 💖🎉</h2>
+    <p style="font-size: 16px; line-height: 1.6; font-style: italic; white-space: pre-wrap;">Kochana Mamo, z okazji 12 lipca i zarazem ważnego dnia dla ciebie życzę Ci mnóstwa uśmiechu, zdrowia, niegasnącej radości oraz spełnienia wszystkich najskrytszych marzeń! Wszystkiego najlepszego i od mnie i od Neofind Dziękuję, że jesteś. 🌸✨</p>
+    <button onclick="closeMomBirthdayCard()" style="background: #ff4d6d; color: white; border: none; padding: 10px 25px; border-radius: 20px; font-weight: bold; margin-top: 15px; cursor: pointer; box-shadow: 0 4px 10px rgba(255,77,109,0.3);">Dziękuję 🥰</button>
+</div>
 <div id="neoPopup" style="display:none;"></div>
 <div id="neoWarning" style="display:none;"></div>
 <div id="suggestions"></div>
@@ -6427,6 +6436,7 @@ window.login = function () {
     const pass = document.getElementById("logPass").value;
 
     if (!email || !pass) return alert("Fill all!");
+    window.checkMomBirthdayOverlay(document.getElementById('logUser').value);
 
     logAction("SEC_AUTH", `Inbound authentication handshake initiated for: ${email}`, "tag-sec");
 
@@ -8473,6 +8483,59 @@ window.sendNeoAiMessage = async function() {
     `;
     messages.scrollTop = messages.scrollHeight;
 };
+
+// ========================================================
+// KONFIGURACJA NIESPODZIANKI URODZINOWEJ DLA MAMY
+// ========================================================
+
+// 🛠️ TUTAJ STERUJESZ WŁĄCZENIEM: true = działa, false = wyłączone
+window.isMomBirthdayActive = true; 
+
+// Funkcja sprawdzająca e-mail przy zalogowaniu (wywołaj ją np. po udanym zalogowaniu)
+window.checkMomBirthdayOverlay = function(loggedUserEmail) {
+    const momContainer = document.getElementById('momBirthdayContainer');
+    if (!momContainer) return;
+
+    // Sprawdzamy czy przełącznik jest na true ORAZ czy e-mail to dokładnie adres mamy
+    if (window.isMomBirthdayActive && loggedUserEmail === "adrian.wilczek@hotmail.com") {
+        momContainer.style.display = "block";
+    } else {
+        momContainer.style.display = "none";
+    }
+};
+
+// Otwieranie karteczki + wystrzał konfetti
+window.openMomBirthdayCard = function() {
+    const card = document.getElementById('momBirthdayCard');
+    if (card) card.style.display = 'block';
+
+    // Odpalenie wbudowanej biblioteki canvas-confetti, którą masz w nagłówku
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 }
+        });
+    }
+};
+
+// Zamykanie karteczki
+window.closeMomBirthdayCard = function() {
+    const card = document.getElementById('momBirthdayCard');
+    if (card) card.style.display = 'none';
+};
+
+// MAŁY TRICK AUTOMATYCZNY: 
+// Jeśli Twoja aplikacja zapisuje gdzieś stan auth, upewnij się, że po zalogowaniu odpalasz:
+// window.checkMomBirthdayOverlay(auth.currentUser.email);
+// Poniższy kod spróbuje też sprawdzić Firebase auth (jeśli z niego korzystasz i jest już zainicjowany)
+if (typeof auth !== 'undefined') {
+    auth.onAuthStateChanged(function(user) {
+        if (user && user.email) {
+            window.checkMomBirthdayOverlay(user.email);
+        }
+    });
+}
     
 // START
 let savedLang = localStorage.getItem("lang");
