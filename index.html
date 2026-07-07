@@ -1239,7 +1239,7 @@ body.ocean {
 </div>
     
 <!-- 🔮 FLOATING NEO AI BUTTON (LEFT BOTTOM CORNER ABOVE FRIENDS) -->
-<button id="neoAiFloatBtn" onclick="openHiddenNeoChat()" title="Talk with Neo AI" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</button>
+<button id="neoAiFloatBtn" onclick="toggleNeoAiChat()" title="Talk with Neo AI" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</button>
 
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
@@ -8389,68 +8389,50 @@ logAction("CORE_SYS", "Diagnostics kernel active. Real-time telemetry connected.
 logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed.", "tag-sec");
 
 // ========================================================
-// UKRYTY CZAT NEO AI - SPROWADZONY DO GLOBALNEGO ZASIĘGU
+// CZAT Z NEO AI - WLASNY PANEL (#neoAiTmpChat), bez ruszania czatu 1:1
 // ========================================================
 
-window.openHiddenNeoChat = function() {
-    // 1. Otwieramy standardowy panel czatu
-    const chatPanel = document.getElementById('chatPanel');
-    if (chatPanel) chatPanel.style.display = 'flex';
-
-    // 2. Podmieniamy nagłówek na Neo AI
-    const chatWithLabel = document.getElementById('chatWithLabel');
-    if (chatWithLabel) chatWithLabel.innerText = "Neo";
-
-    // 3. Czyścimy okno wiadomości i wrzucamy powitanie od bota
-    const chatMessages = document.getElementById('chatMessages');
-    if (chatMessages) {
-        chatMessages.innerHTML = `
-            <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Hi! Im Neo how can i help you today?</div>
-            </div>
-        `;
-    }
-
-    // 4. Nadpisujemy zachowanie pola input
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-        chatInput.onkeydown = function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                sendHiddenNeoMessage();
-            }
-        };
+// Otwiera/zamyka pływające okienko Neo
+window.toggleNeoAiChat = function() {
+    const box = document.getElementById('neoAiTmpChat');
+    if (!box) return;
+    const opening = box.style.display === 'none' || box.style.display === '';
+    box.style.display = opening ? 'flex' : 'none';
+    if (opening) {
+        const input = document.getElementById('neoAiInput');
+        if (input) input.focus();
     }
 };
 
-window.sendHiddenNeoMessage = async function() {
-    const chatInput = document.getElementById('chatInput');
-    const msgText = chatInput.value.trim();
+window.sendNeoAiMessage = async function() {
+    const input = document.getElementById('neoAiInput');
+    const messages = document.getElementById('neoAiMessages');
+    if (!input || !messages) return;
+
+    const msgText = input.value.trim();
     if (!msgText) return;
+    input.value = '';
 
-    chatInput.value = '';
-    const chatMessages = document.getElementById('chatMessages');
-
-    // Pokazujemy wiadomość użytkownika w oknie czatu
-    chatMessages.innerHTML += `
+    // Wiadomość użytkownika (escapeHtml, żeby tekst nie wykonał się jako HTML)
+    messages.innerHTML += `
         <div class="chat-row chat-row-me">
             <span class="chat-sender">Ty</span>
-            <div class="chat-msg-me">${msgText}</div>
+            <div class="chat-msg-me">${escapeHtml(msgText)}</div>
         </div>
     `;
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    messages.scrollTop = messages.scrollHeight;
 
-    // Włączamy oryginalny wskaźnik pisania
-    const typingIndicator = document.getElementById('chatTypingIndicator');
-    if (typingIndicator) {
-        typingIndicator.innerHTML = `Neo is typing<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span>`;
-    }
+    // Tymczasowy wskaźnik pisania (usuwany przed wstawieniem odpowiedzi)
+    const typing = document.createElement('div');
+    typing.className = 'chat-row chat-row-them';
+    typing.innerHTML = `<span class="chat-sender">Neo</span><div class="chat-msg-them">Neo is typing<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></div>`;
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
 
+    let aiReply = "";
     try {
-        // Dodajemy max_tokens oraz alternatywną strukturę dla Gemini, jeśli "gpt-4o" nie przechodzi
         const requestBody = {
-            model: "mistral-small-latest", // możesz też zmienić na "gemini-1.5-flash" lub "gpt-3.5-turbo" jeśli znasz dokładną nazwę w swoim Workerze
+            model: "mistral-small-latest",
             messages: [
                 { role: "user", content: msgText }
             ],
@@ -8464,16 +8446,12 @@ window.sendHiddenNeoMessage = async function() {
             body: JSON.stringify(requestBody)
         });
 
-        let aiReply = "";
         const contentType = response.headers.get("content-type");
-        
         if (contentType && contentType.includes("application/json")) {
             const resData = await response.json();
-            
             if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                 aiReply = resData.choices[0].message.content;
             } else if (resData.error) {
-                // Jeśli serwer nadal zwraca błąd w formacie JSON, wyświetl go bezpośrednio do debugowania
                 aiReply = `Błąd API: ${resData.error.message || JSON.stringify(resData.error)}`;
             } else {
                 aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
@@ -8481,26 +8459,19 @@ window.sendHiddenNeoMessage = async function() {
         } else {
             aiReply = await response.text();
         }
-
-        if (typingIndicator) typingIndicator.innerHTML = '';
-
-        // Wstrzykujemy odpowiedź bota
-        chatMessages.innerHTML += `
-            <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo</span>
-                <div class="chat-msg-them">${aiReply}</div>
-            </div>
-        `;
     } catch (e) {
-        if (typingIndicator) typingIndicator.innerHTML = '';
-        chatMessages.innerHTML += `
-            <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo AI</span>
-                <div class="chat-msg-them">Connection Error. Try again. ⚡</div>
-            </div>
-        `;
+        aiReply = "Connection Error. Try again. ⚡";
     }
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    typing.remove();
+    // Odpowiedź Neo (escapeHtml, żeby ewentualny HTML z modelu się nie wykonał)
+    messages.innerHTML += `
+        <div class="chat-row chat-row-them">
+            <span class="chat-sender">Neo</span>
+            <div class="chat-msg-them">${escapeHtml(aiReply)}</div>
+        </div>
+    `;
+    messages.scrollTop = messages.scrollHeight;
 };
     
 // START
