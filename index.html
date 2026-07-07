@@ -8489,7 +8489,7 @@ window.sendNeoAiMessage = async function() {
 // ========================================================
 
 // 🛠️ TUTAJ STERUJESZ WŁĄCZENIEM: true = działa, false = wyłączone
-window.isMomBirthdayActive = true; 
+window.isMomBirthdayActive = false; 
 
 // Funkcja sprawdzająca e-mail przy zalogowaniu (wywołaj ją np. po udanym zalogowaniu)
 window.checkMomBirthdayOverlay = function(loggedUserEmail) {
@@ -8497,7 +8497,7 @@ window.checkMomBirthdayOverlay = function(loggedUserEmail) {
     if (!momContainer) return;
 
     // Sprawdzamy czy przełącznik jest na true ORAZ czy e-mail to dokładnie adres mamy
-    if (window.isMomBirthdayActive && loggedUserEmail === "adrian.wilczek@hotmail.com") {
+    if (window.isMomBirthdayActive && loggedUserEmail === "j.e.wilkowska@gmail.com") {
         momContainer.style.display = "block";
     } else {
         momContainer.style.display = "none";
