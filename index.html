@@ -848,7 +848,7 @@ body.ocean {
 <div id="app" class="container" style="display:none;">
         <div id="neoCountdownContainer" class="neoCountdownContainer" style="display: none; text-align: center; font-size: 1.2rem; margin-top: 20px; letter-spacing: 2px; text-shadow: 0 0 10px rgba(77, 166, 255, 0.5);">
     <span id="countdownLabel" class="neoCountdownLabel">Code will expire in: </span>
-    <span id="countdownTime" class="neoCountdownTime" style="font-weight: bold; color: #4da6ff;">--:--:--</span>
+    <span id="countdownTime" class="neoCountdownTime" style="font-weight: bold; color: #4da6ff;">00:00:00</span>
 </div>
 
 <div id="backdrop" onclick="closeAllPanels()"></div>
@@ -1239,7 +1239,7 @@ body.ocean {
 </div>
     
 <!-- 🔮 FLOATING NEO AI BUTTON (LEFT BOTTOM CORNER ABOVE FRIENDS) -->
-<button id="neoAiFloatBtn" onclick="toggleNeoAiChat()" title="Talk with Neo AI" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">🤖</button>
+<button id="neoAiFloatBtn" onclick="toggleNeoAiChat()" title="Talk with Neo" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">Neo</button>
 
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
@@ -8416,7 +8416,7 @@ window.sendNeoAiMessage = async function() {
     // Wiadomość użytkownika (escapeHtml, żeby tekst nie wykonał się jako HTML)
     messages.innerHTML += `
         <div class="chat-row chat-row-me">
-            <span class="chat-sender">Ty</span>
+            <span class="chat-sender">You</span>
             <div class="chat-msg-me">${escapeHtml(msgText)}</div>
         </div>
     `;
@@ -8436,7 +8436,7 @@ window.sendNeoAiMessage = async function() {
             messages: [
                 { role: "user", content: msgText }
             ],
-            max_tokens: 1000,
+            max_tokens: 10000,
             temperature: 0.7
         };
 
