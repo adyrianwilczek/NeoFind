@@ -1348,7 +1348,7 @@ body.ocean {
     <div id="neoAiMessages">
         <div class="chat-row chat-row-them">
             <span class="chat-sender">Neo</span>
-            <div class="chat-msg-them">Hi! I'm Neo. How can I help you today? ✨</div>
+            <div class="chat-msg-them" id="neoAiGreetTxt">Hi! I'm Neo. How can I help you today? ✨</div>
         </div>
     </div>
     <div id="neoAiInputArea">
@@ -8492,6 +8492,18 @@ logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed
 // CZAT Z NEO AI - WLASNY PANEL (#neoAiTmpChat), bez ruszania czatu 1:1
 // ========================================================
 
+// Teksty czatu Neo zależne od języka systemu (currentLang: en/pl/es)
+const NEO_TEXT = {
+    en: { greet: "Hi! I'm Neo. How can I help you today? ✨", placeholder: "Type to Neo...", you: "You", typing: "Neo is typing", error: "Connection Error. Try again. ⚡", langName: "English" },
+    pl: { greet: "Cześć! Jestem Neo. W czym mogę Ci dziś pomóc? ✨", placeholder: "Napisz do Neo...", you: "Ty", typing: "Neo pisze", error: "Błąd połączenia. Spróbuj ponownie. ⚡", langName: "Polish" },
+    es: { greet: "¡Hola! Soy Neo. ¿En qué puedo ayudarte hoy? ✨", placeholder: "Escribe a Neo...", you: "Tú", typing: "Neo está escribiendo", error: "Error de conexión. Inténtalo de nuevo. ⚡", langName: "Spanish" }
+};
+function neoLang() {
+    const l = (typeof currentLang !== 'undefined') ? currentLang : 'en';
+    return (l === 'pl' || l === 'es') ? l : 'en';
+}
+function neoT() { return NEO_TEXT[neoLang()] || NEO_TEXT.en; }
+
 // Otwiera/zamyka pływające okienko Neo
 window.toggleNeoAiChat = function() {
     const box = document.getElementById('neoAiTmpChat');
@@ -8502,8 +8514,13 @@ window.toggleNeoAiChat = function() {
         box.classList.add('neo-closing');
         setTimeout(() => { box.style.display = 'none'; box.classList.remove('neo-closing'); }, 180);
     } else {
-        box.style.display = 'flex';
+        // dopasuj język do systemu: powitanie + placeholder
+        const t = neoT();
+        const greet = document.getElementById('neoAiGreetTxt');
+        if (greet) greet.textContent = t.greet;
         const input = document.getElementById('neoAiInput');
+        if (input) input.placeholder = t.placeholder;
+        box.style.display = 'flex';
         if (input) setTimeout(() => input.focus(), 60);
     }
 };
@@ -8517,10 +8534,12 @@ window.sendNeoAiMessage = async function() {
     if (!msgText) return;
     input.value = '';
 
+    const t = neoT();
+
     // Wiadomość użytkownika (escapeHtml, żeby tekst nie wykonał się jako HTML)
     messages.innerHTML += `
         <div class="chat-row chat-row-me">
-            <span class="chat-sender">You</span>
+            <span class="chat-sender">${t.you}</span>
             <div class="chat-msg-me">${escapeHtml(msgText)}</div>
         </div>
     `;
@@ -8529,7 +8548,7 @@ window.sendNeoAiMessage = async function() {
     // Tymczasowy wskaźnik pisania (usuwany przed wstawieniem odpowiedzi)
     const typing = document.createElement('div');
     typing.className = 'chat-row chat-row-them';
-    typing.innerHTML = `<span class="chat-sender">Neo</span><div class="chat-msg-them">Neo is typing<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></div>`;
+    typing.innerHTML = `<span class="chat-sender">Neo</span><div class="chat-msg-them">${t.typing}<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></div>`;
     messages.appendChild(typing);
     messages.scrollTop = messages.scrollHeight;
 
@@ -8538,6 +8557,7 @@ window.sendNeoAiMessage = async function() {
         const requestBody = {
             model: "mistral-small-latest",
             messages: [
+                { role: "system", content: `You are Neo, a friendly assistant inside the NeoFind app. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers clear and concise.` },
                 { role: "user", content: msgText }
             ],
             max_tokens: 10000,
@@ -8564,7 +8584,7 @@ window.sendNeoAiMessage = async function() {
             aiReply = await response.text();
         }
     } catch (e) {
-        aiReply = "Connection Error. Try again. ⚡";
+        aiReply = t.error;
     }
 
     typing.remove();
