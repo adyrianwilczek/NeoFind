@@ -6521,10 +6521,10 @@ window.register = function () {
             userCredential.user.sendEmailVerification()
                 .then(() => {
                     alert("Account created! Check your email and click the verification link before logging in.");
+                    // Wywołanie wysyłki maila powitalnego przez EmailJS
+                    sendWelcomeEmail(email); 
                     auth.signOut();
                 })
-                sendWelcomeEmail(user.email);
-  });
                 .catch(err => alert("Error sending verification email: " + err.message));
         })
         .catch(err => alert(err.message));
