@@ -8538,10 +8538,13 @@ if (typeof auth !== 'undefined') {
     });
 }
 
-// --- BLOK OBSŁUGI ZAKŁADKI UPDATE DLA NEOFIND ---
+// --- BLOK OBSŁUGI PARAMETRU ?p=update DLA NEOFIND ---
 (function() {
-    const pathParam = window.location.pathname.replace(/^\/|\/$/g, '');
-    if (pathParam === 'update') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = urlParams.get('p');
+
+    // Sprawdzenie, czy w URL jest dokładnie ?p=update
+    if (pageParam === 'update') {
         document.documentElement.innerHTML = `
         <head>
             <meta charset="UTF-8">
@@ -8625,11 +8628,11 @@ if (typeof auth !== 'undefined') {
                     </ul>
                     <p>and an important person has a birthday soon!</p>
                 </div>
-                <a href="/" class="btn">Thanks for reading</a>
+                <a href="index.html" class="btn">Thanks for reading</a>
             </div>
         </body>`;
         window.stop();
-        throw new Error("Rendered update page.");
+        throw new Error("Rendered update page via URL parameter.");
     }
 })();
     
