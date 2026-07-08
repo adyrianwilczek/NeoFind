@@ -8538,55 +8538,100 @@ if (typeof auth !== 'undefined') {
     });
 }
 
-// NEOFIND CUSTOM 404 ERROR BLOCK
-const urlParams = new URLSearchParams(window.location.search);
-const pageParam = urlParams.get('p');
-
-if (pageParam && !validPages.includes(pageParam)) {
-    document.documentElement.innerHTML = `
-    <head>
-        <meta charset="UTF-8">
-        <title>404 - NeoFind</title>
-        <style>
-            body {
-                background-color: #0b0b0f;
-                color: #ffffff;
-                font-family: 'Segoe UI', Roboto, sans-serif;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                min-height: 100vh;
-                margin: 0;
-            }
-            .error-box { text-align: center; padding: 20px; max-width: 500px; }
-            .code {
-                font-size: 8rem; font-weight: 800; line-height: 1;
-                background: linear-gradient(45deg, #a855f7, #6366f1);
-                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-                margin-bottom: 10px;
-            }
-            .title { font-size: 1.5rem; font-weight: 600; margin-bottom: 15px; }
-            .msg { color: #9a9a87; font-size: 1rem; line-height: 1.6; margin-bottom: 30px; }
-            .msg code { background: #18181b; padding: 3px 8px; border-radius: 4px; color: #f43f5e; font-family: monospace; }
-            .btn {
-                display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #4f46e5 100%);
-                color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px;
-                font-weight: 600; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
-            }
-        </style>
-    </head>
-    <body>
-        <div class="error-box">
-            <div class="code">404</div>
-            <h1 class="title">404. That’s an error.</h1>
-            <p class="msg">The requested URL <code>/${pageParam}</code> was not found on the NeoFind server.</p>
-            <p class="msg" style="color: #64748b; font-size: 0.9rem;">That’s all we know.</p>
-            <a href="/" class="btn">Return to NeoFind</a>
-        </div>
-    </body>`;
-    window.stop();
-    throw new Error("404: Page not found");
-}
+// --- BLOK OBSŁUGI ZAKŁADKI UPDATE DLA NEOFIND ---
+(function() {
+    const pathParam = window.location.pathname.replace(/^\/|\/$/g, '');
+    if (pathParam === 'update') {
+        document.documentElement.innerHTML = `
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>NeoFind - Updates & Changelog</title>
+            <style>
+                body {
+                    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+                    color: #ffffff;
+                    font-family: 'Oxanium', sans-serif;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 100vh;
+                    margin: 0;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
+                .update-box {
+                    background: rgba(19, 19, 26, 0.85);
+                    border: 1px solid #4da6ff;
+                    border-radius: 16px;
+                    padding: 40px;
+                    max-width: 600px;
+                    width: 100%;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+                }
+                h1 {
+                    font-size: 2.5rem;
+                    margin: 0 0 5px 0;
+                    background: linear-gradient(45deg, #4da6ff, #a855f7);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                .version {
+                    color: #4da6ff;
+                    font-weight: 600;
+                    margin-bottom: 30px;
+                    font-size: 1.1rem;
+                }
+                .content {
+                    color: #e4e4e7;
+                    line-height: 1.8;
+                    font-size: 1.05rem;
+                    margin-bottom: 40px;
+                }
+                .content h2 { font-size: 1.3rem; color: #fff; margin-top: 20px; margin-bottom: 10px; }
+                .content ul { padding-left: 20px; margin-bottom: 20px; }
+                .content li { margin-bottom: 8px; color: #d4d4d8; }
+                .btn {
+                    display: inline-block;
+                    background: #1c1c24;
+                    color: #ffffff;
+                    text-decoration: none;
+                    padding: 12px 30px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    border: 1px solid #4da6ff;
+                    transition: all 0.2s;
+                    cursor: pointer;
+                }
+                .btn:hover {
+                    background: #4da6ff;
+                    color: #0f2027;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="update-box">
+                <h1>Latest Updates</h1>
+                <div class="version">Version 2.0.4</div>
+                <div class="content">
+                    <h2>What new in NeoFind?</h2>
+                    <ul>
+                        <li>NeoFind is on neofind.pl.</li>
+                        <li>added AI chat.</li>
+                        <li>fixed bugs and more.</li>
+                        <li>upgraded user safety.</li>
+                        <li>next update soon!.</li>
+                    </ul>
+                    <p>and an important person has a birthday soon!</p>
+                </div>
+                <a href="/" class="btn">Thanks for reading</a>
+            </div>
+        </body>`;
+        window.stop();
+        throw new Error("Rendered update page.");
+    }
+})();
     
 // START
 let savedLang = localStorage.getItem("lang");
