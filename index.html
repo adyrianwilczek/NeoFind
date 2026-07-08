@@ -494,6 +494,155 @@ body.ocean {
     margin-bottom: 5px;
 }
 
+/* ══════════════ NEO AI — pływający przycisk + okno czatu ══════════════ */
+#neoAiFloatBtn {
+    position: fixed;
+    right: 22px;
+    bottom: calc(var(--bottomnav-h) + 16px);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 50px;
+    padding: 0 18px 0 14px;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #00ffcc, #4da6ff);
+    border: none;
+    color: #05121a;
+    font-family: 'Oxanium', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    z-index: 1006;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35),
+                inset 0 0 0 1px rgba(255,255,255,0.18),
+                0 0 22px rgba(0,255,200,0.32);
+    transition: transform 0.18s cubic-bezier(0.2,0,0,1),
+                box-shadow 0.18s cubic-bezier(0.2,0,0,1);
+    animation: neoPulse 3s ease-in-out infinite;
+}
+#neoAiFloatBtn svg { width: 22px; height: 22px; flex-shrink: 0; }
+#neoAiFloatBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.4),
+                inset 0 0 0 1px rgba(255,255,255,0.25),
+                0 0 32px rgba(0,255,200,0.6);
+}
+#neoAiFloatBtn:active { transform: scale(0.96); }
+@keyframes neoPulse {
+    0%,100% { box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.18), 0 0 18px rgba(0,255,200,0.28); }
+    50%     { box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 0 0 1px rgba(255,255,255,0.18), 0 0 30px rgba(0,255,200,0.55); }
+}
+
+#neoAiTmpChat {
+    position: fixed;
+    right: 22px;
+    bottom: calc(var(--bottomnav-h) + 78px);
+    width: 340px;
+    height: 460px;
+    max-height: calc(100dvh - var(--chrome-h) - 90px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: linear-gradient(160deg, rgba(12,28,34,0.96), rgba(20,45,55,0.96));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(0,255,200,0.28);
+    border-radius: 22px;
+    box-shadow: 0 22px 55px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.25), 0 0 40px rgba(0,255,200,0.10);
+    z-index: 1005;
+    transform-origin: bottom right;
+    animation: neoPanelIn 0.28s cubic-bezier(0.2,0,0,1);
+}
+#neoAiTmpChat.neo-closing { animation: neoPanelOut 0.18s cubic-bezier(0.4,0,1,1) forwards; }
+@keyframes neoPanelIn {
+    from { opacity: 0; transform: translateY(14px) scale(0.94); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes neoPanelOut {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to   { opacity: 0; transform: translateY(10px) scale(0.97); }
+}
+#neoAiHeader {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 12px 12px 14px;
+    background: linear-gradient(90deg, rgba(0,255,200,0.14), rgba(77,166,255,0.10));
+    border-bottom: 1px solid rgba(0,255,200,0.18);
+}
+#neoAiHeader .neo-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #00ffcc, #4da6ff);
+    color: #05121a; flex-shrink: 0;
+    box-shadow: 0 0 12px rgba(0,255,200,0.4);
+}
+#neoAiHeader .neo-avatar svg { width: 19px; height: 19px; }
+#neoAiHeader .neo-title { display: flex; flex-direction: column; line-height: 1.2; }
+#neoAiHeader .neo-title b { font-family:'Oxanium',sans-serif; color:#e2fffa; font-size:14px; letter-spacing:0.4px; }
+#neoAiHeader .neo-title small { color:#5fe8cb; font-size:10.5px; display:flex; align-items:center; gap:5px; }
+#neoAiHeader .neo-dot { width:6px; height:6px; border-radius:50%; background:#22e6a0; box-shadow:0 0 6px #22e6a0; }
+#neoAiClose {
+    margin-left: auto;
+    width: 30px; height: 30px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(0,255,200,0.22);
+    color: #9fe9da; cursor: pointer; font-size: 13px; line-height: 1;
+    transition: background 0.15s, transform 0.15s;
+}
+#neoAiClose:hover { background: rgba(255,255,255,0.15); }
+#neoAiClose:active { transform: scale(0.9); }
+#neoAiMessages {
+    flex: 1; min-height: 0;
+    padding: 14px 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+#neoAiInputArea {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 10px 12px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+}
+#neoAiInputArea input {
+    flex: 1;
+    width: auto;
+    margin: 0;
+    padding: 11px 16px;
+    border-radius: 22px;
+    border: 1px solid rgba(0,255,200,0.25);
+    background: rgba(0,0,0,0.28);
+    color: #eafffb;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+#neoAiInputArea input::placeholder { color: rgba(180,230,220,0.55); }
+#neoAiInputArea input:focus {
+    border-color: rgba(0,255,200,0.6);
+    box-shadow: 0 0 0 3px rgba(0,255,200,0.12);
+}
+#neoAiSend {
+    width: 42px; height: 42px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #00ffcc, #4da6ff);
+    color: #05121a;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,255,200,0.35);
+    transition: transform 0.15s, box-shadow 0.15s;
+}
+#neoAiSend:hover { box-shadow: 0 2px 16px rgba(0,255,200,0.6); }
+#neoAiSend:active { transform: scale(0.92); }
+#neoAiSend svg { width: 18px; height: 18px; }
+
 @media (max-width: 600px) {
     /* ── homeWrapper: jedyne źródło marginesów bocznych (16px każda strona) ── */
     #homeWrapper {
@@ -508,77 +657,16 @@ body.ocean {
         gap: 4px;
     }
 
-    /* 🔮 FLOATING NEO AI BUTTON (LEFT BOTTOM CORNER ABOVE FRIENDS) */
-#neoAiFloatBtn {
-    position: fixed;
-    left: 25px;
-    bottom: calc(var(--bottomnav-h) + 15px);
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #00ffcc, #4da6ff);
-    border: 2px solid rgba(255,255,255,0.2);
-    box-shadow: 0 0 20px rgba(0, 255, 200, 0.4);
-    cursor: pointer;
-    z-index: 1005;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-#neoAiFloatBtn:hover {
-    transform: scale(1.1) rotate(5deg);
-    box-shadow: 0 0 25px rgba(0, 255, 200, 0.7);
-}
-
-/* 🤖 TEMPORARY AI CHAT PANEL overlay */
-#neoAiTmpChat {
-    position: fixed;
-    bottom: calc(var(--bottomnav-h) + 20px);
-    left: 25px;
-    width: 330px;
-    height: 450px;
-    background: linear-gradient(135deg, rgba(10,25,30,0.95), rgba(20,45,55,0.95));
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(0,255,200,0.3);
-    border-radius: 20px;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
-    z-index: 1004;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    animation: fadeIn 0.25s ease-out;
-}
-#neoAiHeader {
-    padding: 12px;
-    background: rgba(0,255,200,0.1);
-    border-bottom: 1px solid rgba(0,255,200,0.2);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-#neoAiMessages {
-    flex: 1;
-    padding: 12px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-#neoAiInputArea {
-    padding: 10px;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    gap: 6px;
-}
-#neoAiInputArea input {
-    width: 100%;
-    margin-bottom: 0;
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: 14px;
-}
+    /* 🤖 Neo AI — dopasowanie na wąskich ekranach (styl globalny jest niżej) */
+    #neoAiFloatBtn { right: 16px; bottom: calc(var(--bottomnav-h) + 12px); }
+    #neoAiTmpChat {
+        right: 12px;
+        left: 12px;
+        width: auto;
+        bottom: calc(var(--bottomnav-h) + 74px);
+        height: auto;
+        max-height: calc(100dvh - var(--chrome-h) - 90px);
+    }
 
     /* ── logo ── */
     #logo { margin-top: 0; text-align: center; }
@@ -1247,24 +1335,25 @@ body.ocean {
     <button type="button" id="send-report-btn">Send Report</button>
 </div>
     
-<!-- 🔮 FLOATING NEO AI BUTTON (LEFT BOTTOM CORNER ABOVE FRIENDS) -->
-<button id="neoAiFloatBtn" onclick="toggleNeoAiChat()" title="Talk with Neo" style="position: fixed; left: 25px; bottom: calc(var(--bottomnav-h) + 15px); width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #4da6ff); border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); cursor: pointer; z-index: 1005; display: flex; align-items: center; justify-content: center; font-size: 24px;">AI</button>
+<!-- 🔮 PŁYWAJĄCY PRZYCISK NEO AI (prawy dolny róg) -->
+<button id="neoAiFloatBtn" onclick="toggleNeoAiChat()" title="Neo AI" aria-label="Neo AI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.4c.9.6 4.1.6 5 0"/></svg>Neo AI</button>
 
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
     <div id="neoAiHeader">
-        <span style="font-weight:bold; color:#00ffcc;">Neo Chat</span>
-        <button onclick="toggleNeoAiChat()" style="padding:2px 6px; font-size:11px; background:none; border:1px solid rgba(0,255,200,0.4);">✕</button>
+        <span class="neo-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.4c.9.6 4.1.6 5 0"/></svg></span>
+        <span class="neo-title"><b>Neo AI</b><small><span class="neo-dot"></span>online</small></span>
+        <button id="neoAiClose" onclick="toggleNeoAiChat()" aria-label="Zamknij czat">✕</button>
     </div>
     <div id="neoAiMessages">
         <div class="chat-row chat-row-them">
             <span class="chat-sender">Neo</span>
-            <div class="chat-msg-them">Hi im Neo how can i help you today?</div>
+            <div class="chat-msg-them">Hi! I'm Neo. How can I help you today? ✨</div>
         </div>
     </div>
     <div id="neoAiInputArea">
         <input id="neoAiInput" placeholder="Type to Neo..." onkeydown="if(event.key==='Enter'){ sendNeoAiMessage(); }">
-        <button onclick="sendNeoAiMessage()" style="border-radius:20px; padding:6px 12px;">➔</button>
+        <button id="neoAiSend" onclick="sendNeoAiMessage()" aria-label="Wyślij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
     </div>
 </div>
     
@@ -8407,11 +8496,15 @@ logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed
 window.toggleNeoAiChat = function() {
     const box = document.getElementById('neoAiTmpChat');
     if (!box) return;
-    const opening = box.style.display === 'none' || box.style.display === '';
-    box.style.display = opening ? 'flex' : 'none';
-    if (opening) {
+    const isOpen = box.style.display === 'flex';
+    if (isOpen) {
+        // wyjście: animacja, potem ukrycie
+        box.classList.add('neo-closing');
+        setTimeout(() => { box.style.display = 'none'; box.classList.remove('neo-closing'); }, 180);
+    } else {
+        box.style.display = 'flex';
         const input = document.getElementById('neoAiInput');
-        if (input) input.focus();
+        if (input) setTimeout(() => input.focus(), 60);
     }
 };
 
