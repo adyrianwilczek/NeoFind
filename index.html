@@ -1346,6 +1346,7 @@ z-index:9999;
 <button onclick="closeNews()" id="newsCloseBtn">Close</button>
 </div>
 <div id="updates"></div>
+    
 <!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -8535,6 +8536,56 @@ if (typeof auth !== 'undefined') {
             window.checkMomBirthdayOverlay(user.email);
         }
     });
+}
+
+// NEOFIND CUSTOM 404 ERROR BLOCK
+const urlParams = new URLSearchParams(window.location.search);
+const pageParam = urlParams.get('p');
+
+if (pageParam && !validPages.includes(pageParam)) {
+    document.documentElement.innerHTML = `
+    <head>
+        <meta charset="UTF-8">
+        <title>404 - NeoFind</title>
+        <style>
+            body {
+                background-color: #0b0b0f;
+                color: #ffffff;
+                font-family: 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+            }
+            .error-box { text-align: center; padding: 20px; max-width: 500px; }
+            .code {
+                font-size: 8rem; font-weight: 800; line-height: 1;
+                background: linear-gradient(45deg, #a855f7, #6366f1);
+                -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+                margin-bottom: 10px;
+            }
+            .title { font-size: 1.5rem; font-weight: 600; margin-bottom: 15px; }
+            .msg { color: #9a9a87; font-size: 1rem; line-height: 1.6; margin-bottom: 30px; }
+            .msg code { background: #18181b; padding: 3px 8px; border-radius: 4px; color: #f43f5e; font-family: monospace; }
+            .btn {
+                display: inline-block; background: linear-gradient(135deg, #a855f7 0%, #4f46e5 100%);
+                color: #ffffff; text-decoration: none; padding: 12px 30px; border-radius: 8px;
+                font-weight: 600; box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="error-box">
+            <div class="code">404</div>
+            <h1 class="title">404. That’s an error.</h1>
+            <p class="msg">The requested URL <code>/${pageParam}</code> was not found on the NeoFind server.</p>
+            <p class="msg" style="color: #64748b; font-size: 0.9rem;">That’s all we know.</p>
+            <a href="/" class="btn">Return to NeoFind</a>
+        </div>
+    </body>`;
+    window.stop();
+    throw new Error("404: Page not found");
 }
     
 // START
