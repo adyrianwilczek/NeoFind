@@ -8651,8 +8651,17 @@ window.sendNeoAiMessage = async function() {
 // KONFIGURACJA NIESPODZIANKI URODZINOWEJ DLA MAMY
 // ========================================================
 
-// 🛠️ TUTAJ STERUJESZ WŁĄCZENIEM: true = działa, false = wyłączone
-window.isMomBirthdayActive = false; 
+// 🛠️ Ręczny przełącznik (ustaw true, żeby przetestować w dowolny dzień)
+window.isMomBirthdayActive = false;
+
+// 🎂 Auto-włączenie w dniu urodzin mamy (12 lipca 2026) — bez ręcznego przełączania
+(function() {
+    const d = new Date();
+    // getMonth() jest liczony od 0, więc lipiec = 6
+    if (d.getFullYear() === 2026 && d.getMonth() === 6 && d.getDate() === 12) {
+        window.isMomBirthdayActive = true;
+    }
+})();
 
 // Funkcja sprawdzająca e-mail przy zalogowaniu (wywołaj ją np. po udanym zalogowaniu)
 window.checkMomBirthdayOverlay = function(loggedUserEmail) {
