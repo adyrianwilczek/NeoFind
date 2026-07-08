@@ -6524,7 +6524,7 @@ window.register = function () {
                     auth.signOut();
                 })
                 sendWelcomeEmail(user.email);
-  };
+  });
                 .catch(err => alert("Error sending verification email: " + err.message));
         })
         .catch(err => alert(err.message));
