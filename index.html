@@ -905,6 +905,7 @@ body.ocean {
 
 </style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
 <div id="loginScreen" style="display:none; text-align:center; margin-top:100px;">
@@ -6522,6 +6523,8 @@ window.register = function () {
                     alert("Account created! Check your email and click the verification link before logging in.");
                     auth.signOut();
                 })
+                sendWelcomeEmail(user.email);
+  })
                 .catch(err => alert("Error sending verification email: " + err.message));
         })
         .catch(err => alert(err.message));
@@ -8806,6 +8809,27 @@ if (typeof auth !== 'undefined') {
         throw new Error("Rendered update page via URL parameter.");
     }
 })();
+
+// --- BLOK WYSYŁANIA E-MAILA POWITALNEGO (EmailJS) ---
+function sendWelcomeEmail(userEmail) {
+    // Inicjalizacja Twoim kluczem publicznym z EmailJS
+    emailjs.init("6uoJS7Cw73sdbsH3B"); 
+
+    // Przygotowanie danych do szablonu e-maila
+    const templateParams = {
+        user_email: userEmail, // Przekazuje adres e-mail nowego użytkownika
+        reply_to: "support.neofind@gmail.com"
+    };
+
+    // Wysyłka wiadomości przez serwer EmailJS
+    emailjs.send("service_mqouw0r", "template_y6j8fso", templateParams)
+        .then(function(response) {
+            console.log("Welcome email sent successfully!", response.status, response.text);
+        }, function(error) {
+            console.error("Failed to send welcome email...", error);
+        });
+}
+// --- KONIEC BLOKU ---
     
 // START
 let savedLang = localStorage.getItem("lang");
