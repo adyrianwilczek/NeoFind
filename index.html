@@ -605,6 +605,9 @@ body.ocean {
     font-family: 'Oxanium', sans-serif;
     font-size: 14px;
 }
+/* zachowaj łamanie linii z odpowiedzi Neo, żeby tekst się nie zlewał */
+#neoAiMessages .chat-msg-them, #neoAiMessages .chat-msg-me { white-space: pre-wrap; }
+#neoAiMessages .chat-msg-them strong { color: #7ffbe4; }
 #neoAiInputArea {
     display: flex;
     align-items: center;
@@ -8509,6 +8512,16 @@ function neoLang() {
     return (l === 'pl' || l === 'es') ? l : 'en';
 }
 function neoT() { return NEO_TEXT[neoLang()] || NEO_TEXT.en; }
+// Formatuje odpowiedź Neo: najpierw escapeHtml (bezpieczeństwo), potem prosty markdown (**bold**, *italic*).
+// Łamanie linii ogarnia CSS (white-space: pre-wrap), więc newline'y z modelu zostają.
+function neoFormat(raw) {
+    let s = escapeHtml(raw);
+    // Twardo usuń myślniki (— –) używane jako interpunkcja: zamień na przecinek (Michał: zero myślników)
+    s = s.replace(/ *[—–] */g, ', ');
+    s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*/g, '$1<em>$2</em>');
+    return s;
+}
 
 // Otwiera/zamyka pływające okienko Neo
 window.toggleNeoAiChat = function() {
@@ -8576,7 +8589,7 @@ window.sendNeoAiMessage = async function() {
         const requestBody = {
             model: "mistral-small-latest",
             messages: [
-                { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, live football scores, themed modes (World Cup, summer), premium codes, and a hidden developer console opened with the F1 key. Personality: clever, playful and a little ironic, with dry wit and surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers concise.` },
+                { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, live football scores, themed modes (World Cup, summer), premium codes, and a hidden developer console opened with the F1 key. Personality: clever, playful and a little ironic, with dry wit and surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.` },
                 ...neoHistory.slice(-10)
             ],
             max_tokens: 800,
@@ -8623,7 +8636,7 @@ window.sendNeoAiMessage = async function() {
     messages.innerHTML += `
         <div class="chat-row chat-row-them">
             <span class="chat-sender">Neo</span>
-            <div class="chat-msg-them">${escapeHtml(aiReply)}</div>
+            <div class="chat-msg-them">${neoFormat(aiReply)}</div>
         </div>
     `;
     messages.scrollTop = messages.scrollHeight;
