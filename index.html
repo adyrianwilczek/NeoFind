@@ -642,6 +642,7 @@ body.ocean {
 #neoAiSend:hover { box-shadow: 0 2px 16px rgba(0,255,200,0.6); }
 #neoAiSend:active { transform: scale(0.92); }
 #neoAiSend svg { width: 18px; height: 18px; }
+#neoAiInput:disabled, #neoAiSend:disabled { opacity: 0.5; cursor: default; }
 
 @media (max-width: 600px) {
     /* ── homeWrapper: jedyne źródło marginesów bocznych (16px każda strona) ── */
@@ -8525,10 +8526,15 @@ window.toggleNeoAiChat = function() {
     }
 };
 
+// Pamięć rozmowy Neo (kontekst dla modelu) — trzymana w tej sesji
+let neoHistory = [];
+
 window.sendNeoAiMessage = async function() {
     const input = document.getElementById('neoAiInput');
+    const sendBtn = document.getElementById('neoAiSend');
     const messages = document.getElementById('neoAiMessages');
     if (!input || !messages) return;
+    if (input.disabled) return; // Neo już odpowiada
 
     const msgText = input.value.trim();
     if (!msgText) return;
@@ -8545,6 +8551,10 @@ window.sendNeoAiMessage = async function() {
     `;
     messages.scrollTop = messages.scrollHeight;
 
+    // Blokada wejścia na czas odpowiedzi (mniej spamu + mniej wywołań API)
+    input.disabled = true;
+    if (sendBtn) sendBtn.disabled = true;
+
     // Tymczasowy wskaźnik pisania (usuwany przed wstawieniem odpowiedzi)
     const typing = document.createElement('div');
     typing.className = 'chat-row chat-row-them';
@@ -8552,15 +8562,19 @@ window.sendNeoAiMessage = async function() {
     messages.appendChild(typing);
     messages.scrollTop = messages.scrollHeight;
 
+    // Dopisz pytanie do historii (kontekst rozmowy)
+    neoHistory.push({ role: "user", content: msgText });
+
     let aiReply = "";
+    let gotReply = false;
     try {
         const requestBody = {
             model: "mistral-small-latest",
             messages: [
                 { role: "system", content: `You are Neo, a friendly assistant inside the NeoFind app. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers clear and concise.` },
-                { role: "user", content: msgText }
+                ...neoHistory.slice(-10)
             ],
-            max_tokens: 10000,
+            max_tokens: 800,
             temperature: 0.7
         };
 
@@ -8575,19 +8589,31 @@ window.sendNeoAiMessage = async function() {
             const resData = await response.json();
             if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                 aiReply = resData.choices[0].message.content;
+                gotReply = true;
             } else if (resData.error) {
                 aiReply = `Błąd API: ${resData.error.message || JSON.stringify(resData.error)}`;
             } else {
                 aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
+                gotReply = true;
             }
         } else {
             aiReply = await response.text();
+            gotReply = true;
         }
     } catch (e) {
         aiReply = t.error;
     }
 
     typing.remove();
+
+    // Zapamiętaj odpowiedź tylko gdy prawdziwa (błędu nie trzymamy w kontekście)
+    if (gotReply) {
+        neoHistory.push({ role: "assistant", content: aiReply });
+        if (neoHistory.length > 20) neoHistory = neoHistory.slice(-20);
+    } else {
+        neoHistory.pop(); // cofnij pytanie, żeby błąd nie zaśmiecał historii
+    }
+
     // Odpowiedź Neo (escapeHtml, żeby ewentualny HTML z modelu się nie wykonał)
     messages.innerHTML += `
         <div class="chat-row chat-row-them">
@@ -8596,6 +8622,11 @@ window.sendNeoAiMessage = async function() {
         </div>
     `;
     messages.scrollTop = messages.scrollHeight;
+
+    // Odblokuj wejście
+    input.disabled = false;
+    if (sendBtn) sendBtn.disabled = false;
+    input.focus();
 };
 
 // ========================================================
