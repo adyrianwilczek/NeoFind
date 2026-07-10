@@ -1086,6 +1086,8 @@ body.ocean {
                 </div>
             </div>
         </div>
+        <div id="parentalControlPanel" style="margin-top: 25px; padding: 20px; border: 1px solid #3f3f46; border-radius: 12px; background: #13131a; color: white; font-family: 'Oxanium', sans-serif;">
+    </div>
 
         <div class="settings-col" style="margin-bottom:16px; text-align:center;">
             <h4 id="historyTitle">History</h4>
@@ -8649,6 +8651,233 @@ window.sendNeoAiMessage = async function() {
     if (sendBtn) sendBtn.disabled = false;
     input.focus();
 };
+
+// =========================================================================
+// --- NEOFIND PARENTAL CONTROL & FIREBASE EMAIL SYSTEM ---
+// =========================================================================
+
+const BANNED_KEYWORDS = ["gambling", "casino", "hazard", "adult", "18+", "violence", "przemoc", "sex", "porn"];
+let currentUserPCData = null; // Przechowuje pobrane z Firebase ustawienia PC
+
+// 1. Monitorowanie stanu zalogowania i pobieranie danych PC z Firestore
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        try {
+            const doc = await db.collection("users").doc(user.uid).get();
+            if (doc.exists && doc.data().parentalControl) {
+                currentUserPCData = doc.data().parentalControl;
+                
+                // Uruchomienie strażnika czasu, jeśli kontrola jest aktywna
+                if (currentUserPCData.enabled) {
+                    checkGlobalTimeLock();
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching parental control data:", error);
+        }
+    } else {
+        currentUserPCData = null;
+    }
+    // Wywołaj funkcję renderującą interfejs w profilu po pobraniu danych
+    if (typeof renderParentalControlUI === "function") renderParentalControlUI();
+});
+
+// 2. Bezpieczne wyszukiwanie (Filtrowanie słów kluczowych)
+function isSafeResult(item) {
+    if (!currentUserPCData || !currentUserPCData.enabled) return true;
+
+    const title = (item.title || "").toLowerCase();
+    const desc = (item.desc || "").toLowerCase();
+    const tags = Array.isArray(item.tags) ? item.tags.map(t => t.toLowerCase()) : [];
+
+    for (const word of BANNED_KEYWORDS) {
+        if (title.includes(word) || desc.includes(word) || tags.some(tag => tag.includes(word))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// 3. Weryfikacja blokady czasowej
+function isTimeLocked() {
+    if (!currentUserPCData || !currentUserPCData.enabled) return false;
+    
+    const startStr = currentUserPCData.timeStart;
+    const endStr = currentUserPCData.timeEnd;
+    if (!startStr || !endStr) return false;
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const [sHours, sMinutes] = startStr.split(':').map(Number);
+    const [eHours, eMinutes] = endStr.split(':').map(Number);
+    
+    const startMinutes = sHours * 60 + sMinutes;
+    const endMinutes = eHours * 60 + eMinutes;
+
+    if (startMinutes > endMinutes) {
+        return currentMinutes >= startMinutes || currentMinutes < endMinutes; // Blokada nocna
+    } else {
+        return currentMinutes >= startMinutes && currentMinutes < endMinutes; // Blokada dzienna
+    }
+}
+
+// 4. Strażnik ekranu blokady czasowej
+function checkGlobalTimeLock() {
+    if (isTimeLocked()) {
+        document.documentElement.innerHTML = `
+        <head>
+            <meta charset="UTF-8">
+            <title>NeoFind - Time Locked</title>
+            <style>
+                body { background: #0b0b0f; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+                .lock-box { border: 1px solid #ef4444; padding: 40px; border-radius: 16px; background: #13131a; max-width: 450px; font-family: 'Oxanium', sans-serif; }
+                h1 { color: #ef4444; margin-bottom: 10px; }
+                p { color: #9a9a87; font-size: 1.1rem; line-height: 1.5; }
+                button { background: #1c1c24; border: 1px solid #4da6ff; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 15px; font-family: inherit; }
+            </style>
+        </head>
+        <body>
+            <div class="lock-box">
+                <h1>🔒 Access Restricted</h1>
+                <p>NeoFind is locked by Parental Control during this time period.</p>
+                <p style="font-size: 0.9rem;">Locked from: <b>${currentUserPCData.timeStart}</b> to: <b>${currentUserPCData.timeEnd}</b></p>
+                <button onclick="window.disableParentalControl()">Unlock (Parent Only)</button>
+            </div>
+        </body>`;
+        window.stop();
+    }
+}
+
+// 5. Główna funkcja wysyłania e-maili przez Firestore (Rozszerzenie Trigger Email)
+async function sendEmailViaFirebase(toEmail, subject, textBody) {
+    try {
+        await db.collection("mail").add({
+            to: toEmail,
+            message: {
+                subject: subject,
+                text: textBody
+            }
+        });
+        console.log(`Email queued in Firestore for: ${toEmail}`);
+    } catch (error) {
+        console.error("Error writing email to Firestore:", error);
+    }
+}
+
+// 6. Zapisywanie ustawień kontroli w Firebase Firestore
+window.setupParentalControl = async function() {
+    const user = auth.currentUser;
+    if (!user) return alert("You must be logged in to configure Parental Control!");
+
+    const email = document.getElementById("pcInputEmail").value.trim();
+    const pin = document.getElementById("pcInputPin").value.trim();
+    const startTime = document.getElementById("pcTimeStart").value;
+    const endTime = document.getElementById("pcTimeEnd").value;
+
+    if (!email || !pin || !startTime || !endTime) return alert("Please fill all fields!");
+    if (pin.length < 4) return alert("PIN must be at least 4 digits!");
+
+    try {
+        await db.collection("users").doc(user.uid).set({
+            parentalControl: {
+                enabled: true,
+                parentEmail: email,
+                pin: pin,
+                timeStart: startTime,
+                timeEnd: endTime
+            }
+        }, { merge: true });
+
+        alert("Parental Control successfully saved to cloud and activated!");
+        location.reload();
+    } catch (error) {
+        alert("Firestore error: " + error.message);
+    }
+};
+
+// 7. Wyłączanie blokady z weryfikacją chmurową
+window.disableParentalControl = async function() {
+    const user = auth.currentUser;
+    if (!user || !currentUserPCData) return;
+
+    const enteredPin = prompt("Enter Parental Control PIN to disable:");
+    if (enteredPin === null) return;
+
+    if (enteredPin === currentUserPCData.pin) {
+        try {
+            await db.collection("users").doc(user.uid).set({
+                parentalControl: { enabled: false }
+            }, { merge: true });
+            
+            alert("Parental Control has been disabled.");
+            location.reload();
+        } catch (error) {
+            alert("Database update failed: " + error.message);
+        }
+    } else {
+        alert("Incorrect PIN! Access Denied.");
+    }
+};
+
+// 8. Procedura resetu PIN - wysyłka przez kolekcję Firestore na email rodzica
+window.forgotParentalPin = async function() {
+    if (!currentUserPCData || !currentUserPCData.parentEmail) {
+        return alert("Parental Control is not configured.");
+    }
+
+    const parentEmail = currentUserPCData.parentEmail;
+
+    if (confirm(`Send PIN recovery instructions to registered parent email: ${parentEmail}?`)) {
+        const emailSubject = "NeoFind - Parental Control PIN Recovery";
+        const emailBody = `Hello!\n\nYou have requested a PIN recovery for NeoFind Parental Control.\nYour secret PIN code is: ${currentUserPCData.pin}\n\nKeep this code safe from your children.`;
+
+        await sendEmailViaFirebase(parentEmail, emailSubject, emailBody);
+        alert("Recovery request sent! Check your parent inbox shortly.");
+    }
+};
+
+// 9. Funkcja generująca interfejs graficzny panelu kontroli
+function renderParentalControlUI() {
+    const container = document.getElementById("parentalControlPanel");
+    if (!container) return;
+
+    if (!auth.currentUser) {
+        container.innerHTML = `<p style="color: #ef4444;">Please log in to manage parental controls.</p>`;
+        return;
+    }
+
+    if (currentUserPCData && currentUserPCData.enabled) {
+        container.innerHTML = `
+            <h3 style="margin-top:0; color: #4da6ff;">🛡️ Parental Control Settings</h3>
+            <p style="color: #22c55e; font-weight: bold;">✓ Protection is currently ACTIVE in the Cloud.</p>
+            <p style="font-size: 0.9rem; color: #a1a1aa;">SafeSearch active. App blocked between ${currentUserPCData.timeStart} and ${currentUserPCData.timeEnd}.</p>
+            <button onclick="window.disableParentalControl()" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: inherit;">Disable Protection</button>
+            <button onclick="window.forgotParentalPin()" style="background: transparent; color: #4da6ff; border: none; text-decoration: underline; cursor: pointer; margin-left: 10px; font-family: inherit;">Forgot PIN?</button>
+        `;
+    } else {
+        container.innerHTML = `
+            <h3 style="margin-top:0; color: #4da6ff;">🛡️ Setup Parental Control</h3>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 350px;">
+                <label style="font-size: 0.9rem;">Parent's Email (for remote PIN recovery):</label>
+                <input type="email" id="pcInputEmail" placeholder="parent@email.com" style="padding: 8px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 6px; font-family: inherit;">
+                
+                <label style="font-size: 0.9rem;">Create Secret PIN Code:</label>
+                <input type="password" id="pcInputPin" placeholder="4+ digits" maxlength="8" style="padding: 8px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 6px; font-family: inherit;">
+                
+                <label style="font-size: 0.9rem;">Restrict Usage Hours:</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span>From:</span>
+                    <input type="time" id="pcTimeStart" value="22:00" style="padding: 5px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 4px;">
+                    <span>To:</span>
+                    <input type="time" id="pcTimeEnd" value="06:00" style="padding: 5px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 4px;">
+                </div>
+                
+                <button onclick="window.setupParentalControl()" style="background: #4da6ff; color: black; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-family: inherit;">Save to Cloud & Lock</button>
+            </div>
+        `;
+    }
+}
 
 // ========================================================
 // KONFIGURACJA NIESPODZIANKI URODZINOWEJ DLA MAMY
