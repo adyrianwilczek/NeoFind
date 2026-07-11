@@ -8652,6 +8652,69 @@ window.sendNeoAiMessage = async function() {
     input.focus();
 };
 
+// --- LISTA CAŁKOWICIE ZABLOKOWANYCH UŻYTKOWNIKÓW ---
+const BLOCKED_EMAILS = [
+    "adrian.wilczek@hotmail.com"
+    ]
+// 1. Monitorowanie stanu zalogowania i sprawdzanie blokad (Ban oraz Czas)
+auth.onAuthStateChanged(async (user) => {
+    if (user) {
+        // --- 1. SPRAWDZANIE CZY UŻYTKOWNIK JEST ZBANOWANY ---
+        if (BLOCKED_EMAILS.includes(user.email)) {
+            triggerPermanentBanScreen(user.email);
+            return; // Przerywa dalsze działanie skryptu, dziecko/użytkownik nic nie zrobi
+        }
+
+        try {
+            const doc = await db.collection("users").doc(user.uid).get();
+            if (doc.exists && doc.data().parentalControl) {
+                currentUserPCData = doc.data().parentalControl;
+                
+                if (currentUserPCData.enabled) {
+                    checkGlobalTimeLock();
+                    setInterval(checkGlobalTimeLock, 1000);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching parental control data:", error);
+        }
+    } else {
+        currentUserPCData = null;
+    }
+    if (typeof renderParentalControlUI === "function") renderParentalControlUI();
+});
+
+// Nowa funkcja wyświetlająca czerwony ekran blokady (Permanent Ban)
+function triggerPermanentBanScreen(userEmail) {
+    // Przygotowanie linku mailowego (Mailto) z tematem i treścią
+    const mailtoLink = `mailto:support.neofind@gmail.com?subject=NeoFind%20-%20Appeal%20against%20account%20blockade&body=Hello%20Support,%0D%0A%0D%0AMy%20account%20(${userEmail})%20has%20been%20blocked.%20I%20would%20like%20to%20clarify%20this%20situation...`;
+
+    document.documentElement.innerHTML = `
+    <head>
+        <meta charset="UTF-8">
+        <title>NeoFind - Account Suspended</title>
+        <style>
+            body { background: #0b0b0f; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+            .ban-box { border: 2px solid #ef4444; padding: 40px; border-radius: 16px; background: #13131a; max-width: 500px; font-family: 'Oxanium', sans-serif; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+            h1 { color: #ef4444; margin-bottom: 10px; font-size: 2rem; }
+            p { color: #a1a1aa; font-size: 1.1rem; line-height: 1.6; }
+            .email-badge { background: #1c1c24; border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 0.95rem; }
+            .support-btn { background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 25px; font-family: inherit; font-weight: bold; font-size: 1rem; transition: background 0.2s; display: inline-block; text-decoration: none; }
+            .support-btn:hover { background: #dc2626; }
+        </style>
+    </head>
+    <body>
+        <div class="ban-box">
+            <h1>🛑 Account Suspended</h1>
+            <p>Access for this account has been permanently restricted due to a violation of NeoFind Terms of Service.</p>
+            <p style="margin-top: 15px;">Blocked ID: <span class="email-badge">${userEmail}</span></p>
+            <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
+        </div>
+    </body>`;
+    window.stop();
+    throw new Error("Application terminated: Account is banned.");
+}
+
 // =========================================================================
 // --- NEOFIND PARENTAL CONTROL & FIREBASE EMAIL SYSTEM ---
 // =========================================================================
@@ -8874,7 +8937,7 @@ function renderParentalControlUI() {
                     <span>From:</span>
                     <input type="time" id="pcTimeStart" value="22:00" style="padding: 5px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 4px;">
                     <span>To:</span>
-                    <input type="time" id="pcTimeEnd" value="06:00" style="padding: 5px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 4px;">
+                    <input type="time" id="pcTimeEnd" value="07:00" style="padding: 5px; background: #1c1c24; border: 1px solid #3f3f46; color: white; border-radius: 4px;">
                 </div>
                 
                 <button onclick="window.setupParentalControl()" style="background: #4da6ff; color: black; font-weight: bold; border: none; padding: 10px; border-radius: 6px; cursor: pointer; margin-top: 10px; font-family: inherit;">Save to Cloud & Lock</button>
