@@ -8722,8 +8722,11 @@ function isTimeLocked() {
     }
 }
 
-// 4. Strażnik ekranu blokady czasowej
+// Bezpieczna wersja funkcji - sprawdza, czy dane w ogóle zdążyły się pobrać
 function checkGlobalTimeLock() {
+    // Jeśli Firebase jeszcze nie zwrócił danych, nie rób nic i poczekaj na kolejną sekundę
+    if (!currentUserPCData) return; 
+
     if (isTimeLocked()) {
         document.documentElement.innerHTML = `
         <head>
@@ -8746,6 +8749,7 @@ function checkGlobalTimeLock() {
             </div>
         </body>`;
         window.stop();
+        throw new Error("Application locked by parental control time range.");
     }
 }
 
