@@ -8685,34 +8685,65 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // Nowa funkcja wyświetlająca czerwony ekran blokady (Permanent Ban)
+// Nowa, żartobliwa funkcja wyświetlająca czerwony ekran blokady z EFEKTEM KONFETTI xd
 function triggerPermanentBanScreen(userEmail) {
     // Przygotowanie linku mailowego (Mailto) z tematem i treścią
-    const mailtoLink = `mailto:support.neofind@gmail.com?subject=Blocked%20Account&body=Hello,%0D%0A%0D%0AMy%20my%20account%20(${userEmail})%20has%20been%20blocked.%20I%20would%20like%20to%20clarify%20this%20situation...`;
+    const mailtoLink = `mailto:support.neofind@gmail.com?subject=NeoFind%20-%20Appeal%20against%20account%20blockade&body=Hello%20Support,%0D%0A%0D%0AMy%20account%20(${userEmail})%20has%20been%20blocked.%20I%20would%20like%20to%20clarify%20this%20situation...`;
 
+    // Nadpisujemy całą stronę i od razu podpinamy skrypt do konfetti w <head>
     document.documentElement.innerHTML = `
     <head>
         <meta charset="UTF-8">
-        <title>NeoFind - Account Suspended</title>
+        <title>NeoFind - Account Suspended 🎉</title>
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
         <style>
-            body { background: #0b0b0f; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
-            .ban-box { border: 2px solid #ef4444; padding: 40px; border-radius: 16px; background: #13131a; max-width: 500px; font-family: 'Oxanium', sans-serif; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
-            h1 { color: #ef4444; margin-bottom: 10px; font-size: 2rem; }
+            body { background: #0b0b0f; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; overflow: hidden; }
+            .ban-box { border: 2px solid #ef4444; padding: 40px; border-radius: 16px; background: #13131a; max-width: 500px; font-family: 'Oxanium', sans-serif; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3); z-index: 10; position: relative; }
+            h1 { color: #ef4444; margin-bottom: 10px; font-size: 2.2rem; }
             p { color: #a1a1aa; font-size: 1.1rem; line-height: 1.6; }
             .email-badge { background: #1c1c24; border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 0.95rem; }
             .support-btn { background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 25px; font-family: inherit; font-weight: bold; font-size: 1rem; transition: background 0.2s; display: inline-block; text-decoration: none; }
             .support-btn:hover { background: #dc2626; }
+            .party-sub { color: #22c55e; font-weight: bold; margin-top: 10px; font-size: 1.2rem; }
         </style>
     </head>
     <body>
         <div class="ban-box">
-            <h1>🛑 Account Suspended</h1>
-            <p>Access for this account has been permanently restricted due to a violation of NeoFind Terms of Service.</p>
-            <p style="margin-top: 15px;">Blocked ID: <span class="email-badge">${userEmail}</span></p>
-            <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
+            <h1>🎉 Congratulations! 🎉</h1>
+            <p class="party-sub">You have successfully achieved a PERMANENT BAN!</p>
+            <p>Access for this account has been restricted due to an epic violation of NeoFind Terms of Service.</p>
+            <p style="margin-top: 15px;">Blocked VIP ID: <span class="email-badge">${userEmail}</span></p>
+            <a href="${mailtoLink}" class="support-btn">📩 Contact with support (if you dare)</a>
         </div>
+
+        <script>
+            // Odpalamy konfetti w pętli przez 4 sekundy, żeby efekt był spektakularny!
+            var duration = 4000;
+            var end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.8 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.8 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        </script>
     </body>`;
+    
     window.stop();
-    throw new Error("Application terminated: Account is banned.");
+    throw new Error("Application terminated: Account is banned. Celebration complete.");
 }
 
 // =========================================================================
