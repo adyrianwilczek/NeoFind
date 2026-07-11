@@ -8687,7 +8687,7 @@ auth.onAuthStateChanged(async (user) => {
 // Nowa funkcja wyświetlająca czerwony ekran blokady (Permanent Ban)
 function triggerPermanentBanScreen(userEmail) {
     // Przygotowanie linku mailowego (Mailto) z tematem i treścią
-    const mailtoLink = `mailto:support.neofind@gmail.com?subject=NeoFind%20-%20Appeal%20against%20account%20blockade&body=Hello%20Support,%0D%0A%0D%0AMy%20account%20(${userEmail})%20has%20been%20blocked.%20I%20would%20like%20to%20clarify%20this%20situation...`;
+    const mailtoLink = `mailto:support.neofind@gmail.com?subject=Blocked%20Account&body=Hello,%0D%0A%0D%0AMy%20my%20account%20(${userEmail})%20has%20been%20blocked.%20I%20would%20like%20to%20clarify%20this%20situation...`;
 
     document.documentElement.innerHTML = `
     <head>
@@ -8707,7 +8707,7 @@ function triggerPermanentBanScreen(userEmail) {
         <div class="ban-box">
             <h1>🛑 Account Suspended</h1>
             <p>Access for this account has been permanently restricted due to a violation of NeoFind Terms of Service.</p>
-            <p style="margin-top: 15px;">Blocked ID: <span class="email-badge">${userEmail}</span></p>
+            <p style="margin-top: 15px;">Blocked ID: <span class="email-badge">${userId}</span></p>
             <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
         </div>
     </body>`;
