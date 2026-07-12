@@ -6541,36 +6541,27 @@ window.login = function () {
 
     if (!email || !pass) return alert("Fill all!");
     
-    // Zachowujemy Twój overlay z urodzinami mamy
     window.checkMomBirthdayOverlay(document.getElementById('logUser').value);
-
     logAction("SEC_AUTH", `Inbound authentication handshake initiated for: ${email}`, "tag-sec");
 
     auth.signInWithEmailAndPassword(email, pass)
         .then(async (userCredential) => {
-            // SPRAWDZENIE: Jeśli użytkownik miał na koncie dokładnie 3 błędy przed tym zalogowaniem
+            // Jeśli użytkownik przed tym sukcesem wywalił się dokładnie 3 razy:
             if (passwordFailCount === 3) {
-                const reason = "Account secured due to suspicious login patterns (3 failed attempts followed by a delayed success).";
+                const reason = "Suspicious login patterns detected (3 failed attempts followed by a delayed success).";
                 
-                // 1. Wysyłamy alert do Firebase do kolekcji 'alerts'
-                await sendAlertToFirebase(email, "BRUTE_FORCE", reason);
+                // Wysyłamy cichy alert do Firebase dla Twojej wiadomości
+                sendAlertToFirebase(email, "BRUTE_FORCE", reason);
                 
-                // 2. Odpalamy ekran blokady z konfetti xd
+                // Odpalamy ekran z konfetti i odcinamy gościa
                 triggerCustomLockScreen(email, reason);
                 return;
             }
-
-            // Jeśli logowanie udane i bez podejrzanej historii, zerujemy licznik sesji
-            passwordFailCount = 0;
-            // Tutaj ewentualny Twój dalszy kod po poprawnym zalogowaniu, np. przekierowanie
+            passwordFailCount = 0; // Reset przy normalnym logowaniu
         })
         .catch(async (err) => {
-            // Zwiększamy licznik przy każdym nieudanym logowaniu
             passwordFailCount++;
-            
-            // Logujemy próbę naruszenia bezpieczeństwa w konsoli/logach aplikacji
             logAction("SEC_AUTH_FAIL", `Failed password attempt ${passwordFailCount} for: ${email}`, "tag-sec");
-            
             alert(`${err.message} (Attempt ${passwordFailCount} of 3)`);
         });
 };
@@ -8713,7 +8704,7 @@ auth.onAuthStateChanged(async (user) => {
 
 // Nowa funkcja wyświetlająca czerwony ekran blokady (Permanent Ban) + KONFETTI
 function triggerCustomLockScreen(userEmail, blockReason) {
-    const mailtoLink = `mailto:support.neofind@gmail.com?subject=Security%20Block%20Appeal&body=Hello,%0D%0A%0D%0AMy%20account%20(${userEmail})%20has%20been%20locked.%20Reason:%20${encodeURIComponent(blockReason)}`;
+    const mailtoLink = `mailto:support.neofind@gmail.com?subject=Security%20Block%20Appeal&body=Hello,%0D%0A%0D%0AMy%20account%20(${userEmail})%20has%20been%20blocked.%20Reason:%20${encodeURIComponent(blockReason)}`;
 
     document.documentElement.innerHTML = `
     <head>
