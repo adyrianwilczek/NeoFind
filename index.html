@@ -6540,12 +6540,39 @@ window.login = function () {
     const pass = document.getElementById("logPass").value;
 
     if (!email || !pass) return alert("Fill all!");
+    
+    // Zachowujemy Twój overlay z urodzinami mamy
     window.checkMomBirthdayOverlay(document.getElementById('logUser').value);
 
     logAction("SEC_AUTH", `Inbound authentication handshake initiated for: ${email}`, "tag-sec");
 
     auth.signInWithEmailAndPassword(email, pass)
-        .catch(err => alert(err.message));
+        .then(async (userCredential) => {
+            // SPRAWDZENIE: Jeśli użytkownik miał na koncie dokładnie 3 błędy przed tym zalogowaniem
+            if (passwordFailCount === 3) {
+                const reason = "Account secured due to suspicious login patterns (3 failed attempts followed by a delayed success).";
+                
+                // 1. Wysyłamy alert do Firebase do kolekcji 'alerts'
+                await sendAlertToFirebase(email, "BRUTE_FORCE", reason);
+                
+                // 2. Odpalamy ekran blokady z konfetti xd
+                triggerCustomLockScreen(email, reason);
+                return;
+            }
+
+            // Jeśli logowanie udane i bez podejrzanej historii, zerujemy licznik sesji
+            passwordFailCount = 0;
+            // Tutaj ewentualny Twój dalszy kod po poprawnym zalogowaniu, np. przekierowanie
+        })
+        .catch(async (err) => {
+            // Zwiększamy licznik przy każdym nieudanym logowaniu
+            passwordFailCount++;
+            
+            // Logujemy próbę naruszenia bezpieczeństwa w konsoli/logach aplikacji
+            logAction("SEC_AUTH_FAIL", `Failed password attempt ${passwordFailCount} for: ${email}`, "tag-sec");
+            
+            alert(`${err.message} (Attempt ${passwordFailCount} of 3)`);
+        });
 };
 
 /* =========================
@@ -8685,29 +8712,32 @@ auth.onAuthStateChanged(async (user) => {
 });
 
 // Nowa funkcja wyświetlająca czerwony ekran blokady (Permanent Ban) + KONFETTI
-function triggerPermanentBanScreen(userEmail) {
-    // Przygotowanie linku mailowego (Mailto) z tematem i treścią
-    const mailtoLink = `mailto:support.neofind@gmail.com?subject=Blocked%20Account&body=Hello,%0D%0A%0D%0AMy%20my%20account%20(${userEmail})%20has%20been%20blocked.%20I%20would%20like%20to%20clarify%20this%20situation...`;
+function triggerCustomLockScreen(userEmail, blockReason) {
+    const mailtoLink = `mailto:support.neofind@gmail.com?subject=Security%20Block%20Appeal&body=Hello,%0D%0A%0D%0AMy%20account%20(${userEmail})%20has%20been%20locked.%20Reason:%20${encodeURIComponent(blockReason)}`;
 
     document.documentElement.innerHTML = `
     <head>
         <meta charset="UTF-8">
-        <title>NeoFind - Account Suspended</title>
+        <title>NeoFind - Security Action</title>
         <style>
             body { background: #0b0b0f; color: #fff; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; overflow: hidden; }
-            .ban-box { border: 2px solid #ef4444; padding: 40px; border-radius: 16px; background: #13131a; max-width: 500px; font-family: 'Oxanium', sans-serif; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
-            h1 { color: #ef4444; margin-bottom: 10px; font-size: 2rem; }
+            .ban-box { border: 2px solid #ef4444; padding: 40px; border-radius: 16px; background: #13131a; max-width: 550px; font-family: 'Oxanium', sans-serif; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
+            h1 { color: #ef4444; margin-bottom: 15px; font-size: 2rem; }
             p { color: #a1a1aa; font-size: 1.1rem; line-height: 1.6; }
+            .reason-box { background: #1c1c24; border-left: 4px solid #ef4444; padding: 15px; text-align: left; margin: 20px 0; border-radius: 4px; font-style: italic; color: #e4e4e7; }
             .email-badge { background: #1c1c24; border: 1px solid #ef4444; color: #ef4444; padding: 4px 10px; border-radius: 6px; font-size: 0.95rem; }
-            .support-btn { background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 25px; font-family: inherit; font-weight: bold; font-size: 1rem; transition: background 0.2s; display: inline-block; text-decoration: none; }
+            .support-btn { background: #ef4444; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 20px; font-family: inherit; font-weight: bold; font-size: 1rem; transition: background 0.2s; display: inline-block; text-decoration: none; }
             .support-btn:hover { background: #dc2626; }
         </style>
     </head>
     <body>
         <div class="ban-box">
-            <h1>🛑 Account Suspended</h1>
-            <p>Access for this account has been permanently restricted due to a violation of NeoFind Terms of Service.</p>
-            <p style="margin-top: 15px;">Blocked ID: <span class="email-badge">${userEmail}</span></p>
+            <h1>🛑 NeoFind Security Action</h1>
+            <p>Your access to NeoFind has been restricted by the automated security system.</p>
+            <div class="reason-box">
+                <b>Reason:</b> ${blockReason}
+            </div>
+            <p>Target ID: <span class="email-badge">${userEmail}</span></p>
             <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
         </div>
     </body>`;
@@ -9133,7 +9163,25 @@ function sendWelcomeEmail(userEmail) {
             console.error("Failed to send welcome email...", error);
         });
 }
-// --- KONIEC BLOKU ---
+
+// Liczniki naruszeń dla aktualnej sesji
+let passwordFailCount = 0;
+let bannedWordsCount = 0;
+
+// Funkcja automatycznie wysyłająca alert o incydencie bezpieczeństwa do Firestore
+async function sendAlertToFirebase(userEmail, alertType, description) {
+    try {
+        await db.collection("alerts").add({
+            email: userEmail || "unauthenticated_user",
+            type: alertType, // np. "BRUTE_FORCE" lub "BANNED_WORDS_SPAM"
+            description: description,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp() // dokładny czas serwera
+        });
+        console.log(`🛡️ Security alert sent to Firebase: ${alertType}`);
+    } catch (error) {
+        console.error("Failed to send security alert to Firestore:", error);
+    }
+}
     
 // START
 let savedLang = localStorage.getItem("lang");
