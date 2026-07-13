@@ -1002,6 +1002,9 @@ body.ocean {
 
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
+<button id="voiceSearchBtn" onclick="window.startVoiceSearch()" style="background: #4da6ff; color: black; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; transition: background 0.2s; display: flex; align-items: center; justify-content: center;">
+        🎙️
+    </button>
 <div id="momBirthdayContainer" style="display: none; text-align: center; margin-top: 10px;">
     <span id="cakeIcon" onclick="openMomBirthdayCard()" style="font-size: 35px; cursor: pointer; display: inline-block; animation: logoPulse 2s ease-in-out infinite;">🎂</span>
 </div>
@@ -9173,6 +9176,60 @@ async function sendAlertToFirebase(userEmail, alertType, description) {
         console.error("Failed to send security alert to Firestore:", error);
     }
 }
+
+window.startVoiceSearch = function() {
+    // Sprawdzamy wsparcie dla rozpoznawania mowy w przeglądarce/telefonie
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        alert("Twoje urządzenie lub przeglądarka nie wspiera wyszukiwania głosowego.");
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'pl-PL'; // Ustawienie języka (zmień na 'en-US' jeśli szukasz po angielsku)
+    recognition.interimResults = false; // Chcemy tylko końcowy, pełny wynik
+    recognition.maxAlternatives = 1;
+
+    const searchInput = document.getElementById("searchInput");
+    const voiceBtn = document.getElementById("voiceSearchBtn");
+
+    // Efekt wizualny podczas słuchania
+    if (voiceBtn) voiceBtn.style.background = "#ef4444"; // Zmień kolor przycisku na czerwony, że nagrywa
+    searchInput.placeholder = "Słucham... Mów teraz!";
+    
+    recognition.start();
+
+    // Kiedy użytkownik skończy mówić
+    recognition.onresult = function(event) {
+        const textResult = event.results[0][0].transcript;
+        
+        // Wpisujemy wypowiedziany tekst do paska wyszukiwania
+        searchInput.value = textResult;
+        
+        // Resetujemy wygląd przycisku i paska
+        if (voiceBtn) voiceBtn.style.background = "";
+        searchInput.placeholder = "Szukaj w NeoFind...";
+        
+        // AUTOMATYCZNE URUCHOMIENIE SZUKANIA
+        // Twoja funkcja window.search() sprawdzi teraz, czy w tym tekście nie ma bannedWords!
+        if (typeof window.search === "function") {
+            window.search();
+        }
+    };
+
+    // W przypadku błędu (np. brak mikrofonu lub cisza)
+    recognition.onerror = function(event) {
+        if (voiceBtn) voiceBtn.style.background = "";
+        searchInput.placeholder = "Szukaj w NeoFind...";
+        console.error("Voice recognition error: ", event.error);
+    };
+
+    // Reset gdy nagrywanie się zakończy
+    recognition.onend = function() {
+        if (voiceBtn) voiceBtn.style.background = "";
+        searchInput.placeholder = "Szukaj w NeoFind...";
+    };
+};
     
 // START
 let savedLang = localStorage.getItem("lang");
