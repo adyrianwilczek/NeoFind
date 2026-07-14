@@ -86,6 +86,26 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
     }
 
+    // Dane użytkowników (w tym Kontrola Rodzicielska) - dostęp do własnego dokumentu profilowego
+    match /users/{userId} {
+      allow read, write: if isAdmin() || (isLoggedIn() && request.auth.uid == userId);
+    }
+
+    // Kolejka e-mail (rozszerzenie Trigger Email) - zalogowany może dodać maila; odczyt zablokowany (treść zawiera PIN)
+    match /mail/{mailId} {
+      allow create: if isLoggedIn();
+    }
+
+    // Alerty bezpieczeństwa (brute force, spam zakazanych slow) - tworzenie takze przed zalogowaniem
+    // (alert BRUTE_FORCE leci przy nieudanym logowaniu, uzytkownik nie jest jeszcze zalogowany)
+    // odczyt i usuwanie tylko admin; ksztalt dokumentu ograniczony, zeby kolekcja nie byla dowolnym workiem na dane
+    match /alerts/{alertId} {
+      allow create: if request.resource.data.keys().hasOnly(['email', 'type', 'description', 'timestamp'])
+                    && request.resource.data.type is string
+                    && request.resource.data.description is string;
+      allow read, delete: if isAdmin();
+    }
+
     // Blokuj wszystko inne
     match /{document=**} {
       allow read, write: if false;
