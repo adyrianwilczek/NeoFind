@@ -9420,32 +9420,32 @@ window.toggleApiPanel = function() {
 
 // 2. Generowanie nowego klucza w bazie Firestore
 window.generateApiKey = async function() {
-    // Sprawdzamy czy użytkownik jest zalogowany w Firebase
-    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
-    if (!user) {
-        alert("Musisz być zalogowany w NeoFind, aby utworzyć klucz API!");
-        return;
-    }
+    const user = auth.currentUser;
+    if (!user) return alert("Musisz być zalogowany!");
 
-    // Unikalny losowy token z przedrostkiem nf_live_
-    const randomBuffer = new Uint8Array(16);
-    window.crypto.getRandomValues(randomBuffer);
-    const token = "nf_live_" + Array.from(randomBuffer, b => b.toString(16).padStart(2, '0')).join('');
+    // Sprawdzamy czy użytkownik ma Premium (z bazy/lokalnie)
+    const isPremium = localStorage.getItem("is_premium") === "true"; 
+    const dailyLimit = isPremium ? 1000 : 250;
+
+    const newKey = "nf_live_" + Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
 
     try {
-        await db.collection("api_keys").doc(token).set({
+        await db.collection("api_keys").doc(newKey).set({
+            key: newKey,
             userId: user.uid,
-            email: user.email,
+            userEmail: user.email,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            status: "active",
-            requestCount: 0 
+            dailyLimit: dailyLimit,          // 250 lub 1000
+            requestsToday: 0,                // Licznik użyć
+            lastResetDate: new Date().toISOString().split('T')[0] // Data RRRR-MM-DD
         });
 
-        alert("Pomyślnie wygenerowano Twój klucz API!");
-        window.loadUserApiKeys(); // Odśwież listę na ekranie
-    } catch (error) {
-        console.error("Błąd tworzenia klucza API:", error);
-        alert("Błąd podczas zapisywania klucza do bazy.");
+        alert(`🔑 Wygenerowano klucz API!\nTwój dzienny limit: ${dailyLimit} zapytań.`);
+        renderApiKeysUI();
+    } catch (err) {
+        console.error("Błąd generowania klucza API:", err);
+        alert("Błąd: " + err.message);
     }
 };
 
@@ -9489,6 +9489,50 @@ window.loadUserApiKeys = async function() {
         container.innerHTML = "<p style='color: #ef4444; font-size: 0.85rem;'>Nie udało się pobrać kluczy.</p>";
     }
 };
+    
+// WERYFIKACJA LIMITU ZAPYTANIA API
+async function validateAndTrackApiKey(apiKey) {
+    const keyRef = db.collection("api_keys").doc(apiKey);
+    const keyDoc = await keyRef.get();
+
+    if (!keyDoc.exists) {
+        return { valid: false, error: "Nieprawidłowy klucz API." };
+    }
+
+    const data = keyDoc.data();
+    const today = new Date().toISOString().split('T')[0]; // Format: "2026-07-24"
+    
+    let requestsToday = data.requestsToday || 0;
+    let lastResetDate = data.lastResetDate || today;
+
+    // Resetowanie licznika jeśli nadszedł nowy dzień
+    if (lastResetDate !== today) {
+        requestsToday = 0;
+        lastResetDate = today;
+    }
+
+    // SPRAWDZENIE LIMITU!
+    if (requestsToday >= data.dailyLimit) {
+        return { 
+            valid: false, 
+            error: `Przekroczono dzienny limit zapytań API (${data.dailyLimit}/${data.dailyLimit}). Zwiększ plan do Premium lub odczekaj do jutra!`,
+            status: 429 
+        };
+    }
+
+    // Zwiększamy licznik i zapisujemy w bazie
+    await keyRef.update({
+        requestsToday: requestsToday + 1,
+        lastResetDate: lastResetDate
+    });
+
+    return { 
+        valid: true, 
+        remaining: data.dailyLimit - (requestsToday + 1),
+        limit: data.dailyLimit 
+    };
+}
+
     
 // START
 let savedLang = localStorage.getItem("lang");
