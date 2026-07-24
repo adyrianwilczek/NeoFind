@@ -9451,57 +9451,62 @@ window.generateApiKey = async function() {
 
 // 3. Pobieranie istniejących kluczy użytkownika z Firestore
 window.loadUserApiKeys = async function() {
-    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    const user = auth.currentUser;
     const container = document.getElementById("apiKeysContainer");
-    if (!container) return;
-
-    if (!user) {
-        container.innerHTML = "<p style='color: #ef4444; font-size: 0.85rem;'>Zaloguj się, aby zobaczyć swoje klucze.</p>";
-        return;
-    }
-
-    container.innerHTML = "<p style='color: #a1a1aa; font-size: 0.85rem;'>Ładowanie kluczy...</p>";
+    if (!container || !user) return;
 
     try {
-        const snapshot = await db.collection("api_keys").where("userId", "==", user.uid).get();
-        
+        const snapshot = await db.collection("api_keys")
+            .where("userId", "==", user.uid)
+            .get();
+
         if (snapshot.empty) {
-            container.innerHTML = "<p style='color: #71717a; font-size: 0.85rem; text-align: center;'>Brak aktywnych kluczy API.</p>";
+            container.innerHTML = `<p style="color: #a1a1aa; font-size: 0.9rem;">Nie masz jeszcze żadnych aktywnych kluczy API.</p>`;
             return;
         }
 
         let html = "";
+
         snapshot.forEach(doc => {
-            const data = doc.data();
+            // 🔑 WAZNE: Pobieramy dane dokumentu do zmiennej 'key'
+            const key = doc.data();
+            
+            // Wartości domyślne, jeśli puste w bazie
+            const keyValue = key.key || doc.id;
+            const requestsToday = key.requestsToday || 0;
+            const dailyLimit = key.dailyLimit || 250;
+
+            // Obliczanie procentu zużycia limitu
+            const usagePercent = Math.min(100, Math.round((requestsToday / dailyLimit) * 100));
+
             html += `
-                <div style="background: #1c1c24; border: 1px solid #27272a; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem;">
-                    <div style="display: flex; justify-content: space-between; color: #71717a; margin-bottom: 6px;">
-                        <span>STATUS: <b style="color: #22c55e;">${data.status.toUpperCase()}</b></span>
-                        <span>UŻYĆ: <b style="color: #4da6ff;">${data.requestCount}</b></span>
+                <div style="background: #18181c; border: 1px solid #27272a; padding: 14px; border-radius: 10px; margin-bottom: 12px; color: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <code style="background: #09090b; padding: 4px 8px; border-radius: 4px; border: 1px solid #27272a; color: #38bdf8; font-size: 0.85rem;">
+                            ${keyValue}
+                        </code>
+                        <span style="font-size: 0.8rem; font-weight: bold; color: ${dailyLimit === 1000 ? '#f59e0b' : '#a1a1aa'};">
+                            ${dailyLimit === 1000 ? '👑 Premium' : 'Free'}
+                        </span>
                     </div>
-                    <code style="background: #0b0b0f; padding: 6px; border-radius: 4px; color: #e4e4e7; display: block; word-break: break-all; border: 1px solid #27272a; font-family: monospace;">${doc.id}</code>
+
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #a1a1aa; margin-top: 10px;">
+                        <span>Dzienny limit zapytań:</span>
+                        <strong style="color: #fff;">${requestsToday} / ${dailyLimit}</strong>
+                    </div>
+
+                    <div style="background: #27272a; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
+                        <div style="background: ${usagePercent > 90 ? '#ef4444' : '#22c55e'}; width: ${usagePercent}%; height: 100%; transition: width 0.3s ease;"></div>
+                    </div>
                 </div>
             `;
         });
-        // Fragment renderingu listy kluczy:
-const usagePercent = Math.min(100, Math.round((key.requestsToday / key.dailyLimit) * 100));
 
-const keyCardHtml = `
-    <div style="background: #18181c; border: 1px solid #27272a; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
-            <span>Dzienny limit: <strong>${key.requestsToday || 0} / ${key.dailyLimit}</strong></span>
-            <span>${key.dailyLimit === 1000 ? '👑 Premium' : 'Free'}</span>
-        </div>
-        <!-- Pasek postępu -->
-        <div style="background: #27272a; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
-            <div style="background: ${usagePercent > 90 ? '#ef4444' : '#22c55e'}; width: ${usagePercent}%; height: 100%;"></div>
-        </div>
-    </div>
-`;
         container.innerHTML = html;
-    } catch (error) {
-        console.error("Błąd odczytu kluczy API:", error);
-        container.innerHTML = "<p style='color: #ef4444; font-size: 0.85rem;'>Nie udało się pobrać kluczy.</p>";
+
+    } catch (err) {
+        console.error("Błąd odczytu kluczy API:", err);
+        container.innerHTML = `<p style="color: #ef4444;">Nie udało się wczytać kluczy API.</p>`;
     }
 };
     
