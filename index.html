@@ -1018,11 +1018,12 @@ body.ocean {
     </div>
     
     <p style="color: #a1a1aa; font-size: 0.85rem; margin-bottom: 20px;">
-        Możesz wygenerować klucz API, aby wysyłać zapytania do bazy NeoFind ze swoich własnych programów.
+        You can generate an API key to send queries to the NeoFind database from your own programs.
+NOTE! Do not share the key with anyone.
     </p>
 
     <button onclick="window.generateApiKey()" style="background: #4da6ff; color: #000; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-family: inherit;">
-        ➕ Generuj nowy klucz API
+        ➕ Generate new API key
     </button>
 
     <!-- Tutaj wskoczą wygenerowane klucze ze bazy Firestore -->
@@ -9441,10 +9442,10 @@ window.generateApiKey = async function() {
             lastResetDate: new Date().toISOString().split('T')[0] // Data RRRR-MM-DD
         });
 
-        alert(`🔑 Wygenerowano klucz API!\nTwój dzienny limit: ${dailyLimit} zapytań.`);
+        alert(`🔑 Wygenerowano klucz API!\nyour daily query: ${dailyLimit} limit.`);
         loadUserApiKeys();
     } catch (err) {
-        console.error("Błąd generowania klucza API:", err);
+        console.error("Error generating API key:", err);
         alert("Błąd: " + err.message);
     }
 };
@@ -9461,7 +9462,7 @@ window.loadUserApiKeys = async function() {
             .get();
 
         if (snapshot.empty) {
-            container.innerHTML = `<p style="color: #a1a1aa; font-size: 0.9rem;">Nie masz jeszcze żadnych aktywnych kluczy API.</p>`;
+            container.innerHTML = `<p style="color: #a1a1aa; font-size: 0.9rem;">You don't have any active API keys.</p>`;
             return;
         }
 
@@ -9486,12 +9487,12 @@ window.loadUserApiKeys = async function() {
                             ${keyValue}
                         </code>
                         <span style="font-size: 0.8rem; font-weight: bold; color: ${dailyLimit === 1000 ? '#f59e0b' : '#a1a1aa'};">
-                            ${dailyLimit === 1000 ? '👑 Premium' : 'Free'}
+                            ${dailyLimit === 1000 ? 'Plan: Premium' : 'Plan: Free'}
                         </span>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #a1a1aa; margin-top: 10px;">
-                        <span>Dzienny limit zapytań:</span>
+                        <span>Daily query limit:</span>
                         <strong style="color: #fff;">${requestsToday} / ${dailyLimit}</strong>
                     </div>
 
@@ -9516,7 +9517,7 @@ async function validateAndTrackApiKey(apiKey) {
     const keyDoc = await keyRef.get();
 
     if (!keyDoc.exists) {
-        return { valid: false, error: "Nieprawidłowy klucz API." };
+        return { valid: false, error: "invalid API key." };
     }
 
     const data = keyDoc.data();
@@ -9535,7 +9536,7 @@ async function validateAndTrackApiKey(apiKey) {
     if (requestsToday >= data.dailyLimit) {
         return { 
             valid: false, 
-            error: `Przekroczono dzienny limit zapytań API (${data.dailyLimit}/${data.dailyLimit}). Zwiększ plan do Premium lub odczekaj do jutra!`,
+            error: `Daily API request limit exceeded. (${data.dailyLimit}/${data.dailyLimit}). Upgrade your plan to Premium or wait until tomorrow!`,
             status: 429 
         };
     }
