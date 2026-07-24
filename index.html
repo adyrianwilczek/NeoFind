@@ -9442,7 +9442,7 @@ window.generateApiKey = async function() {
         });
 
         alert(`🔑 Wygenerowano klucz API!\nTwój dzienny limit: ${dailyLimit} zapytań.`);
-        renderApiKeysUI();
+        loadUserApiKeys();
     } catch (err) {
         console.error("Błąd generowania klucza API:", err);
         alert("Błąd: " + err.message);
