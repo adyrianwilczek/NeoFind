@@ -1003,9 +1003,31 @@ body.ocean {
 
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
-<button id="voiceSearchBtn" onclick="window.startVoiceSearch()" style="background: #4da6ff; color: black; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 1.2rem; transition: background 0.2s; display: flex; align-items: center; justify-content: center;">
-        🎙️
+<!-- PRZYCISK PRZEŁĄCZANIA WIDOKU (umieść go np. w menu/nagłówku) -->
+<div style="text-align: right; margin-bottom: 10px;">
+    <button onclick="window.toggleApiPanel()" style="background: transparent; color: #4da6ff; border: 1px solid #4da6ff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: inherit;">
+        🔑 Panel API
     </button>
+</div>
+
+<!-- PANEL KLUCZY API (Domyślnie ukryty: display: none) -->
+<div id="apiPanel" style="display: none; max-width: 500px; margin: 20px auto; padding: 25px; background: #13131a; border: 1px solid #3f3f46; border-radius: 12px; box-sizing: border-box;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin: 0; color: #4da6ff;">⚙️ NeoFind API Keys</h3>
+        <button onclick="window.toggleApiPanel()" style="background: transparent; color: #a1a1aa; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button>
+    </div>
+    
+    <p style="color: #a1a1aa; font-size: 0.85rem; margin-bottom: 20px;">
+        Możesz wygenerować klucz API, aby wysyłać zapytania do bazy NeoFind ze swoich własnych programów.
+    </p>
+
+    <button onclick="window.generateApiKey()" style="background: #4da6ff; color: #000; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-family: inherit;">
+        ➕ Generuj nowy klucz API
+    </button>
+
+    <!-- Tutaj wskoczą wygenerowane klucze ze bazy Firestore -->
+    <div id="apiKeysContainer" style="margin-top: 20px;"></div>
+</div>
 <div id="momBirthdayContainer" style="display: none; text-align: center; margin-top: 10px;">
     <span id="cakeIcon" onclick="openMomBirthdayCard()" style="font-size: 35px; cursor: pointer; display: inline-block; animation: logoPulse 2s ease-in-out infinite;">🎂</span>
 </div>
@@ -1448,6 +1470,20 @@ z-index:9999;
 <button onclick="closeNews()" id="newsCloseBtn">Close</button>
 </div>
 <div id="updates"></div>
+
+<!-- POP-UP DLA NOWO ZDOBYTEJ ODZNAKI (Pojawia się na 5 sekund) -->
+<div id="badgeNotification" style="position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background: #13131a; border: 2px solid #22c55e; border-radius: 12px; padding: 15px 25px; color: #fff; font-family: 'Oxanium', sans-serif; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); z-index: 99999; transition: bottom 0.5s ease-in-out, opacity 0.5s ease-in-out; opacity: 0; display: flex; align-items: center; gap: 12px; pointer-events: none;">
+    <span style="font-size: 2rem;">🎉</span>
+    <div>
+        <div style="font-size: 0.8rem; color: #22c55e; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Badge Unlocked!</div>
+        <div id="badgeNotificationText" style="font-size: 1.1rem; font-weight: bold; color: #fff;">You award Wyszukiwacz badge!</div>
+    </div>
+</div>
+
+<!-- WIDOK ODZNAK W PROFILU / NAGŁÓWKU -->
+<div id="badgesContainer" style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 15px 0;">
+    <!-- Odznaki zostaną wstrzyknięte automatycznie przez skrypt JS -->
+</div>
     
 <!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -9233,6 +9269,226 @@ window.startVoiceSearch = function() {
 
     recognitionInstance.start();
 }; 
+
+// ==========================================
+// SYSTEM ODZNAK (BADGES & ACHIEVEMENTS)
+// ==========================================
+
+// Lista definicji wszystkich odznak
+const BADGES_DEFINITIONS = {
+    ADMIN: { id: 'admin', name: '🛡️ Admin', desc: 'Admin permission' },
+    EARLY_BIRD: { id: 'early_bird', name: '⏳ Time is ticking', desc: 'Joined 9 april' },
+    VETERAN: { id: 'veteran', name: '🎖️ Veteran', desc: 'Account active 6 months' },
+    SEARCHER: { id: 'searcher', name: '🔍 Wyszukiwacz', desc: 'You searched 100 things' }
+};
+
+// 1. Powiadomienie wyskakujące na 5 sekund
+function showBadgeToast(badgeName) {
+    const toast = document.getElementById("badgeNotification");
+    const toastText = document.getElementById("badgeNotificationText");
+    if (!toast || !toastText) return;
+
+    toastText.innerText = `You award ${badgeName} badge!`;
+    
+    // Wysuwanie pop-upa
+    toast.style.bottom = "30px";
+    toast.style.opacity = "1";
+
+    // Efekt dźwiękowy/konfetti jeśli masz załadowane
+    if (typeof confetti === "function") {
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+    }
+
+    // Chowanie po dokładnie 5 sekundach (5000 ms)
+    setTimeout(() => {
+        toast.style.bottom = "-100px";
+        toast.style.opacity = "0";
+    }, 5000);
+}
+
+// 2. Przyznawanie odznaki użytkownikowi
+function awardBadge(badge) {
+    let unlockedBadges = JSON.parse(localStorage.getItem("neofind_unlocked_badges")) || [];
+    
+    // Jeśli użytkownik jeszcze nie ma tej odznaki
+    if (!unlockedBadges.includes(badge.id)) {
+        unlockedBadges.push(badge.id);
+        localStorage.setItem("neofind_unlocked_badges", JSON.stringify(unlockedBadges));
+        
+        // Pokaż pop-up na 5 sekund!
+        showBadgeToast(badge.name);
+        
+        // Odśwież listę odznak na ekranie
+        renderBadgesUI();
+    }
+}
+
+// 3. Sprawdzanie i weryfikacja wszystkich odznak
+function checkBadgesEligibility(userDocData) {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user) return;
+
+    // --- A. ODZNAKA: 🛡️ Admin ---
+    // Sprawdzamy czy użytkownik ma rolę admina (np. w pamięci lub z bazy Firebase)
+    const isAdmin = localStorage.getItem("is_admin") === "true" || (userDocData && userDocData.role === "admin");
+    if (isAdmin) {
+        awardBadge(BADGES_DEFINITIONS.ADMIN);
+    }
+
+    // --- B. ODZNAKA: ⏳ Time is ticking (Data utworzenia = 9 kwietnia) ---
+    // Pobieramy datę utworzenia konta z Firebase Auth
+    if (user.metadata && user.metadata.creationTime) {
+        const creationDate = new Date(user.metadata.creationTime);
+        const month = creationDate.getMonth(); // 3 = Kwiecień (miesiące liczone od 0)
+        const day = creationDate.getDate();
+
+        if (month === 3 && day === 9) { // 9 Kwiecień
+            awardBadge(BADGES_DEFINITIONS.EARLY_BIRD);
+        }
+
+        // --- C. ODZNAKA: 🎖️ Veteran (Konto starsze niż 6 miesięcy / 180 dni) ---
+        const now = new Date();
+        const diffInDays = Math.floor((now - creationDate) / (1000 * 60 * 60 * 24));
+        if (diffInDays >= 180) {
+            awardBadge(BADGES_DEFINITIONS.VETERAN);
+        }
+    }
+
+    renderBadgesUI();
+}
+
+// 4. Zwiększanie licznika wyszukiwań dla odznaki 🔍 Searcher
+function trackSearchForBadges() {
+    let searchCount = parseInt(localStorage.getItem("neofind_search_count")) || 0;
+    searchCount++;
+    localStorage.setItem("neofind_search_count", searchCount);
+
+    // Działa po osiągnięciu 100 wyszukiwań
+    if (searchCount >= 100) {
+        awardBadge(BADGES_DEFINITIONS.SEARCHER);
+    }
+}
+
+// 5. Rysowanie odznak na ekranie (Badges UI)
+function renderBadgesUI() {
+    const container = document.getElementById("badgesContainer");
+    if (!container) return;
+
+    let unlockedBadges = JSON.parse(localStorage.getItem("neofind_unlocked_badges")) || [];
+    let html = "";
+
+    Object.values(BADGES_DEFINITIONS).forEach(badge => {
+        const isUnlocked = unlockedBadges.includes(badge.id);
+        
+        html += `
+            <div title="${badge.desc}" style="background: ${isUnlocked ? '#1c1c24' : '#121217'}; border: 1px solid ${isUnlocked ? '#4da6ff' : '#27272a'}; color: ${isUnlocked ? '#fff' : '#52525b'}; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; display: flex; align-items: center; gap: 6px; opacity: ${isUnlocked ? '1' : '0.4'}; cursor: help;">
+                ${badge.name}
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+// Podpinamy sprawdzanie odznak po zalogowaniu w Firebase
+if (typeof auth !== "undefined") {
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            checkBadgesEligibility();
+        } else {
+            renderBadgesUI();
+        }
+    });
+}
+
+// ==========================================
+// LOGIKA ZAKŁADKI API KEYS
+// ==========================================
+
+// 1. Otwieranie / zamykanie panelu API
+window.toggleApiPanel = function() {
+    const panel = document.getElementById("apiPanel");
+    if (!panel) return;
+
+    if (panel.style.display === "none" || panel.style.display === "") {
+        panel.style.display = "block";
+        window.loadUserApiKeys(); // Pobiera klucze po otwarciu
+    } else {
+        panel.style.display = "none";
+    }
+};
+
+// 2. Generowanie nowego klucza w bazie Firestore
+window.generateApiKey = async function() {
+    // Sprawdzamy czy użytkownik jest zalogowany w Firebase
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user) {
+        alert("Musisz być zalogowany w NeoFind, aby utworzyć klucz API!");
+        return;
+    }
+
+    // Unikalny losowy token z przedrostkiem nf_live_
+    const randomBuffer = new Uint8Array(16);
+    window.crypto.getRandomValues(randomBuffer);
+    const token = "nf_live_" + Array.from(randomBuffer, b => b.toString(16).padStart(2, '0')).join('');
+
+    try {
+        await db.collection("api_keys").doc(token).set({
+            userId: user.uid,
+            email: user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            status: "active",
+            requestCount: 0 
+        });
+
+        alert("Pomyślnie wygenerowano Twój klucz API!");
+        window.loadUserApiKeys(); // Odśwież listę na ekranie
+    } catch (error) {
+        console.error("Błąd tworzenia klucza API:", error);
+        alert("Błąd podczas zapisywania klucza do bazy.");
+    }
+};
+
+// 3. Pobieranie istniejących kluczy użytkownika z Firestore
+window.loadUserApiKeys = async function() {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    const container = document.getElementById("apiKeysContainer");
+    if (!container) return;
+
+    if (!user) {
+        container.innerHTML = "<p style='color: #ef4444; font-size: 0.85rem;'>Zaloguj się, aby zobaczyć swoje klucze.</p>";
+        return;
+    }
+
+    container.innerHTML = "<p style='color: #a1a1aa; font-size: 0.85rem;'>Ładowanie kluczy...</p>";
+
+    try {
+        const snapshot = await db.collection("api_keys").where("userId", "==", user.uid).get();
+        
+        if (snapshot.empty) {
+            container.innerHTML = "<p style='color: #71717a; font-size: 0.85rem; text-align: center;'>Brak aktywnych kluczy API.</p>";
+            return;
+        }
+
+        let html = "";
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `
+                <div style="background: #1c1c24; border: 1px solid #27272a; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 0.85rem;">
+                    <div style="display: flex; justify-content: space-between; color: #71717a; margin-bottom: 6px;">
+                        <span>STATUS: <b style="color: #22c55e;">${data.status.toUpperCase()}</b></span>
+                        <span>UŻYĆ: <b style="color: #4da6ff;">${data.requestCount}</b></span>
+                    </div>
+                    <code style="background: #0b0b0f; padding: 6px; border-radius: 4px; color: #e4e4e7; display: block; word-break: break-all; border: 1px solid #27272a; font-family: monospace;">${doc.id}</code>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    } catch (error) {
+        console.error("Błąd odczytu kluczy API:", error);
+        container.innerHTML = "<p style='color: #ef4444; font-size: 0.85rem;'>Nie udało się pobrać kluczy.</p>";
+    }
+};
     
 // START
 let savedLang = localStorage.getItem("lang");
