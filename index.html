@@ -9483,6 +9483,21 @@ window.loadUserApiKeys = async function() {
                 </div>
             `;
         });
+        // Fragment renderingu listy kluczy:
+const usagePercent = Math.min(100, Math.round((key.requestsToday / key.dailyLimit) * 100));
+
+const keyCardHtml = `
+    <div style="background: #18181c; border: 1px solid #27272a; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.9rem;">
+            <span>Dzienny limit: <strong>${key.requestsToday || 0} / ${key.dailyLimit}</strong></span>
+            <span>${key.dailyLimit === 1000 ? '👑 Premium' : 'Free'}</span>
+        </div>
+        <!-- Pasek postępu -->
+        <div style="background: #27272a; height: 6px; border-radius: 3px; margin-top: 8px; overflow: hidden;">
+            <div style="background: ${usagePercent > 90 ? '#ef4444' : '#22c55e'}; width: ${usagePercent}%; height: 100%;"></div>
+        </div>
+    </div>
+`;
         container.innerHTML = html;
     } catch (error) {
         console.error("Błąd odczytu kluczy API:", error);
