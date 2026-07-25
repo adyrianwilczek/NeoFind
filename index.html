@@ -1113,15 +1113,29 @@ NOTE! Do not share the key with anyone.
                 </div>
             </div>
         </div>
-        <!-- Orbs Shop / Buy Premium -->
-<div class="result" style="margin-top: 15px; border: 1px solid rgba(0, 255, 200, 0.4); background: rgba(0,255,200,0.05); text-align: center; padding: 15px;">
-    <h4 style="margin: 0 0 8px 0; color: #00ffcc;">🔮 Orbs Shop</h4>
-    <p style="font-size: 13px; opacity: 0.8; margin-bottom: 12px;">
-        Buy **Premium** status for **1000 Orbs** to unlock exclusive features!
-    </p>
-    <button onclick="buyPremiumWithOrbs()" id="buyPremiumBtn" style="background: linear-gradient(135deg, #00ffcc, #4da6ff); color: #05121a; font-weight: bold; padding: 10px 20px; border-radius: 20px;">
-        Buy Premium (1000 Orbs)
-    </button>
+        <!-- Przycisk do otwierania panelu -->
+<button onclick="openOrbsPanel()">Missions and Orbs</button>
+
+<!-- Panel misji i salda -->
+<div id="orbsBox">
+    <h2>Free Orbs and missions</h2>
+    <p>You have: <b id="userOrbsCount">0</b> Orbs</p>
+
+    <hr>
+
+    <h3>Daily missions</h3>
+    <div id="dailyMissionsContainer">
+        <!-- Misje generują się tu automatycznie przez JS -->
+    </div>
+
+    <hr>
+
+    <h3>Orbs Shop</h3>
+    <p>Buy premium for 1 month</p>
+    <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
+
+    <br><br>
+    <button onclick="closeOrbsPanel()">❌</button>
 </div>
         <div id="parentalControlPanel" style="margin-top: 25px; padding: 20px; border: 1px solid #3f3f46; border-radius: 12px; background: #13131a; color: white; font-family: 'Oxanium', sans-serif;">
     </div>
@@ -9584,275 +9598,133 @@ if (window.location.pathname.toLowerCase() === "/application" || window.location
     }, 1000);
 }
 
-// --- Global State ---
-let userOrbs = 0;
-let isPremium = false;
+/* === EXTENDED & EXTREME DAILY MISSIONS (ENGLISH) === */
 
-// Daily Missions State
-let dailyData = {
-    lastResetDate: "",
-    loginClaimed: false,
-    searchCount: 0,
-    searchMissionClaimed: false
-};
+const ALL_MISSIONS = [
+    // Medium / Standard
+    { id: 'search_10', title: 'Dedicated Searcher', desc: 'Perform 10 searches in NeoFind', target: 10, reward: 60, type: 'search' },
+    { id: 'open_ai_3', title: 'Curious Mind', desc: 'Open AI Assistant 3 times', target: 3, reward: 50, type: 'open_ai' },
+    { id: 'settings_3', title: 'Profile Inspector', desc: 'Open Settings 3 times', target: 3, reward: 40, type: 'settings' },
 
-// --- Firebase Auth Observer ---
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        loadUserData(user.uid);
-    } else {
-        // Reset state on logout
-        userOrbs = 0;
-        isPremium = false;
-        resetDailyMissionsState();
-        updateOrbsDisplay();
-        updatePremiumUI();
-        updateMissionsUI();
+    // Hard / Challenging
+    { id: 'search_25', title: 'Information Hunter', desc: 'Perform 25 searches in NeoFind', target: 25, reward: 150, type: 'search' },
+    { id: 'open_ai_7', title: 'AI Enthusiast', desc: 'Interact with AI Assistant 7 times', target: 7, reward: 120, type: 'open_ai' },
+    { id: 'summer_5', title: 'Theme Switcher', desc: 'Toggle Summer Mode 5 times', target: 5, reward: 80, type: 'summer' },
+    { id: 'settings_8', title: 'Customization Freak', desc: 'Visit Settings 8 times', target: 8, reward: 100, type: 'settings' },
+
+    // Extreme / Hardcore
+    { id: 'search_50', title: 'NeoFind Legend', desc: 'Perform an epic streak of 50 searches', target: 50, reward: 350, type: 'search' },
+    { id: 'open_ai_10', title: 'AI Power User', desc: 'Launch AI Assistant 10 times', target: 10, reward: 220, type: 'open_ai' },
+    { id: 'search_75', title: 'Ultimate Researcher', desc: 'Complete a massive marathon of 75 searches', target: 75, reward: 500, type: 'search' }
+];
+
+let userOrbs = parseInt(localStorage.getItem('userOrbs') || '0');
+
+function initDailyMissions() {
+    const today = new Date().toDateString();
+    let saved = JSON.parse(localStorage.getItem('dailyMissionsData') || '{}');
+
+    if (saved.date !== today) {
+        const selected = ALL_MISSIONS.sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map(m => ({ ...m, progress: 0, claimed: false }));
+
+        saved = { date: today, missions: selected };
+        localStorage.setItem('dailyMissionsData', JSON.stringify(saved));
     }
-});
-
-// --- Core Functions ---
-
-// 1. Fetch user data & daily missions progress from Firestore
-function loadUserData(userId) {
-    firebase.firestore().collection("users").doc(userId).get()
-        .then((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                userOrbs = data.orbs || 0;
-                isPremium = data.isPremium || false;
-
-                // Load or initialize daily missions data
-                if (data.dailyData) {
-                    dailyData = data.dailyData;
-                }
-
-                checkDailyReset(userId);
-                updateOrbsDisplay();
-                updatePremiumUI();
-                updateMissionsUI();
-            }
-        })
-        .catch((err) => {
-            console.error("Error loading user data:", err);
-        });
+    return saved;
 }
 
-// 2. Check if a new day has started and reset daily missions if needed
-function checkDailyReset(userId) {
-    const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+function updateMissionProgress(type) {
+    let data = initDailyMissions();
+    let updated = false;
 
-    if (dailyData.lastResetDate !== today) {
-        dailyData = {
-            lastResetDate: today,
-            loginClaimed: false,
-            searchCount: 0,
-            searchMissionClaimed: false
-        };
+    data.missions.forEach(m => {
+        if (m.type === type && m.progress < m.target) {
+            m.progress++;
+            updated = true;
+        }
+    });
 
-        // Save reset state to Firestore
-        firebase.firestore().collection("users").doc(userId).update({
-            dailyData: dailyData
-        }).catch((err) => console.error("Error resetting daily missions:", err));
+    if (updated) {
+        localStorage.setItem('dailyMissionsData', JSON.stringify(data));
+        renderMissions();
     }
 }
 
-function resetDailyMissionsState() {
-    dailyData = {
-        lastResetDate: "",
-        loginClaimed: false,
-        searchCount: 0,
-        searchMissionClaimed: false
-    };
-}
+function claimReward(id) {
+    let data = initDailyMissions();
+    const m = data.missions.find(x => x.id === id);
 
-// 3. Update Orbs counter in the UI
-function updateOrbsDisplay() {
-    const orbsEl = document.getElementById("orbsCount");
-    if (orbsEl) {
-        orbsEl.innerText = userOrbs;
+    if (m && m.progress >= m.target && !m.claimed) {
+        m.claimed = true;
+        userOrbs += m.reward;
+
+        localStorage.setItem('userOrbs', userOrbs);
+        localStorage.setItem('dailyMissionsData', JSON.stringify(data));
+
+        if (typeof confetti === 'function') confetti();
+        renderMissions();
     }
 }
 
-// 4. Add Orbs to the user's account
-function addOrbs(amount) {
-    const user = firebase.auth().currentUser;
-    if (!user) return;
+function renderMissions() {
+    const orbCounter = document.getElementById('userOrbsCount');
+    if (orbCounter) orbCounter.innerText = userOrbs;
 
-    userOrbs += amount;
-    updateOrbsDisplay();
+    const container = document.getElementById('dailyMissionsContainer');
+    if (!container) return;
+    container.innerHTML = '';
 
-    firebase.firestore().collection("users").doc(user.uid).update({
-        orbs: userOrbs
-    }).catch((err) => {
-        console.error("Error updating Orbs:", err);
+    initDailyMissions().missions.forEach(m => {
+        let btn = `<button disabled>${m.progress}/${m.target}</button>`;
+        if (m.claimed) {
+            btn = `<span>Claimed ✓</span>`;
+        } else if (m.progress >= m.target) {
+            btn = `<button onclick="claimReward('${m.id}')">Claim +${m.reward}🔮</button>`;
+        }
+
+        container.innerHTML += `
+            <div class="mission-card">
+                <div>
+                    <b>${m.title}</b><br>
+                    <small>${m.desc}</small><br>
+                    <small>Reward: +${m.reward} Orbs</small>
+                </div>
+                <div>${btn}</div>
+            </div>`;
     });
 }
 
-// --- Daily Missions Functions ---
-
-// Mission 1: Claim Daily Login Reward (+50 Orbs)
-function claimDailyLoginReward() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        alert("You must be logged in to claim rewards!");
-        return;
-    }
-
-    if (dailyData.loginClaimed) {
-        alert("You have already claimed today's login reward!");
-        return;
-    }
-
-    const reward = 50;
-    userOrbs += reward;
-    dailyData.loginClaimed = true;
-
-    // Save to Firestore
-    firebase.firestore().collection("users").doc(user.uid).update({
-        orbs: userOrbs,
-        dailyData: dailyData
-    }).then(() => {
-        updateOrbsDisplay();
-        updateMissionsUI();
-        alert(`🎉 You claimed ${reward} Orbs for logging in today!`);
-    }).catch((err) => console.error("Error claiming daily reward:", err));
-}
-
-// Mission 2: Track searches (Complete 5 searches for +100 Orbs)
-function trackSearchMission() {
-    const user = firebase.auth().currentUser;
-    if (!user || dailyData.searchMissionClaimed) return;
-
-    dailyData.searchCount += 1;
-
-    // Save search count progress
-    firebase.firestore().collection("users").doc(user.uid).update({
-        dailyData: dailyData
-    });
-
-    // Check if mission target (5 searches) is met
-    if (dailyData.searchCount >= 5 && !dailyData.searchMissionClaimed) {
-        claimSearchMissionReward();
-    } else {
-        updateMissionsUI();
-    }
-}
-
-function claimSearchMissionReward() {
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-
-    const reward = 100;
-    userOrbs += reward;
-    dailyData.searchMissionClaimed = true;
-
-    firebase.firestore().collection("users").doc(user.uid).update({
-        orbs: userOrbs,
-        dailyData: dailyData
-    }).then(() => {
-        updateOrbsDisplay();
-        updateMissionsUI();
-        alert(`🎯 Mission Complete! You completed 5 searches and earned ${reward} Orbs!`);
-    }).catch((err) => console.error("Error claiming search reward:", err));
-}
-
-// Update Daily Missions UI elements
-function updateMissionsUI() {
-    // Mission 1: Login UI
-    const loginBtn = document.getElementById("dailyLoginBtn");
-    if (loginBtn) {
-        if (dailyData.loginClaimed) {
-            loginBtn.innerText = "Claimed ✓";
-            loginBtn.disabled = true;
-            loginBtn.style.opacity = "0.6";
-        } else {
-            loginBtn.innerText = "Claim 50 Orbs";
-            loginBtn.disabled = false;
-            loginBtn.style.opacity = "1";
-        }
-    }
-
-    // Mission 2: Search Mission UI
-    const searchProgress = document.getElementById("searchMissionProgress");
-    if (searchProgress) {
-        const count = Math.min(dailyData.searchCount, 5);
-        if (dailyData.searchMissionClaimed) {
-            searchProgress.innerText = "Completed ✓ (+100 Orbs)";
-        } else {
-            searchProgress.innerText = `Searches: ${count}/5 (+100 Orbs)`;
-        }
-    }
-}
-
-// --- Premium Purchase ---
-
-// Purchase Premium status for 1000 Orbs
 function buyPremiumWithOrbs() {
-    const user = firebase.auth().currentUser;
-    if (!user) {
-        alert("You must be logged in to purchase Premium!");
+    if (localStorage.getItem('userPremium') === 'true') {
+        alert("You already have an active Premium status!");
         return;
     }
 
-    if (isPremium) {
-        alert("You already have Premium status!");
-        return;
-    }
-
-    if (userOrbs < 1000) {
-        alert(`Not enough Orbs! You need 1000 Orbs, but currently have: ${userOrbs}.`);
-        return;
-    }
-
-    userOrbs -= 1000;
-    isPremium = true;
-
-    firebase.firestore().collection("users").doc(user.uid).update({
-        orbs: userOrbs,
-        isPremium: true
-    }).then(() => {
-        updateOrbsDisplay();
-        updatePremiumUI();
-
-        if (typeof confetti === 'function') {
-            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        }
-
-        alert("🎉 Congratulations! You have successfully unlocked Premium status for 1000 Orbs!");
-    }).catch((err) => {
-        console.error("Error purchasing Premium:", err);
-        alert("An error occurred during the transaction. Please try again.");
-    });
-}
-
-function updatePremiumUI() {
-    const badge = document.getElementById("premiumBadge");
-    const buyBtn = document.getElementById("buyPremiumBtn");
-
-    if (isPremium) {
-        if (badge) badge.style.display = "block";
-        if (buyBtn) {
-            buyBtn.innerText = "Premium Active ✨";
-            buyBtn.disabled = true;
-            buyBtn.style.opacity = "0.6";
-            buyBtn.style.cursor = "default";
-        }
+    if (userOrbs >= 1000) {
+        userOrbs -= 1000;
+        localStorage.setItem('userOrbs', userOrbs);
+        localStorage.setItem('userPremium', 'true');
+        alert("🎉 Congratulations! Premium Unlocked!");
+        renderMissions();
+    } else {
+        alert("Not enough Orbs! Required: 1000.");
     }
 }
 
-// --- Event Listeners ---
-document.addEventListener("DOMContentLoaded", () => {
-    const searchInput = document.getElementById("search");
-    if (searchInput) {
-        searchInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && searchInput.value.trim() !== "") {
-                addOrbs(5);            // Regular 5 Orbs per search
-                trackSearchMission();  // Progress for the 5-search daily mission
-            }
-        });
-    }
-});
+function openOrbsPanel() {
+    renderMissions();
+    const box = document.getElementById('orbsBox');
+    if (box) box.style.display = 'block';
+}
+
+function closeOrbsPanel() {
+    const box = document.getElementById('orbsBox');
+    if (box) box.style.display = 'none';
+}
+
+initDailyMissions();
     
 // START
 let savedLang = localStorage.getItem("lang");
