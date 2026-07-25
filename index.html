@@ -8170,26 +8170,6 @@ function rotateTip() {
 }
 setInterval(rotateTip, 30000); // każda ciekawostka widoczna 30 s (czas na przeczytanie)
 
-// Efekt kursora: piłeczki lecą za myszą
-let lastBall = 0;
-document.addEventListener('mousemove', (e) => {
-    if (Date.now() - lastBall < 50) return;
-    lastBall = Date.now();
-    const dot = document.createElement('div');
-    dot.textContent = '⚽';
-    dot.style.cssText = `
-        position: fixed;
-        left: ${e.clientX}px;
-        top: ${e.clientY}px;
-        pointer-events: none;
-        font-size: 16px;
-        transition: opacity 0.5s;
-        z-index: 9999;
-    `;
-    document.body.appendChild(dot);
-    setTimeout(() => dot.remove(), 500);
-});
-
 // tryb mundialowy - boisko (pasy koszenia + winieta + białe linie jako SVG)
 const PITCH_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 680" preserveAspectRatio="xMidYMid slice"><g fill="none" stroke="#ffffff" stroke-width="3" stroke-opacity="0.38"><rect x="20" y="20" width="1010" height="640" rx="2"/><line x1="525" y1="20" x2="525" y2="660"/><circle cx="525" cy="340" r="91.5"/><rect x="20" y="146.5" width="165" height="387"/><rect x="20" y="258.5" width="55" height="163"/><path d="M185 268 A91.5 91.5 0 0 1 185 412"/><rect x="865" y="146.5" width="165" height="387"/><rect x="975" y="258.5" width="55" height="163"/><path d="M865 268 A91.5 91.5 0 0 0 865 412"/><path d="M20 30 A10 10 0 0 1 30 20"/><path d="M1020 20 A10 10 0 0 1 1030 30"/><path d="M30 660 A10 10 0 0 1 20 650"/><path d="M1030 650 A10 10 0 0 1 1020 660"/></g><g fill="#ffffff" fill-opacity="0.38"><circle cx="525" cy="340" r="4"/><circle cx="130" cy="340" r="4"/><circle cx="920" cy="340" r="4"/></g><g fill="none" stroke="#ffffff" stroke-width="2" stroke-opacity="0.5"><rect x="8" y="300" width="12" height="80"/><rect x="1030" y="300" width="12" height="80"/></g></svg>`;
 
