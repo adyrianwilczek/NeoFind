@@ -9735,13 +9735,17 @@ initDailyMissions();
 
 // --- OBSŁUGA SYSTEMU ORBS DLA ADMINA ---
 
+// ==========================================
+// SYSTEM PRZYZNAWANIA ORBS (DLA ADMINA)
+// ==========================================
+
 async function giveOrbsToUser() {
     const emailInput = document.getElementById('giveOrbsEmail');
     const amountInput = document.getElementById('giveOrbsAmount');
     const statusEl = document.getElementById('giveOrbsStatus');
 
     if (!emailInput || !amountInput || !statusEl) {
-        console.error("Błąd: Brak elementów HTML (giveOrbsEmail, giveOrbsAmount lub giveOrbsStatus).");
+        console.error("Błąd: Nie znaleziono elementów HTML (giveOrbsEmail, giveOrbsAmount, giveOrbsStatus).");
         return;
     }
 
@@ -9758,34 +9762,30 @@ async function giveOrbsToUser() {
     try {
         const db = firebase.firestore();
         statusEl.style.color = '#4da6ff';
-        statusEl.innerText = 'Szukam użytkownika w bazie...';
+        statusEl.innerText = 'Szukam użytkownika...';
 
-        // -----------------------------------------------------------
-        // METODA 1: Szukamy po polu 'email' wewnątrz dokumentu
-        // -----------------------------------------------------------
+        // 1. Szukanie po polu 'email' wewnątrz dokumentów
         let querySnapshot = await db.collection('users')
             .where('email', '==', targetEmail)
             .get();
 
-        // Jeśli nie znaleziono po małych literach, sprawdźmy po oryginalnym wpisie (dla wielkich liter)
+        // Dodatkowa próba z oryginalną wielkością liter
         if (querySnapshot.empty && targetEmail !== rawInput) {
             querySnapshot = await db.collection('users')
                 .where('email', '==', rawInput)
                 .get();
         }
 
-        // Jeśli znaleziono po polu 'email':
+        // Jeśli znaleziono po polu 'email'
         if (!querySnapshot.empty) {
             for (const doc of querySnapshot.docs) {
-                const data = doc.data();
-                const currentOrbs = Number(data.orbs) || 0;
+                const currentOrbs = Number(doc.data().orbs) || 0;
                 const newOrbs = currentOrbs + amount;
 
                 await doc.ref.update({ orbs: newOrbs });
 
                 statusEl.style.color = '#00ffcc';
-                statusEl.innerText = `Pomyślnie dodano ${amount} Orbs do konta ${doc.data().email || targetEmail}! (Łącznie: ${newOrbs})`;
-                console.log(`[ORBS] Zaktualizowano dokument ${doc.id}. Stare Orbs: ${currentOrbs}, nowe: ${newOrbs}`);
+                statusEl.innerText = `Dodano ${amount} Orbs do konta ${doc.data().email || targetEmail}! (Łącznie: ${newOrbs})`;
                 
                 emailInput.value = '';
                 amountInput.value = '';
@@ -9793,9 +9793,7 @@ async function giveOrbsToUser() {
             }
         }
 
-        // -----------------------------------------------------------
-        // METODA 2: Awaryjnie sprawdźmy, czy ID dokumentu to UID lub e-mail
-        // -----------------------------------------------------------
+        // 2. Szukanie po ID dokumentu (UID)
         const docDirect = await db.collection('users').doc(rawInput).get();
 
         if (docDirect.exists) {
@@ -9803,38 +9801,27 @@ async function giveOrbsToUser() {
             const currentOrbs = Number(data.orbs) || 0;
             const newOrbs = currentOrbs + amount;
 
-            // Zapisujemy nowe Orbs oraz uzupełniamy brakujące pole email na przyszłość
-            const updatePayload = { orbs: newOrbs };
-            if (!data.email) {
-                updatePayload.email = targetEmail;
-            }
+            const updateData = { orbs: newOrbs };
+            if (!data.email) updateData.email = targetEmail; // uzupełnia e-mail jeśli go brakowało
 
-            await docDirect.ref.update(updatePayload);
+            await docDirect.ref.update(updateData);
 
             statusEl.style.color = '#00ffcc';
-            statusEl.innerText = `Pomyślnie dodano ${amount} Orbs (ID: ${rawInput})! (Łącznie: ${newOrbs})`;
-            console.log(`[ORBS] Zaktualizowano bezpośredni dokument ${docDirect.id}. Stare Orbs: ${currentOrbs}, nowe: ${newOrbs}`);
+            statusEl.innerText = `Dodano ${amount} Orbs dla ID: ${rawInput}! (Łącznie: ${newOrbs})`;
 
             emailInput.value = '';
             amountInput.value = '';
             return;
         }
 
-        // -----------------------------------------------------------
-        // BRAK WYNIKÓW - DIAGNOSTYKA
-        // -----------------------------------------------------------
+        // Brak wyników
         statusEl.style.color = '#ff8080';
-        statusEl.innerText = 'Nie znaleziono użytkownika! Otwórz konsolę F12, aby zobaczyć szczegóły.';
-        
-        console.warn(`[ORBS DIAGNOSTYKA] Nie znaleziono użytkownika dla ciągu: "${rawInput}".`);
-        console.warn(`- Zapytanie where('email', '==', '${targetEmail}') zwróciło 0 wyników.`);
-        console.warn(`- Zapytanie doc('${rawInput}') zwróciło brak dokumentu.`);
-        console.info(`-> Porada: Sprawdź w Firebase Console czy w kolekcji 'users' dokument ma pole o nazwie 'email'.`);
+        statusEl.innerText = 'Nie znaleziono takiego użytkownika!';
 
     } catch (error) {
         console.error("Błąd podczas przyznawania Orbs:", error);
         statusEl.style.color = '#ff8080';
-        statusEl.innerText = 'Błąd bazy danych: ' + error.message;
+        statusEl.innerText = 'Błąd: ' + error.message;
     }
 }
     
