@@ -1358,6 +1358,13 @@ NOTE! Do not share the key with anyone.
 <button onclick="unbanUser()" id="unbanBtn">Unban user</button>
 
 <p id="banStatus"></p>
+<hr style="border:0; border-top:1px solid rgba(0,255,200,0.2); margin:20px 0;">
+
+<h3>Give Orbs to User</h3>
+<input id="giveOrbsEmail" placeholder="User email"><br>
+<input id="giveOrbsAmount" type="number" placeholder="Amount of Orbs"><br><br>
+<button onclick="giveOrbsToUser()">Give Orbs</button>
+<p id="giveOrbsStatus" style="font-size:13px; margin-top:5px;"></p>
 
 <h3 id="ratingsTitleEl">Ratings</h3>
 <div id="ratingsList"></div>
@@ -9725,6 +9732,57 @@ function closeOrbsPanel() {
 }
 
 initDailyMissions();
+
+// --- OBSŁUGA SYSTEMU ORBS DLA ADMINA ---
+
+async function giveOrbsToUser() {
+    const emailInput = document.getElementById('giveOrbsEmail');
+    const amountInput = document.getElementById('giveOrbsAmount');
+    const statusEl = document.getElementById('giveOrbsStatus');
+
+    if (!emailInput || !amountInput || !statusEl) return;
+
+    const email = emailInput.value.trim().toLowerCase();
+    const amount = parseInt(amountInput.value, 10);
+
+    if (!email || isNaN(amount)) {
+        statusEl.style.color = '#ff8080';
+        statusEl.innerText = 'Podaj poprawny e-mail oraz ilość Orbs!';
+        return;
+    }
+
+    try {
+        const db = firebase.firestore();
+        
+        // Szukamy użytkownika w kolekcji 'users' po adresie e-mail
+        const querySnapshot = await db.collection('users').where('email', '==', email).get();
+
+        if (querySnapshot.empty) {
+            statusEl.style.color = '#ff8080';
+            statusEl.innerText = 'Nie znaleziono użytkownika o takim e-mailu.';
+            return;
+        }
+
+        // Aktualizujemy Orbs dla znalezionego użytkownika
+        querySnapshot.forEach(async (doc) => {
+            const currentOrbs = doc.data().orbs || 0;
+            const newOrbs = currentOrbs + amount;
+
+            await doc.ref.update({ orbs: newOrbs });
+
+            statusEl.style.color = '#00ffcc';
+            statusEl.innerText = `Pomyślnie dodano ${amount} Orbs do konta ${email}! (Łącznie: ${newOrbs})`;
+            
+            emailInput.value = '';
+            amountInput.value = '';
+        });
+
+    } catch (error) {
+        console.error("Błąd podczas przyznawania Orbs:", error);
+        statusEl.style.color = '#ff8080';
+        statusEl.innerText = 'Błąd bazy danych: ' + error.message;
+    }
+}
     
 // START
 let savedLang = localStorage.getItem("lang");
