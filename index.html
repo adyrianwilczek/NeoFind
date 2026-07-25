@@ -9742,6 +9742,7 @@ async function giveOrbsToUser() {
 
     if (!emailInput || !amountInput || !statusEl) return;
 
+    // Normalizujemy email do małych liter
     const targetEmail = emailInput.value.trim().toLowerCase();
     const amount = parseInt(amountInput.value, 10);
 
@@ -9756,41 +9757,29 @@ async function giveOrbsToUser() {
         statusEl.style.color = '#4da6ff';
         statusEl.innerText = 'Szukam użytkownika...';
 
-        // Pobieramy całą kolekcję użytkowników
-        const snapshot = await db.collection('users').get();
+        // BEZPIECZNE ZAPYTANIE: Pyta bazę TYLKO o ten jeden konkretny e-mail
+        const querySnapshot = await db.collection('users')
+            .where('email', '==', targetEmail)
+            .get();
 
-        if (snapshot.empty) {
+        if (querySnapshot.empty) {
             statusEl.style.color = '#ff8080';
-            statusEl.innerText = 'Kolekcja "users" jest pusta w bazie!';
+            statusEl.innerText = 'Nie znaleziono użytkownika o takim e-mailu.';
             return;
         }
 
-        let userFound = false;
-
-        snapshot.forEach(async (doc) => {
+        // Aktualizujemy tylko znalezionego użytkownika
+        for (const doc of querySnapshot.docs) {
             const data = doc.data();
-            console.log("Znaleziony dokument w bazie:", doc.id, data); // Sprawdź w konsoli F12!
+            const currentOrbs = data.orbs || 0;
+            const newOrbs = currentOrbs + amount;
 
-            // Sprawdzamy pole email (niezależnie od wielkości liter)
-            const userEmailInDb = (data.email || '').toString().trim().toLowerCase();
+            await doc.ref.update({ orbs: newOrbs });
 
-            if (userEmailInDb === targetEmail) {
-                userFound = true;
-                const currentOrbs = data.orbs || 0;
-                const newOrbs = currentOrbs + amount;
-
-                await doc.ref.update({ orbs: newOrbs });
-
-                statusEl.style.color = '#00ffcc';
-                statusEl.innerText = `Pomyślnie dodano ${amount} Orbs do konta ${targetEmail}! (Łącznie: ${newOrbs})`;
-                emailInput.value = '';
-                amountInput.value = '';
-            }
-        });
-
-        if (!userFound) {
-            statusEl.style.color = '#ff8080';
-            statusEl.innerText = 'Nie znaleziono użytkownika o takim e-mailu. Otwórz F12 (Konsolę), aby zobaczyć dane w bazie.';
+            statusEl.style.color = '#00ffcc';
+            statusEl.innerText = `Pomyślnie dodano ${amount} Orbs do konta ${targetEmail}! (Łącznie: ${newOrbs})`;
+            emailInput.value = '';
+            amountInput.value = '';
         }
 
     } catch (error) {
