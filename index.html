@@ -9742,13 +9742,12 @@ async function giveOrbsToUser() {
 
     if (!emailInput || !amountInput || !statusEl) return;
 
-    // Normalizujemy email do małych liter
-    const targetEmail = emailInput.value.trim().toLowerCase();
+    const inputVal = emailInput.value.trim().toLowerCase();
     const amount = parseInt(amountInput.value, 10);
 
-    if (!targetEmail || isNaN(amount)) {
+    if (!inputVal || isNaN(amount)) {
         statusEl.style.color = '#ff8080';
-        statusEl.innerText = 'Podaj poprawny e-mail oraz ilość Orbs!';
+        statusEl.innerText = 'Podaj poprawny e-mail/UID oraz ilość Orbs!';
         return;
     }
 
@@ -9757,18 +9756,39 @@ async function giveOrbsToUser() {
         statusEl.style.color = '#4da6ff';
         statusEl.innerText = 'Szukam użytkownika...';
 
-        // BEZPIECZNE ZAPYTANIE: Pyta bazę TYLKO o ten jeden konkretny e-mail
-        const querySnapshot = await db.collection('users')
-            .where('email', '==', targetEmail)
+        // 1. Najpierw szukamy po polu 'email'
+        let querySnapshot = await db.collection('users')
+            .where('email', '==', inputVal)
             .get();
 
+        // 2. Jeśli nie znaleziono po emailu, sprawdzamy czy wpisano bezpośrednio UID dokumentu
         if (querySnapshot.empty) {
+            const docByUid = await db.collection('users').doc(inputVal).get();
+            
+            if (docByUid.exists) {
+                // Znaleziono po UID! Zapisujemy od razu brakujący email, żeby na przyszłość działało po emailu
+                const currentOrbs = docByUid.data().orbs || 0;
+                const newOrbs = currentOrbs + amount;
+
+                await docByUid.ref.update({ 
+                    orbs: newOrbs,
+                    // Uzupełniamy brakujące pole email przy okazji:
+                    email: docByUid.data().email || inputVal 
+                });
+
+                statusEl.style.color = '#00ffcc';
+                statusEl.innerText = `Dodano ${amount} Orbs po UID! (Uzupełniono profil, łącznie: ${newOrbs})`;
+                emailInput.value = '';
+                amountInput.value = '';
+                return;
+            }
+
             statusEl.style.color = '#ff8080';
-            statusEl.innerText = 'Nie znaleziono użytkownika o takim e-mailu.';
+            statusEl.innerText = 'Nie znaleziono konta. Wskazówka: Wklej ID użytkownika (UID) z panelu Firebase!';
             return;
         }
 
-        // Aktualizujemy tylko znalezionego użytkownika
+        // 3. Jeśli znaleziono po e-mailu:
         for (const doc of querySnapshot.docs) {
             const data = doc.data();
             const currentOrbs = data.orbs || 0;
@@ -9777,7 +9797,7 @@ async function giveOrbsToUser() {
             await doc.ref.update({ orbs: newOrbs });
 
             statusEl.style.color = '#00ffcc';
-            statusEl.innerText = `Pomyślnie dodano ${amount} Orbs do konta ${targetEmail}! (Łącznie: ${newOrbs})`;
+            statusEl.innerText = `Pomyślnie dodano ${amount} Orbs do konta ${inputVal}! (Łącznie: ${newOrbs})`;
             emailInput.value = '';
             amountInput.value = '';
         }
