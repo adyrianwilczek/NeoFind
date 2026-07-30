@@ -6,14 +6,14 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Funkcja sprawdzająca Admina (automatycznie zamienia e-mail na małe litery)
     function isAdmin() {
-      return isLoggedIn() && request.auth.token.email in [
+      return isLoggedIn() && request.auth.token.email.lower() in [
         "adrian.wilczek@hotmail.com",
         "michal.szyszynski@outlook.com",
-        "Michal.szyszynski@outlook.com",
         "account.neofind@gmail.com",
         "support.neofind@gmail.com",
-        "Michal.wilkowski@outlook.com",
+        "michal.wilkowski@outlook.com",
         "michal.wilkowski@gmail.com",
         "j.e.wilkowska@gmail.com"
       ];
@@ -33,7 +33,7 @@ service cloud.firestore {
 
     // Zablokowani użytkownicy - odczyt: admin lub własny wpis, zapis: admin
     match /bannedUsers/{email} {
-      allow read: if isAdmin() || (isLoggedIn() && request.auth.token.email == email);
+      allow read: if isAdmin() || (isLoggedIn() && request.auth.token.email.lower() == email.lower());
       allow write: if isAdmin();
     }
 
@@ -86,24 +86,31 @@ service cloud.firestore {
       allow read, delete: if isAdmin();
     }
 
-    // Dane użytkowników (w tym Kontrola Rodzicielska) - dostęp do własnego dokumentu profilowego
+    // --- POPRAWIONA SEKCJA USERS ---
+    // Zwykły użytkownik ma dostęp do SWOJEGO dokumentu (po UID)
+    // Admin ma pełny dostęp do Odczytu/Zapisu wszystkich kont (potrzebne do giveOrbsToUser)
     match /users/{userId} {
       allow read, write: if isAdmin() || (isLoggedIn() && request.auth.uid == userId);
     }
 
-    // Kolejka e-mail (rozszerzenie Trigger Email) - zalogowany może dodać maila; odczyt zablokowany (treść zawiera PIN)
+    // Kolejka e-mail (rozszerzenie Trigger Email)
     match /mail/{mailId} {
       allow create: if isLoggedIn();
     }
 
-    // Alerty bezpieczeństwa (brute force, spam zakazanych slow) - tworzenie takze przed zalogowaniem
-    // (alert BRUTE_FORCE leci przy nieudanym logowaniu, uzytkownik nie jest jeszcze zalogowany)
-    // odczyt i usuwanie tylko admin; ksztalt dokumentu ograniczony, zeby kolekcja nie byla dowolnym workiem na dane
+    // Alerty bezpieczeństwa
     match /alerts/{alertId} {
       allow create: if request.resource.data.keys().hasOnly(['email', 'type', 'description', 'timestamp'])
                     && request.resource.data.type is string
                     && request.resource.data.description is string;
       allow read, delete: if isAdmin();
+    }
+
+    // 🔑 Klucze API NeoFind + Limity dzienne
+    match /api_keys/{keyId} {
+      allow create: if isLoggedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if isAdmin() || (isLoggedIn() && resource.data.userId == request.auth.uid);
+      allow update, delete: if isAdmin() || (isLoggedIn() && resource.data.userId == request.auth.uid);
     }
 
     // Blokuj wszystko inne
