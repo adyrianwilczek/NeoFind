@@ -9437,7 +9437,7 @@ window.generateApiKey = async function() {
 
     // Sprawdzamy czy użytkownik ma Premium (z bazy/lokalnie)
     const userPremium = localStorage.getItem("userPremium") === "true"; 
-    const dailyLimit = isPremium ? 1000 : 250;
+    const dailyLimit = userPremium ? 1000 : 250;
 
     const newKey = "nf_live_" + Array.from(crypto.getRandomValues(new Uint8Array(16)))
         .map(b => b.toString(16).padStart(2, '0')).join('');
