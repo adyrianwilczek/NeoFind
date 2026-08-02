@@ -8726,9 +8726,6 @@ window.sendNeoAiMessage = async function() {
 const BLOCKED_EMAILS = [
     "j.e.wilkowska@gmail.com"
     ]
-// 1. Monitorowanie stanu zalogowania i sprawdzanie blokad (Ban oraz Czas)
-auth.onAuthStateChanged(async (user) => {
-    if (user) {
         // --- 1. SPRAWDZANIE CZY UŻYTKOWNIK JEST ZBANOWANY ---
         if (BLOCKED_EMAILS.includes(user.email)) {
             triggerPermanentBanScreen(user.email);
@@ -8805,7 +8802,13 @@ let currentUserPCData = null; // Przechowuje pobrane z Firebase ustawienia PC
 
 // 1. Monitorowanie stanu zalogowania i pobieranie danych PC z Firestore
 auth.onAuthStateChanged(async (user) => {
+await db.collection('users').doc(user.uid).set({
+  email: user.email.toLowerCase()
+}, { merge: true });
     if (user) {
+        const snap = await db.collection('users').doc(user.uid).get();
+userOrbs = snap.data()?.orbs || 0;
+renderMissions();
         try {
             const doc = await db.collection("users").doc(user.uid).get();
             if (doc.exists && doc.data().parentalControl) {
@@ -9647,7 +9650,7 @@ function claimReward(id) {
         m.claimed = true;
         userOrbs += m.reward;
 
-        localStorage.setItem('userOrbs', userOrbs);
+        await db.collection('users').doc(auth.currentUser.uid).set({ orbs: userOrbs }, { merge: true });
         localStorage.setItem('dailyMissionsData', JSON.stringify(data));
 
         if (typeof confetti === 'function') confetti();
@@ -9691,7 +9694,7 @@ function buyPremiumWithOrbs() {
 
     if (userOrbs >= 1000) {
         userOrbs -= 1000;
-        localStorage.setItem('userOrbs', userOrbs);
+        await db.collection('users').doc(auth.currentUser.uid).set({ orbs: userOrbs }, { merge: true });
         localStorage.setItem('userPremium', 'true');
         alert("🎉 Congratulations! Premium Unlocked!");
         renderMissions();
