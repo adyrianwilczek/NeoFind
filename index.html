@@ -6095,7 +6095,7 @@ document.getElementById("search").addEventListener("input", function() {
     // 2. SPRAWDZANIE KODU PREMIUM
     /* if (value === "holidays26") {
         // Jeśli kod był już użyty
-        if (localStorage.getItem("premium_claimed") === "true") {
+        if (localStorage.getItem("userPremium") === "true") {
             alert("❌ Code arleady redemned!"); 
             // Użyliśmy zwykłego alertu na wypadek, gdyby neoWarning nie istniał w HTML
             this.value = "";
@@ -6103,9 +6103,9 @@ document.getElementById("search").addEventListener("input", function() {
         }
 
         // Aktywacja kodu
-        localStorage.setItem("premium_claimed", "true");
+        localStorage.setItem("userPremium", "true");
         const expiryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        localStorage.setItem("premium_expires", expiryDate.toISOString());
+        localStorage.setItem("userPremium", expiryDate.toISOString());
         
         this.value = ""; // Czyszczenie inputu
 
@@ -9436,7 +9436,7 @@ window.generateApiKey = async function() {
     if (!user) return alert("Musisz być zalogowany!");
 
     // Sprawdzamy czy użytkownik ma Premium (z bazy/lokalnie)
-    const isPremium = localStorage.getItem("is_premium") === "true"; 
+    const userPremium = localStorage.getItem("userPremium") === "true"; 
     const dailyLimit = isPremium ? 1000 : 250;
 
     const newKey = "nf_live_" + Array.from(crypto.getRandomValues(new Uint8Array(16)))
