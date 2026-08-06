@@ -8587,6 +8587,7 @@ function neoLang() {
     return (l === 'pl' || l === 'es') ? l : 'en';
 }
 function neoT() { return NEO_TEXT[neoLang()] || NEO_TEXT.en; }
+
 // Formatuje odpowiedź Neo: najpierw escapeHtml (bezpieczeństwo), potem prosty markdown (**bold**, *italic*).
 // Łamanie linii ogarnia CSS (white-space: pre-wrap), więc newline'y z modelu zostają.
 function neoFormat(raw) {
@@ -8643,6 +8644,31 @@ window.sendNeoAiMessage = async function() {
         </div>
     `;
     messages.scrollTop = messages.scrollHeight;
+
+    // ========================================================
+    // OBSŁUGA KOMENDY /SHOPING (Nie wymaga API, natychmiast otwieranie zakupów)
+    // ========================================================
+    if (msgText.toLowerCase().startsWith('/shoping') || msgText.toLowerCase().startsWith('/shopping')) {
+        const query = msgText.replace(/^\/(shoping|shopping)\s*/i, '').trim();
+        let shopReply = "";
+        if (query) {
+            const shopUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(query)}`;
+            shopReply = `🛒 Wyszukuję produkty dla: **${query}**.\n\n<a href="${shopUrl}" target="_blank" style="color:#00ffcc;font-weight:bold;text-decoration:underline;">Otwórz zakupy w Google Shopping ➔</a>`;
+            window.open(shopUrl, '_blank');
+        } else {
+            shopReply = "Podaj przedmiot, który chcesz wyszukać, np.: `/shoping laptop`";
+        }
+
+        messages.innerHTML += `
+            <div class="chat-row chat-row-them">
+                <span class="chat-sender">Neo</span>
+                <div class="chat-msg-them">${neoFormat(shopReply)}</div>
+            </div>
+        `;
+        messages.scrollTop = messages.scrollHeight;
+        input.focus();
+        return;
+    }
 
     // Blokada wejścia na czas odpowiedzi (mniej spamu + mniej wywołań API)
     input.disabled = true;
