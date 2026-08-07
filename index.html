@@ -5794,11 +5794,13 @@ async function giveOrbsToUser() {
     }
 }
 
+</script>
+
 <!-- ======================================================== -->
-<!-- PEŁNOEKRANOWY CZAT NEO AI (DLA ŚCIEŻKI /neoai)           -->
+<!-- PEŁNOEKRANOWY CZAT NEO AI (TYLKO DLA ŚCIEŻKI /neoai)     -->
 <!-- ======================================================== -->
 
-<!-- 1. CZYSTY KOD CSS (Zero znaczników HTML wewnątrz) -->
+<!-- 1. CZYSTY CSS (poza skryptem JS) -->
 <style>
 #neoAiFullPage {
     display: none;
@@ -5848,7 +5850,7 @@ async function giveOrbsToUser() {
         </div>
     </div>
 
-    <!-- WPROWADZANIE WIADOMOŚCI -->
+    <!-- POLE WPROWADZANIA -->
     <div style="padding: 16px 24px; background: rgba(15, 32, 39, 0.95); border-top: 1px solid rgba(0,255,200,0.25);">
         <div id="neoAiInputArea" style="display: flex; align-items: center; gap: 12px;">
             <input id="neoAiInput" placeholder="Napisz do Neo... (/shoping...)" onkeydown="if(event.key==='Enter'){ sendNeoAiMessage(); }" style="flex: 1; padding: 14px 22px; border-radius: 30px; border: 1px solid rgba(0,255,200,0.25); background: rgba(0,0,0,0.3); color: #fff; outline: none; font-size: 16px; font-family: inherit;">
@@ -5857,7 +5859,7 @@ async function giveOrbsToUser() {
     </div>
 </div>
 
-<!-- 3. SKRYPT JS -->
+<!-- 3. SKRYPT LOGIKI PEŁNEGO CZATU -->
 <script>
 (function() {
     const NEO_TEXT = {
@@ -6028,11 +6030,11 @@ async function giveOrbsToUser() {
     window.addEventListener('popstate', checkNeoRoute);
 })();
 </script>
+
+<!-- START -->
 <script>
-    
-// START
 let savedLang = localStorage.getItem("lang");
-if (savedLang === "summer") {            // migracja: summer był kiedyś "językiem", teraz to osobny tryb
+if (savedLang === "summer") {
     localStorage.setItem("summer", "on");
     savedLang = localStorage.getItem("langBeforeSummer") || "en";
     localStorage.setItem("lang", savedLang);
