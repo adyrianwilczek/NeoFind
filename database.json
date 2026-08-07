@@ -4063,4 +4063,5 @@ const data = {
             { title: "Llama 4", desc: "Próximo de Meta.", link: "https://ai.meta.com/" },
             { title: "Mistral 3", desc: "Próximo de Mistral.", link: "https://mistral.ai/" },
             { title: "xAI", desc: "Los últimos logros de xAI.", link: "https://x.ai/" }
-    ],
+    ]
+}
