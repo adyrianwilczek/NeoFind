@@ -5888,27 +5888,31 @@ async function giveOrbsToUser() {
     }
 
     function checkNeoRoute() {
-        const fullPage = document.getElementById('neoAiFullPage');
-        if (!fullPage) return;
+    const fullPage = document.getElementById('neoAiFullPage');
+    if (!fullPage) return;
 
-        if (window.location.pathname.includes('/neoai')) {
-            const t = neoT();
-            const greet = document.getElementById('neoAiGreetTxt');
-            if (greet) greet.innerHTML = t.greet.replace('\n', '<br>');
-            const input = document.getElementById('neoAiInput');
-            if (input) input.placeholder = t.placeholder;
-            
-            fullPage.style.display = 'flex';
-        } else {
-            fullPage.style.display = 'none';
-        }
+    // Sprawdza adres z hashem (#neoai) LUB klasyczny (/neoai)
+    if (window.location.hash === '#neoai' || window.location.pathname.includes('/neoai')) {
+        const t = neoT();
+        const greet = document.getElementById('neoAiGreetTxt');
+        if (greet) greet.innerHTML = t.greet.replace('\n', '<br>');
+        const input = document.getElementById('neoAiInput');
+        if (input) input.placeholder = t.placeholder;
+        
+        fullPage.style.display = 'flex';
+    } else {
+        fullPage.style.display = 'none';
     }
+}
 
-    window.exitNeoAiRoute = function() {
-        const fullPage = document.getElementById('neoAiFullPage');
-        if (fullPage) fullPage.style.display = 'none';
-        history.pushState({}, '', '/');
-    };
+window.exitNeoAiRoute = function() {
+    const fullPage = document.getElementById('neoAiFullPage');
+    if (fullPage) fullPage.style.display = 'none';
+    history.pushState({}, '', '/');
+};
+
+// Dodatkowo nasłuchuj zmian po znaku #
+window.addEventListener('hashchange', checkNeoRoute);
 
     let neoHistory = [];
 
