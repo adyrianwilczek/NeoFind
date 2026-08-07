@@ -5859,7 +5859,7 @@ async function giveOrbsToUser() {
     </div>
 </div>
 
-<!-- 3. SKRYPT LOGIKI PEŁNEGO CZATU -->
+<!-- 🤖 PEŁNOEKRANOWY CZAT NEO AI (AKTYWACJA PRZEZ #neoai) -->
 <script>
 (function() {
     const NEO_TEXT = {
@@ -5867,6 +5867,16 @@ async function giveOrbsToUser() {
         pl: { greet: "Cześć! Jestem Neo. W czym mogę Ci dziś pomóc? ✨\nNapisz /shoping [przedmiot] aby znaleźć produkty!", placeholder: "Napisz do Neo...", you: "Ty", typing: "Neo pisze", error: "Błąd połączenia. Spróbuj ponownie. ⚡", langName: "Polish" },
         es: { greet: "¡Hola! Soy Neo. ¿En qué puedo ayudarte hoy? ✨\n¡Escribe /shoping [producto] para buscar!", placeholder: "Escribe a Neo...", you: "Tú", typing: "Neo está escribiendo", error: "Error de conexión. Inténtalo de nuevo. ⚡", langName: "Spanish" }
     };
+
+    function escapeHtml(text) {
+        if (!text) return "";
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
 
     function neoLang() {
         const l = (typeof currentLang !== 'undefined') ? currentLang : 'pl';
@@ -5883,36 +5893,30 @@ async function giveOrbsToUser() {
         return s;
     }
 
-    function escapeHtml(text) {
-        return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
+    // SPRAWDZANIE HASHA (#neoai)
     function checkNeoRoute() {
-    const fullPage = document.getElementById('neoAiFullPage');
-    if (!fullPage) return;
+        const fullPage = document.getElementById('neoAiFullPage');
+        if (!fullPage) return;
 
-    // Sprawdza adres z hashem (#neoai) LUB klasyczny (/neoai)
-    if (window.location.hash === '#neoai' || window.location.pathname.includes('/neoai')) {
-        const t = neoT();
-        const greet = document.getElementById('neoAiGreetTxt');
-        if (greet) greet.innerHTML = t.greet.replace('\n', '<br>');
-        const input = document.getElementById('neoAiInput');
-        if (input) input.placeholder = t.placeholder;
-        
-        fullPage.style.display = 'flex';
-    } else {
-        fullPage.style.display = 'none';
+        // Otwiera czat na pełny ekran TYLKO, gdy w adresie jest #neoai lub /neoai
+        if (window.location.hash === '#neoai' || window.location.pathname.includes('/neoai')) {
+            const t = neoT();
+            const greet = document.getElementById('neoAiGreetTxt');
+            if (greet) greet.innerHTML = t.greet.replace('\n', '<br>');
+            const input = document.getElementById('neoAiInput');
+            if (input) input.placeholder = t.placeholder;
+            
+            fullPage.style.display = 'flex';
+        } else {
+            fullPage.style.display = 'none';
+        }
     }
-}
 
-window.exitNeoAiRoute = function() {
-    const fullPage = document.getElementById('neoAiFullPage');
-    if (fullPage) fullPage.style.display = 'none';
-    history.pushState({}, '', '/');
-};
-
-// Dodatkowo nasłuchuj zmian po znaku #
-window.addEventListener('hashchange', checkNeoRoute);
+    window.exitNeoAiRoute = function() {
+        const fullPage = document.getElementById('neoAiFullPage');
+        if (fullPage) fullPage.style.display = 'none';
+        history.pushState({}, '', window.location.pathname);
+    };
 
     let neoHistory = [];
 
@@ -5920,22 +5924,27 @@ window.addEventListener('hashchange', checkNeoRoute);
         const input = document.getElementById('neoAiInput');
         const sendBtn = document.getElementById('neoAiSend');
         const messages = document.getElementById('neoAiMessages');
+        
         if (!input || !messages || input.disabled) return;
 
         const msgText = input.value.trim();
         if (!msgText) return;
+        
         input.value = '';
-
         const t = neoT();
 
-        messages.innerHTML += `
-            <div class="chat-row chat-row-me" style="display: flex; flex-direction: column; align-self: flex-end; max-width: 85%;">
-                <span style="font-size: 12px; color: rgba(0,255,200,0.6); margin-bottom: 4px; text-align: right;">${t.you}</span>
-                <div style="background: rgba(0,180,140,0.3); border: 1px solid rgba(0,255,200,0.3); color: #fff; padding: 12px 18px; border-radius: 20px 20px 4px 20px; word-break: break-word;">${escapeHtml(msgText)}</div>
-            </div>
+        // Dodanie wiadomości użytkownika
+        const userRow = document.createElement('div');
+        userRow.className = 'chat-row chat-row-me';
+        userRow.style.cssText = 'display: flex; flex-direction: column; align-self: flex-end; max-width: 85%;';
+        userRow.innerHTML = `
+            <span style="font-size: 12px; color: rgba(0,255,200,0.6); margin-bottom: 4px; text-align: right;">${t.you}</span>
+            <div style="background: rgba(0,180,140,0.3); border: 1px solid rgba(0,255,200,0.3); color: #fff; padding: 12px 18px; border-radius: 20px 20px 4px 20px; word-break: break-word;">${escapeHtml(msgText)}</div>
         `;
+        messages.appendChild(userRow);
         messages.scrollTop = messages.scrollHeight;
 
+        // Komenda /shoping
         if (msgText.toLowerCase().startsWith('/shoping') || msgText.toLowerCase().startsWith('/shopping')) {
             const query = msgText.replace(/^\/(shoping|shopping)\s*/i, '').trim();
             let shopReply = "";
@@ -5947,12 +5956,14 @@ window.addEventListener('hashchange', checkNeoRoute);
                 shopReply = "Podaj przedmiot, który chcesz wyszukać, np.: `/shoping laptop`";
             }
 
-            messages.innerHTML += `
-                <div class="chat-row chat-row-them" style="display: flex; flex-direction: column; align-self: flex-start; max-width: 85%;">
-                    <span style="font-size: 12px; color: rgba(0,255,200,0.6); margin-bottom: 4px;">Neo</span>
-                    <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 12px 18px; border-radius: 20px 20px 20px 4px; word-break: break-word; white-space: pre-wrap;">${neoFormat(shopReply)}</div>
-                </div>
+            const shopRow = document.createElement('div');
+            shopRow.className = 'chat-row chat-row-them';
+            shopRow.style.cssText = 'display: flex; flex-direction: column; align-self: flex-start; max-width: 85%;';
+            shopRow.innerHTML = `
+                <span style="font-size: 12px; color: rgba(0,255,200,0.6); margin-bottom: 4px;">Neo</span>
+                <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 12px 18px; border-radius: 20px 20px 20px 4px; word-break: break-word; white-space: pre-wrap;">${neoFormat(shopReply)}</div>
             `;
+            messages.appendChild(shopRow);
             messages.scrollTop = messages.scrollHeight;
             input.focus();
             return;
@@ -5971,38 +5982,32 @@ window.addEventListener('hashchange', checkNeoRoute);
 
         let aiReply = "";
         let gotReply = false;
-        try {
-            const requestBody = {
-                model: "mistral-small-latest",
-                messages: [
-                    { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, live football scores, themed modes (World Cup, summer), premium codes, and a hidden developer console opened with the F1 key. Personality: clever, playful and a little ironic, with dry wit and surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.` },
-                    ...neoHistory.slice(-10)
-                ],
-                max_tokens: 800,
-                temperature: 0.5
-            };
 
+        try {
             const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({
+                    model: "mistral-small-latest",
+                    messages: [
+                        { role: "system", content: `You are Neo, the witty AI assistant of NeoFind. Reply in ${t.langName}.` },
+                        ...neoHistory.slice(-10)
+                    ],
+                    max_tokens: 800,
+                    temperature: 0.5
+                })
             });
 
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
+            if (response.ok) {
                 const resData = await response.json();
                 if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                     aiReply = resData.choices[0].message.content;
                     gotReply = true;
-                } else if (resData.error) {
-                    aiReply = `Błąd API: ${resData.error.message || JSON.stringify(resData.error)}`;
                 } else {
-                    aiReply = resData.reply || resData.text || resData.response || JSON.stringify(resData);
-                    gotReply = true;
+                    aiReply = resData.reply || resData.text || t.error;
                 }
             } else {
-                aiReply = await response.text();
-                gotReply = true;
+                aiReply = t.error;
             }
         } catch (e) {
             aiReply = t.error;
@@ -6017,12 +6022,14 @@ window.addEventListener('hashchange', checkNeoRoute);
             neoHistory.pop();
         }
 
-        messages.innerHTML += `
-            <div class="chat-row chat-row-them" style="display: flex; flex-direction: column; align-self: flex-start; max-width: 85%;">
-                <span style="font-size: 12px; color: rgba(0,255,200,0.6); margin-bottom: 4px;">Neo</span>
-                <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 12px 18px; border-radius: 20px 20px 20px 4px; word-break: break-word; white-space: pre-wrap;">${neoFormat(aiReply)}</div>
-            </div>
+        const replyRow = document.createElement('div');
+        replyRow.className = 'chat-row chat-row-them';
+        replyRow.style.cssText = 'display: flex; flex-direction: column; align-self: flex-start; max-width: 85%;';
+        replyRow.innerHTML = `
+            <span style="font-size: 12px; color: rgba(0,255,200,0.6); margin-bottom: 4px;">Neo</span>
+            <div style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 12px 18px; border-radius: 20px 20px 20px 4px; word-break: break-word; white-space: pre-wrap;">${neoFormat(aiReply)}</div>
         `;
+        messages.appendChild(replyRow);
         messages.scrollTop = messages.scrollHeight;
 
         input.disabled = false;
@@ -6032,6 +6039,7 @@ window.addEventListener('hashchange', checkNeoRoute);
 
     document.addEventListener('DOMContentLoaded', checkNeoRoute);
     window.addEventListener('popstate', checkNeoRoute);
+    window.addEventListener('hashchange', checkNeoRoute); // Obsługa wpisania #neoai w locie
 })();
 </script>
 
