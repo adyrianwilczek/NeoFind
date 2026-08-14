@@ -6061,24 +6061,48 @@ async function giveOrbsToUser() {
 <!-- START -->
 <script>
 let savedLang = localStorage.getItem("lang");
+
 if (savedLang === "summer") {
     localStorage.setItem("summer", "on");
     savedLang = localStorage.getItem("langBeforeSummer") || "en";
     localStorage.setItem("lang", savedLang);
 }
+
 if (savedLang) {
     currentLang = savedLang;
-    document.getElementById("langSelect").value = savedLang;
-}
-const urlQuery = new URLSearchParams(window.location.search).get("q");
-if(urlQuery){
-    const searchEl = document.getElementById("search");
-    searchEl.value = urlQuery;
-    searchEl.dispatchEvent(new Event("input"));
-}
-    <script src="neo-social.js"></script>
-<script>
 
+    const langSelect = document.getElementById("langSelect");
+
+    if (langSelect) {
+        langSelect.value = savedLang;
+    }
+}
+
+const urlQuery = new URLSearchParams(window.location.search).get("q");
+
+if (urlQuery) {
+    const searchEl = document.getElementById("search");
+
+    if (searchEl) {
+        searchEl.value = urlQuery;
+        searchEl.dispatchEvent(new Event("input"));
+    }
+}
+</script>
+
+
+<!-- =========================================================
+     NEO SOCIAL
+     ========================================================= -->
+
+<script src="neo-social.js"></script>
+
+
+<!-- =========================================================
+     NEOFIND STARTUP
+     ========================================================= -->
+
+<script>
 updateDidYouKnow();
 updateLanguage();
 showHistory();
@@ -6086,6 +6110,7 @@ checkNews();
 loadNews();
 updateUI();
 </script>
+
 
 </body>
 </html>
