@@ -2515,6 +2515,11 @@ const db = firebase.firestore();
 const auth = firebase.auth();
 const storage = firebase.storage();
 
+// Udostępnij istniejące instancje NeoFind dla NeoSocial
+window.db = db;
+window.auth = auth;
+window.storage = storage;
+
 /* =========================
    ADMIN EMAILS
 ========================= */
