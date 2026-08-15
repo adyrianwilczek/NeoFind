@@ -2487,7 +2487,7 @@ const ADMIN_EMAILS = [
                     src="${esc(
                         profile.avatar ||
                         user.photoURL ||
-                        "https://i.pravatar.cc/200?img=12"
+                        "https://neofind.pl/logo.png"
                     )}"
                 >
 
