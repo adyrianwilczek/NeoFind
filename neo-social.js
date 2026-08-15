@@ -1,5 +1,6 @@
 /* =========================================================
    NeoFind Social
+   Fully English version
    ========================================================= */
 
 (function () {
@@ -15,29 +16,29 @@
         comments: "socialComments",
         moderation: "socialModeration"
     };
-  const DEMO_PROFILES = [
-    {
-        id: "demo_1",
-        username: "NeoUser",
-        handle: "neouser",
-        avatar: "https://i.pravatar.cc/200?img=12",
-        bio: "Oficjalny użytkownik NeoSocial",
-        followers: 1240,
-        following: 87,
-        verified: false
-    },
 
-    {
-        id: "demo_3",
-        username: "Mati",
-        handle: "mati123",
-        avatar: "https://i.pravatar.cc/200?img=47",
-        bio: "Hejka 👋",
-        followers: 321,
-        following: 64,
-        verified: false
-    }
-];
+    const DEMO_PROFILES = [
+        {
+            id: "demo_1",
+            username: "NeoUser",
+            handle: "neouser",
+            avatar: "https://i.pravatar.cc/200?img=12",
+            bio: "Official NeoSocial user",
+            followers: 1240,
+            following: 87,
+            verified: false
+        },
+        {
+            id: "demo_3",
+            username: "Mati",
+            handle: "mati123",
+            avatar: "https://i.pravatar.cc/200?img=47",
+            bio: "Hello!",
+            followers: 321,
+            following: 64,
+            verified: false
+        }
+    ];
 
     /* =========================================================
        HELPERS
@@ -53,7 +54,9 @@
         }[char]));
 
     const currentUser = () =>
-        window.auth?.currentUser || null;
+        window.auth?.currentUser ||
+        window.firebase?.auth?.().currentUser ||
+        null;
 
     const firebaseDB = () =>
         window.db || null;
@@ -80,7 +83,8 @@
     }
 
     function toast(message) {
-        let element = document.getElementById("neo-social-toast");
+        let element =
+            document.getElementById("neo-social-toast");
 
         if (!element) {
             element = document.createElement("div");
@@ -104,12 +108,24 @@
             ?.classList.remove("ns-open");
     }
 
+    function getFirebase() {
+        if (!window.firebase) return null;
+
+        if (
+            !window.firebase.firestore ||
+            !window.firebase.storage
+        ) {
+            return null;
+        }
+
+        return window.firebase;
+    }
+
     /* =========================================================
        CSS
        ========================================================= */
 
     function injectCSS() {
-
         if (document.getElementById("neo-social-css")) return;
 
         const style = document.createElement("style");
@@ -309,9 +325,50 @@
             margin-top:13px;
         }
 
-        /* =========================
-           REELS
-           ========================= */
+        .ns-comments{
+            margin-top:12px;
+            border-top:1px solid #1b343c;
+            padding-top:12px;
+        }
+
+        .ns-comment{
+            display:flex;
+            gap:9px;
+            padding:9px 0;
+            border-bottom:1px solid #142a31;
+        }
+
+        .ns-comment:last-child{
+            border-bottom:0;
+        }
+
+        .ns-comment-avatar{
+            width:34px;
+            height:34px;
+            border-radius:50%;
+            object-fit:cover;
+            flex-shrink:0;
+        }
+
+        .ns-comment-body{
+            flex:1;
+            min-width:0;
+        }
+
+        .ns-comment-text{
+            margin-top:3px;
+            word-break:break-word;
+        }
+
+        .ns-comment-form{
+            display:flex;
+            gap:7px;
+            margin-top:10px;
+        }
+
+        .ns-comment-form input{
+            flex:1;
+        }
 
         .ns-reels{
             width:100%;
@@ -336,6 +393,7 @@
             width:100%;
             height:100%;
             object-fit:cover;
+            background:#000;
         }
 
         .ns-reel-placeholder{
@@ -362,6 +420,7 @@
                 transparent 45%,
                 rgba(0,0,0,.9)
             );
+            pointer-events:none;
         }
 
         .ns-reel-info{
@@ -399,9 +458,12 @@
             margin-top:8px;
         }
 
-        /* =========================
-           PROFILE
-           ========================= */
+        .ns-volume{
+            position:absolute;
+            right:15px;
+            top:15px;
+            z-index:8;
+        }
 
         .ns-profile-head{
             text-align:center;
@@ -424,9 +486,10 @@
             font-size:12px;
         }
 
-        /* =========================
-           ADMIN
-           ========================= */
+        .ns-profile-edit{
+            text-align:left;
+            margin-top:20px;
+        }
 
         .ns-admin-grid{
             display:grid;
@@ -446,10 +509,6 @@
             font-size:23px;
             margin-top:5px;
         }
-
-        /* =========================
-           MOBILE
-           ========================= */
 
         .ns-mobile-nav{
             display:none;
@@ -502,6 +561,10 @@
             .ns-admin-grid{
                 grid-template-columns:1fr 1fr;
             }
+
+            .ns-comment-form{
+                flex-direction:column;
+            }
         }
 
         `;
@@ -510,11 +573,10 @@
     }
 
     /* =========================================================
-       HTML
+       HTML ROOT
        ========================================================= */
 
     function createRoot() {
-
         if (document.getElementById(NS.root)) return;
 
         const root = document.createElement("div");
@@ -534,27 +596,27 @@
                 <div class="ns-nav">
 
                     <button class="ns-button" data-page="home">
-                        🏠 Home
+                        Home
                     </button>
 
                     <button class="ns-button" data-page="reels">
-                        ▶ Rolki
+                        Reels
                     </button>
 
                     <button class="ns-button" data-page="search">
-                        🔎 Szukaj
+                        Search
                     </button>
 
                     <button class="ns-button" data-page="create">
-                        ＋ Utwórz
+                        + Create
                     </button>
 
                     <button class="ns-button" data-page="profile">
-                        👤 Profil
+                        Profile
                     </button>
 
                     <button class="ns-button" data-page="admin">
-                        🛡️ Admin
+                        Admin
                     </button>
 
                     <button class="ns-button" id="ns-close">
@@ -572,19 +634,19 @@
         <nav class="ns-mobile-nav">
 
             <button class="ns-button" data-page="home">
-                🏠
+                Home
             </button>
 
             <button class="ns-button" data-page="reels">
-                ▶
+                Reels
             </button>
 
             <button class="ns-button" data-page="create">
-                ＋
+                +
             </button>
 
             <button class="ns-button" data-page="profile">
-                👤
+                Profile
             </button>
 
         </nav>
@@ -594,15 +656,13 @@
         document.body.appendChild(root);
 
         root.querySelectorAll("[data-page]").forEach(button => {
-
             button.addEventListener("click", () => {
                 render(button.dataset.page);
             });
-
         });
 
         root.querySelector("#ns-close")
-            .addEventListener("click", closeSocial);
+            ?.addEventListener("click", closeSocial);
     }
 
     /* =========================================================
@@ -610,13 +670,11 @@
        ========================================================= */
 
     async function getDocs(collection) {
-
         const db = firebaseDB();
 
         if (!db) return [];
 
         try {
-
             const result = await db
                 .collection(collection)
                 .orderBy("createdAt", "desc")
@@ -629,21 +687,21 @@
             }));
 
         } catch (error) {
-
-            console.error("NeoSocial:", error);
+            console.error(
+                `NeoSocial: unable to fetch ${collection}`,
+                error
+            );
 
             return [];
         }
     }
 
     async function getProfile(uid) {
-
         const db = firebaseDB();
 
         if (!db || !uid) return {};
 
         try {
-
             const doc = await db
                 .collection(NS.profiles)
                 .doc(uid)
@@ -657,7 +715,10 @@
             }
 
         } catch (error) {
-            console.error(error);
+            console.error(
+                "NeoSocial profile:",
+                error
+            );
         }
 
         const user = currentUser();
@@ -668,6 +729,7 @@
             username: user?.displayName || "NeoUser",
             handle: "user",
             avatar: user?.photoURL || "",
+            bio: "NeoFind user",
             followers: 0,
             following: 0,
             verified: false,
@@ -676,14 +738,61 @@
         };
     }
 
+    async function ensureProfile() {
+        const user = currentUser();
+        const db = firebaseDB();
+
+        if (!user || !db) return null;
+
+        const ref =
+            db.collection(NS.profiles).doc(user.uid);
+
+        const snap = await ref.get();
+
+        if (!snap.exists) {
+            const profile = {
+                uid: user.uid,
+                email: user.email || "",
+                username:
+                    user.displayName ||
+                    "NeoUser",
+                handle:
+                    (user.email || "user")
+                        .split("@")[0]
+                        .replace(/[^a-zA-Z0-9_]/g, "")
+                        .slice(0, 20) ||
+                    "user",
+                avatar:
+                    user.photoURL || "",
+                bio:
+                    "NeoFind user",
+                followers: 0,
+                following: 0,
+                verified: false,
+                warnings: 0,
+                banned: false,
+                createdAt:
+                    firebase.firestore.FieldValue
+                        .serverTimestamp()
+            };
+
+            await ref.set(profile);
+
+            return profile;
+        }
+
+        return {
+            uid: user.uid,
+            ...snap.data()
+        };
+    }
+
     /* =========================================================
        ROUTER
        ========================================================= */
 
     async function render(page = "home") {
-
         createRoot();
-
         injectCSS();
 
         const main =
@@ -713,12 +822,12 @@
     }
 
     /* =========================================================
-       HOME / FEED
+       HOME
        ========================================================= */
 
     async function renderHome(main) {
-
-        const posts = await getDocs(NS.posts);
+        const posts =
+            await getDocs(NS.posts);
 
         main.innerHTML = `
 
@@ -744,11 +853,10 @@
                 `
                 <div class="ns-card">
 
-                    <h2>Witaj w NeoSocial</h2>
+                    <h2>Welcome to NeoSocial</h2>
 
                     <p class="ns-muted">
-                        Nie ma jeszcze żadnych postów.
-                        Dodaj pierwszy post.
+                        There are no posts yet.
                     </p>
 
                 </div>
@@ -756,37 +864,54 @@
             }
 
         </div>
+
         `;
 
         document
             .getElementById("ns-refresh")
-            ?.addEventListener("click", () =>
-                render("home")
+            ?.addEventListener(
+                "click",
+                () => render("home")
             );
 
         main
             .querySelectorAll("[data-delete-post]")
             .forEach(button => {
-
-                button.addEventListener("click", () =>
-                    deletePost(button.dataset.deletePost)
+                button.addEventListener(
+                    "click",
+                    () =>
+                        deletePost(
+                            button.dataset.deletePost
+                        )
                 );
-
             });
 
         main
             .querySelectorAll("[data-like-post]")
             .forEach(button => {
-
-                button.addEventListener("click", () =>
-                    likePost(button.dataset.likePost)
+                button.addEventListener(
+                    "click",
+                    () =>
+                        likePost(
+                            button.dataset.likePost
+                        )
                 );
+            });
 
+        main
+            .querySelectorAll("[data-comments-post]")
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () =>
+                        togglePostComments(
+                            button.dataset.commentsPost
+                        )
+                );
             });
     }
 
     function renderPost(post) {
-
         return `
 
         <article class="ns-card">
@@ -804,7 +929,6 @@
                 <div>
 
                     <b>
-
                         ${esc(post.username || "NeoUser")}
 
                         ${
@@ -814,7 +938,6 @@
                             :
                             ""
                         }
-
                     </b>
 
                     <div class="ns-muted">
@@ -846,8 +969,14 @@
 
                 <button
                     class="ns-button"
-                    data-like-post="${post.id}">
+                    data-like-post="${esc(post.id)}">
                     ♡ ${post.likes || 0}
+                </button>
+
+                <button
+                    class="ns-button"
+                    data-comments-post="${esc(post.id)}">
+                    💬 Comments
                 </button>
 
                 <button
@@ -857,10 +986,9 @@
                             location.origin +
                             '/social/post/${esc(post.id)}'
                         );
-
-                        neoSocialToast('Link skopiowany');
+                        neoSocialToast('Link copied');
                     ">
-                    ↗ Udostępnij
+                    ↗ Share
                 </button>
 
                 ${
@@ -869,8 +997,8 @@
                     `
                     <button
                         class="ns-button danger"
-                        data-delete-post="${post.id}">
-                        🗑 Usuń
+                        data-delete-post="${esc(post.id)}">
+                        Delete
                     </button>
                     `
                     :
@@ -879,73 +1007,103 @@
 
             </div>
 
+            <div
+                id="ns-post-comments-${esc(post.id)}"
+                class="ns-comments"
+                style="display:none">
+            </div>
+
         </article>
 
         `;
     }
 
     /* =========================================================
-       LIKES
+       POST LIKES
        ========================================================= */
 
     async function likePost(postId) {
-
         const user = currentUser();
-
         const db = firebaseDB();
 
         if (!user || !db) {
-
-            toast("Musisz być zalogowany.");
-
+            toast("You must be logged in.");
             return;
         }
 
         try {
-
             const ref = db
                 .collection(NS.likes)
                 .doc(`${user.uid}_${postId}`);
 
-            const existing = await ref.get();
+            const existing =
+                await ref.get();
 
             const postRef =
-                db.collection(NS.posts).doc(postId);
+                db.collection(NS.posts)
+                    .doc(postId);
 
             if (existing.exists) {
-
                 await ref.delete();
 
                 await postRef.update({
                     likes:
-                        firebase.firestore.FieldValue.increment(-1)
+                        firebase.firestore
+                            .FieldValue
+                            .increment(-1)
                 });
 
             } else {
-
                 await ref.set({
                     uid: user.uid,
                     postId,
+                    type: "post",
                     createdAt:
-                        firebase.firestore.FieldValue.serverTimestamp()
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
                 });
 
                 await postRef.update({
                     likes:
-                        firebase.firestore.FieldValue.increment(1)
+                        firebase.firestore
+                            .FieldValue
+                            .increment(1)
                 });
-
             }
 
             render("home");
 
         } catch (error) {
-
             console.error(error);
-
-            toast("Nie udało się polubić posta.");
-
+            toast("Could not like the post.");
         }
+    }
+
+    /* =========================================================
+       POST COMMENTS
+       ========================================================= */
+
+    async function togglePostComments(postId) {
+        const box =
+            document.getElementById(
+                `ns-post-comments-${postId}`
+            );
+
+        if (!box) return;
+
+        if (box.style.display === "block") {
+            box.style.display = "none";
+            return;
+        }
+
+        box.style.display = "block";
+
+        await renderComments(
+            box,
+            "post",
+            postId
+        );
     }
 
     /* =========================================================
@@ -953,7 +1111,6 @@
        ========================================================= */
 
     async function renderReels(main) {
-
         const reels =
             await getDocs(NS.reels);
 
@@ -978,13 +1135,13 @@
                     <h2>NeoSocial Reels</h2>
 
                     <p>
-                        Nie ma jeszcze rolek.
+                        There are no reels yet.
                     </p>
 
                     <button
                         class="ns-button primary"
                         onclick="neoSocialPage('create')">
-                        ＋ Dodaj pierwszą
+                        + Add the first one
                     </button>
 
                 </div>
@@ -994,40 +1151,71 @@
         }
 
         </section>
-
         `;
 
         main
             .querySelectorAll("[data-like-reel]")
             .forEach(button => {
-
-                button.addEventListener("click", () =>
-                    likeReel(button.dataset.likeReel)
+                button.addEventListener(
+                    "click",
+                    () =>
+                        likeReel(
+                            button.dataset.likeReel
+                        )
                 );
-
             });
+
+        main
+            .querySelectorAll("[data-comments-reel]")
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () =>
+                        openReelComments(
+                            button.dataset.commentsReel
+                        )
+                );
+            });
+
+        main
+            .querySelectorAll("[data-volume-reel]")
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    () =>
+                        toggleReelSound(
+                            button.dataset.volumeReel,
+                            button
+                        )
+                );
+            });
+
+        setupReelVideos(main);
     }
 
     function renderReel(reel) {
-
         const publicId =
             reel.publicId || reel.id;
 
         return `
 
-        <article class="ns-reel">
+        <article
+            class="ns-reel"
+            data-reel="${esc(reel.id)}">
 
             ${
                 reel.videoUrl
                 ?
                 `
                 <video
+                    id="ns-video-${esc(reel.id)}"
                     class="ns-reel-video"
                     src="${esc(reel.videoUrl)}"
                     autoplay
                     muted
                     loop
-                    playsinline>
+                    playsinline
+                    preload="metadata">
                 </video>
                 `
                 :
@@ -1036,13 +1224,22 @@
                 `
             }
 
+            <button
+                class="ns-reel-action ns-volume"
+                data-volume-reel="${esc(reel.id)}">
+                🔇
+            </button>
+
             <div class="ns-reel-gradient"></div>
 
             <div class="ns-reel-info">
 
                 <b>
 
-                    ${esc(reel.username || "NeoUser")}
+                    ${esc(
+                        reel.username ||
+                        "NeoUser"
+                    )}
 
                     ${
                         reel.verified
@@ -1063,9 +1260,7 @@
                 </p>
 
                 <div class="ns-reel-id">
-
                     neofind.pl/social/reel/${esc(publicId)}
-
                 </div>
 
             </div>
@@ -1074,7 +1269,7 @@
 
                 <button
                     class="ns-reel-action"
-                    data-like-reel="${reel.id}">
+                    data-like-reel="${esc(reel.id)}">
                     ♡
                 </button>
 
@@ -1083,7 +1278,8 @@
                 </small>
 
                 <button
-                    class="ns-reel-action">
+                    class="ns-reel-action"
+                    data-comments-reel="${esc(reel.id)}">
                     💬
                 </button>
 
@@ -1098,8 +1294,7 @@
                             location.origin +
                             '/social/reel/${esc(publicId)}'
                         );
-
-                        neoSocialToast('Link skopiowany');
+                        neoSocialToast('Link copied');
                     ">
                     ↗
                 </button>
@@ -1107,59 +1302,714 @@
             </div>
 
         </article>
+        `;
+    }
+
+    function setupReelVideos(main) {
+        const videos =
+            main.querySelectorAll(
+                ".ns-reel-video"
+            );
+
+        videos.forEach(video => {
+            video.muted = true;
+
+            video.play().catch(() => {});
+
+            video.addEventListener(
+                "click",
+                () => {
+                    if (video.paused) {
+                        video.play().catch(() => {});
+                    } else {
+                        video.pause();
+                    }
+                }
+            );
+        });
+
+        if ("IntersectionObserver" in window) {
+            const observer =
+                new IntersectionObserver(
+                    entries => {
+                        entries.forEach(entry => {
+                            const video =
+                                entry.target;
+
+                            if (entry.isIntersecting) {
+                                document
+                                    .querySelectorAll(
+                                        ".ns-reel-video"
+                                    )
+                                    .forEach(other => {
+                                        if (other !== video) {
+                                            other.pause();
+                                        }
+                                    });
+
+                                video.play()
+                                    .catch(() => {});
+
+                            } else {
+                                video.pause();
+                            }
+                        });
+                    },
+                    {
+                        threshold: 0.7
+                    }
+                );
+
+            videos.forEach(video =>
+                observer.observe(video)
+            );
+        }
+    }
+
+    function toggleReelSound(
+        reelId,
+        button
+    ) {
+        const video =
+            document.getElementById(
+                `ns-video-${reelId}`
+            );
+
+        if (!video) return;
+
+        video.muted = !video.muted;
+
+        button.textContent =
+            video.muted
+            ? "🔇"
+            : "🔊";
+
+        if (!video.muted) {
+            video.play().catch(() => {});
+        }
+    }
+
+    async function likeReel(reelId) {
+        const user = currentUser();
+        const db = firebaseDB();
+
+        if (!user || !db) {
+            toast("You must be logged in.");
+            return;
+        }
+
+        try {
+            const ref =
+                db.collection(NS.likes)
+                    .doc(
+                        `${user.uid}_reel_${reelId}`
+                    );
+
+            const exists =
+                await ref.get();
+
+            const reelRef =
+                db.collection(NS.reels)
+                    .doc(reelId);
+
+            if (exists.exists) {
+                await ref.delete();
+
+                await reelRef.update({
+                    likes:
+                        firebase.firestore
+                            .FieldValue
+                            .increment(-1)
+                });
+
+            } else {
+                await ref.set({
+                    uid: user.uid,
+                    reelId,
+                    type: "reel",
+                    createdAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
+                });
+
+                await reelRef.update({
+                    likes:
+                        firebase.firestore
+                            .FieldValue
+                            .increment(1)
+                });
+            }
+
+            render("reels");
+
+        } catch (error) {
+            console.error(error);
+
+            toast(
+                "Could not like the reel."
+            );
+        }
+    }
+
+    async function openReelComments(reelId) {
+        const comments =
+            await getComments(
+                "reel",
+                reelId
+            );
+
+        const reel =
+            document.querySelector(
+                `[data-reel="${CSS.escape(reelId)}"]`
+            );
+
+        if (!reel) return;
+
+        let old =
+            reel.querySelector(
+                ".ns-reel-comments-overlay"
+            );
+
+        if (old) {
+            old.remove();
+            return;
+        }
+
+        const overlay =
+            document.createElement("div");
+
+        overlay.className =
+            "ns-reel-comments-overlay";
+
+        overlay.style.cssText = `
+            position:absolute;
+            z-index:20;
+            left:10px;
+            right:10px;
+            bottom:10px;
+            max-height:55%;
+            overflow:auto;
+            background:#081419f5;
+            border:1px solid #25434b;
+            border-radius:18px;
+            padding:15px;
+        `;
+
+        overlay.innerHTML = `
+
+            <div class="ns-topbar">
+
+                <b>Comments</b>
+
+                <button
+                    class="ns-button"
+                    data-close-comments>
+                    ×
+                </button>
+
+            </div>
+
+            <div class="ns-comments-list">
+
+                ${
+                    comments.length
+                    ?
+                    comments
+                        .map(renderComment)
+                        .join("")
+                    :
+                    `
+                    <p class="ns-muted">
+                        No comments yet.
+                    </p>
+                    `
+                }
+
+            </div>
+
+            <div class="ns-comment-form">
+
+                <input
+                    class="ns-input"
+                    data-reel-comment-input
+                    placeholder="Write a comment..."
+                >
+
+                <button
+                    class="ns-button primary"
+                    data-add-reel-comment>
+                    Send
+                </button>
+
+            </div>
+        `;
+
+        reel.appendChild(overlay);
+
+        overlay
+            .querySelector("[data-close-comments]")
+            ?.addEventListener(
+                "click",
+                () => overlay.remove()
+            );
+
+        overlay
+            .querySelector("[data-add-reel-comment]")
+            ?.addEventListener(
+                "click",
+                async () => {
+                    const input =
+                        overlay.querySelector(
+                            "[data-reel-comment-input]"
+                        );
+
+                    await addComment(
+                        "reel",
+                        reelId,
+                        input?.value || ""
+                    );
+
+                    overlay.remove();
+
+                    await updateReelCommentCount(
+                        reelId
+                    );
+
+                    render("reels");
+                }
+            );
+
+        overlay
+            .querySelectorAll("[data-delete-comment]")
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    async () => {
+                        await deleteComment(
+                            button.dataset.deleteComment
+                        );
+
+                        openReelComments(
+                            reelId
+                        );
+                    }
+                );
+            });
+    }
+
+    /* =========================================================
+       COMMENTS SYSTEM
+       ========================================================= */
+
+    async function getComments(
+        type,
+        targetId
+    ) {
+        const db = firebaseDB();
+
+        if (!db) return [];
+
+        try {
+            const result =
+                await db
+                    .collection(NS.comments)
+                    .where("type", "==", type)
+                    .where("targetId", "==", targetId)
+                    .limit(100)
+                    .get();
+
+            return result.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }))
+                .sort(
+                    (a, b) =>
+                        getTimestamp(a.createdAt) -
+                        getTimestamp(b.createdAt)
+                );
+
+        } catch (error) {
+            console.error(
+                "NeoSocial comments:",
+                error
+            );
+
+            return [];
+        }
+    }
+
+    function getTimestamp(value) {
+        if (!value) return 0;
+
+        if (
+            typeof value.toMillis ===
+            "function"
+        ) {
+            return value.toMillis();
+        }
+
+        if (value.seconds) {
+            return value.seconds * 1000;
+        }
+
+        return 0;
+    }
+
+    function renderComment(comment) {
+        const user =
+            currentUser();
+
+        const canDelete =
+            isAdmin() ||
+            user?.uid === comment.uid;
+
+        return `
+
+        <div class="ns-comment">
+
+            <img
+                class="ns-comment-avatar"
+                src="${esc(
+                    comment.avatar ||
+                    "https://i.pravatar.cc/100?img=12"
+                )}"
+            >
+
+            <div class="ns-comment-body">
+
+                <b>
+                    ${esc(
+                        comment.username ||
+                        "NeoUser"
+                    )}
+
+                    ${
+                        comment.verified
+                        ?
+                        `<span class="ns-verified"></span>`
+                        :
+                        ""
+                    }
+                </b>
+
+                <div class="ns-comment-text">
+                    ${esc(
+                        comment.text || ""
+                    )}
+                </div>
+
+                ${
+                    canDelete
+                    ?
+                    `
+                    <button
+                        class="ns-button danger"
+                        style="margin-top:5px;padding:5px 8px;font-size:11px"
+                        data-delete-comment="${esc(comment.id)}">
+                        Delete
+                    </button>
+                    `
+                    :
+                    ""
+                }
+
+            </div>
+
+        </div>
 
         `;
     }
 
-    async function likeReel(reelId) {
+    async function renderComments(
+        box,
+        type,
+        targetId
+    ) {
+        const comments =
+            await getComments(
+                type,
+                targetId
+            );
 
+        const user =
+            currentUser();
+
+        box.innerHTML = `
+
+            <div class="ns-comments-list">
+
+                ${
+                    comments.length
+                    ?
+                    comments
+                        .map(renderComment)
+                        .join("")
+                    :
+                    `
+                    <p class="ns-muted">
+                        No comments yet.
+                    </p>
+                    `
+                }
+
+            </div>
+
+            ${
+                user
+                ?
+                `
+                <div class="ns-comment-form">
+
+                    <input
+                        class="ns-input"
+                        id="ns-comment-input-${esc(targetId)}"
+                        placeholder="Write a comment..."
+                    >
+
+                    <button
+                        class="ns-button primary"
+                        id="ns-comment-send-${esc(targetId)}">
+                        Send
+                    </button>
+
+                </div>
+                `
+                :
+                `
+                <p class="ns-muted">
+                    Log in to comment.
+                </p>
+                `
+            }
+
+        `;
+
+        box
+            .querySelector(
+                `#ns-comment-send-${CSS.escape(targetId)}`
+            )
+            ?.addEventListener(
+                "click",
+                async () => {
+                    const input =
+                        document.getElementById(
+                            `ns-comment-input-${targetId}`
+                        );
+
+                    await addComment(
+                        type,
+                        targetId,
+                        input?.value || ""
+                    );
+
+                    await renderComments(
+                        box,
+                        type,
+                        targetId
+                    );
+                }
+            );
+
+        box
+            .querySelectorAll(
+                "[data-delete-comment]"
+            )
+            .forEach(button => {
+                button.addEventListener(
+                    "click",
+                    async () => {
+                        await deleteComment(
+                            button.dataset.deleteComment
+                        );
+
+                        await renderComments(
+                            box,
+                            type,
+                            targetId
+                        );
+                    }
+                );
+            });
+    }
+
+    async function addComment(
+        type,
+        targetId,
+        text
+    ) {
         const user = currentUser();
-
         const db = firebaseDB();
 
         if (!user || !db) {
-
-            toast("Musisz być zalogowany.");
-
-            return;
+            toast("You must be logged in.");
+            return false;
         }
 
-        const ref = db
-            .collection(NS.likes)
-            .doc(`${user.uid}_reel_${reelId}`);
+        text =
+            String(text || "")
+                .trim();
 
-        const exists =
-            await ref.get();
+        if (!text) {
+            toast(
+                "Comment cannot be empty."
+            );
 
-        const reelRef =
-            db.collection(NS.reels).doc(reelId);
+            return false;
+        }
 
-        if (exists.exists) {
+        if (text.length > 500) {
+            toast(
+                "Comment can contain a maximum of 500 characters."
+            );
+
+            return false;
+        }
+
+        try {
+            const profile =
+                await getProfile(
+                    user.uid
+                );
+
+            await db
+                .collection(NS.comments)
+                .add({
+                    uid: user.uid,
+
+                    email:
+                        user.email || "",
+
+                    username:
+                        profile.username ||
+                        user.displayName ||
+                        "NeoUser",
+
+                    handle:
+                        profile.handle ||
+                        "user",
+
+                    avatar:
+                        profile.avatar ||
+                        user.photoURL ||
+                        "",
+
+                    verified:
+                        !!profile.verified,
+
+                    type,
+
+                    targetId,
+
+                    text,
+
+                    createdAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
+                });
+
+            if (type === "reel") {
+                await db
+                    .collection(NS.reels)
+                    .doc(targetId)
+                    .update({
+                        comments:
+                            firebase.firestore
+                                .FieldValue
+                                .increment(1)
+                    });
+            }
+
+            toast("Comment added.");
+
+            return true;
+
+        } catch (error) {
+            console.error(
+                "NeoSocial comment:",
+                error
+            );
+
+            toast(
+                "Could not add the comment."
+            );
+
+            return false;
+        }
+    }
+
+    async function deleteComment(
+        commentId
+    ) {
+        const user = currentUser();
+        const db = firebaseDB();
+
+        if (!user || !db) return;
+
+        try {
+            const ref =
+                db
+                    .collection(NS.comments)
+                    .doc(commentId);
+
+            const snap =
+                await ref.get();
+
+            if (!snap.exists) return;
+
+            const comment =
+                snap.data();
+
+            if (
+                comment.uid !== user.uid &&
+                !isAdmin()
+            ) {
+                toast(
+                    "You cannot delete this comment."
+                );
+
+                return;
+            }
 
             await ref.delete();
 
-            await reelRef.update({
-                likes:
-                    firebase.firestore.FieldValue.increment(-1)
-            });
+            if (
+                comment.type === "reel"
+            ) {
+                try {
+                    await db
+                        .collection(NS.reels)
+                        .doc(comment.targetId)
+                        .update({
+                            comments:
+                                firebase.firestore
+                                    .FieldValue
+                                    .increment(-1)
+                        });
 
-        } else {
+                } catch (error) {
+                    console.warn(
+                        "Could not update the comment counter.",
+                        error
+                    );
+                }
+            }
 
-            await ref.set({
-                uid: user.uid,
-                reelId,
-                createdAt:
-                    firebase.firestore.FieldValue.serverTimestamp()
-            });
+            toast("Comment deleted.");
 
-            await reelRef.update({
-                likes:
-                    firebase.firestore.FieldValue.increment(1)
-            });
+        } catch (error) {
+            console.error(error);
 
+            toast(
+                "Could not delete the comment."
+            );
         }
+    }
 
-        render("reels");
+    async function updateReelCommentCount() {
+        return;
     }
 
     /* =========================================================
@@ -1167,21 +2017,19 @@
        ========================================================= */
 
     async function renderCreate(main) {
-
         const user = currentUser();
 
         if (!user) {
-
             main.innerHTML = `
 
             <div class="ns-feed">
 
                 <div class="ns-card">
 
-                    <h2>Zaloguj się</h2>
+                    <h2>Log in</h2>
 
                     <p class="ns-muted">
-                        Musisz być zalogowany, aby publikować.
+                        You must be logged in to publish.
                     </p>
 
                 </div>
@@ -1197,18 +2045,16 @@
             await getProfile(user.uid);
 
         if (profile.banned) {
-
             main.innerHTML = `
 
             <div class="ns-feed">
 
                 <div class="ns-card">
 
-                    <h2>Twoje konto jest zablokowane</h2>
+                    <h2>Account banned</h2>
 
                     <p class="ns-muted">
-                        Nie możesz obecnie publikować
-                        w NeoSocial.
+                        You cannot currently post on NeoSocial.
                     </p>
 
                 </div>
@@ -1224,41 +2070,42 @@
 
         <div class="ns-feed">
 
-            <h1>Utwórz</h1>
+            <h1>Create</h1>
 
             <div class="ns-card">
 
-                <h3>Nowy post</h3>
+                <h3>New post</h3>
 
                 <textarea
                     id="ns-post-text"
                     class="ns-textarea"
-                    placeholder="Co słychać?">
+                    placeholder="What's on your mind?">
                 </textarea>
 
                 <input
                     id="ns-post-image"
                     class="ns-input"
                     style="margin-top:10px"
-                    placeholder="URL zdjęcia (opcjonalnie)"
+                    placeholder="Image URL (optional)"
                 >
 
                 <button
                     id="ns-publish-post"
                     class="ns-button primary"
                     style="margin-top:10px">
-                    Opublikuj post
+                    Publish post
                 </button>
 
             </div>
 
             <div class="ns-card">
 
-                <h3>Nowa rolka</h3>
+                <h3>New reel</h3>
 
                 <input
                     id="ns-reel-file"
                     type="file"
+                    class="ns-input"
                     accept="video/*"
                 >
 
@@ -1266,130 +2113,157 @@
                     id="ns-reel-caption"
                     class="ns-textarea"
                     style="margin-top:10px"
-                    placeholder="Opis rolki">
+                    placeholder="Reel description">
                 </textarea>
 
                 <button
                     id="ns-publish-reel"
                     class="ns-button primary"
                     style="margin-top:10px">
-                    Opublikuj rolkę
+                    Publish reel
                 </button>
 
             </div>
 
         </div>
-
         `;
 
         document
             .getElementById("ns-publish-post")
-            .addEventListener("click", publishPost);
+            ?.addEventListener(
+                "click",
+                publishPost
+            );
 
         document
             .getElementById("ns-publish-reel")
-            .addEventListener("click", publishReel);
+            ?.addEventListener(
+                "click",
+                publishReel
+            );
     }
 
     async function publishPost() {
-
         const user = currentUser();
-
         const db = firebaseDB();
 
-        if (!user || !db) return;
+        if (!user || !db) {
+            toast("You must be logged in.");
+            return;
+        }
 
         const profile =
             await getProfile(user.uid);
 
         if (profile.banned) {
-
-            toast("Nie możesz publikować.");
-
+            toast("You cannot publish.");
             return;
         }
 
+        const textElement =
+            document.getElementById(
+                "ns-post-text"
+            );
+
+        const imageElement =
+            document.getElementById(
+                "ns-post-image"
+            );
+
         const text =
-            document
-                .getElementById("ns-post-text")
-                .value
-                .trim();
+            textElement?.value
+                ?.trim() || "";
 
         const imageUrl =
-            document
-                .getElementById("ns-post-image")
-                .value
-                .trim();
+            imageElement?.value
+                ?.trim() || "";
 
         if (!text && !imageUrl) {
-
-            toast("Dodaj tekst lub zdjęcie.");
+            toast(
+                "Add text or an image."
+            );
 
             return;
         }
 
         try {
+            await db
+                .collection(NS.posts)
+                .add({
+                    uid: user.uid,
 
-            await db.collection(NS.posts).add({
+                    email:
+                        user.email || "",
 
-                uid: user.uid,
+                    username:
+                        profile.username ||
+                        user.displayName ||
+                        "NeoUser",
 
-                email: user.email,
+                    handle:
+                        profile.handle ||
+                        "user",
 
-                username:
-                    profile.username ||
-                    user.displayName ||
-                    "NeoUser",
+                    avatar:
+                        profile.avatar ||
+                        user.photoURL ||
+                        "",
 
-                handle:
-                    profile.handle ||
-                    "user",
+                    verified:
+                        !!profile.verified,
 
-                avatar:
-                    profile.avatar ||
-                    user.photoURL ||
-                    "",
+                    text,
 
-                verified:
-                    !!profile.verified,
+                    imageUrl,
 
-                text,
+                    likes: 0,
 
-                imageUrl,
+                    createdAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
+                });
 
-                likes: 0,
-
-                createdAt:
-                    firebase.firestore.FieldValue
-                        .serverTimestamp()
-
-            });
-
-            toast("Post opublikowany.");
+            toast(
+                "Post published."
+            );
 
             render("home");
 
         } catch (error) {
-
             console.error(error);
 
-            toast("Nie udało się opublikować.");
-
+            toast(
+                "Could not publish the post."
+            );
         }
     }
 
     async function publishReel() {
-
         const user = currentUser();
-
         const db = firebaseDB();
+        const storage = firebaseStorage();
 
-        const storage =
-            firebaseStorage();
+        if (!user) {
+            toast(
+                "You must be logged in."
+            );
 
-        if (!user || !db || !storage) {
+            return;
+        }
 
-            toast("Firebase Storage nie jest dostępny.");
+        if (!db) {
+            toast(
+                "Firestore is unavailable."
+            );
+
+            return;
+        }
+
+        if (!storage) {
+            toast(
+                "Firebase Storage is unavailable."
+            );
 
             return;
         }
@@ -1398,99 +2272,160 @@
             await getProfile(user.uid);
 
         if (profile.banned) {
+            toast(
+                "You cannot publish."
+            );
 
-            toast("Nie możesz publikować.");
+            return;
+        }
+
+        const fileInput =
+            document.getElementById(
+                "ns-reel-file"
+            );
+
+        const captionInput =
+            document.getElementById(
+                "ns-reel-caption"
+            );
+
+        if (!fileInput) {
+            toast(
+                "Video input was not found."
+            );
 
             return;
         }
 
         const file =
-            document
-                .getElementById("ns-reel-file")
-                .files[0];
+            fileInput.files?.[0];
 
         if (!file) {
-
-            toast("Wybierz film.");
+            toast(
+                "Choose a video."
+            );
 
             return;
         }
 
-        try {
+        if (
+            !file.type.startsWith("video/")
+        ) {
+            toast(
+                "The selected file is not a video."
+            );
 
-            toast("Przesyłanie rolki...");
+            return;
+        }
+
+        /* Maximum file size: 100 MB */
+
+        if (
+            file.size >
+            100 * 1024 * 1024
+        ) {
+            toast(
+                "The video can be up to 100 MB."
+            );
+
+            return;
+        }
+
+        const caption =
+            captionInput?.value
+                ?.trim() || "";
+
+        try {
+            toast(
+                "Uploading reel..."
+            );
 
             const publicId =
                 "NF-R-" +
                 Math.random()
                     .toString(36)
-                    .slice(2,10)
+                    .slice(2, 10)
                     .toUpperCase();
 
-            const ref =
-                storage
-                    .ref(
-                        `social/reels/${user.uid}/${Date.now()}-${file.name}`
+            const safeName =
+                file.name
+                    .replace(
+                        /[^a-zA-Z0-9._-]/g,
+                        "_"
                     );
 
-            await ref.put(file);
+            const ref =
+                storage.ref(
+                    `social/reels/${user.uid}/${Date.now()}-${safeName}`
+                );
+
+            await ref.put(
+                file,
+                {
+                    contentType:
+                        file.type
+                }
+            );
 
             const videoUrl =
                 await ref.getDownloadURL();
 
-            const caption =
-                document
-                    .getElementById("ns-reel-caption")
-                    .value
-                    .trim();
+            await db
+                .collection(NS.reels)
+                .add({
+                    uid: user.uid,
 
-            await db.collection(NS.reels).add({
+                    email:
+                        user.email || "",
 
-                uid: user.uid,
+                    username:
+                        profile.username ||
+                        user.displayName ||
+                        "NeoUser",
 
-                email: user.email,
+                    handle:
+                        profile.handle ||
+                        "user",
 
-                username:
-                    profile.username ||
-                    "NeoUser",
+                    avatar:
+                        profile.avatar ||
+                        user.photoURL ||
+                        "",
 
-                handle:
-                    profile.handle ||
-                    "user",
+                    verified:
+                        !!profile.verified,
 
-                avatar:
-                    profile.avatar ||
-                    "",
+                    videoUrl,
 
-                verified:
-                    !!profile.verified,
+                    caption,
 
-                videoUrl,
+                    publicId,
 
-                caption,
+                    likes: 0,
 
-                publicId,
+                    comments: 0,
 
-                likes: 0,
+                    createdAt:
+                        firebase.firestore
+                            .FieldValue
+                            .serverTimestamp()
+                });
 
-                comments: 0,
-
-                createdAt:
-                    firebase.firestore.FieldValue
-                        .serverTimestamp()
-
-            });
-
-            toast("Rolka opublikowana.");
+            toast(
+                "Reel published."
+            );
 
             render("reels");
 
         } catch (error) {
+            console.error(
+                "NeoSocial publishReel:",
+                error
+            );
 
-            console.error(error);
-
-            toast("Nie udało się przesłać rolki.");
-
+            toast(
+                "Could not upload the reel."
+            );
         }
     }
 
@@ -1499,18 +2434,16 @@
        ========================================================= */
 
     async function renderProfile(main) {
-
         const user = currentUser();
 
         if (!user) {
-
             main.innerHTML = `
 
             <div class="ns-feed">
 
                 <div class="ns-card">
 
-                    <h2>Zaloguj się</h2>
+                    <h2>Log in</h2>
 
                 </div>
 
@@ -1531,6 +2464,7 @@
             <div class="ns-card ns-profile-head">
 
                 <img
+                    id="ns-profile-avatar-preview"
                     class="ns-avatar ns-avatar-large"
                     src="${esc(
                         profile.avatar ||
@@ -1557,21 +2491,17 @@
                 </h2>
 
                 <div class="ns-muted">
-
                     @${esc(
                         profile.handle ||
                         "user"
                     )}
-
                 </div>
 
                 <p>
-
                     ${esc(
                         profile.bio ||
-                        "Użytkownik NeoFind"
+                        "NeoFind user"
                     )}
-
                 </p>
 
                 <div class="ns-profile-stats">
@@ -1583,7 +2513,7 @@
                         </strong>
 
                         <span>
-                            Obserwujących
+                            Followers
                         </span>
 
                     </div>
@@ -1595,7 +2525,7 @@
                         </strong>
 
                         <span>
-                            Obserwowanych
+                            Following
                         </span>
 
                     </div>
@@ -1604,9 +2534,325 @@
 
             </div>
 
+            <div class="ns-card ns-profile-edit">
+
+                <h3>Edit profile</h3>
+
+                <label>
+                    Name
+                </label>
+
+                <input
+                    id="ns-edit-username"
+                    class="ns-input"
+                    value="${esc(
+                        profile.username ||
+                        "NeoUser"
+                    )}"
+                    maxlength="40"
+                >
+
+                <label style="display:block;margin-top:10px">
+                    @Handle
+                </label>
+
+                <input
+                    id="ns-edit-handle"
+                    class="ns-input"
+                    value="${esc(
+                        profile.handle ||
+                        "user"
+                    )}"
+                    maxlength="25"
+                >
+
+                <label style="display:block;margin-top:10px">
+                    Bio
+                </label>
+
+                <textarea
+                    id="ns-edit-bio"
+                    class="ns-textarea"
+                    maxlength="160"
+                    style="min-height:80px"
+                >${esc(
+                    profile.bio ||
+                    ""
+                )}</textarea>
+
+                <label
+                    style="display:block;margin-top:10px">
+                    Profile picture
+                </label>
+
+                <input
+                    id="ns-edit-avatar"
+                    class="ns-input"
+                    type="file"
+                    accept="image/*"
+                >
+
+                <button
+                    id="ns-save-profile"
+                    class="ns-button primary"
+                    style="margin-top:12px">
+                    Save profile
+                </button>
+
+            </div>
+
         </div>
 
         `;
+
+        const avatarInput =
+            document.getElementById(
+                "ns-edit-avatar"
+            );
+
+        avatarInput?.addEventListener(
+            "change",
+            () => {
+                const file =
+                    avatarInput.files?.[0];
+
+                if (!file) return;
+
+                if (
+                    !file.type.startsWith("image/")
+                ) {
+                    toast(
+                        "Choose an image."
+                    );
+
+                    return;
+                }
+
+                const url =
+                    URL.createObjectURL(
+                        file
+                    );
+
+                const preview =
+                    document.getElementById(
+                        "ns-profile-avatar-preview"
+                    );
+
+                if (preview) {
+                    preview.src = url;
+                }
+            }
+        );
+
+        document
+            .getElementById(
+                "ns-save-profile"
+            )
+            ?.addEventListener(
+                "click",
+                saveProfile
+            );
+    }
+
+    async function saveProfile() {
+        const user = currentUser();
+        const db = firebaseDB();
+        const storage = firebaseStorage();
+
+        if (!user || !db) {
+            toast(
+                "You must be logged in."
+            );
+
+            return;
+        }
+
+        const username =
+            document
+                .getElementById(
+                    "ns-edit-username"
+                )
+                ?.value
+                ?.trim();
+
+        const handle =
+            document
+                .getElementById(
+                    "ns-edit-handle"
+                )
+                ?.value
+                ?.trim()
+                ?.replace(/^@/, "")
+                ?.toLowerCase();
+
+        const bio =
+            document
+                .getElementById(
+                    "ns-edit-bio"
+                )
+                ?.value
+                ?.trim();
+
+        const avatarFile =
+            document
+                .getElementById(
+                    "ns-edit-avatar"
+                )
+                ?.files?.[0];
+
+        if (!username) {
+            toast(
+                "Username is required."
+            );
+
+            return;
+        }
+
+        if (!handle) {
+            toast(
+                "Handle is required."
+            );
+
+            return;
+        }
+
+        if (
+            !/^[a-zA-Z0-9_]+$/.test(handle)
+        ) {
+            toast(
+                "Handle can only contain letters, numbers and _."
+            );
+
+            return;
+        }
+
+        if (username.length > 40) {
+            toast(
+                "Username is too long."
+            );
+
+            return;
+        }
+
+        if (handle.length > 25) {
+            toast(
+                "Handle is too long."
+            );
+
+            return;
+        }
+
+        try {
+            toast(
+                "Saving profile..."
+            );
+
+            const profileRef =
+                db
+                    .collection(NS.profiles)
+                    .doc(user.uid);
+
+            let avatarUrl = null;
+
+            if (avatarFile) {
+                if (
+                    !avatarFile.type.startsWith(
+                        "image/"
+                    )
+                ) {
+                    toast(
+                        "The selected file is not an image."
+                    );
+
+                    return;
+                }
+
+                if (
+                    avatarFile.size >
+                    5 * 1024 * 1024
+                ) {
+                    toast(
+                        "Avatar can be up to 5 MB."
+                    );
+
+                    return;
+                }
+
+                if (!storage) {
+                    toast(
+                        "Firebase Storage is unavailable."
+                    );
+
+                    return;
+                }
+
+                const safeName =
+                    avatarFile.name
+                        .replace(
+                            /[^a-zA-Z0-9._-]/g,
+                            "_"
+                        );
+
+                const avatarRef =
+                    storage.ref(
+                        `social/avatars/${user.uid}/${Date.now()}-${safeName}`
+                    );
+
+                await avatarRef.put(
+                    avatarFile,
+                    {
+                        contentType:
+                            avatarFile.type
+                    }
+                );
+
+                avatarUrl =
+                    await avatarRef
+                        .getDownloadURL();
+            }
+
+            const update = {
+                username,
+
+                handle,
+
+                bio:
+                    bio || "",
+
+                updatedAt:
+                    firebase.firestore
+                        .FieldValue
+                        .serverTimestamp()
+            };
+
+            if (avatarUrl) {
+                update.avatar =
+                    avatarUrl;
+            }
+
+            await profileRef.set(
+                update,
+                {
+                    merge: true
+                }
+            );
+
+            toast(
+                "Profile saved."
+            );
+
+            render("profile");
+
+        } catch (error) {
+            console.error(
+                "NeoSocial saveProfile:",
+                error
+            );
+
+            toast(
+                "Could not save the profile."
+            );
+        }
     }
 
     /* =========================================================
@@ -1614,17 +2860,16 @@
        ========================================================= */
 
     function renderSearch(main) {
-
         main.innerHTML = `
 
         <div class="ns-feed">
 
-            <h1>Szukaj</h1>
+            <h1>Search</h1>
 
             <input
                 id="ns-search-input"
                 class="ns-input"
-                placeholder="@username lub nazwa użytkownika"
+                placeholder="@username or username"
             >
 
             <div id="ns-search-results"></div>
@@ -1634,101 +2879,119 @@
         `;
 
         document
-            .getElementById("ns-search-input")
-            .addEventListener(
+            .getElementById(
+                "ns-search-input"
+            )
+            ?.addEventListener(
                 "input",
                 searchUsers
             );
     }
 
     async function searchUsers(event) {
-
         const query =
             event.target.value
                 .trim()
-                .toLowerCase();
+                .toLowerCase()
+                .replace(/^@/, "");
 
         const result =
             document.getElementById(
                 "ns-search-results"
             );
 
+        if (!result) return;
+
         if (!query) {
-
             result.innerHTML = "";
-
             return;
         }
 
         const profiles =
-            await getDocs(NS.profiles);
+            await getDocs(
+                NS.profiles
+            );
 
         const filtered =
             profiles.filter(profile =>
-
                 String(
-                    profile.username || ""
+                    profile.username ||
+                    ""
                 )
-                .toLowerCase()
-                .includes(query)
+                    .toLowerCase()
+                    .includes(query)
 
                 ||
 
                 String(
-                    profile.handle || ""
+                    profile.handle ||
+                    ""
                 )
-                .toLowerCase()
-                .includes(query)
-
+                    .toLowerCase()
+                    .includes(query)
             );
 
         result.innerHTML =
-            filtered.map(profile => `
+            filtered.length
+            ?
+            filtered
+                .map(profile => `
 
-                <div class="ns-card ns-row">
+                    <div
+                        class="ns-card ns-row">
 
-                    <img
-                        class="ns-avatar"
-                        src="${esc(
-                            profile.avatar ||
-                            "https://i.pravatar.cc/100?img=12"
-                        )}"
-                    >
+                        <img
+                            class="ns-avatar"
+                            src="${esc(
+                                profile.avatar ||
+                                "https://i.pravatar.cc/100?img=12"
+                            )}"
+                        >
 
-                    <div>
+                        <div>
 
-                        <b>
+                            <b>
 
-                            ${esc(
-                                profile.username ||
-                                "NeoUser"
-                            )}
+                                ${esc(
+                                    profile.username ||
+                                    "NeoUser"
+                                )}
 
-                            ${
-                                profile.verified
-                                ?
-                                `<span class="ns-verified"></span>`
-                                :
-                                ""
-                            }
+                                ${
+                                    profile.verified
+                                    ?
+                                    `<span class="ns-verified"></span>`
+                                    :
+                                    ""
+                                }
 
-                        </b>
+                            </b>
 
-                        <div class="ns-muted">
+                            <div class="ns-muted">
 
-                            @${esc(
-                                profile.handle ||
-                                "user"
-                            )}
+                                @${esc(
+                                    profile.handle ||
+                                    "user"
+                                )}
+
+                            </div>
 
                         </div>
 
                     </div>
 
-                </div>
+                `)
+                .join("")
+            :
+            `
+            <div class="ns-card">
 
-            `).join("");
+                <p class="ns-muted">
+                    No users found.
+                </p>
 
+            </div>
+            `;
     }
 
     /* =========================================================
@@ -1736,20 +2999,18 @@
        ========================================================= */
 
     async function renderAdmin(main) {
-
         if (!isAdmin()) {
-
             main.innerHTML = `
 
             <div class="ns-feed">
 
                 <div class="ns-card">
 
-                    <h2>Brak dostępu</h2>
+                    <h2>Access denied</h2>
 
                     <p class="ns-muted">
-                        Ta sekcja jest dostępna tylko
-                        dla administratorów NeoFind.
+                        This section is available only
+                        to NeoFind administrators.
                     </p>
 
                 </div>
@@ -1762,13 +3023,19 @@
         }
 
         const profiles =
-            await getDocs(NS.profiles);
+            await getDocs(
+                NS.profiles
+            );
 
         const posts =
-            await getDocs(NS.posts);
+            await getDocs(
+                NS.posts
+            );
 
         const reels =
-            await getDocs(NS.reels);
+            await getDocs(
+                NS.reels
+            );
 
         main.innerHTML = `
 
@@ -1779,81 +3046,84 @@
             <div class="ns-admin-grid">
 
                 <div class="ns-stat">
-
-                    Użytkownicy
-
+                    Users
                     <strong>
                         ${profiles.length}
                     </strong>
-
                 </div>
 
                 <div class="ns-stat">
-
-                    Posty
-
+                    Posts
                     <strong>
                         ${posts.length}
                     </strong>
-
                 </div>
 
                 <div class="ns-stat">
-
-                    Rolki
-
+                    Reels
                     <strong>
                         ${reels.length}
                     </strong>
-
                 </div>
 
             </div>
 
             <div class="ns-card">
 
-                <h3>Zweryfikuj użytkownika</h3>
+                <h3>Verify user</h3>
 
                 <input
                     id="ns-verify-email"
                     class="ns-input"
-                    placeholder="Email użytkownika"
+                    placeholder="User email"
                 >
 
                 <button
                     id="ns-verify"
                     class="ns-button primary"
                     style="margin-top:10px">
-                    ✓ Zweryfikuj
+                    Verify
                 </button>
 
             </div>
 
             <div class="ns-card">
 
-                <h3>Moderacja użytkowników</h3>
+                <h3>User moderation</h3>
 
                 ${
-                    profiles.map(renderAdminUser).join("")
+                    profiles.length
+                    ?
+                    profiles
+                        .map(renderAdminUser)
+                        .join("")
+                    :
+                    `
+                    <p class="ns-muted">
+                        No profiles.
+                    </p>
+                    `
                 }
 
             </div>
 
         </div>
-
         `;
 
         document
-            .getElementById("ns-verify")
-            .addEventListener(
+            .getElementById(
+                "ns-verify"
+            )
+            ?.addEventListener(
                 "click",
                 verifyByEmail
             );
 
         main
-            .querySelectorAll("[data-warning]")
+            .querySelectorAll(
+                "[data-warning]"
+            )
             .forEach(button => {
-
                 button.addEventListener(
                     "click",
                     () =>
@@ -1861,13 +3131,13 @@
                             button.dataset.warning
                         )
                 );
-
             });
 
         main
-            .querySelectorAll("[data-ban]")
+            .querySelectorAll(
+                "[data-ban]"
+            )
             .forEach(button => {
-
                 button.addEventListener(
                     "click",
                     () =>
@@ -1875,13 +3145,10 @@
                             button.dataset.ban
                         )
                 );
-
             });
-
     }
 
     function renderAdminUser(profile) {
-
         return `
 
         <div
@@ -1907,7 +3174,24 @@
                             "NeoUser"
                         )}
 
+                        ${
+                            profile.verified
+                            ?
+                            `<span class="ns-verified"></span>`
+                            :
+                            ""
+                        }
+
                     </b>
+
+                    <div class="ns-muted">
+
+                        @${esc(
+                            profile.handle ||
+                            "user"
+                        )}
+
+                    </div>
 
                     <div class="ns-muted">
 
@@ -1920,7 +3204,7 @@
 
                     <div class="ns-muted">
 
-                        Ostrzeżenia:
+                        Warnings:
                         ${profile.warnings || 0}/3
 
                         ·
@@ -1928,9 +3212,9 @@
                         ${
                             profile.banned
                             ?
-                            "ZBANOWANY"
+                            "BANNED"
                             :
-                            "aktywny"
+                            "active"
                         }
 
                     </div>
@@ -1947,9 +3231,7 @@
                         profile.uid ||
                         profile.id
                     )}">
-
-                    ⚠ Ostrzeżenie
-
+                    Warning
                 </button>
 
                 <button
@@ -1962,9 +3244,9 @@
                     ${
                         profile.banned
                         ?
-                        "Odblokuj"
+                        "Unban"
                         :
-                        "Zbanuj"
+                        "Ban"
                     }
 
                 </button>
@@ -1981,30 +3263,30 @@
        ========================================================= */
 
     async function verifyByEmail() {
-
         if (!isAdmin()) return;
 
         const db =
             firebaseDB();
 
+        const input =
+            document.getElementById(
+                "ns-verify-email"
+            );
+
         const email =
-            document
-                .getElementById(
-                    "ns-verify-email"
-                )
-                .value
-                .trim()
+            input?.value
+                ?.trim()
                 .toLowerCase();
 
         if (!email) {
-
-            toast("Podaj email.");
+            toast(
+                "Enter an email address."
+            );
 
             return;
         }
 
         try {
-
             const result =
                 await db
                     .collection(NS.profiles)
@@ -2017,8 +3299,9 @@
                     .get();
 
             if (result.empty) {
-
-                toast("Nie znaleziono użytkownika.");
+                toast(
+                    "User not found."
+                );
 
                 return;
             }
@@ -2026,7 +3309,6 @@
             await result.docs[0]
                 .ref
                 .update({
-
                     verified: true,
 
                     verifiedAt:
@@ -2036,19 +3318,20 @@
 
                     verifiedBy:
                         currentUser().email
-
                 });
 
-            toast("Użytkownik zweryfikowany.");
+            toast(
+                "User verified."
+            );
 
             render("admin");
 
         } catch (error) {
-
             console.error(error);
 
-            toast("Błąd weryfikacji.");
-
+            toast(
+                "Verification error."
+            );
         }
     }
 
@@ -2057,14 +3340,12 @@
        ========================================================= */
 
     async function giveWarning(uid) {
-
         if (!isAdmin()) return;
 
         const db =
             firebaseDB();
 
         try {
-
             const ref =
                 db
                     .collection(NS.profiles)
@@ -2074,8 +3355,9 @@
                 await ref.get();
 
             if (!snap.exists) {
-
-                toast("Nie znaleziono użytkownika.");
+                toast(
+                    "User not found."
+                );
 
                 return;
             }
@@ -2092,16 +3374,11 @@
                 warnings
             };
 
-            /*
-             * 3 warnings = automatic ban
-             */
-
             if (warnings >= 3) {
-
                 update.banned = true;
 
                 update.banReason =
-                    "Automatyczny ban po 3 ostrzeżeniach.";
+                    "Automatic ban after 3 warnings.";
 
                 update.bannedAt =
                     firebase.firestore
@@ -2114,7 +3391,6 @@
             await db
                 .collection(NS.moderation)
                 .add({
-
                     uid,
 
                     type:
@@ -2134,31 +3410,24 @@
                         firebase.firestore
                             .FieldValue
                             .serverTimestamp()
-
                 });
 
-            if (warnings >= 3) {
-
-                toast(
-                    "3 ostrzeżenia. Użytkownik został zbanowany."
-                );
-
-            } else {
-
-                toast(
-                    `Ostrzeżenie ${warnings}/3`
-                );
-
-            }
+            toast(
+                warnings >= 3
+                ?
+                "3 warnings. User has been banned."
+                :
+                `Warning ${warnings}/3`
+            );
 
             render("admin");
 
         } catch (error) {
-
             console.error(error);
 
-            toast("Nie udało się nadać ostrzeżenia.");
-
+            toast(
+                "Could not issue the warning."
+            );
         }
     }
 
@@ -2167,14 +3436,12 @@
        ========================================================= */
 
     async function toggleBan(uid) {
-
         if (!isAdmin()) return;
 
         const db =
             firebaseDB();
 
         try {
-
             const ref =
                 db
                     .collection(NS.profiles)
@@ -2192,13 +3459,12 @@
                 !data.banned;
 
             await ref.update({
-
                 banned,
 
                 banReason:
                     banned
                     ?
-                    "Decyzja administratora."
+                    "Administrator decision."
                     :
                     "",
 
@@ -2210,25 +3476,24 @@
                         .serverTimestamp()
                     :
                     null
-
             });
 
             toast(
                 banned
                 ?
-                "Użytkownik zbanowany."
+                "User banned."
                 :
-                "Użytkownik odblokowany."
+                "User unbanned."
             );
 
             render("admin");
 
         } catch (error) {
-
             console.error(error);
 
-            toast("Błąd moderacji.");
-
+            toast(
+                "Moderation error."
+            );
         }
     }
 
@@ -2237,33 +3502,35 @@
        ========================================================= */
 
     async function deletePost(postId) {
-
         if (!isAdmin()) return;
 
         const db =
             firebaseDB();
 
-        if (!confirm(
-            "Czy na pewno chcesz usunąć ten post?"
-        )) return;
+        if (
+            !confirm(
+                "Are you sure you want to delete this post?"
+            )
+        ) return;
 
         try {
-
             await db
                 .collection(NS.posts)
                 .doc(postId)
                 .delete();
 
-            toast("Post usunięty.");
+            toast(
+                "Post deleted."
+            );
 
             render("home");
 
         } catch (error) {
-
             console.error(error);
 
-            toast("Nie udało się usunąć posta.");
-
+            toast(
+                "Could not delete the post."
+            );
         }
     }
 
@@ -2271,23 +3538,30 @@
        PUBLIC API
        ========================================================= */
 
-    window.neoSocialToast = toast;
+    window.neoSocialToast =
+        toast;
 
-    window.neoSocialPage = render;
+    window.neoSocialPage =
+        render;
 
-    window.openNeoSocial = function () {
+    window.openNeoSocial =
+        function () {
+            createRoot();
+            injectCSS();
 
-        createRoot();
+            const root =
+                document.getElementById(
+                    NS.root
+                );
 
-        injectCSS();
+            if (!root) return;
 
-        const root =
-            document.getElementById(NS.root);
+            root.classList.add(
+                "ns-open"
+            );
 
-        root.classList.add("ns-open");
-
-        render("home");
-    };
+            render("home");
+        };
 
     window.closeNeoSocial =
         closeSocial;
