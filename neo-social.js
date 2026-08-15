@@ -6,6 +6,24 @@
 (function () {
     "use strict";
 
+   /* =========================
+   ADMIN EMAILS
+========================= */
+const OWNER_EMAILS = [
+    "adrian.wilczek@hotmail.com"
+]
+    
+const ADMIN_EMAILS = [
+    "adrian.wilczek@hotmail.com",
+    "michal.szyszynski@outlook.com",
+    "Michal.szyszynski@outlook.com",
+    "account.neofind@gmail.com",
+    "support.neofind@gmail.com",
+    "Michal.wilkowski@outlook.com",
+    "michal.wilkowski@gmail.com",
+    "j.e.wilkowska@gmail.com"
+];
+
     const NS = {
         root: "neo-social-root",
         profiles: "socialProfiles",
