@@ -2058,40 +2058,75 @@ document.getElementById("search").addEventListener("input", function() {
     // 1. Pobieramy i oczyszczamy wpisany tekst
     const value = this.value.toLowerCase().trim();
 
-    // 2. SPRAWDZANIE KODU PREMIUM
-    /* if (value === "holidays26") {
-        // Jeśli kod był już użyty
-        if (localStorage.getItem("userPremium") === "true") {
-            alert("❌ Code arleady redemned!"); 
-            // Użyliśmy zwykłego alertu na wypadek, gdyby neoWarning nie istniał w HTML
-            this.value = "";
-            return; 
-        }
+    // SPRAWDZANIE KODU PREMIUM Z FIREBASE
 
-        // Aktywacja kodu
-        localStorage.setItem("userPremium", "true");
-        const expiryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        localStorage.setItem("userPremium", expiryDate.toISOString());
-        
-        this.value = ""; // Czyszczenie inputu
+const premiumCodesRef = ref(db, "premiumCodes/" + value);
 
-        // Wyświetlenie komunikatu
+get(premiumCodesRef).then((snapshot) => {
+
+    // Kod nie istnieje
+    if (!snapshot.exists()) {
+        alert("❌ Invalid code!");
+        this.value = "";
+        return;
+    }
+
+    const codeData = snapshot.val();
+
+    // Kod został już wykorzystany
+    if (codeData.used === true) {
+        alert("❌ Code already redeemed!");
+        this.value = "";
+        return;
+    }
+
+    // Oznaczamy kod jako wykorzystany
+    update(premiumCodesRef, {
+        used: true,
+        usedBy: auth.currentUser ? auth.currentUser.uid : "unknown",
+        usedAt: new Date().toISOString()
+    }).then(() => {
+
+        // Premium na 7 dni
+        const expiryDate = new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+        );
+
+        localStorage.setItem(
+            "userPremium",
+            expiryDate.toISOString()
+        );
+
+        this.value = "";
+
         const popup = document.getElementById("neoPopup");
+
         if (popup) {
             popup.style.display = "block";
-            popup.innerText = "🎁 Correct code! Actived premium for 7 days!";
-            setTimeout(() => { popup.style.display = "none"; }, 5000);
+            popup.innerText =
+                "🎁 Correct code! Activated Premium for 7 days!";
+
+            setTimeout(() => {
+                popup.style.display = "none";
+            }, 5000);
         } else {
-            alert("🎁 Correct code! Actived premium for 7 days!");
+            alert("🎁 Correct code! Activated Premium for 7 days!");
         }
 
-        // Efekt konfetti
         if (typeof confetti === "function") {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
         }
 
-        return;
-    } */
+    }).catch((error) => {
+        console.error(error);
+        alert("❌ Error redeeming code!");
+    });
+
+});
     const box = document.getElementById("results");
 const url = new URL(window.location);
 if(value) url.searchParams.set("q", value);
