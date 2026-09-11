@@ -1526,6 +1526,7 @@ z-index:9999;
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="database.js"></script>
 <script>
 /* Konfiguracja Firebase */
 const firebaseConfig = {
@@ -1551,41 +1552,6 @@ const bannedWords = [
     "idiot",
     "niga"
 ];
-// Globalna zmienna przechowująca pobraną bazę danych
-let dbData = [];
-
-// Funkcja, która pobiera plik database.json z GitHuba / serwera
-async function fetchDatabase() {
-    try {
-        const response = await fetch('database.json');
-        
-        if (!response.ok) {
-            throw new Error(`Błąd wczytywania bazy: ${response.status}`);
-        }
-
-        dbData = await response.json();
-        console.log("Baza danych została pomyślnie wczytana z pliku database.json:", dbData);
-    } catch (error) {
-        console.error("Błąd podczas pobierania bazy danych:", error);
-    }
-}
-
-// Pobierz bazę od razu przy załadowaniu strony
-document.addEventListener("DOMContentLoaded", fetchDatabase);
-
-// Funkcja do przeszukiwania pobranej bazy
-function searchInLocalDb(query) {
-    if (!query) return [];
-    
-    const term = query.toLowerCase().trim();
-    
-    // Filtrujemy dane z pobranego pliku JSON
-    return dbData.filter(item => 
-        item.title.toLowerCase().includes(term) || 
-        item.desc.toLowerCase().includes(term)
-    );
-}
-
 const translations = {
     en: {
         search: "Search...",
@@ -2059,6 +2025,9 @@ document.getElementById("search").addEventListener("input", function() {
     // 1. Pobieramy i oczyszczamy wpisany tekst
     const value = this.value.toLowerCase().trim();
 
+    // KODY PREMIUM TYMCZASOWO WYLACZONE: ref/get/update to funkcje Realtime Database,
+    // ktorej projekt nie ma (jest Firestore). Wyjatek przy kazdym znaku blokowal wyszukiwarke.
+    /*
     // SPRAWDZANIE KODU PREMIUM Z FIREBASE
 
 const premiumCodesRef = ref(db, "premiumCodes/" + value);
@@ -2128,6 +2097,7 @@ get(premiumCodesRef).then((snapshot) => {
     });
 
 });
+    */
     const box = document.getElementById("results");
 const url = new URL(window.location);
 if(value) url.searchParams.set("q", value);
