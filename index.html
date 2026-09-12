@@ -3420,7 +3420,7 @@ function renderChatMessages(snapshot, chatId) {
     ? `<audio controls src="${escapeHtml(msg.url || '')}" style="max-width:200px; border-radius:10px;"></audio>`
     : msg.imageUrl
         ? `<img src="${escapeHtml(msg.imageUrl)}" class="chat-img" onclick="window.open(this.src,'_blank')">`
-            : escapeHtml(msg.text || '').replace(':)', '🙂').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('<3', '❤️').replace(':/', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job').replace('@Adrian_dev', 'Omgg');
+            : escapeHtml(msg.text || '').replace(':)', '🙂').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('<3', '❤️').replace(':|', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job').replace('@Adrian_dev', '@Owner').replace('/shrug', '¯\_(ツ)_/¯');
 
         let tick = "";
         if(isMe && msg.date){
