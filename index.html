@@ -1276,6 +1276,42 @@ body.ocean {
 <meta name="google-site-verification" content="5FkGuLai_JBGQ7e0vj9ipYedqFX7CL5nFlMQG95aQUE"/>
 </head>
 <body>
+    <div id="neofind-loading">
+    <div class="scene">
+        <div class="atmosphere"></div>
+        <div class="stars"></div>
+        <div class="grid"></div>
+
+        <div class="initial-logo">
+            <div class="logo-top">
+                <span class="ne">Neo</span>
+
+                <svg class="magnifier" viewBox="0 0 100 100">
+                    <circle
+                        cx="42"
+                        cy="42"
+                        r="25"
+                        fill="none"
+                        stroke="#00f2fe"
+                        stroke-width="8"
+                    />
+
+                    <line
+                        x1="61"
+                        y1="61"
+                        x2="84"
+                        y2="84"
+                        stroke="#00f2fe"
+                        stroke-width="8"
+                        stroke-linecap="round"
+                    />
+                </svg>
+            </div>
+
+            <div class="find">Find</div>
+        </div>
+    </div>
+</div>
 <div id="loginScreen" style="display:none; text-align:center; margin-top:100px;">
     <div class="neoCountdownContainer" style="display:none; text-align:center; font-size:1.2rem; margin-bottom:20px; letter-spacing:2px; text-shadow:0 0 10px rgba(77,166,255,0.5);">
         <span class="neoCountdownLabel"></span>
@@ -7076,6 +7112,22 @@ if (urlQuery) {
         searchEl.dispatchEvent(new Event("input"));
     }
 }
+</script>
+
+<script>
+window.addEventListener("load", function () {
+    const loading = document.getElementById("neofind-loading");
+
+    if (!loading) return;
+
+    setTimeout(function () {
+        loading.classList.add("finished");
+
+        setTimeout(function () {
+            loading.remove();
+        }, 900);
+    }, 6100);
+});
 </script>
 
 
