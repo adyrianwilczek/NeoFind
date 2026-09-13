@@ -28,6 +28,372 @@ body {
     overflow-x: hidden;
 }
 
+/* =========================================================
+   NEOFIND LOADING
+   ========================================================= */
+
+#neofind-loading {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 999999;
+    background: #02030a;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+}
+
+#neofind-loading.finished {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+#neofind-loading .scene {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background:
+        radial-gradient(
+            circle at center,
+            rgba(20,40,90,0.25) 0%,
+            rgba(5,8,20,0.55) 35%,
+            #02030a 75%
+        );
+}
+
+#neofind-loading .atmosphere {
+    position: absolute;
+    width: 750px;
+    height: 750px;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background:
+        radial-gradient(
+            circle,
+            rgba(0,242,254,0.12) 0%,
+            rgba(79,172,254,0.08) 28%,
+            rgba(155,81,224,0.05) 48%,
+            transparent 72%
+        );
+    filter: blur(25px);
+    opacity: 0;
+    animation:
+        neofindAtmosphereIn 2s ease forwards 0.2s,
+        neofindAtmospherePulse 4s ease-in-out infinite 2s;
+}
+
+@keyframes neofindAtmosphereIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.6);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes neofindAtmospherePulse {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(1.08);
+    }
+}
+
+#neofind-loading .stars {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background-image:
+        radial-gradient(
+            circle,
+            rgba(255,255,255,0.8) 1px,
+            transparent 1.5px
+        ),
+        radial-gradient(
+            circle,
+            rgba(0,242,254,0.6) 1px,
+            transparent 1.5px
+        ),
+        radial-gradient(
+            circle,
+            rgba(255,255,255,0.45) 1px,
+            transparent 1.5px
+        );
+    background-size:
+        170px 170px,
+        230px 230px,
+        310px 310px;
+    background-position:
+        20px 40px,
+        80px 120px,
+        140px 20px;
+    animation:
+        neofindStarsIn 1.8s ease forwards 0.3s,
+        neofindStarsMove 15s linear infinite 1.5s;
+}
+
+@keyframes neofindStarsIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.65;
+    }
+}
+
+@keyframes neofindStarsMove {
+    from {
+        background-position:
+            20px 40px,
+            80px 120px,
+            140px 20px;
+    }
+
+    to {
+        background-position:
+            190px 210px,
+            -100px 300px,
+            320px -180px;
+    }
+}
+
+#neofind-loading .grid {
+    position: absolute;
+    width: 180%;
+    height: 80%;
+    left: -40%;
+    bottom: -35%;
+    opacity: 0;
+    transform:
+        perspective(600px)
+        rotateX(65deg);
+    background-image:
+        linear-gradient(
+            rgba(0,242,254,0.16) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0,242,254,0.16) 1px,
+            transparent 1px
+        );
+    background-size:
+        80px 80px,
+        80px 80px;
+    mask-image:
+        linear-gradient(
+            to top,
+            black,
+            transparent 80%
+        );
+    animation:
+        neofindGridIn 2s ease forwards 0.8s,
+        neofindGridMove 8s linear infinite 1s;
+}
+
+@keyframes neofindGridIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 0.35;
+    }
+}
+
+@keyframes neofindGridMove {
+    from {
+        background-position: 0 0, 0 0;
+    }
+
+    to {
+        background-position: 0 160px, 160px 0;
+    }
+}
+
+#neofind-loading .initial-logo {
+    position: absolute;
+    width: max-content;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.55) translateY(25px);
+    animation:
+        neofindInitialEnter 1.05s
+        cubic-bezier(0.16,1,0.3,1)
+        forwards 0.9s,
+        neofindInitialExit 0.75s
+        cubic-bezier(0.7,0,0.84,0)
+        forwards 4.15s;
+}
+
+#neofind-loading .logo-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: max-content;
+    height: 150px;
+    white-space: nowrap;
+}
+
+#neofind-loading .ne {
+    font-size: 150px;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -8px;
+    color: #00f2fe;
+    text-shadow:
+        0 0 8px #00f2fe,
+        0 0 20px rgba(0,242,254,0.8),
+        0 0 50px rgba(0,242,254,0.35);
+}
+
+#neofind-loading .magnifier {
+    width: 125px;
+    height: 125px;
+    margin-left: 12px;
+    filter:
+        drop-shadow(0 0 8px #00f2fe)
+        drop-shadow(0 0 20px rgba(79,172,254,0.75))
+        drop-shadow(0 0 35px rgba(155,81,224,0.35));
+    transform: rotate(-8deg);
+    animation:
+        neofindMagnifierFloat 2.8s
+        ease-in-out
+        infinite 2s;
+}
+
+@keyframes neofindMagnifierFloat {
+    0%, 100% {
+        transform: rotate(-8deg) translateY(0);
+    }
+
+    50% {
+        transform: rotate(-5deg) translateY(-4px);
+    }
+}
+
+#neofind-loading .find {
+    width: 100%;
+    text-align: left;
+    margin-top: -2px;
+    font-size: 105px;
+    line-height: 0.9;
+    font-weight: 800;
+    letter-spacing: -4px;
+    color: #4facfe;
+    text-shadow:
+        0 0 8px #4facfe,
+        0 0 22px rgba(79,172,254,0.75),
+        0 0 45px rgba(79,172,254,0.3);
+    opacity: 0;
+    animation:
+        neofindFindEnter 0.8s
+        cubic-bezier(0.16,1,0.3,1)
+        forwards 1.65s;
+}
+
+@keyframes neofindFindEnter {
+    from {
+        opacity: 0;
+        transform: translateY(25px) scale(0.8);
+        filter: blur(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+    }
+}
+
+@keyframes neofindInitialEnter {
+    0% {
+        opacity: 0;
+        transform: scale(0.55) translateY(25px);
+        filter: blur(10px);
+    }
+
+    60% {
+        opacity: 1;
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes neofindInitialExit {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        filter: blur(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.12) translateY(-10px);
+        filter: blur(8px);
+    }
+}
+
+@media (max-width: 700px) {
+    #neofind-loading .logo-top {
+        height: 105px;
+    }
+
+    #neofind-loading .ne {
+        font-size: 100px;
+        letter-spacing: -6px;
+    }
+
+    #neofind-loading .magnifier {
+        width: 85px;
+        height: 85px;
+        margin-left: 8px;
+    }
+
+    #neofind-loading .find {
+        font-size: 72px;
+        letter-spacing: -3px;
+    }
+}
+
+
+/* =========================================================
+   TUTAJ ZACZYNA SIĘ TWÓJ DOTYCHCZASOWY KOD
+   NIC NIE USUWAMY
+   ========================================================= */
+
+:root {
+    --topbar-h: 56px;
+    --bottomnav-h: 80px;
+    --chrome-h: 136px;
+}
+
 /* ☀️ summer mode: trwały ciepły kolor (taki jak flash przy włączeniu) */
 body.summer-theme {
     background:
