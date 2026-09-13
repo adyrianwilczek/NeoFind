@@ -5266,558 +5266,346 @@ if (typeof auth !== 'undefined') {
 
 
 // --- BLOK OBSŁUGI PARAMETRU ?p=about DLA NEOFIND ---
+
 (function() {
+
     const urlParams = new URLSearchParams(window.location.search);
+
     const pageParam = urlParams.get('p');
 
+
+
+    // Sprawdzenie, czy w URL jest dokładnie ?p=update
+
     if (pageParam === 'about') {
+
         document.documentElement.innerHTML = `
+
         <head>
+
             <meta charset="UTF-8">
+
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
             <title>NeoFind - About</title>
+
             <style>
+
                 body {
+
                     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+
                     color: #ffffff;
+
                     font-family: 'Oxanium', sans-serif;
+
                     display: flex;
+
                     align-items: center;
+
                     justify-content: center;
+
                     min-height: 100vh;
+
                     margin: 0;
+
                     padding: 20px;
+
                     box-sizing: border-box;
+
                 }
+
                 .update-box {
+
                     background: rgba(19, 19, 26, 0.85);
+
                     border: 1px solid #4da6ff;
+
                     border-radius: 16px;
+
                     padding: 40px;
-                    max-width: 650px;
+
+                    max-width: 600px;
+
                     width: 100%;
+
                     backdrop-filter: blur(10px);
+
                     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-                    position: relative;
+
                 }
-                .header-row {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    flex-wrap: wrap;
-                    gap: 15px;
-                    margin-bottom: 20px;
-                }
+
                 h1 {
+
                     font-size: 2.5rem;
-                    margin: 0;
+
+                    margin: 0 0 5px 0;
+
                     background: linear-gradient(45deg, #4da6ff, #a855f7);
+
                     -webkit-background-clip: text;
+
                     -webkit-text-fill-color: transparent;
+
                 }
+
                 .version {
+
                     color: #4da6ff;
+
                     font-weight: 600;
-                    margin-bottom: 20px;
+
+                    margin-bottom: 30px;
+
                     font-size: 1.1rem;
+
                 }
-                .lang-switch {
-                    display: flex;
-                    gap: 6px;
-                    background: rgba(28, 28, 36, 0.6);
-                    padding: 4px;
-                    border-radius: 10px;
-                    border: 1px solid rgba(77, 166, 255, 0.3);
-                }
-                .lang-btn {
-                    background: transparent;
-                    border: none;
-                    color: #a1a1aa;
-                    padding: 6px 12px;
-                    border-radius: 6px;
-                    font-family: 'Oxanium', sans-serif;
-                    font-weight: 600;
-                    font-size: 0.85rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                }
-                .lang-btn:hover {
-                    color: #ffffff;
-                    background: rgba(77, 166, 255, 0.15);
-                }
-                .lang-btn.active {
-                    background: #4da6ff;
-                    color: #0f2027;
-                    box-shadow: 0 0 10px rgba(77, 166, 255, 0.4);
-                }
+
                 .content {
+
                     color: #e4e4e7;
+
                     line-height: 1.8;
+
                     font-size: 1.05rem;
+
                     margin-bottom: 40px;
-                    max-height: 60vh;
-                    overflow-y: auto;
-                    padding-right: 10px;
+
                 }
-                .content::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .content::-webkit-scrollbar-thumb {
-                    background: rgba(77, 166, 255, 0.4);
-                    border-radius: 3px;
-                }
-                .content h2 { 
-                    font-size: 1.3rem; 
-                    color: #fff; 
-                    margin-top: 20px; 
-                    margin-bottom: 10px; 
-                    border-bottom: 1px solid rgba(77, 166, 255, 0.2);
-                    padding-bottom: 4px;
-                }
+
+                .content h2 { font-size: 1.3rem; color: #fff; margin-top: 20px; margin-bottom: 10px; }
+
                 .content ul { padding-left: 20px; margin-bottom: 20px; }
+
                 .content li { margin-bottom: 8px; color: #d4d4d8; }
+
                 .btn {
+
                     display: inline-block;
+
                     background: #1c1c24;
+
                     color: #ffffff;
+
                     text-decoration: none;
+
                     padding: 12px 30px;
+
                     border-radius: 8px;
+
                     font-weight: 600;
+
                     border: 1px solid #4da6ff;
+
                     transition: all 0.2s;
+
                     cursor: pointer;
+
                 }
+
                 .btn:hover {
+
                     background: #4da6ff;
+
                     color: #0f2027;
+
                 }
+
             </style>
+
         </head>
+
         <body>
+
             <div class="update-box">
-                <div class="header-row">
-                    <div>
-                        <h1 id="title-text">About NeoFind</h1>
-                        <div class="version" id="subtitle-text">and something more</div>
-                    </div>
-                    
-                    <div class="lang-switch">
-                        <button class="lang-btn active" onclick="setLang('en', this)">EN</button>
-                        <button class="lang-btn" onclick="setLang('pl', this)">PL</button>
-                        <button class="lang-btn" onclick="setLang('es', this)">ES</button>
-                        <button class="lang-btn" onclick="setLang('fr', this)">FR</button>
-                    </div>
+
+                <h1>About NeoFind</h1>
+
+                <div class="version">and something more</div>
+
+                <div class="content">
+
+                    <h2>What is NeoFind?</h2>
+
+                    <ul>
+
+                        <li>🔎 NeoFind</li>
+
+<li>NeoFind is a modern, experimental search and communication platform designed to combine powerful search capabilities with real-time social interaction.</li>
+
+<li>Unlike traditional search engines, NeoFind focuses not only on finding information, but also on connecting people. It brings together searching, chatting, and social features into one unified experience.</li>
+
+<li>🌍 Overview</li>
+
+<li>NeoFind is built as a lightweight web application that aims to provide:</li>
+
+<li>Fast and simple search experience</li>
+
+<li>Integrated social system (friends & chat)</li>
+
+<li>Clean and modern user interface</li>
+
+<li>Real-time interaction between users</li>
+
+<li>The goal of the project is to explore how search platforms can evolve into more interactive and social environments.</li>
+
+<li>✨ Core Features</li>
+
+<li>🔍 Smart Search System</li>
+
+<li>NeoFind includes a simple but efficient search system that allows users to quickly find content.</li>
+
+<li>Minimalistic search bar</li>
+
+<li>Fast response time</li>
+
+<li>Designed for future expansion (AI, filters, etc.)</li>
+
+<li>👥 Friends System</li>
+
+<li>Users can connect with each other inside NeoFind.</li>
+
+<li>Add friends</li>
+
+<li>Manage friend list</li>
+
+<li>Build a small social network inside the app</li>
+
+<li>💬 Real-Time Chat</li>
+
+<li>Communication is a key part of NeoFind.</li>
+
+<li>Instant messaging</li>
+
+<li>Direct chat between users</li>
+
+<li>Designed to be simple and fast</li>
+
+<li>🎨 User Interface</li>
+
+<li>NeoFind focuses on a clean and modern design.</li>
+
+<li>Easy to use</li>
+
+<li>Minimal distractions</li>
+
+<li>Responsive layout (planned improvements)</li>
+
+<li>⚡ Performance</li>
+
+<li>The application is optimized to be lightweight and fast.</li>
+
+<li>Runs in the browser</li>
+
+<li>No heavy dependencies</li>
+
+<li>Quick loading times</li>
+
+<li>🧠 Concept & Vision</li>
+
+<li>NeoFind is more than just a search tool — it is an experiment.</li>
+
+<li>The idea behind NeoFind is:</li>
+
+<li>“What if search engines were also social platforms?”</li>
+
+<li>Instead of searching alone, users can:</li>
+
+<li>Share results</li>
+
+<li>Chat about what they find</li>
+
+<li>Explore content together</li>
+
+<li>In the future, NeoFind may include AI-powered features to enhance both search and interaction.</li>
+
+<li>🖥️ Usage</li>
+
+<li>Open the website</li>
+
+<li>Use the search bar to explore content</li>
+
+<li>Add friends (if available)</li>
+
+<li>Start chatting in real time</li>
+
+<li>👤 User System</li>
+
+<li>Secure authentication</li>
+
+<li>User profiles</li>
+
+<li>Avatars and customization</li>
+
+<li>💬 Chat Improvements</li>
+
+<li>Group chats</li>
+
+<li>Notifications</li>
+
+<li>Message history</li>
+
+<li>🔍 Search Improvements</li>
+
+<li>Advanced filters</li>
+
+<li>Categories</li>
+
+<li>AI-powered search</li>
+
+<li>📱 Mobile Support</li>
+
+<li>Responsive design improvements</li>
+
+<li>Possible mobile app version</li>
+
+<li>⚠️ Current Limitations</li>
+
+<li>Early-stage project</li>
+
+<li>Limited backend functionality</li>
+
+<li>Basic UI in some areas</li>
+
+<li>Features may be incomplete or experimental</li>
+
+<li>🤝 Contributing</li>
+
+<li>At the moment, NeoFind is a personal project.</li>
+
+<li>However, contributions may be allowed in the future. If you’re interested, feel free to:</li>
+
+<li>Suggest features</li>
+
+<li>Report bugs</li>
+
+<li>Share ideas</li>
+
+<li>📄 License</li>
+
+<li>MIT License</li>
+
+<li>Copyright (c) 2026 Adrian-dev</li>
+
+                    </ul>
+
+                    <p>so now you know what is NeoFind</p>
+
                 </div>
 
-                <div class="content" id="about-content">
-                    <!-- Dynamic content -->
-                </div>
+                <a href="/" class="btn">Thanks for reading</a>
 
-                <a href="/" class="btn" id="btn-thanks">Thanks for reading</a>
             </div>
 
-            <script>
-                const translations = {
-                    en: {
-                        title: "About NeoFind",
-                        subtitle: "and something more",
-                        thanks: "Thanks for reading",
-                        html: \`
-                            <h2>What is NeoFind?</h2>
-                            <ul>
-                                <li>🔎 NeoFind</li>
-                                <li>NeoFind is a modern, experimental search and communication platform designed to combine powerful search capabilities with real-time social interaction.</li>
-                                <li>Unlike traditional search engines, NeoFind focuses not only on finding information, but also on connecting people. It brings together searching, chatting, and social features into one unified experience.</li>
-                            </ul>
-
-                            <h2>🌍 Overview</h2>
-                            <ul>
-                                <li>NeoFind is built as a lightweight web application that aims to provide:</li>
-                                <li>Fast and simple search experience</li>
-                                <li>Integrated social system (friends & chat)</li>
-                                <li>Clean and modern user interface</li>
-                                <li>Real-time interaction between users</li>
-                                <li>The goal of the project is to explore how search platforms can evolve into more interactive and social environments.</li>
-                            </ul>
-
-                            <h2>✨ Core Features</h2>
-                            <ul>
-                                <li>🔍 Smart Search System</li>
-                                <li>NeoFind includes a simple but efficient search system that allows users to quickly find content.</li>
-                                <li>Minimalistic search bar</li>
-                                <li>Fast response time</li>
-                                <li>Designed for future expansion (AI, filters, etc.)</li>
-                                <li>👥 Friends System</li>
-                                <li>Users can connect with each other inside NeoFind.</li>
-                                <li>Add friends</li>
-                                <li>Manage friend list</li>
-                                <li>Build a small social network inside the app</li>
-                                <li>💬 Real-Time Chat</li>
-                                <li>Communication is a key part of NeoFind.</li>
-                                <li>Instant messaging</li>
-                                <li>Direct chat between users</li>
-                                <li>Designed to be simple and fast</li>
-                                <li>🎨 User Interface</li>
-                                <li>NeoFind focuses on a clean and modern design.</li>
-                                <li>Easy to use</li>
-                                <li>Minimal distractions</li>
-                                <li>Responsive layout (planned improvements)</li>
-                                <li>⚡ Performance</li>
-                                <li>The application is optimized to be lightweight and fast.</li>
-                                <li>Runs in the browser</li>
-                                <li>No heavy dependencies</li>
-                                <li>Quick loading times</li>
-                            </ul>
-
-                            <h2>🧠 Concept & Vision</h2>
-                            <ul>
-                                <li>NeoFind is more than just a search tool — it is an experiment.</li>
-                                <li>The idea behind NeoFind is: “What if search engines were also social platforms?”</li>
-                                <li>Instead of searching alone, users can: share results, chat about what they find, explore content together.</li>
-                                <li>In the future, NeoFind may include AI-powered features to enhance both search and interaction.</li>
-                            </ul>
-
-                            <h2>🖥️ Usage</h2>
-                            <ul>
-                                <li>Open the website</li>
-                                <li>Use the search bar to explore content</li>
-                                <li>Add friends (if available)</li>
-                                <li>Start chatting in real time</li>
-                            </ul>
-
-                            <h2>👤 User System & Future Improvements</h2>
-                            <ul>
-                                <li>Secure authentication</li>
-                                <li>User profiles</li>
-                                <li>Avatars and customization</li>
-                                <li>💬 Chat Improvements: Group chats, Notifications, Message history</li>
-                                <li>🔍 Search Improvements: Advanced filters, Categories, AI-powered search</li>
-                                <li>📱 Mobile Support: Responsive design improvements, Possible mobile app version</li>
-                            </ul>
-
-                            <h2>⚠️ Current Limitations</h2>
-                            <ul>
-                                <li>Early-stage project</li>
-                                <li>Limited backend functionality</li>
-                                <li>Basic UI in some areas</li>
-                                <li>Features may be incomplete or experimental</li>
-                            </ul>
-
-                            <h2>🤝 Contributing & 📄 License</h2>
-                            <ul>
-                                <li>At the moment, NeoFind is a personal project. However, contributions may be allowed in the future. Feel free to suggest features, report bugs, share ideas.</li>
-                                <li>MIT License</li>
-                                <li>Copyright (c) 2026 Adrian-dev</li>
-                            </ul>
-                            <p>so now you know what is NeoFind</p>
-                        \`
-                    },
-                    pl: {
-                        title: "O NeoFind",
-                        subtitle: "i coś więcej",
-                        thanks: "Dzięki za przeczytanie",
-                        html: \`
-                            <h2>Czym jest NeoFind?</h2>
-                            <ul>
-                                <li>🔎 NeoFind</li>
-                                <li>NeoFind to nowoczesna, eksperymentalna platforma wyszukiwania i komunikacji stworzona z myślą o połączeniu potężnych możliwości wyszukiwania z interakcją społecznościową w czasie rzeczywistym.</li>
-                                <li>W przeciwieństwie do tradycyjnych wyszukiwarek, NeoFind skupia się nie tylko na odnajdywaniu informacji, ale również na łączeniu ludzi. Łączy wyszukiwanie, czat i funkcje społecznościowe w jedno spójne środowisko.</li>
-                            </ul>
-
-                            <h2>🌍 Przegląd</h2>
-                            <ul>
-                                <li>NeoFind został zbudowany jako lekka aplikacja internetowa, której celem jest zapewnienie:</li>
-                                <li>Szybkiego i prostego wyszukiwania</li>
-                                <li>Zintegrowanego systemu społecznościowego (znajomi i czat)</li>
-                                <li>Czystego i nowoczesnego interfejsu użytkownika</li>
-                                <li>Interakcji między użytkownikami w czasie rzeczywistym</li>
-                                <li>Celem projektu jest zbadanie, jak platformy wyszukiwania mogą ewoluować w bardziej interaktywne i społecznościowe środowiska.</li>
-                            </ul>
-
-                            <h2>✨ Główne Funkcje</h2>
-                            <ul>
-                                <li>🔍 Inteligentne Wyszukiwanie</li>
-                                <li>NeoFind zawiera prosty, ale wydajny system wyszukiwania, który pozwala szybko znajdować treści.</li>
-                                <li>Minimalistyczny pasek wyszukiwania</li>
-                                <li>Szybki czas reakcji</li>
-                                <li>Zaprojektowany z myślą o przyszłej rozbudowie (AI, filtry itp.)</li>
-                                <li>👥 System Znajomych</li>
-                                <li>Użytkownicy mogą łączyć się ze sobą wewnątrz NeoFind.</li>
-                                <li>Dodawanie znajomych</li>
-                                <li>Zarządzanie listą znajomych</li>
-                                <li>Budowanie małej sieci społecznościowej wewnątrz aplikacji</li>
-                                <li>💬 Czat w Czasie Rzeczywistym</li>
-                                <li>Komunikacja jest kluczową częścią NeoFind.</li>
-                                <li>Błyskawiczne wiadomości</li>
-                                <li>Czat bezpośredni między użytkownikami</li>
-                                <li>Zaprojektowany tak, aby był prosty i szybki</li>
-                                <li>🎨 Interfejs Użytkownika</li>
-                                <li>NeoFind stawia na czysty i nowoczesny wygląd.</li>
-                                <li>Łatwy w użyciu</li>
-                                <li>Minimalna ilość rozpraszaczy</li>
-                                <li>Responsywny układ (planowane poprawki)</li>
-                                <li>⚡ Wydajność</li>
-                                <li>Aplikacja jest zoptymalizowana pod kątem lekkości i szybkości.</li>
-                                <li>Działa w przeglądarce</li>
-                                <li>Brak ciężkich zależności</li>
-                                <li>Szybki czas ładowania</li>
-                            </ul>
-
-                            <h2>🧠 Koncepcja i Wizja</h2>
-                            <ul>
-                                <li>NeoFind to coś więcej niż tylko narzędzie do wyszukiwania — to eksperyment.</li>
-                                <li>Idea stojąca za NeoFind to: „Co gdyby wyszukiwarki były również platformami społecznościowymi?”</li>
-                                <li>Zamiast szukać w samotności, użytkownicy mogą: dzielić się wynikami, rozmawiać o znaleziskach, wspólnie odkrywać treści.</li>
-                                <li>W przyszłości NeoFind może zawierać funkcje oparte na AI, aby usprawnić zarówno wyszukiwanie, jak i interakcję.</li>
-                            </ul>
-
-                            <h2>🖥️ Sposób Użycia</h2>
-                            <ul>
-                                <li>Otwórz stronę internetową</li>
-                                <li>Użyj paska wyszukiwania do przeglądania treści</li>
-                                <li>Dodaj znajomych (jeśli dostępne)</li>
-                                <li>Zacznij rozmawiać w czasie rzeczywistym</li>
-                            </ul>
-
-                            <h2>👤 System Użytkownika i Plany</h2>
-                            <ul>
-                                <li>Bezpieczna autoryzacja</li>
-                                <li>Profile użytkowników</li>
-                                <li>Awatary i personalizacja</li>
-                                <li>💬 Ulepszenia czatu: Czaty grupowe, Powiadomienia, Historia wiadomości</li>
-                                <li>🔍 Ulepszenia wyszukiwania: Zaawansowane filtry, Kategorie, Wyszukiwanie AI</li>
-                                <li>📱 Wsparcie mobilne: Poprawki responsywności, Możliwa wersja aplikacji mobilnej</li>
-                            </ul>
-
-                            <h2>⚠️ Obecne Ograniczenia</h2>
-                            <ul>
-                                <li>Projekt we wczesnej fazie rozwoju</li>
-                                <li>Ograniczona funkcjonalność backendu</li>
-                                <li>Podstawowy interfejs w niektórych obszarach</li>
-                                <li>Funkcje mogą być niekompletne lub eksperymentalne</li>
-                            </ul>
-
-                            <h2>🤝 Wkład i 📄 Licencja</h2>
-                            <ul>
-                                <li>W tej chwili NeoFind jest projektem osobistym. Jednak w przyszłości wkład społeczności może być możliwy. Zachęcamy do sugerowania funkcji, zgłaszania błędów i dzielenia się pomysłami.</li>
-                                <li>Licencja MIT</li>
-                                <li>Copyright (c) 2026 Adrian-dev</li>
-                            </ul>
-                            <p>więc teraz już wiesz, czym jest NeoFind</p>
-                        \`
-                    },
-                    es: {
-                        title: "Sobre NeoFind",
-                        subtitle: "y algo más",
-                        thanks: "Gracias por leer",
-                        html: \`
-                            <h2>¿Qué es NeoFind?</h2>
-                            <ul>
-                                <li>🔎 NeoFind</li>
-                                <li>NeoFind es una plataforma experimental y moderna de búsqueda y comunicación diseñada para combinar potentes funciones de búsqueda con interacción social en tiempo real.</li>
-                                <li>A diferencia de los motores de búsqueda tradicionales, NeoFind no solo se centra en encontrar información, sino también en conectar personas. Reúne búsquedas, chat y funciones sociales en una sola experiencia unificada.</li>
-                            </ul>
-
-                            <h2>🌍 Descripción General</h2>
-                            <ul>
-                                <li>NeoFind está construido como una aplicación web ligera que busca ofrecer:</li>
-                                <li>Experiencia de búsqueda rápida y sencilla</li>
-                                <li>Sistema social integrado (amigos y chat)</li>
-                                <li>Interfaz de usuario limpia y moderna</li>
-                                <li>Interacción en tiempo real entre usuarios</li>
-                                <li>El objetivo del proyecto es explorar cómo las plataformas de búsqueda pueden evolucionar hacia entornos más interactivos y sociales.</li>
-                            </ul>
-
-                            <h2>✨ Características Principales</h2>
-                            <ul>
-                                <li>🔍 Sistema de Búsqueda Inteligente</li>
-                                <li>NeoFind incluye un sistema de búsqueda simple pero eficiente que permite a los usuarios encontrar contenido rápidamente.</li>
-                                <li>Barra de búsqueda minimalista</li>
-                                <li>Tiempo de respuesta rápido</li>
-                                <li>Diseñado para una futura expansión (IA, filtros, etc.)</li>
-                                <li>👥 Sistema de Amigos</li>
-                                <li>Los usuarios pueden conectarse entre sí dentro de NeoFind.</li>
-                                <li>Añadir amigos</li>
-                                <li>Gestionar lista de amigos</li>
-                                <li>Crear una pequeña red social dentro de la aplicación</li>
-                                <li>💬 Chat en Tiempo Real</li>
-                                <li>La comunicación es una parte clave de NeoFind.</li>
-                                <li>Mensajería instantánea</li>
-                                <li>Chat directo entre usuarios</li>
-                                <li>Diseñado para ser simple y rápido</li>
-                                <li>🎨 Interfaz de Usuario</li>
-                                <li>NeoFind se centra en un diseño limpio y moderno.</li>
-                                <li>Fácil de usar</li>
-                                <li>Mínimas distracciones</li>
-                                <li>Diseño adaptativo (mejoras planificadas)</li>
-                                <li>⚡ Rendimiento</li>
-                                <li>La aplicación está optimizada para ser ligera y rápida.</li>
-                                <li>Se ejecuta en el navegador</li>
-                                <li>Sin dependencias pesadas</li>
-                                <li>Tiempos de carga rápidos</li>
-                            </ul>
-
-                            <h2>🧠 Concepto y Visión</h2>
-                            <ul>
-                                <li>NeoFind es más que una simple herramienta de búsqueda: es un experimento.</li>
-                                <li>La idea detrás de NeoFind es: "¿Y si los motores de búsqueda también fueran plataformas sociales?"</li>
-                                <li>En lugar de buscar solos, los usuarios pueden: compartir resultados, chatear sobre lo que encuentran, explorar contenido juntos.</li>
-                                <li>En el futuro, NeoFind puede incluir funciones impulsadas por IA para mejorar tanto la búsqueda como la interacción.</li>
-                            </ul>
-
-                            <h2>🖥️ Uso</h2>
-                            <ul>
-                                <li>Abre el sitio web</li>
-                                <li>Usa la barra de búsqueda para explorar contenido</li>
-                                <li>Añade amigos (si está disponible)</li>
-                                <li>Empieza a chatear en tiempo real</li>
-                            </ul>
-
-                            <h2>👤 Sistema de Usuarios y Futuras Mejoras</h2>
-                            <ul>
-                                <li>Autenticación segura</li>
-                                <li>Perfiles de usuario</li>
-                                <li>Avatares y personalización</li>
-                                <li>💬 Mejoras en el chat: Chats de grupo, Notificaciones, Historial de mensajes</li>
-                                <li>🔍 Mejoras en la búsqueda: Filtros avanzados, Categorías, Búsqueda con IA</li>
-                                <li>📱 Soporte móvil: Mejoras en diseño adaptativo, Posible versión de app móvil</li>
-                            </ul>
-
-                            <h2>⚠️ Limitaciones Actuales</h2>
-                            <ul>
-                                <li>Proyecto en fase inicial</li>
-                                <li>Funcionalidad limitada en el backend</li>
-                                <li>Interfaz de usuario básica en algunas áreas</li>
-                                <li>Las características pueden estar incompletas o ser experimentales</li>
-                            </ul>
-
-                            <h2>🤝 Contribuciones y 📄 Licencia</h2>
-                            <ul>
-                                <li>Por el momento, NeoFind es un proyecto personal. Sin embargo, se pueden permitir contribuciones en el futuro. Siéntete libre de sugerir funciones, reportar errores y compartir ideas.</li>
-                                <li>Licencia MIT</li>
-                                <li>Copyright (c) 2026 Adrian-dev</li>
-                            </ul>
-                            <p>así que ahora ya sabes qué es NeoFind</p>
-                        \`
-                    },
-                    fr: {
-                        title: "À propos de NeoFind",
-                        subtitle: "et bien plus encore",
-                        thanks: "Merci d'avoir lu",
-                        html: \`
-                            <h2>Qu'est-ce que NeoFind ?</h2>
-                            <ul>
-                                <li>🔎 NeoFind</li>
-                                <li>NeoFind est une plateforme expérimentale et moderne de recherche et de communication conçue pour combiner des capacités de recherche puissantes avec des interactions sociales en temps réel.</li>
-                                <li>Contrairement aux moteurs de recherche traditionnels, NeoFind ne se contente pas de trouver des informations, il connecte aussi les personnes. Il réunit recherche, chat et fonctionnalités sociales en une seule expérience unifiée.</li>
-                            </ul>
-
-                            <h2>🌍 Aperçu</h2>
-                            <ul>
-                                <li>NeoFind est conçu comme une application web légère visant à fournir :</li>
-                                <li>Une expérience de recherche simple et rapide</li>
-                                <li>Un système social intégré (amis et chat)</li>
-                                <li>Une interface utilisateur propre et moderne</li>
-                                <li>Des interactions en temps réel entre utilisateurs</li>
-                                <li>Le but du projet est d'explorer comment les plateformes de recherche peuvent évoluer vers des environnements plus interactifs et sociaux.</li>
-                            </ul>
-
-                            <h2>✨ Fonctionnalités Clés</h2>
-                            <ul>
-                                <li>🔍 Système de Recherche Intelligente</li>
-                                <li>NeoFind comprend un système de recherche simple mais efficace permettant d'en trouver rapidement le contenu.</li>
-                                <li>Barre de recherche minimaliste</li>
-                                <li>Temps de réponse rapide</li>
-                                <li>Conçu pour de futures extensions (IA, filtres, etc.)</li>
-                                <li>👥 Système d'Amis</li>
-                                <li>Les utilisateurs peuvent se connecter entre eux dans NeoFind.</li>
-                                <li>Ajouter des amis</li>
-                                <li>Gérer la liste d'amis</li>
-                                <li>Créer un petit réseau social dans l'application</li>
-                                <li>💬 Chat en Temps Réel</li>
-                                <li>La communication est un élément clé de NeoFind.</li>
-                                <li>Messagerie instantanée</li>
-                                <li>Chat direct entre utilisateurs</li>
-                                <li>Conçu pour être simple et rapide</li>
-                                <li>🎨 Interface Utilisateur</li>
-                                <li>NeoFind privilégie un design épuré et moderne.</li>
-                                <li>Facile à utiliser</li>
-                                <li>Distractions minimales</li>
-                                <li>Mise en page réactive (améliorations prévues)</li>
-                                <li>⚡ Performance</li>
-                                <li>L'application est optimisée pour être légère et rapide.</li>
-                                <li>S'exécute dans le navigateur</li>
-                                <li>Pas de dépendances lourdes</li>
-                                <li>Temps de chargement rapides</li>
-                            </ul>
-
-                            <h2>🧠 Concept et Vision</h2>
-                            <ul>
-                                <li>NeoFind est plus qu'un simple outil de recherche — c'est une expérience.</li>
-                                <li>L'idée derrière NeoFind est : « Et si les moteurs de recherche devaient aussi être des plateformes sociales ? »</li>
-                                <li>Au lieu de chercher seul, les utilisateurs peuvent : partager leurs résultats, discuter de leurs découvertes, explorer du contenu ensemble.</li>
-                                <li>À l'avenir, NeoFind pourrait inclure des fonctionnalités IA pour améliorer la recherche et l'interaction.</li>
-                            </ul>
-
-                            <h2>🖥️ Utilisation</h2>
-                            <ul>
-                                <li>Ouvrez le site web</li>
-                                <li>Utilisez la barre de recherche pour explorer du contenu</li>
-                                <li>Ajoutez des amis (si disponible)</li>
-                                <li>Commencez à discuter en temps réel</li>
-                            </ul>
-
-                            <h2>👤 Système Utilisateur et Améliorations Futures</h2>
-                            <ul>
-                                <li>Authentification sécurisée</li>
-                                <li>Profils d'utilisateurs</li>
-                                <li>Avatars et personnalisation</li>
-                                <li>💬 Améliorations du chat : Chats de groupe, Notifications, Historique des messages</li>
-                                <li>🔍 Améliorations de la recherche : Filtres avancés, Catégories, Recherche par IA</li>
-                                <li>📱 Support mobile : Améliorations du design réactif, Version application mobile possible</li>
-                            </ul>
-
-                            <h2>⚠️ Limitations Actuelles</h2>
-                            <ul>
-                                <li>Projet à un stade précoce</li>
-                                <li>Fonctionnalité backend limitée</li>
-                                <li>Interface utilisateur de base dans certains domaines</li>
-                                <li>Les fonctionnalités peuvent être incomplètes ou expérimentales</li>
-                            </ul>
-
-                            <h2>🤝 Contribution et 📄 Licence</h2>
-                            <ul>
-                                <li>Pour le moment, NeoFind est un projet personnel. Cependant, les contributions pourraient être autorisées à l'avenir. N'hésitez pas à suggérer des fonctionnalités, signaler des bugs et partager vos idées.</li>
-                                <li>Licence MIT</li>
-                                <li>Copyright (c) 2026 Adrian-dev</li>
-                            </ul>
-                            <p>vous savez maintenant ce qu'est NeoFind</p>
-                        \`
-                    }
-                };
-
-                function setLang(lang, element) {
-                    if (element) {
-                        document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
-                        element.classList.add('active');
-                    }
-
-                    if (translations[lang]) {
-                        document.getElementById('title-text').innerText = translations[lang].title;
-                        document.getElementById('subtitle-text').innerText = translations[lang].subtitle;
-                        document.getElementById('about-content').innerHTML = translations[lang].html;
-                        document.getElementById('btn-thanks').innerText = translations[lang].thanks;
-                    }
-                }
-
-                // Domyślne załadowanie wersji angielskiej
-                setLang('en');
         </body>`;
+
         window.stop();
-        throw new Error("Rendered about page via URL parameter.");
+
+        throw new Error("Rendered update page via URL parameter.");
+
     }
-})();
+
+})(); 
 
 // --- BLOK WYSYŁANIA E-MAILA POWITALNEGO (EmailJS) ---
 function sendWelcomeEmail(userEmail) {
