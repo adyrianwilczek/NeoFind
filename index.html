@@ -2581,6 +2581,32 @@ setTimeout(() => {
     }
 }
 
+function filterBadWords(text) {
+    let filteredText = text;
+
+    bannedWords.forEach(word => {
+        const normalizedWord = word
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        const escapedWord = normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+        const regex = new RegExp(
+            `(^|[^a-z0-9])${escapedWord}(?=$|[^a-z0-9])`,
+            "gi"
+        );
+
+        filteredText = filteredText.replace(regex, (match, before) => {
+            const wordPart = match.slice(before.length);
+
+            return before + "#".repeat(wordPart.length);
+        });
+    });
+
+    return filteredText;
+}
+
 if(badWord && badWord !== lastBadWord){
     lastBadWord = badWord;
 
@@ -3992,17 +4018,13 @@ async function sendChatMessage(){
 
     if(!text || !currentChatFriend) return;
 
-    // NeoFind profanity filter
-    const badWord = containsBadWord(text);
-
-    if (badWord) {
-        alert("Your message contains an inappropriate word.");
-        return;
-    }
+    // Filter only inappropriate words.
+    // The message itself is still sent.
+    const filteredText = filterBadWords(text);
 
     logAction(
         "NET_CHAT",
-        `Outbound packet payload queued. Target node: [${currentChatFriend}]. Size: ${text.length} chars`,
+        `Outbound packet payload queued. Target node: [${currentChatFriend}]. Size: ${filteredText.length} chars`,
         "tag-net"
     );
 
@@ -4018,7 +4040,7 @@ async function sendChatMessage(){
             .add({
                 from: auth.currentUser.email,
                 fromName: chatDisplayName(),
-                text: text,
+                text: filteredText,
                 date: new Date()
             });
     } catch(e) {
