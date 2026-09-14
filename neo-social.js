@@ -95,6 +95,7 @@
 
         return null;
     }
+}
        
     function firebaseDB() {
         return window.db || null;
