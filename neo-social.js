@@ -69,27 +69,33 @@
     };
 
     function currentUser() {
-        try {
-            if (window.auth?.currentUser) {
-                return window.auth.currentUser;
-            }
-
-            if (
-                window.firebase &&
-                typeof window.firebase.auth === "function"
-            ) {
-                return window.firebase.auth().currentUser;
-            }
-        } catch (error) {
-            console.error(
-                "NeoSocial auth error:",
-                error
-            );
+    try {
+        if (
+            window.auth &&
+            window.auth.currentUser
+        ) {
+            return window.auth.currentUser;
         }
+
+        if (
+            !window.firebase ||
+            !window.firebase.apps ||
+            window.firebase.apps.length === 0
+        ) {
+            return null;
+        }
+
+        return window.firebase.auth().currentUser;
+
+    } catch (error) {
+        console.error(
+            "NeoSocial auth error:",
+            error
+        );
 
         return null;
     }
-
+       
     function firebaseDB() {
         return window.db || null;
     }
