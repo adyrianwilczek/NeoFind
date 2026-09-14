@@ -1946,13 +1946,70 @@ const GLOBAL_UPDATE = "🚀 Added login, admin panel and ban system + bug fixes"
 
 
 const bannedWords = [
-    "niger",
-    "penis",
-    "idiota",
-    "debil",
-    "fuck",
-    "idiot",
-    "niga"
+  "kurwa",
+  "kurw*a",
+  "k*rwa",
+  "chuj",
+  "huj",
+  "chuja",
+  "chujem",
+  "chujowy",
+  "jebany",
+  "jebana",
+  "jebane",
+  "jebać",
+  "jebac",
+  "jebie",
+  "jebię",
+  "wypierdalaj",
+  "wypierdalać",
+  "wypierdalac",
+  "pierdol",
+  "pierdolić",
+  "pierdolic",
+  "pierdolony",
+  "pierdolona",
+  "pierdolone",
+  "spierdalaj",
+  "spierdalać",
+  "spierdalac",
+  "sukinsyn",
+  "sukinsynu",
+  "suka",
+  "suką",
+  "dupek",
+  "dupa",
+  "dupę",
+  "dupie",
+  "gówno",
+  "gowno",
+  "gówniany",
+  "gowniany",
+  "zasrany",
+  "zasrana",
+  "zasrane",
+  "obsrany",
+  "obsrana",
+  "cholera",
+  "kurwiszon",
+  "kurwiszcze",
+  "skurwysyn",
+  "skurwiel",
+  "skurwiela",
+  "debil",
+  "idiota",
+  "idiotka",
+  "kretyn",
+  "kretynka",
+  "palant",
+  "frajer",
+  "frajerka",
+  "ciota",
+  "śmieć",
+  "smiec",
+  "śmieciu",
+  "gnida",
+  "gnido"
 ];
 const translations = {
     en: {
@@ -2808,10 +2865,25 @@ function clearHistory(){
 }
 
 /* banned words */
-function containsBadWord(text){
-    text = text.toLowerCase();
+function containsBadWord(text) {
+    const normalizedText = text
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
 
-    return bannedWords.find(word => text.includes(word));
+    return bannedWords.find(word => {
+        const normalizedWord = word
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
+        const regex = new RegExp(
+            `(^|[^a-z0-9])${normalizedWord}(?=$|[^a-z0-9])`,
+            "i"
+        );
+
+        return regex.test(normalizedText);
+    });
 }
 
 /* FAV */
