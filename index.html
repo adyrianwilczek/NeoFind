@@ -394,14 +394,6 @@ body {
     --chrome-h: 136px;
 }
 
-/* ☀️ summer mode: trwały ciepły kolor (taki jak flash przy włączeniu) */
-body.summer-theme {
-    background:
-        linear-gradient(135deg, rgba(255,180,0,0.35), rgba(255,100,0,0.25), rgba(255,200,50,0.3)),
-        linear-gradient(135deg, #0f2027, #203a43, #2c5364) !important;
-    background-attachment: fixed !important;
-}
-
 /* 📦 container */
 .container {
     text-align: center;
@@ -1358,7 +1350,7 @@ body.ocean {
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
-        <button class="lang-btn" data-lang="summer" onclick="toggleSummerMode()">☀️</button>
+        <button class="lang-btn" data-lang="autumn" onclick="toggleautumnMode()">☀️</button>
         <button class="lang-btn" onclick="toggleMundialMode()" aria-label="Tryb mundialowy">⚽</button>
         <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" aria-label="Pełny ekran" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
             <svg id="fsIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
@@ -2165,9 +2157,9 @@ didYouKnow: [
 ]
     },
 
-    summer: {
+    autumn: {
         search: "☀️ search...",
-        greet: "Hi {name}! enjoy summer ☀️",
+        greet: "Hi {name}! enjoy autumn ☀️",
         greetW: "Hi {name}! it's {temp}°C ☀️",
         settings: "☀️ Settings",
         language: "☀️ Language",
@@ -2176,7 +2168,7 @@ didYouKnow: [
         console: "☀️ Debug console",
         save: "☀️ Save",
         report: "☀️ Report winter!",
-        admin: "☀️ summer god",
+        admin: "☀️ autumn god",
         noResults: "☀️ what do you mean",
         favorites: "☀️ Fav",
         noFavorites: "☀️ No fav",
@@ -2188,9 +2180,9 @@ didYouKnow: [
         logout: "☀️ Log out",
         news: "☀️ NeoNews",
         rateUs: "☀️ Rate Us",
-        premium: "💎 good summer",
+        premium: "💎 good autumn",
         banUser: "☀️ kick to winter",
-        unbanUser: "☀️ invite to summer",
+        unbanUser: "☀️ invite to autumn",
         noHistory: "☀️ No history",
         close: "☀️ Close", add: "☀️ Add", send: "☀️ Send",
         friends: "☀️ Friends", profile: "☀️ Profile", navReport: "🌞", navChat: "☀️ Chat",
@@ -2205,9 +2197,9 @@ didYouKnow: [
         currentPassPh: "☀️ Old password", newPassPh: "☀️ New password",
         repeatPassPh: "☀️ Repeat", savePasswordBtn: "☀️ Save",
         writeReviewPh: "☀️ Write something sunny...", sendRatingBtn: "☀️ Rate the sun",
-        didYouKnowTitle: "☀️ Summer fact:",
+        didYouKnowTitle: "☀️ autumn fact:",
 didYouKnow: [
-    "The summer is watching.",
+    "The autumn is watching.",
     "You unlocked hidden NeoFind mode.",
     "Neo owns the system.",
     "Nothing is real.",
@@ -2353,13 +2345,13 @@ async function getAIResponse(query) {
 }
 
 /* ☀️ CIEKAWOSTKI O LECIE (AI, paczka + rotacja lokalna) */
-/* 💡 CIEKAWOSTKI Z AI (summer / mundial / tech) - paczka + rotacja lokalna */
-let summerFacts = {};          // per język
+/* 💡 CIEKAWOSTKI Z AI (autumn / mundial / tech) - paczka + rotacja lokalna */
+let autumnFacts = {};          // per język
 let footballFacts = {};        // per język
 let techFacts = {};            // per język: { pl:[...], en:[...], es:[...] }
 const factsLoading = {};       // proste blokady wg klucza cache
 
-const SUMMER_FACTS_FALLBACK = [
+const autumn_FACTS_FALLBACK = [
     "Przesilenie letnie (około 21 czerwca) to najdłuższy dzień roku na półkuli północnej.",
     "Pory roku wynikają z nachylenia osi Ziemi, a nie z odległości od Słońca - latem Ziemia jest nawet nieco dalej od niego.",
     "Cykady w upalne dni potrafią hałasować z głośnością bliską 100 decybeli.",
@@ -2419,7 +2411,7 @@ async function loadFactsPack(cacheKey, prompt, fallback, force){
     return list.length ? list : fallback.slice();
 }
 
-// język ciekawostek = język systemu (summer ma UI po angielsku -> en)
+// język ciekawostek = język systemu (autumn ma UI po angielsku -> en)
 function factsLang(){
     return (currentLang === "pl" || currentLang === "es") ? currentLang : "en";
 }
@@ -2427,9 +2419,9 @@ function factsLang(){
 // prompt wg tematu i języka; ton: ładny, lekko młodzieżowy i ironiczny, ale poprawny
 function factsPrompt(topic, lang){
     const topics = {
-        summer: {
+        autumn: {
             pl: "o lecie (historia, astronomia, fizyka, przyroda, kultura, rekordy)",
-            en: "about summer (history, astronomy, physics, nature, culture, records)",
+            en: "about autumn (history, astronomy, physics, nature, culture, records)",
             es: "sobre el verano (historia, astronomía, física, naturaleza, cultura, récords)"
         },
         football: {
@@ -2449,18 +2441,18 @@ function factsPrompt(topic, lang){
     return `Give 15 true, genuinely interesting facts ${t}. Write in English with nice, slightly youthful and a touch ironic language, but with flawless spelling, grammar, syntax and punctuation. Mix serious with lighter ones, to hook 11-year-olds and older kids. One per line, no numbering, no dashes, max one sentence each. Do not add any intro, comment or summary - output only the facts, one per line.`;
 }
 
-async function loadSummerFacts(force){ const l = factsLang(); summerFacts[l] = await loadFactsPack("summerFacts_v2_" + l, factsPrompt("summer", l), SUMMER_FACTS_FALLBACK, force); }
+async function loadautumnFacts(force){ const l = factsLang(); autumnFacts[l] = await loadFactsPack("autumnFacts_v2_" + l, factsPrompt("autumn", l), autumn_FACTS_FALLBACK, force); }
 async function loadFootballFacts(force){ const l = factsLang(); footballFacts[l] = await loadFactsPack("footballFacts_v2_" + l, factsPrompt("football", l), FOOTBALL_FACTS_FALLBACK, force); }
 async function loadTechFacts(force){ const l = factsLang(); techFacts[l] = await loadFactsPack("techFacts_v2_" + l, factsPrompt("tech", l), TECH_FACTS_FALLBACK, force); }
 
-// pula ciekawostek dla aktualnego trybu (mundial > summer > tech), w języku systemu
+// pula ciekawostek dla aktualnego trybu (mundial > autumn > tech), w języku systemu
 function currentTips(){
     const l = factsLang();
     if(localStorage.getItem('mundial') === 'on'){
         const f = footballFacts[l]; return (f && f.length) ? f : FOOTBALL_FACTS_FALLBACK;
     }
-    if(localStorage.getItem('summer') === 'on'){
-        const f = summerFacts[l]; return (f && f.length) ? f : SUMMER_FACTS_FALLBACK;
+    if(localStorage.getItem('autumn') === 'on'){
+        const f = autumnFacts[l]; return (f && f.length) ? f : autumn_FACTS_FALLBACK;
     }
     const f = techFacts[l];
     if(f && f.length) return f;
@@ -3397,7 +3389,7 @@ function handleCommand(e){
         log("/help");
         log("/clearhistory");
         log("/search text");
-        log("/language en/es/pl/summer");
+        log("/language en/es/pl/autumn");
         log("/time");
         log("/date");
         log("/about");
@@ -3415,9 +3407,9 @@ function handleCommand(e){
     }
     else if(input.startsWith("/language")){
         const lang = input.replace("/language ","").toLowerCase();
-        if(lang === "summer"){
-            toggleSummerMode();
-            log("summer mode toggled");
+        if(lang === "autumn"){
+            toggleautumnMode();
+            log("autumn mode toggled");
         } else if(["en","es","pl"].includes(lang)){
             currentLang = lang;
             localStorage.setItem("lang", lang);
@@ -3425,7 +3417,7 @@ function handleCommand(e){
             updateLanguage();
             log("language changed to " + lang);
         } else {
-            log("❌ available: en, es, pl, summer");
+            log("❌ available: en, es, pl, autumn");
         }
     }
     else if(input === "/time"){
@@ -4078,25 +4070,311 @@ document.addEventListener("fullscreenchange", () => {
     }
 });
 
-// ☀️ summer jako przełącznik motywu (jak mundial): nakładka na język, NIE osobny język
-function setSummerMode(on, fresh){
-    const btn = document.querySelector('.lang-btn[data-lang="summer"]');
-    if(on){
-        localStorage.setItem('summer', 'on');
-        document.body.classList.add('summer-theme');
-        if(btn) btn.classList.add('lang-active');
-        loadSummerFacts(fresh).then(updateDidYouKnow); // letnie ciekawostki w języku systemu
-    } else {
-        localStorage.setItem('summer', 'off');
-        document.body.classList.remove('summer-theme');
-        if(btn) btn.classList.remove('lang-active');
-        updateDidYouKnow(); // powrót do normalnych ciekawostek
+// 🍂 NEOFIND AUTUMN MODE
+// Zastępuje autumn Mode realistycznie opadającymi liśćmi.
+
+function createAutumnLeaves() {
+    let container = document.getElementById("neo-autumn-leaves");
+
+    if (container) return;
+
+    container = document.createElement("div");
+    container.id = "neo-autumn-leaves";
+
+    container.style.cssText = `
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        overflow: hidden;
+        z-index: 999998;
+    `;
+
+    document.body.appendChild(container);
+
+    const leafColors = [
+        "#b52b20",
+        "#d65a1f",
+        "#e08a18",
+        "#c78b20",
+        "#8f3d20",
+        "#a94b25",
+        "#d9a52b"
+    ];
+
+    function createLeaf() {
+        const leaf = document.createElement("div");
+
+        const size = 10 + Math.random() * 14;
+        const startX = Math.random() * 100;
+        const duration = 7 + Math.random() * 7;
+        const delay = Math.random() * 4;
+        const drift = 50 + Math.random() * 180;
+        const rotation = 360 + Math.random() * 720;
+
+        leaf.style.position = "absolute";
+        leaf.style.left = startX + "vw";
+        leaf.style.top = "-30px";
+        leaf.style.width = size + "px";
+        leaf.style.height = (size * 0.72) + "px";
+
+        leaf.style.background = leafColors[
+            Math.floor(Math.random() * leafColors.length)
+        ];
+
+        /*
+         * Kształt liścia:
+         * nie jest emoji ani kwadratem.
+         */
+        leaf.style.borderRadius = "100% 0 100% 0";
+        leaf.style.transformOrigin = "50% 50%";
+
+        /*
+         * Delikatne światło + cień daje bardziej naturalny wygląd.
+         */
+        leaf.style.boxShadow = `
+            0 1px 3px rgba(0,0,0,0.22),
+            inset -2px -1px 2px rgba(0,0,0,0.12),
+            inset 2px 1px 2px rgba(255,255,255,0.12)
+        `;
+
+        leaf.style.opacity = String(
+            0.65 + Math.random() * 0.3
+        );
+
+        /*
+         * Własna animacja każdego liścia.
+         *
+         * Nie spada prosto:
+         *      ↓
+         *
+         * tylko:
+         *      ↘
+         *       ↙
+         *        ↘
+         *         →
+         *          ↙
+         *
+         * czyli lekkie "pływanie" w powietrzu.
+         */
+        const direction = Math.random() > 0.5 ? 1 : -1;
+
+        const animationName =
+            "neoLeafFall_" +
+            Math.random().toString(36).substring(2, 10);
+
+        const style = document.createElement("style");
+
+        style.textContent = `
+            @keyframes ${animationName} {
+
+                0% {
+                    transform:
+                        translate3d(0, -40px, 0)
+                        rotate(0deg)
+                        scale(1);
+                }
+
+                15% {
+                    transform:
+                        translate3d(
+                            ${direction * 45}px,
+                            15vh,
+                            0
+                        )
+                        rotate(${rotation * 0.18}deg)
+                        scale(0.95);
+                }
+
+                30% {
+                    transform:
+                        translate3d(
+                            ${direction * -20}px,
+                            30vh,
+                            0
+                        )
+                        rotate(${rotation * 0.37}deg)
+                        scale(1.05);
+                }
+
+                45% {
+                    transform:
+                        translate3d(
+                            ${direction * 75}px,
+                            45vh,
+                            0
+                        )
+                        rotate(${rotation * 0.55}deg)
+                        scale(0.92);
+                }
+
+                60% {
+                    transform:
+                        translate3d(
+                            ${direction * 15}px,
+                            62vh,
+                            0
+                        )
+                        rotate(${rotation * 0.72}deg)
+                        scale(1.03);
+                }
+
+                75% {
+                    transform:
+                        translate3d(
+                            ${direction * 105}px,
+                            77vh,
+                            0
+                        )
+                        rotate(${rotation * 0.87}deg)
+                        scale(0.94);
+                }
+
+                88% {
+                    transform:
+                        translate3d(
+                            ${direction * 35}px,
+                            90vh,
+                            0
+                        )
+                        rotate(${rotation * 0.95}deg)
+                        scale(1);
+                }
+
+                100% {
+                    transform:
+                        translate3d(
+                            ${direction * 80}px,
+                            110vh,
+                            0
+                        )
+                        rotate(${rotation}deg)
+                        scale(0.9);
+                }
+            }
+        `;
+
+        document.head.appendChild(style);
+
+        leaf.style.animation =
+            `${animationName} ${duration}s linear ${delay}s infinite`;
+
+        container.appendChild(leaf);
+    }
+
+    /*
+     * Kilkadziesiąt liści, ale z różnymi parametrami,
+     * więc nie tworzą identycznego deszczu.
+     */
+    for (let i = 0; i < 28; i++) {
+        createLeaf();
     }
 }
-function toggleSummerMode(){
-    const turningOn = localStorage.getItem('summer') !== 'on';
-    setSummerMode(turningOn, turningOn); // świeża paczka przy każdym włączeniu
-    logAction("UI_THEME", `Theme modifier toggled. Summer mode status changed.`, "tag-ui");
+
+
+function removeAutumnLeaves() {
+    const container = document.getElementById("neo-autumn-leaves");
+
+    if (container) {
+        container.remove();
+    }
+
+    /*
+     * Usuwamy też wygenerowane animacje.
+     */
+    document
+        .querySelectorAll("style[data-neo-autumn]")
+        .forEach(style => style.remove());
+}
+
+
+// 🍂 Włączenie / wyłączenie Autumn Mode
+function setAutumnMode(on, fresh) {
+
+    const btn = document.querySelector(
+        '.lang-btn[data-lang="autumn"]'
+    );
+
+    if (on) {
+
+        localStorage.setItem("autumn", "on");
+
+        /*
+         * Przycisk nadal korzysta z istniejącego
+         * mechanizmu autumn Mode, ale wizualnie
+         * otrzymuje teraz jesienne liście.
+         */
+        if (btn) {
+            btn.textContent = "🍂";
+            btn.setAttribute(
+                "aria-label",
+                "Autumn Mode"
+            );
+            btn.setAttribute(
+                "title",
+                "Autumn Mode"
+            );
+        }
+
+        createAutumnLeaves();
+
+    } else {
+
+        localStorage.removeItem("autumn");
+
+        if (btn) {
+            btn.textContent = "☀️";
+            btn.setAttribute(
+                "aria-label",
+                "autumn Mode"
+            );
+            btn.setAttribute(
+                "title",
+                "autumn Mode"
+            );
+        }
+
+        removeAutumnLeaves();
+    }
+}
+
+
+// 🍂 Przycisk Autumn Mode
+function toggleautumnMode() {
+
+    const turningOn =
+        localStorage.getItem("autumn") !== "on";
+
+    setautumnMode(turningOn, turningOn);
+
+    if (typeof logAction === "function") {
+        logAction(
+            "UI_THEME",
+            "Theme modifier toggled. Autumn mode status changed.",
+            "tag-ui"
+        );
+    }
+}
+
+
+// Przywrócenie trybu po odświeżeniu strony
+if (localStorage.getItem("autumn") === "on") {
+
+    if (document.readyState === "loading") {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            () => {
+                createAutumnLeaves();
+            }
+        );
+
+    } else {
+
+        createAutumnLeaves();
+
+    }
 }
 
 function switchLang(lang){
@@ -4108,19 +4386,19 @@ function updateLanguage(){
     renderGreeting();
     const t = translations[currentLang];
     document.querySelectorAll(".lang-btn").forEach(b => {
-        if(b.dataset.lang === "summer"){
-            b.classList.toggle("lang-active", localStorage.getItem('summer') === 'on');
+        if(b.dataset.lang === "autumn"){
+            b.classList.toggle("lang-active", localStorage.getItem('autumn') === 'on');
         } else {
             b.classList.toggle("lang-active", b.dataset.lang === currentLang);
         }
     });
-    // trwały ciepły motyw gdy summer aktywny (flaga niezależna od języka)
-    document.body.classList.toggle("summer-theme", localStorage.getItem('summer') === 'on');
+    // trwały ciepły motyw gdy autumn aktywny (flaga niezależna od języka)
+    document.body.classList.toggle("autumn-theme", localStorage.getItem('autumn') === 'on');
     // ciekawostki z AI wg trybu i języka systemu - odśwież wyświetlaną po pobraniu
     if(localStorage.getItem('mundial') === 'on'){
         loadFootballFacts().then(updateDidYouKnow);
-    } else if(localStorage.getItem('summer') === 'on'){
-        loadSummerFacts().then(updateDidYouKnow);
+    } else if(localStorage.getItem('autumn') === 'on'){
+        loadautumnFacts().then(updateDidYouKnow);
     } else {
         loadTechFacts().then(updateDidYouKnow); // tryb normalny: IT/programowanie/Linux/gry/NeoFind
     }
@@ -5156,7 +5434,7 @@ window.sendNeoAiMessage = async function() {
         const requestBody = {
             model: "mistral-small-latest",
             messages: [
-                { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, live football scores, themed modes (World Cup, summer), premium codes, and a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.` },
+                { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, live football scores, themed modes (World Cup, autumn), premium codes, and a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.` },
                 ...neoHistory.slice(-10)
             ],
             max_tokens: 800,
@@ -8391,7 +8669,7 @@ const ALL_MISSIONS = [
     // Hard / Challenging
     { id: 'search_25', title: 'Information Hunter', desc: 'Perform 25 searches in NeoFind', target: 25, reward: 150, type: 'search' },
     { id: 'open_ai_7', title: 'AI Enthusiast', desc: 'Interact with AI Assistant 7 times', target: 7, reward: 120, type: 'open_ai' },
-    { id: 'summer_5', title: 'Theme Switcher', desc: 'Toggle Summer Mode 5 times', target: 5, reward: 80, type: 'summer' },
+    { id: 'autumn_5', title: 'Theme Switcher', desc: 'Toggle autumn Mode 5 times', target: 5, reward: 80, type: 'autumn' },
     { id: 'settings_8', title: 'Customization Freak', desc: 'Visit Settings 8 times', target: 8, reward: 100, type: 'settings' },
 
     // Extreme / Hardcore
@@ -8865,9 +9143,9 @@ async function giveOrbsToUser() {
 <script>
 let savedLang = localStorage.getItem("lang");
 
-if (savedLang === "summer") {
-    localStorage.setItem("summer", "on");
-    savedLang = localStorage.getItem("langBeforeSummer") || "en";
+if (savedLang === "autumn") {
+    localStorage.setItem("autumn", "on");
+    savedLang = localStorage.getItem("langBeforeautumn") || "en";
     localStorage.setItem("lang", savedLang);
 }
 
