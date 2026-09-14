@@ -4341,12 +4341,12 @@ function setAutumnMode(on, fresh) {
 
 
 // 🍂 Przycisk Autumn Mode
-function toggleautumnMode() {
+function toggleAutumnMode() {
 
     const turningOn =
         localStorage.getItem("autumn") !== "on";
 
-    setautumnMode(turningOn, turningOn);
+    setAutumnMode(turningOn, turningOn);
 
     if (typeof logAction === "function") {
         logAction(
