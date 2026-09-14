@@ -5786,11 +5786,21 @@ if (typeof auth !== 'undefined') {
 
     if (urlParams.get("p") !== "support") return;
 
+
+    /* =========================
+       ADMIN EMAILS
+    ========================= */
+
     const adminEmails = [
         "adrian.wilczek@hotmail.com",
         "support.neofind@gmail.com",
         "michal.wilkowski@gmail.com"
     ];
+
+
+    /* =========================
+       SUPPORT CATEGORIES
+    ========================= */
 
     const supportCategories = {
 
@@ -5844,487 +5854,215 @@ if (typeof auth !== 'undefined') {
         "Other": [
             "Other problem"
         ]
+
     };
 
 
+    /* =========================
+       ADMIN CHECK
+    ========================= */
+
     function isAdmin(email) {
+
         return adminEmails.includes(
             String(email || "").toLowerCase()
         );
+
     }
 
 
-    document.documentElement.innerHTML = `
-
-        <head>
-
-            <title>NeoFind Support</title>
-
-            <style>
-
-                * {
-                    box-sizing: border-box;
-                }
-
-                body {
-                    margin: 0;
-                    font-family: Arial, sans-serif;
-                    background:
-                        radial-gradient(
-                            circle at top,
-                            #18233d 0%,
-                            #0b1020 45%,
-                            #070b14 100%
-                        );
-                    color: white;
-                    min-height: 100vh;
-                }
-
-                #supportApp {
-                    width: 100%;
-                    min-height: 100vh;
-                    padding: 40px 20px;
-                }
-
-                .support-container {
-                    width: 100%;
-                    max-width: 1000px;
-                    margin: auto;
-                }
-
-                .support-header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                }
-
-                .support-header h1 {
-                    margin: 0;
-                    font-size: 38px;
-                    font-weight: 800;
-                }
-
-                .support-header p {
-                    color: #9ba7bd;
-                    margin-top: 10px;
-                    font-size: 15px;
-                }
-
-                .user-status {
-                    margin-top: 10px;
-                    font-size: 13px;
-                    color: #7f8da5;
-                }
-
-                .card {
-                    background: rgba(18, 25, 43, 0.95);
-                    border: 1px solid rgba(255,255,255,0.08);
-                    border-radius: 18px;
-                    padding: 25px;
-                    box-shadow: 0 15px 45px rgba(0,0,0,0.35);
-                    margin-bottom: 20px;
-                }
-
-                .card h2 {
-                    margin-top: 0;
-                    font-size: 22px;
-                }
-
-                .subtitle {
-                    color: #9ba7bd;
-                    line-height: 1.5;
-                }
-
-                .category-grid {
-                    display: grid;
-                    grid-template-columns: repeat(
-                        auto-fit,
-                        minmax(180px, 1fr)
-                    );
-                    gap: 12px;
-                    margin-top: 20px;
-                }
-
-                .category-button {
-                    border: 1px solid rgba(255,255,255,0.08);
-                    background: #151e33;
-                    color: white;
-                    padding: 18px;
-                    border-radius: 14px;
-                    cursor: pointer;
-                    text-align: left;
-                    font-size: 15px;
-                    transition: 0.2s;
-                }
-
-                .category-button:hover {
-                    background: #202c48;
-                    transform: translateY(-2px);
-                }
-
-                .subcategory-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    margin-top: 20px;
-                }
-
-                .subcategory-button {
-                    border: 1px solid rgba(255,255,255,0.08);
-                    background: #151e33;
-                    color: white;
-                    padding: 15px;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    text-align: left;
-                    font-size: 15px;
-                    transition: 0.2s;
-                }
-
-                .subcategory-button:hover {
-                    background: #202c48;
-                }
-
-                .back-button {
-                    border: none;
-                    background: transparent;
-                    color: #8ea4ff;
-                    cursor: pointer;
-                    padding: 0;
-                    margin-bottom: 15px;
-                    font-size: 14px;
-                }
-
-                .back-button:hover {
-                    text-decoration: underline;
-                }
-
-                .loading {
-                    text-align: center;
-                    padding: 30px;
-                    color: #9ba7bd;
-                }
-
-                .error {
-                    color: #ff7777;
-                    margin-top: 15px;
-                }
-
-                .chat-layout {
-                    display: grid;
-                    grid-template-columns: 280px 1fr;
-                    gap: 18px;
-                }
-
-                .request-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                    max-height: 650px;
-                    overflow-y: auto;
-                }
-
-                .request-item {
-                    background: #151e33;
-                    border: 1px solid rgba(255,255,255,0.07);
-                    border-radius: 12px;
-                    padding: 14px;
-                    cursor: pointer;
-                    transition: 0.2s;
-                }
-
-                .request-item:hover {
-                    background: #202c48;
-                }
-
-                .request-item.active {
-                    border-color: #7187ff;
-                    background: #202b4a;
-                }
-
-                .request-item strong {
-                    display: block;
-                    margin-bottom: 5px;
-                }
-
-                .request-item small {
-                    color: #8996ad;
-                }
-
-                .chat-box {
-                    display: flex;
-                    flex-direction: column;
-                    height: 650px;
-                }
-
-                .chat-header {
-                    border-bottom: 1px solid rgba(255,255,255,0.08);
-                    padding-bottom: 15px;
-                    margin-bottom: 15px;
-                }
-
-                .chat-header h3 {
-                    margin: 0 0 6px 0;
-                }
-
-                .chat-header small {
-                    color: #8d9ab0;
-                }
-
-                .messages {
-                    flex: 1;
-                    overflow-y: auto;
-                    padding: 5px;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 10px;
-                }
-
-                .message {
-                    max-width: 80%;
-                    padding: 11px 14px;
-                    border-radius: 13px;
-                    line-height: 1.45;
-                    word-break: break-word;
-                }
-
-                .message.user {
-                    align-self: flex-end;
-                    background: #4159d9;
-                }
-
-                .message.admin {
-                    align-self: flex-start;
-                    background: #202a40;
-                }
-
-                .message-author {
-                    font-size: 11px;
-                    opacity: 0.7;
-                    margin-bottom: 4px;
-                }
-
-                .message-time {
-                    font-size: 10px;
-                    opacity: 0.5;
-                    margin-top: 5px;
-                }
-
-                .chat-input {
-                    display: flex;
-                    gap: 10px;
-                    margin-top: 15px;
-                }
-
-                .chat-input input {
-                    flex: 1;
-                    padding: 13px;
-                    border-radius: 12px;
-                    border: 1px solid rgba(255,255,255,0.1);
-                    background: #0d1424;
-                    color: white;
-                    outline: none;
-                }
-
-                .chat-input button {
-                    padding: 13px 20px;
-                    border: none;
-                    border-radius: 12px;
-                    background: #536dff;
-                    color: white;
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-
-                .chat-input button:hover {
-                    background: #667eff;
-                }
-
-                .close-button {
-                    margin-top: 10px;
-                    width: 100%;
-                    padding: 12px;
-                    border: none;
-                    border-radius: 10px;
-                    background: #5a2028;
-                    color: #ffb7be;
-                    cursor: pointer;
-                }
-
-                .close-button:hover {
-                    background: #71303a;
-                }
-
-                .closed-message {
-                    text-align: center;
-                    padding: 15px;
-                    color: #9ba7bd;
-                    border-top: 1px solid rgba(255,255,255,0.08);
-                    margin-top: 15px;
-                }
-
-                .status-open {
-                    color: #61d68b;
-                }
-
-                .status-closed {
-                    color: #ff7777;
-                }
-
-                @media (max-width: 750px) {
-
-                    .chat-layout {
-                        grid-template-columns: 1fr;
-                    }
-
-                    .request-list {
-                        max-height: 250px;
-                    }
-
-                    .chat-box {
-                        height: 600px;
-                    }
-
-                }
-
-            </style>
-
-        </head>
-
-        <body>
-
-            <div id="supportApp">
-
-                <div class="support-container">
-
-                    <div class="support-header">
-
-                        <h1>🛠️ NeoFind Support</h1>
-
-                        <p>
-                            Contact NeoFind administration
-                            and get help with your problem.
-                        </p>
-
-                        <div
-                            id="supportUserStatus"
-                            class="user-status"
-                        >
-                            Checking account...
-                        </div>
-
+    /* =========================
+       MAIN SUPPORT PAGE
+    ========================= */
+
+    document.body.innerHTML = `
+
+        <div
+            id="supportPage"
+            style="
+                min-height:100vh;
+                background:#080d18;
+                color:white;
+                font-family:Arial,sans-serif;
+                padding:40px 20px;
+            "
+        >
+
+            <div
+                style="
+                    max-width:900px;
+                    margin:auto;
+                "
+            >
+
+                <div
+                    style="
+                        text-align:center;
+                        margin-bottom:30px;
+                    "
+                >
+
+                    <h1
+                        style="
+                            font-size:38px;
+                            margin:0;
+                        "
+                    >
+                        🛠️ NeoFind Support
+                    </h1>
+
+                    <p
+                        style="
+                            color:#9aa6bb;
+                            margin-top:10px;
+                        "
+                    >
+                        Contact NeoFind administration
+                        and get help with your problem.
+                    </p>
+
+                    <div
+                        id="supportUserStatus"
+                        style="
+                            color:#71809a;
+                            font-size:13px;
+                            margin-top:8px;
+                        "
+                    >
+                        Checking account...
                     </div>
 
-                    <div id="supportContent"></div>
-
                 </div>
+
+
+                <div id="supportContent"></div>
 
             </div>
 
-        </body>
+        </div>
+
     `;
 
-    window.stop();
+
+    /* =========================
+       SAME LOGIN METHOD AS BEFORE
+       ========================= */
+
+    const user = firebase.auth().currentUser;
+
+    const status =
+        document.getElementById("supportUserStatus");
+
+    const content =
+        document.getElementById("supportContent");
 
 
-    const waitForFirebase = setInterval(() => {
+    if (!user) {
 
-        if (
-            typeof firebase === "undefined" ||
-            typeof db === "undefined"
-        ) {
-            return;
-        }
+        status.textContent = "Not logged in";
 
-        clearInterval(waitForFirebase);
+        content.innerHTML = `
 
-        startSupport();
+            <div
+                style="
+                    background:#111827;
+                    border:1px solid #263247;
+                    border-radius:18px;
+                    padding:30px;
+                    text-align:center;
+                "
+            >
 
-    }, 100);
+                <h2>
+                    🔒 Sign in required
+                </h2>
 
+                <p
+                    style="
+                        color:#9aa6bb;
+                    "
+                >
+                    You must be signed in to contact
+                    NeoFind Support.
+                </p>
 
-    async function startSupport() {
+            </div>
 
-        const content =
-            document.getElementById("supportContent");
+        `;
 
-        const status =
-            document.getElementById("supportUserStatus");
-
-        if (!content) return;
-
-
-        /*
-            SAME AUTH METHOD AS BEFORE
-        */
-
-        const user = firebase.auth().currentUser;
-
-
-        if (!user) {
-
-            status.textContent = "Not logged in";
-
-            content.innerHTML = `
-
-                <div class="card">
-
-                    <h2>🔒 Sign in required</h2>
-
-                    <p class="subtitle">
-                        You must be signed in to contact
-                        NeoFind Support.
-                    </p>
-
-                </div>
-
-            `;
-
-            return;
-        }
-
-
-        const email =
-            String(user.email || "").toLowerCase();
-
-
-        status.textContent =
-            isAdmin(email)
-                ? "🛡️ Administrator"
-                : email;
-
-
-        if (isAdmin(email)) {
-
-            showAdminPanel();
-
-        } else {
-
-            showUserPanel();
-
-        }
+        return;
 
     }
 
 
-    function showUserPanel() {
+    const email =
+        String(user.email || "").toLowerCase();
 
-        const content =
-            document.getElementById("supportContent");
+
+    status.textContent =
+        isAdmin(email)
+            ? "🛡️ Administrator"
+            : email;
+
+
+    /* =========================
+       OPEN USER / ADMIN PANEL
+    ========================= */
+
+    if (isAdmin(email)) {
+
+        showAdminPanel();
+
+    } else {
+
+        showUserPanel();
+
+    }
+
+
+    /* =========================
+       USER PANEL
+    ========================= */
+
+    function showUserPanel() {
 
         content.innerHTML = `
 
-            <div class="card">
+            <div
+                style="
+                    background:#111827;
+                    border:1px solid #263247;
+                    border-radius:18px;
+                    padding:30px;
+                "
+            >
 
-                <h2>How can we help you?</h2>
+                <h2>
+                    How can we help you?
+                </h2>
 
-                <p class="subtitle">
-                    Select the category that best describes
-                    your problem.
+                <p
+                    style="
+                        color:#9aa6bb;
+                    "
+                >
+                    Select the category that best
+                    describes your problem.
                 </p>
 
+
                 <div
-                    id="categoryGrid"
-                    class="category-grid"
+                    id="supportCategories"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(200px,1fr)
+                        );
+                        gap:12px;
+                        margin-top:25px;
+                    "
                 ></div>
 
             </div>
@@ -6333,57 +6071,102 @@ if (typeof auth !== 'undefined') {
 
 
         const grid =
-            document.getElementById("categoryGrid");
+            document.getElementById(
+                "supportCategories"
+            );
 
 
-        Object.keys(supportCategories).forEach(category => {
+        Object.keys(supportCategories)
+            .forEach(category => {
 
-            const button =
-                document.createElement("button");
+                const button =
+                    document.createElement("button");
 
-            button.className = "category-button";
 
-            button.textContent = category;
+                button.textContent =
+                    category;
 
-            button.onclick = () => {
 
-                showSubcategories(category);
+                button.style.cssText = `
+                    padding:18px;
+                    border-radius:14px;
+                    border:1px solid #2a3852;
+                    background:#151f32;
+                    color:white;
+                    cursor:pointer;
+                    text-align:left;
+                    font-size:15px;
+                `;
 
-            };
 
-            grid.appendChild(button);
+                button.onclick = function () {
 
-        });
+                    showSubcategories(category);
+
+                };
+
+
+                grid.appendChild(button);
+
+            });
 
     }
 
 
+    /* =========================
+       SUBCATEGORIES
+    ========================= */
+
     function showSubcategories(category) {
-
-        const content =
-            document.getElementById("supportContent");
-
 
         content.innerHTML = `
 
-            <div class="card">
+            <div
+                style="
+                    background:#111827;
+                    border:1px solid #263247;
+                    border-radius:18px;
+                    padding:30px;
+                "
+            >
 
                 <button
-                    class="back-button"
-                    id="backToCategories"
+                    id="supportBack"
+                    style="
+                        background:none;
+                        border:none;
+                        color:#7f96ff;
+                        cursor:pointer;
+                        font-size:14px;
+                        margin-bottom:15px;
+                    "
                 >
                     ← Back
                 </button>
 
-                <h2>${escapeHtml(category)}</h2>
 
-                <p class="subtitle">
+                <h2>
+                    ${escapeHtml(category)}
+                </h2>
+
+
+                <p
+                    style="
+                        color:#9aa6bb;
+                    "
+                >
                     Select the specific issue.
                 </p>
 
+
                 <div
-                    id="subcategoryList"
-                    class="subcategory-list"
+                    id="supportSubcategories"
+                    style="
+                        display:flex;
+                        flex-direction:column;
+                        gap:10px;
+                        margin-top:20px;
+                    "
                 ></div>
 
             </div>
@@ -6391,84 +6174,110 @@ if (typeof auth !== 'undefined') {
         `;
 
 
-        document
-            .getElementById("backToCategories")
-            .onclick = showUserPanel;
+        document.getElementById(
+            "supportBack"
+        ).onclick = function () {
+
+            showUserPanel();
+
+        };
 
 
         const list =
-            document.getElementById("subcategoryList");
+            document.getElementById(
+                "supportSubcategories"
+            );
 
 
-        supportCategories[category].forEach(subcategory => {
+        supportCategories[category]
+            .forEach(subcategory => {
 
-            const button =
-                document.createElement("button");
+                const button =
+                    document.createElement("button");
 
-            button.className = "subcategory-button";
 
-            button.textContent = subcategory;
+                button.textContent =
+                    subcategory;
 
-            button.onclick = () => {
 
-                createSupportChat(
-                    category,
-                    subcategory
-                );
+                button.style.cssText = `
+                    padding:15px;
+                    border-radius:12px;
+                    border:1px solid #2a3852;
+                    background:#151f32;
+                    color:white;
+                    cursor:pointer;
+                    text-align:left;
+                    font-size:15px;
+                `;
 
-            };
 
-            list.appendChild(button);
+                button.onclick = function () {
 
-        });
+                    createSupportChat(
+                        category,
+                        subcategory
+                    );
+
+                };
+
+
+                list.appendChild(button);
+
+            });
 
     }
 
+
+    /* =========================
+       CREATE SUPPORT CHAT
+    ========================= */
 
     async function createSupportChat(
         category,
         subcategory
     ) {
 
-        const content =
-            document.getElementById("supportContent");
-
-        const user =
+        const currentUser =
             firebase.auth().currentUser;
 
 
-        if (!user) {
+        if (!currentUser) {
 
-            content.innerHTML = `
-
-                <div class="card">
-
-                    <h2>🔒 Sign in required</h2>
-
-                    <p class="subtitle">
-                        Your session has expired.
-                        Please sign in again.
-                    </p>
-
-                </div>
-
-            `;
+            alert(
+                "You must be signed in."
+            );
 
             return;
+
         }
 
 
-        const email =
-            String(user.email || "").toLowerCase();
+        const userEmail =
+            String(
+                currentUser.email || ""
+            ).toLowerCase();
 
 
         content.innerHTML = `
 
-            <div class="card">
+            <div
+                style="
+                    background:#111827;
+                    border:1px solid #263247;
+                    border-radius:18px;
+                    padding:30px;
+                    text-align:center;
+                "
+            >
 
-                <div class="loading">
+                <p
+                    style="
+                        color:#9aa6bb;
+                    "
+                >
                     Creating support request...
-                </div>
+                </p>
 
             </div>
 
@@ -6478,19 +6287,21 @@ if (typeof auth !== 'undefined') {
         try {
 
             const existing =
-                await db.collection("supportChats")
-                    .where(
-                        "userEmail",
-                        "==",
-                        email
-                    )
-                    .where(
-                        "status",
-                        "==",
-                        "open"
-                    )
-                    .limit(1)
-                    .get();
+                await db.collection(
+                    "supportChats"
+                )
+                .where(
+                    "userEmail",
+                    "==",
+                    userEmail
+                )
+                .where(
+                    "status",
+                    "==",
+                    "open"
+                )
+                .limit(1)
+                .get();
 
 
             if (!existing.empty) {
@@ -6500,35 +6311,49 @@ if (typeof auth !== 'undefined') {
                 );
 
                 return;
+
             }
 
 
             const chatRef =
-                await db.collection("supportChats")
-                    .add({
+                await db.collection(
+                    "supportChats"
+                )
+                .add({
 
-                        userEmail: email,
+                    userEmail:
+                        userEmail,
 
-                        userName:
-                            user.displayName ||
-                            email.split("@")[0],
+                    userName:
+                        currentUser.displayName ||
+                        userEmail.split("@")[0],
 
-                        category: category,
+                    category:
+                        category,
 
-                        subcategory: subcategory,
+                    subcategory:
+                        subcategory,
 
-                        status: "open",
+                    status:
+                        "open",
 
-                        createdAt:
-                            firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt:
+                        firebase.firestore
+                        .FieldValue
+                        .serverTimestamp(),
 
-                        lastMessageDate:
-                            firebase.firestore.FieldValue.serverTimestamp()
+                    lastMessageDate:
+                        firebase.firestore
+                        .FieldValue
+                        .serverTimestamp()
 
-                    });
+                });
 
 
-            openUserChat(chatRef.id);
+            openUserChat(
+                chatRef.id
+            );
+
 
         } catch (error) {
 
@@ -6536,27 +6361,38 @@ if (typeof auth !== 'undefined') {
 
             content.innerHTML = `
 
-                <div class="card">
+                <div
+                    style="
+                        background:#111827;
+                        border:1px solid #263247;
+                        border-radius:18px;
+                        padding:30px;
+                    "
+                >
 
-                    <h2>❌ Could not create request</h2>
+                    <h2>
+                        ❌ Could not create request
+                    </h2>
 
-                    <p class="subtitle">
-                        Something went wrong while creating
-                        your support request.
+                    <p
+                        style="
+                            color:#9aa6bb;
+                        "
+                    >
+                        Something went wrong while
+                        creating your support request.
                     </p>
 
-                    <p class="error">
+                    <p
+                        style="
+                            color:#ff7777;
+                        "
+                    >
                         ${escapeHtml(
-                            error.message || "Unknown error"
+                            error.message ||
+                            "Unknown error"
                         )}
                     </p>
-
-                    <button
-                        class="category-button"
-                        onclick="location.reload()"
-                    >
-                        Try again
-                    </button>
 
                 </div>
 
@@ -6567,31 +6403,35 @@ if (typeof auth !== 'undefined') {
     }
 
 
+    /* =========================
+       USER CHAT
+    ========================= */
+
     function openUserChat(chatId) {
-
-        const content =
-            document.getElementById("supportContent");
-
 
         content.innerHTML = `
 
-            <div class="card chat-box">
+            <div
+                style="
+                    background:#111827;
+                    border:1px solid #263247;
+                    border-radius:18px;
+                    padding:25px;
+                "
+            >
 
-                <div
-                    id="userChatHeader"
-                    class="chat-header"
-                >
-                    Loading...
-                </div>
+                <div id="userChatHeader"></div>
 
                 <div
                     id="userMessages"
-                    class="messages"
+                    style="
+                        height:450px;
+                        overflow-y:auto;
+                        padding:10px 0;
+                    "
                 ></div>
 
-                <div
-                    id="userChatInputArea"
-                ></div>
+                <div id="userInputArea"></div>
 
             </div>
 
@@ -6599,7 +6439,9 @@ if (typeof auth !== 'undefined') {
 
 
         const messages =
-            document.getElementById("userMessages");
+            document.getElementById(
+                "userMessages"
+            );
 
 
         db.collection("supportChats")
@@ -6609,46 +6451,81 @@ if (typeof auth !== 'undefined') {
                 if (!chatDoc.exists) return;
 
 
-                const data = chatDoc.data();
+                const data =
+                    chatDoc.data();
 
 
                 document.getElementById(
                     "userChatHeader"
                 ).innerHTML = `
 
-                    <h3>
+                    <h2>
                         ${escapeHtml(
-                            data.category || "Support"
+                            data.category ||
+                            "Support"
                         )}
-                        →
-                        ${escapeHtml(
-                            data.subcategory || ""
-                        )}
-                    </h3>
 
-                    <small>
+                        →
+
+                        ${escapeHtml(
+                            data.subcategory ||
+                            ""
+                        )}
+                    </h2>
+
+                    <p
+                        style="
+                            color:#9aa6bb;
+                        "
+                    >
                         Status:
+
                         ${
                             data.status === "open"
-                                ? `<span class="status-open">🟢 Open</span>`
-                                : `<span class="status-closed">🔴 Closed</span>`
+
+                            ? `<span
+                                style="
+                                    color:#61d68b;
+                                "
+                            >
+                                🟢 Open
+                            </span>`
+
+                            : `<span
+                                style="
+                                    color:#ff7777;
+                                "
+                            >
+                                🔴 Closed
+                            </span>`
                         }
-                    </small>
+
+                    </p>
 
                 `;
 
 
                 const inputArea =
                     document.getElementById(
-                        "userChatInputArea"
+                        "userInputArea"
                     );
 
 
-                if (data.status === "closed") {
+                if (
+                    data.status === "closed"
+                ) {
 
                     inputArea.innerHTML = `
 
-                        <div class="closed-message">
+                        <div
+                            style="
+                                text-align:center;
+                                color:#9aa6bb;
+                                padding:15px;
+                                border-top:
+                                    1px solid #263247;
+                            "
+                        >
                             This support request is closed.
                         </div>
 
@@ -6658,17 +6535,40 @@ if (typeof auth !== 'undefined') {
 
                     inputArea.innerHTML = `
 
-                        <div class="chat-input">
+                        <div
+                            style="
+                                display:flex;
+                                gap:10px;
+                            "
+                        >
 
                             <input
                                 id="userMessageInput"
                                 type="text"
                                 maxlength="5000"
                                 placeholder="Message NeoFind Support..."
+                                style="
+                                    flex:1;
+                                    padding:14px;
+                                    border-radius:12px;
+                                    border:1px solid #2a3852;
+                                    background:#0b1220;
+                                    color:white;
+                                    outline:none;
+                                "
                             >
 
                             <button
                                 id="sendUserMessage"
+                                style="
+                                    padding:14px 20px;
+                                    border:none;
+                                    border-radius:12px;
+                                    background:#536dff;
+                                    color:white;
+                                    cursor:pointer;
+                                    font-weight:bold;
+                                "
                             >
                                 Send
                             </button>
@@ -6678,38 +6578,37 @@ if (typeof auth !== 'undefined') {
                     `;
 
 
-                    document
-                        .getElementById(
-                            "sendUserMessage"
-                        )
-                        .onclick =
-                            () => sendSupportMessage(
-                                chatId,
-                                "user"
-                            );
+                    document.getElementById(
+                        "sendUserMessage"
+                    ).onclick = function () {
+
+                        sendSupportMessage(
+                            chatId,
+                            "user"
+                        );
+
+                    };
 
 
-                    document
-                        .getElementById(
-                            "userMessageInput"
-                        )
-                        .addEventListener(
-                            "keydown",
-                            event => {
+                    document.getElementById(
+                        "userMessageInput"
+                    ).addEventListener(
+                        "keydown",
+                        function (event) {
 
-                                if (
-                                    event.key === "Enter"
-                                ) {
+                            if (
+                                event.key === "Enter"
+                            ) {
 
-                                    sendSupportMessage(
-                                        chatId,
-                                        "user"
-                                    );
-
-                                }
+                                sendSupportMessage(
+                                    chatId,
+                                    "user"
+                                );
 
                             }
-                        );
+
+                        }
+                    );
 
                 }
 
@@ -6724,16 +6623,16 @@ if (typeof auth !== 'undefined') {
 
                 messages.innerHTML = "";
 
+
                 snapshot.forEach(doc => {
 
-                    const data = doc.data();
-
-                    addMessageToContainer(
+                    addMessage(
                         messages,
-                        data
+                        doc.data()
                     );
 
                 });
+
 
                 messages.scrollTop =
                     messages.scrollHeight;
@@ -6743,19 +6642,21 @@ if (typeof auth !== 'undefined') {
     }
 
 
+    /* =========================
+       SEND MESSAGE
+    ========================= */
+
     async function sendSupportMessage(
         chatId,
-        senderType
+        type
     ) {
 
-        const inputId =
-            senderType === "user"
-                ? "userMessageInput"
-                : "adminMessageInput";
-
-
         const input =
-            document.getElementById(inputId);
+            document.getElementById(
+                type === "user"
+                    ? "userMessageInput"
+                    : "adminMessageInput"
+            );
 
 
         if (!input) return;
@@ -6768,34 +6669,34 @@ if (typeof auth !== 'undefined') {
         if (!text) return;
 
 
-        const user =
+        const currentUser =
             firebase.auth().currentUser;
 
 
-        if (!user) return;
+        if (!currentUser) return;
 
 
         const email =
-            String(user.email || "").toLowerCase();
+            String(
+                currentUser.email || ""
+            ).toLowerCase();
 
 
         try {
 
             const chatDoc =
-                await db.collection("supportChats")
-                    .doc(chatId)
-                    .get();
+                await db.collection(
+                    "supportChats"
+                )
+                .doc(chatId)
+                .get();
 
 
             if (!chatDoc.exists) return;
 
 
-            const chatData =
-                chatDoc.data();
-
-
             if (
-                chatData.status === "closed"
+                chatDoc.data().status === "closed"
             ) {
 
                 return;
@@ -6803,36 +6704,47 @@ if (typeof auth !== 'undefined') {
             }
 
 
-            await db.collection("supportChats")
-                .doc(chatId)
-                .collection("messages")
-                .add({
+            await db.collection(
+                "supportChats"
+            )
+            .doc(chatId)
+            .collection("messages")
+            .add({
 
-                    from: email,
+                from:
+                    email,
 
-                    fromName:
-                        user.displayName ||
-                        email.split("@")[0],
+                fromName:
+                    currentUser.displayName ||
+                    email.split("@")[0],
 
-                    text: text,
+                text:
+                    text,
 
-                    date:
-                        firebase.firestore.FieldValue.serverTimestamp()
+                date:
+                    firebase.firestore
+                    .FieldValue
+                    .serverTimestamp()
 
-                });
+            });
 
 
-            await db.collection("supportChats")
-                .doc(chatId)
-                .update({
+            await db.collection(
+                "supportChats"
+            )
+            .doc(chatId)
+            .update({
 
-                    lastMessageDate:
-                        firebase.firestore.FieldValue.serverTimestamp()
+                lastMessageDate:
+                    firebase.firestore
+                    .FieldValue
+                    .serverTimestamp()
 
-                });
+            });
 
 
             input.value = "";
+
 
         } catch (error) {
 
@@ -6847,18 +6759,24 @@ if (typeof auth !== 'undefined') {
     }
 
 
-    function addMessageToContainer(
+    /* =========================
+       MESSAGE DISPLAY
+    ========================= */
+
+    function addMessage(
         container,
         data
     ) {
 
-        const user =
+        const currentUser =
             firebase.auth().currentUser;
 
 
         const currentEmail =
-            user
-                ? String(user.email || "").toLowerCase()
+            currentUser
+                ? String(
+                    currentUser.email || ""
+                ).toLowerCase()
                 : "";
 
 
@@ -6866,22 +6784,37 @@ if (typeof auth !== 'undefined') {
             document.createElement("div");
 
 
-        const isMine =
-            String(data.from || "").toLowerCase()
-                === currentEmail;
+        const mine =
+            String(
+                data.from || ""
+            ).toLowerCase()
+            === currentEmail;
 
 
-        const isAdminMessage =
-            isAdmin(data.from);
+        message.style.cssText = `
 
+            max-width:75%;
 
-        message.className =
-            "message " +
-            (
-                isMine
-                    ? "user"
-                    : "admin"
-            );
+            padding:12px 15px;
+
+            border-radius:14px;
+
+            margin-bottom:10px;
+
+            background:
+                ${
+                    mine
+                        ? "#4159d9"
+                        : "#202a40"
+                };
+
+            ${
+                mine
+                    ? "margin-left:auto;"
+                    : "margin-right:auto;"
+            }
+
+        `;
 
 
         const date =
@@ -6893,10 +6826,16 @@ if (typeof auth !== 'undefined') {
 
         message.innerHTML = `
 
-            <div class="message-author">
+            <div
+                style="
+                    font-size:11px;
+                    opacity:.7;
+                    margin-bottom:4px;
+                "
+            >
 
                 ${
-                    isAdminMessage
+                    isAdmin(data.from)
                         ? "🛡️ NeoFind Support"
                         : escapeHtml(
                             data.fromName ||
@@ -6907,16 +6846,24 @@ if (typeof auth !== 'undefined') {
 
             </div>
 
+
             <div>
                 ${escapeHtml(
                     data.text || ""
                 )}
             </div>
 
+
             ${
                 date
                     ? `
-                        <div class="message-time">
+                        <div
+                            style="
+                                font-size:10px;
+                                opacity:.5;
+                                margin-top:5px;
+                            "
+                        >
                             ${date.toLocaleString()}
                         </div>
                     `
@@ -6926,34 +6873,47 @@ if (typeof auth !== 'undefined') {
         `;
 
 
-        container.appendChild(message);
+        container.appendChild(
+            message
+        );
 
     }
 
 
+    /* =========================
+       ADMIN PANEL
+    ========================= */
+
     function showAdminPanel() {
-
-        const content =
-            document.getElementById("supportContent");
-
 
         content.innerHTML = `
 
-            <div class="chat-layout">
+            <div
+                style="
+                    display:grid;
+                    grid-template-columns:
+                        280px 1fr;
+                    gap:18px;
+                "
+            >
 
-                <div class="card">
+                <div
+                    style="
+                        background:#111827;
+                        border:1px solid #263247;
+                        border-radius:18px;
+                        padding:20px;
+                    "
+                >
 
-                    <h2>Support Requests</h2>
+                    <h2>
+                        Support Requests
+                    </h2>
 
                     <div
                         id="adminRequests"
-                        class="request-list"
                     >
-
-                        <div class="loading">
-                            Loading requests...
-                        </div>
-
+                        Loading requests...
                     </div>
 
                 </div>
@@ -6961,12 +6921,23 @@ if (typeof auth !== 'undefined') {
 
                 <div
                     id="adminChatArea"
-                    class="card chat-box"
+                    style="
+                        background:#111827;
+                        border:1px solid #263247;
+                        border-radius:18px;
+                        padding:25px;
+                        min-height:600px;
+                    "
                 >
 
-                    <div class="loading">
+                    <p
+                        style="
+                            color:#9aa6bb;
+                            text-align:center;
+                        "
+                    >
                         Select a support request.
-                    </div>
+                    </p>
 
                 </div>
 
@@ -6994,11 +6965,13 @@ if (typeof auth !== 'undefined') {
                 if (snapshot.empty) {
 
                     requests.innerHTML = `
-
-                        <div class="loading">
+                        <p
+                            style="
+                                color:#9aa6bb;
+                            "
+                        >
                             No support requests.
-                        </div>
-
+                        </p>
                     `;
 
                     return;
@@ -7013,69 +6986,71 @@ if (typeof auth !== 'undefined') {
 
 
                     const item =
-                        document.createElement("div");
+                        document.createElement(
+                            "div"
+                        );
 
 
-                    item.className =
-                        "request-item";
+                    item.style.cssText = `
 
+                        padding:14px;
 
-                    item.dataset.chatId =
-                        doc.id;
+                        margin-bottom:10px;
+
+                        border-radius:12px;
+
+                        background:#151f32;
+
+                        border:1px solid #2a3852;
+
+                        cursor:pointer;
+
+                    `;
 
 
                     item.innerHTML = `
 
                         <strong>
+
                             ${
                                 data.status === "open"
                                     ? "🟢"
                                     : "🔴"
                             }
+
                             ${escapeHtml(
                                 data.category ||
                                 "Support"
                             )}
+
                         </strong>
 
-                        <small>
+                        <br>
+
+                        <small
+                            style="
+                                color:#8d9ab0;
+                            "
+                        >
+
                             ${escapeHtml(
                                 data.subcategory ||
                                 ""
                             )}
-                        </small>
 
-                        <br>
+                            <br>
 
-                        <small>
                             ${escapeHtml(
                                 data.userEmail ||
                                 "Unknown user"
                             )}
+
                         </small>
 
                     `;
 
 
-                    item.onclick = () => {
-
-                        document
-                            .querySelectorAll(
-                                ".request-item"
-                            )
-                            .forEach(el => {
-
-                                el.classList.remove(
-                                    "active"
-                                );
-
-                            });
-
-
-                        item.classList.add(
-                            "active"
-                        );
-
+                    item.onclick = function () {
 
                         openAdminChat(
                             doc.id
@@ -7084,7 +7059,9 @@ if (typeof auth !== 'undefined') {
                     };
 
 
-                    requests.appendChild(item);
+                    requests.appendChild(
+                        item
+                    );
 
                 });
 
@@ -7092,6 +7069,10 @@ if (typeof auth !== 'undefined') {
 
     }
 
+
+    /* =========================
+       ADMIN CHAT
+    ========================= */
 
     function openAdminChat(chatId) {
 
@@ -7103,16 +7084,15 @@ if (typeof auth !== 'undefined') {
 
         area.innerHTML = `
 
-            <div
-                id="adminChatHeader"
-                class="chat-header"
-            >
-                Loading...
-            </div>
+            <div id="adminChatHeader"></div>
 
             <div
                 id="adminMessages"
-                class="messages"
+                style="
+                    height:450px;
+                    overflow-y:auto;
+                    padding:10px 0;
+                "
             ></div>
 
             <div
@@ -7143,32 +7123,59 @@ if (typeof auth !== 'undefined') {
                     "adminChatHeader"
                 ).innerHTML = `
 
-                    <h3>
+                    <h2>
+
                         ${escapeHtml(
                             data.category ||
                             "Support"
                         )}
+
                         →
+
                         ${escapeHtml(
                             data.subcategory ||
                             ""
                         )}
-                    </h3>
 
-                    <small>
+                    </h2>
+
+                    <p
+                        style="
+                            color:#9aa6bb;
+                        "
+                    >
+
                         User:
                         ${escapeHtml(
                             data.userEmail ||
                             "Unknown"
                         )}
+
                         <br>
+
                         Status:
+
                         ${
                             data.status === "open"
-                                ? `<span class="status-open">🟢 Open</span>`
-                                : `<span class="status-closed">🔴 Closed</span>`
+
+                            ? `<span
+                                style="
+                                    color:#61d68b;
+                                "
+                            >
+                                🟢 Open
+                            </span>`
+
+                            : `<span
+                                style="
+                                    color:#ff7777;
+                                "
+                            >
+                                🔴 Closed
+                            </span>`
                         }
-                    </small>
+
+                    </p>
 
                 `;
 
@@ -7185,7 +7192,13 @@ if (typeof auth !== 'undefined') {
 
                     inputArea.innerHTML = `
 
-                        <div class="closed-message">
+                        <div
+                            style="
+                                text-align:center;
+                                color:#9aa6bb;
+                                padding:15px;
+                            "
+                        >
                             This support request is closed.
                         </div>
 
@@ -7195,26 +7208,58 @@ if (typeof auth !== 'undefined') {
 
                     inputArea.innerHTML = `
 
-                        <div class="chat-input">
+                        <div
+                            style="
+                                display:flex;
+                                gap:10px;
+                            "
+                        >
 
                             <input
                                 id="adminMessageInput"
                                 type="text"
                                 maxlength="5000"
                                 placeholder="Reply to the user..."
+                                style="
+                                    flex:1;
+                                    padding:14px;
+                                    border-radius:12px;
+                                    border:1px solid #2a3852;
+                                    background:#0b1220;
+                                    color:white;
+                                "
                             >
 
                             <button
                                 id="sendAdminMessage"
+                                style="
+                                    padding:14px 20px;
+                                    border:none;
+                                    border-radius:12px;
+                                    background:#536dff;
+                                    color:white;
+                                    cursor:pointer;
+                                    font-weight:bold;
+                                "
                             >
                                 Send
                             </button>
 
                         </div>
 
+
                         <button
                             id="closeSupportRequest"
-                            class="close-button"
+                            style="
+                                width:100%;
+                                margin-top:10px;
+                                padding:12px;
+                                border:none;
+                                border-radius:10px;
+                                background:#5a2028;
+                                color:#ffb7be;
+                                cursor:pointer;
+                            "
                         >
                             Close Request
                         </button>
@@ -7222,48 +7267,48 @@ if (typeof auth !== 'undefined') {
                     `;
 
 
-                    document
-                        .getElementById(
-                            "sendAdminMessage"
-                        )
-                        .onclick =
-                            () => sendSupportMessage(
-                                chatId,
-                                "admin"
-                            );
+                    document.getElementById(
+                        "sendAdminMessage"
+                    ).onclick = function () {
 
-
-                    document
-                        .getElementById(
-                            "adminMessageInput"
-                        )
-                        .addEventListener(
-                            "keydown",
-                            event => {
-
-                                if (
-                                    event.key === "Enter"
-                                ) {
-
-                                    sendSupportMessage(
-                                        chatId,
-                                        "admin"
-                                    );
-
-                                }
-
-                            }
+                        sendSupportMessage(
+                            chatId,
+                            "admin"
                         );
 
+                    };
 
-                    document
-                        .getElementById(
-                            "closeSupportRequest"
-                        )
-                        .onclick =
-                            () => closeSupportChat(
-                                chatId
-                            );
+
+                    document.getElementById(
+                        "adminMessageInput"
+                    ).addEventListener(
+                        "keydown",
+                        function (event) {
+
+                            if (
+                                event.key === "Enter"
+                            ) {
+
+                                sendSupportMessage(
+                                    chatId,
+                                    "admin"
+                                );
+
+                            }
+
+                        }
+                    );
+
+
+                    document.getElementById(
+                        "closeSupportRequest"
+                    ).onclick = function () {
+
+                        closeSupportChat(
+                            chatId
+                        );
+
+                    };
 
                 }
 
@@ -7281,7 +7326,7 @@ if (typeof auth !== 'undefined') {
 
                 snapshot.forEach(doc => {
 
-                    addMessageToContainer(
+                    addMessage(
                         messages,
                         doc.data()
                     );
@@ -7297,17 +7342,23 @@ if (typeof auth !== 'undefined') {
     }
 
 
+    /* =========================
+       CLOSE CHAT
+    ========================= */
+
     async function closeSupportChat(chatId) {
 
-        const user =
+        const currentUser =
             firebase.auth().currentUser;
 
 
-        if (!user) return;
+        if (!currentUser) return;
 
 
         const email =
-            String(user.email || "").toLowerCase();
+            String(
+                currentUser.email || ""
+            ).toLowerCase();
 
 
         if (!isAdmin(email)) {
@@ -7323,18 +7374,24 @@ if (typeof auth !== 'undefined') {
 
         try {
 
-            await db.collection("supportChats")
-                .doc(chatId)
-                .update({
+            await db.collection(
+                "supportChats"
+            )
+            .doc(chatId)
+            .update({
 
-                    status: "closed",
+                status:
+                    "closed",
 
-                    closedAt:
-                        firebase.firestore.FieldValue.serverTimestamp(),
+                closedAt:
+                    firebase.firestore
+                    .FieldValue
+                    .serverTimestamp(),
 
-                    closedBy: email
+                closedBy:
+                    email
 
-                });
+            });
 
         } catch (error) {
 
@@ -7348,6 +7405,10 @@ if (typeof auth !== 'undefined') {
 
     }
 
+
+    /* =========================
+       ESCAPE HTML
+    ========================= */
 
     function escapeHtml(value) {
 
