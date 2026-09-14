@@ -5786,19 +5786,11 @@ if (typeof auth !== 'undefined') {
 
     if (urlParams.get("p") !== "support") return;
 
-    /* =========================
-       ADMINS
-       ========================= */
-
     const adminEmails = [
         "adrian.wilczek@hotmail.com",
         "support.neofind@gmail.com",
         "michal.wilkowski@gmail.com"
     ];
-
-    /* =========================
-       SUPPORT CATEGORIES
-       ========================= */
 
     const supportCategories = {
 
@@ -5854,18 +5846,6 @@ if (typeof auth !== 'undefined') {
         ]
     };
 
-    /* =========================
-       HELPERS
-       ========================= */
-
-    function escapeHTML(text) {
-        return String(text)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
 
     function isAdmin(email) {
         return adminEmails.includes(
@@ -5873,448 +5853,378 @@ if (typeof auth !== 'undefined') {
         );
     }
 
-    function formatDate(timestamp) {
-        if (!timestamp) return "";
-
-        try {
-            return timestamp.toDate().toLocaleString("en-US");
-        } catch {
-            return "";
-        }
-    }
-
-    /* =========================
-       PAGE
-       ========================= */
 
     document.documentElement.innerHTML = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
 
-<title>NeoFind Support</title>
-
-<style>
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: #0b0f17;
-    color: white;
-}
-
-button,
-input,
-textarea {
-    font-family: inherit;
-}
-
-.support-header {
-    height: 70px;
-    background: #111827;
-    border-bottom: 1px solid #273244;
-
-    display: flex;
-    align-items: center;
-
-    padding: 0 25px;
-    gap: 15px;
-}
-
-.support-logo {
-    font-size: 25px;
-    font-weight: 800;
-}
-
-.support-logo span {
-    color: #4f8cff;
-}
-
-.support-status {
-    margin-left: auto;
-    font-size: 14px;
-    color: #8ea0b9;
-}
-
-.support-container {
-    max-width: 1100px;
-    margin: 35px auto;
-    padding: 0 20px;
-}
-
-.card {
-    background: #111827;
-    border: 1px solid #273244;
-    border-radius: 18px;
-
-    padding: 25px;
-
-    box-shadow: 0 10px 40px rgba(0,0,0,.25);
-}
-
-h1 {
-    margin-top: 0;
-}
-
-.subtitle {
-    color: #9aa9bd;
-    line-height: 1.5;
-}
-
-.category-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(210px, 1fr));
-
-    gap: 14px;
-
-    margin-top: 25px;
-}
-
-.category-btn {
-    background: #172133;
-    color: white;
-
-    border: 1px solid #2b3a51;
-
-    padding: 18px;
-
-    border-radius: 14px;
-
-    cursor: pointer;
-
-    text-align: left;
-
-    transition: .15s;
-}
-
-.category-btn:hover {
-    background: #1d2b40;
-
-    border-color: #4f8cff;
-
-    transform: translateY(-2px);
-}
-
-.category-name {
-    font-weight: 700;
-    font-size: 17px;
-}
-
-.category-count {
-    color: #8495ac;
-
-    font-size: 13px;
-
-    margin-top: 6px;
-}
-
-.back-btn {
-    background: transparent;
-
-    color: #9db2d0;
-
-    border: 1px solid #2b3a51;
-
-    padding: 9px 14px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    margin-bottom: 18px;
-}
-
-.back-btn:hover {
-    background: #172133;
-}
-
-.subcategory-list {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-}
-
-.subcategory-btn {
-    width: 100%;
-
-    text-align: left;
-
-    background: #172133;
-
-    color: white;
-
-    border: 1px solid #2b3a51;
-
-    padding: 16px;
-
-    border-radius: 12px;
-
-    cursor: pointer;
-}
-
-.subcategory-btn:hover {
-    background: #1d2b40;
-
-    border-color: #4f8cff;
-}
-
-.chat-layout {
-    display: flex;
-
-    flex-direction: column;
-
-    height: 650px;
-}
-
-.chat-info {
-    border-bottom: 1px solid #273244;
-
-    padding-bottom: 16px;
-
-    margin-bottom: 15px;
-}
-
-.chat-category {
-    color: #4f8cff;
-
-    font-weight: 700;
-}
-
-.chat-messages {
-    flex: 1;
-
-    overflow-y: auto;
-
-    padding: 10px 5px;
-}
-
-.message {
-    max-width: 75%;
-
-    padding: 11px 14px;
-
-    border-radius: 14px;
-
-    margin-bottom: 10px;
-
-    line-height: 1.4;
-
-    word-break: break-word;
-}
-
-.message.user {
-    background: #1b3c75;
-
-    margin-left: auto;
-}
-
-.message.admin {
-    background: #202b3c;
-
-    margin-right: auto;
-}
-
-.message-meta {
-    font-size: 11px;
-
-    opacity: .65;
-
-    margin-top: 5px;
-}
-
-.chat-input {
-    display: flex;
-
-    gap: 10px;
-
-    border-top: 1px solid #273244;
-
-    padding-top: 15px;
-}
-
-.chat-input textarea {
-    flex: 1;
-
-    min-height: 55px;
-
-    max-height: 140px;
-
-    resize: vertical;
-
-    background: #0d1420;
-
-    color: white;
-
-    border: 1px solid #2b3a51;
-
-    border-radius: 12px;
-
-    padding: 13px;
-
-    outline: none;
-}
-
-.send-btn {
-    background: #4f8cff;
-
-    color: white;
-
-    border: 0;
-
-    padding: 0 22px;
-
-    border-radius: 12px;
-
-    cursor: pointer;
-
-    font-weight: 700;
-}
-
-.send-btn:hover {
-    background: #3c78e8;
-}
-
-.close-btn {
-    background: #b42335;
-
-    color: white;
-
-    border: 0;
-
-    padding: 11px 16px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    font-weight: 700;
-}
-
-.closed-box {
-    background: #2a1820;
-
-    border: 1px solid #63303b;
-
-    padding: 14px;
-
-    border-radius: 12px;
-
-    color: #ffb5bf;
-
-    text-align: center;
-}
-
-.ticket-list {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 10px;
-}
-
-.ticket {
-    background: #172133;
-
-    border: 1px solid #2b3a51;
-
-    padding: 16px;
-
-    border-radius: 13px;
-
-    cursor: pointer;
-}
-
-.ticket:hover {
-    border-color: #4f8cff;
-}
-
-.ticket-title {
-    font-weight: 700;
-}
-
-.ticket-meta {
-    color: #8293aa;
-
-    font-size: 13px;
-
-    margin-top: 6px;
-}
-
-.admin-layout {
-    display: grid;
-
-    grid-template-columns: 320px 1fr;
-
-    gap: 18px;
-}
-
-.empty {
-    color: #8191a7;
-
-    padding: 20px 0;
-}
-
-@media(max-width: 750px) {
-
-    .admin-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .chat-layout {
-        height: 70vh;
-    }
-
-    .message {
-        max-width: 90%;
-    }
-
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="support-header">
-
-    <div class="support-logo">
-        <span>Neo</span>Find Support
-    </div>
-
-    <div
-        class="support-status"
-        id="supportUserStatus"
-    >
-        Loading...
-    </div>
-
-</div>
-
-<div class="support-container">
-
-    <div id="supportApp"></div>
-
-</div>
-
-</body>
-</html>
-`;
+        <head>
+
+            <title>NeoFind Support</title>
+
+            <style>
+
+                * {
+                    box-sizing: border-box;
+                }
+
+                body {
+                    margin: 0;
+                    font-family: Arial, sans-serif;
+                    background:
+                        radial-gradient(
+                            circle at top,
+                            #18233d 0%,
+                            #0b1020 45%,
+                            #070b14 100%
+                        );
+                    color: white;
+                    min-height: 100vh;
+                }
+
+                #supportApp {
+                    width: 100%;
+                    min-height: 100vh;
+                    padding: 40px 20px;
+                }
+
+                .support-container {
+                    width: 100%;
+                    max-width: 1000px;
+                    margin: auto;
+                }
+
+                .support-header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                }
+
+                .support-header h1 {
+                    margin: 0;
+                    font-size: 38px;
+                    font-weight: 800;
+                }
+
+                .support-header p {
+                    color: #9ba7bd;
+                    margin-top: 10px;
+                    font-size: 15px;
+                }
+
+                .user-status {
+                    margin-top: 10px;
+                    font-size: 13px;
+                    color: #7f8da5;
+                }
+
+                .card {
+                    background: rgba(18, 25, 43, 0.95);
+                    border: 1px solid rgba(255,255,255,0.08);
+                    border-radius: 18px;
+                    padding: 25px;
+                    box-shadow: 0 15px 45px rgba(0,0,0,0.35);
+                    margin-bottom: 20px;
+                }
+
+                .card h2 {
+                    margin-top: 0;
+                    font-size: 22px;
+                }
+
+                .subtitle {
+                    color: #9ba7bd;
+                    line-height: 1.5;
+                }
+
+                .category-grid {
+                    display: grid;
+                    grid-template-columns: repeat(
+                        auto-fit,
+                        minmax(180px, 1fr)
+                    );
+                    gap: 12px;
+                    margin-top: 20px;
+                }
+
+                .category-button {
+                    border: 1px solid rgba(255,255,255,0.08);
+                    background: #151e33;
+                    color: white;
+                    padding: 18px;
+                    border-radius: 14px;
+                    cursor: pointer;
+                    text-align: left;
+                    font-size: 15px;
+                    transition: 0.2s;
+                }
+
+                .category-button:hover {
+                    background: #202c48;
+                    transform: translateY(-2px);
+                }
+
+                .subcategory-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    margin-top: 20px;
+                }
+
+                .subcategory-button {
+                    border: 1px solid rgba(255,255,255,0.08);
+                    background: #151e33;
+                    color: white;
+                    padding: 15px;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    text-align: left;
+                    font-size: 15px;
+                    transition: 0.2s;
+                }
+
+                .subcategory-button:hover {
+                    background: #202c48;
+                }
+
+                .back-button {
+                    border: none;
+                    background: transparent;
+                    color: #8ea4ff;
+                    cursor: pointer;
+                    padding: 0;
+                    margin-bottom: 15px;
+                    font-size: 14px;
+                }
+
+                .back-button:hover {
+                    text-decoration: underline;
+                }
+
+                .loading {
+                    text-align: center;
+                    padding: 30px;
+                    color: #9ba7bd;
+                }
+
+                .error {
+                    color: #ff7777;
+                    margin-top: 15px;
+                }
+
+                .chat-layout {
+                    display: grid;
+                    grid-template-columns: 280px 1fr;
+                    gap: 18px;
+                }
+
+                .request-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                    max-height: 650px;
+                    overflow-y: auto;
+                }
+
+                .request-item {
+                    background: #151e33;
+                    border: 1px solid rgba(255,255,255,0.07);
+                    border-radius: 12px;
+                    padding: 14px;
+                    cursor: pointer;
+                    transition: 0.2s;
+                }
+
+                .request-item:hover {
+                    background: #202c48;
+                }
+
+                .request-item.active {
+                    border-color: #7187ff;
+                    background: #202b4a;
+                }
+
+                .request-item strong {
+                    display: block;
+                    margin-bottom: 5px;
+                }
+
+                .request-item small {
+                    color: #8996ad;
+                }
+
+                .chat-box {
+                    display: flex;
+                    flex-direction: column;
+                    height: 650px;
+                }
+
+                .chat-header {
+                    border-bottom: 1px solid rgba(255,255,255,0.08);
+                    padding-bottom: 15px;
+                    margin-bottom: 15px;
+                }
+
+                .chat-header h3 {
+                    margin: 0 0 6px 0;
+                }
+
+                .chat-header small {
+                    color: #8d9ab0;
+                }
+
+                .messages {
+                    flex: 1;
+                    overflow-y: auto;
+                    padding: 5px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
+                }
+
+                .message {
+                    max-width: 80%;
+                    padding: 11px 14px;
+                    border-radius: 13px;
+                    line-height: 1.45;
+                    word-break: break-word;
+                }
+
+                .message.user {
+                    align-self: flex-end;
+                    background: #4159d9;
+                }
+
+                .message.admin {
+                    align-self: flex-start;
+                    background: #202a40;
+                }
+
+                .message-author {
+                    font-size: 11px;
+                    opacity: 0.7;
+                    margin-bottom: 4px;
+                }
+
+                .message-time {
+                    font-size: 10px;
+                    opacity: 0.5;
+                    margin-top: 5px;
+                }
+
+                .chat-input {
+                    display: flex;
+                    gap: 10px;
+                    margin-top: 15px;
+                }
+
+                .chat-input input {
+                    flex: 1;
+                    padding: 13px;
+                    border-radius: 12px;
+                    border: 1px solid rgba(255,255,255,0.1);
+                    background: #0d1424;
+                    color: white;
+                    outline: none;
+                }
+
+                .chat-input button {
+                    padding: 13px 20px;
+                    border: none;
+                    border-radius: 12px;
+                    background: #536dff;
+                    color: white;
+                    cursor: pointer;
+                    font-weight: bold;
+                }
+
+                .chat-input button:hover {
+                    background: #667eff;
+                }
+
+                .close-button {
+                    margin-top: 10px;
+                    width: 100%;
+                    padding: 12px;
+                    border: none;
+                    border-radius: 10px;
+                    background: #5a2028;
+                    color: #ffb7be;
+                    cursor: pointer;
+                }
+
+                .close-button:hover {
+                    background: #71303a;
+                }
+
+                .closed-message {
+                    text-align: center;
+                    padding: 15px;
+                    color: #9ba7bd;
+                    border-top: 1px solid rgba(255,255,255,0.08);
+                    margin-top: 15px;
+                }
+
+                .status-open {
+                    color: #61d68b;
+                }
+
+                .status-closed {
+                    color: #ff7777;
+                }
+
+                @media (max-width: 750px) {
+
+                    .chat-layout {
+                        grid-template-columns: 1fr;
+                    }
+
+                    .request-list {
+                        max-height: 250px;
+                    }
+
+                    .chat-box {
+                        height: 600px;
+                    }
+
+                }
+
+            </style>
+
+        </head>
+
+        <body>
+
+            <div id="supportApp">
+
+                <div class="support-container">
+
+                    <div class="support-header">
+
+                        <h1>🛠️ NeoFind Support</h1>
+
+                        <p>
+                            Contact NeoFind administration
+                            and get help with your problem.
+                        </p>
+
+                        <div
+                            id="supportUserStatus"
+                            class="user-status"
+                        >
+                            Checking account...
+                        </div>
+
+                    </div>
+
+                    <div id="supportContent"></div>
+
+                </div>
+
+            </div>
+
+        </body>
+    `;
 
     window.stop();
 
-    /* =========================
-       WAIT FOR FIREBASE
-       ========================= */
 
     const waitForFirebase = setInterval(() => {
 
@@ -6331,33 +6241,34 @@ h1 {
 
     }, 100);
 
-    /* =========================
-       START SUPPORT
-       ========================= */
 
     async function startSupport() {
 
-        const app =
-            document.getElementById("supportApp");
+        const content =
+            document.getElementById("supportContent");
 
         const status =
             document.getElementById("supportUserStatus");
 
-        if (!app) return;
+        if (!content) return;
 
-        const user =
-            firebase.auth().currentUser;
+
+        /*
+            SAME AUTH METHOD AS BEFORE
+        */
+
+        const user = firebase.auth().currentUser;
+
 
         if (!user) {
 
-            status.textContent =
-                "Not logged in";
+            status.textContent = "Not logged in";
 
-            app.innerHTML = `
+            content.innerHTML = `
 
                 <div class="card">
 
-                    <h1>🔒 Sign in required</h1>
+                    <h2>🔒 Sign in required</h2>
 
                     <p class="subtitle">
                         You must be signed in to contact
@@ -6371,13 +6282,16 @@ h1 {
             return;
         }
 
+
         const email =
-            user.email.toLowerCase();
+            String(user.email || "").toLowerCase();
+
 
         status.textContent =
             isAdmin(email)
                 ? "🛡️ Administrator"
                 : email;
+
 
         if (isAdmin(email)) {
 
@@ -6391,26 +6305,179 @@ h1 {
 
     }
 
-    /* =========================
-       USER PANEL
-       ========================= */
 
-    async function showUserPanel() {
+    function showUserPanel() {
 
-        const app =
-            document.getElementById("supportApp");
+        const content =
+            document.getElementById("supportContent");
+
+        content.innerHTML = `
+
+            <div class="card">
+
+                <h2>How can we help you?</h2>
+
+                <p class="subtitle">
+                    Select the category that best describes
+                    your problem.
+                </p>
+
+                <div
+                    id="categoryGrid"
+                    class="category-grid"
+                ></div>
+
+            </div>
+
+        `;
+
+
+        const grid =
+            document.getElementById("categoryGrid");
+
+
+        Object.keys(supportCategories).forEach(category => {
+
+            const button =
+                document.createElement("button");
+
+            button.className = "category-button";
+
+            button.textContent = category;
+
+            button.onclick = () => {
+
+                showSubcategories(category);
+
+            };
+
+            grid.appendChild(button);
+
+        });
+
+    }
+
+
+    function showSubcategories(category) {
+
+        const content =
+            document.getElementById("supportContent");
+
+
+        content.innerHTML = `
+
+            <div class="card">
+
+                <button
+                    class="back-button"
+                    id="backToCategories"
+                >
+                    ← Back
+                </button>
+
+                <h2>${escapeHtml(category)}</h2>
+
+                <p class="subtitle">
+                    Select the specific issue.
+                </p>
+
+                <div
+                    id="subcategoryList"
+                    class="subcategory-list"
+                ></div>
+
+            </div>
+
+        `;
+
+
+        document
+            .getElementById("backToCategories")
+            .onclick = showUserPanel;
+
+
+        const list =
+            document.getElementById("subcategoryList");
+
+
+        supportCategories[category].forEach(subcategory => {
+
+            const button =
+                document.createElement("button");
+
+            button.className = "subcategory-button";
+
+            button.textContent = subcategory;
+
+            button.onclick = () => {
+
+                createSupportChat(
+                    category,
+                    subcategory
+                );
+
+            };
+
+            list.appendChild(button);
+
+        });
+
+    }
+
+
+    async function createSupportChat(
+        category,
+        subcategory
+    ) {
+
+        const content =
+            document.getElementById("supportContent");
 
         const user =
             firebase.auth().currentUser;
 
-        const email =
-            user.email.toLowerCase();
 
-        let snapshot;
+        if (!user) {
+
+            content.innerHTML = `
+
+                <div class="card">
+
+                    <h2>🔒 Sign in required</h2>
+
+                    <p class="subtitle">
+                        Your session has expired.
+                        Please sign in again.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        const email =
+            String(user.email || "").toLowerCase();
+
+
+        content.innerHTML = `
+
+            <div class="card">
+
+                <div class="loading">
+                    Creating support request...
+                </div>
+
+            </div>
+
+        `;
+
 
         try {
 
-            snapshot =
+            const existing =
                 await db.collection("supportChats")
                     .where(
                         "userEmail",
@@ -6425,238 +6492,26 @@ h1 {
                     .limit(1)
                     .get();
 
-        } catch (error) {
 
-            app.innerHTML = `
+            if (!existing.empty) {
 
-                <div class="card">
-
-                    <h1>⚠️ Error</h1>
-
-                    <p class="subtitle">
-                        We could not check your support requests.
-                    </p>
-
-                    <p>
-                        ${escapeHTML(error.message)}
-                    </p>
-
-                </div>
-
-            `;
-
-            return;
-        }
-
-        if (!snapshot.empty) {
-
-            openUserChat(
-                snapshot.docs[0].id
-            );
-
-            return;
-
-        }
-
-        showCategorySelection();
-
-    }
-
-    /* =========================
-       CATEGORY SELECTION
-       ========================= */
-
-    function showCategorySelection() {
-
-        const app =
-            document.getElementById("supportApp");
-
-        app.innerHTML = `
-
-            <div class="card">
-
-                <h1>
-                    How can we help you?
-                </h1>
-
-                <p class="subtitle">
-                    Select the category that best
-                    describes your problem.
-                    You will then choose a more specific
-                    issue.
-                </p>
-
-                <div class="category-grid">
-
-                    ${Object.entries(
-                        supportCategories
-                    ).map(
-                        ([category, subcategories]) => `
-
-                            <button
-                                class="category-btn"
-                                data-category="${escapeHTML(category)}"
-                            >
-
-                                <div class="category-name">
-                                    ${escapeHTML(category)}
-                                </div>
-
-                                <div class="category-count">
-                                    ${subcategories.length}
-                                    subcategories
-                                </div>
-
-                            </button>
-
-                        `
-                    ).join("")}
-
-                </div>
-
-            </div>
-
-        `;
-
-        document
-            .querySelectorAll(".category-btn")
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        showSubcategories(
-                            button.dataset.category
-                        );
-
-                    }
+                openUserChat(
+                    existing.docs[0].id
                 );
 
-            });
+                return;
+            }
 
-    }
-
-    /* =========================
-       SUBCATEGORIES
-       ========================= */
-
-    function showSubcategories(category) {
-
-        const app =
-            document.getElementById("supportApp");
-
-        const subcategories =
-            supportCategories[category];
-
-        app.innerHTML = `
-
-            <div class="card">
-
-                <button
-                    class="back-btn"
-                    id="backToCategories"
-                >
-                    ← Back
-                </button>
-
-                <h1>
-                    ${escapeHTML(category)}
-                </h1>
-
-                <p class="subtitle">
-                    Select the specific issue.
-                </p>
-
-                <div class="subcategory-list">
-
-                    ${subcategories.map(
-                        subcategory => `
-
-                            <button
-                                class="subcategory-btn"
-                                data-subcategory="${escapeHTML(subcategory)}"
-                            >
-                                ${escapeHTML(subcategory)}
-                            </button>
-
-                        `
-                    ).join("")}
-
-                </div>
-
-            </div>
-
-        `;
-
-        document.getElementById(
-            "backToCategories"
-        ).onclick =
-            showCategorySelection;
-
-        document
-            .querySelectorAll(".subcategory-btn")
-            .forEach(button => {
-
-                button.addEventListener(
-                    "click",
-                    () => {
-
-                        createSupportChat(
-                            category,
-                            button.dataset.subcategory
-                        );
-
-                    }
-                );
-
-            });
-
-    }
-
-    /* =========================
-       CREATE SUPPORT CHAT
-       ========================= */
-
-    async function createSupportChat(
-        category,
-        subcategory
-    ) {
-
-        const app =
-            document.getElementById("supportApp");
-
-        const user =
-            firebase.auth().currentUser;
-
-        if (!user) return;
-
-        const email =
-            user.email.toLowerCase();
-
-        app.innerHTML = `
-
-            <div class="card">
-
-                <h1>
-                    Creating support request...
-                </h1>
-
-                <p class="subtitle">
-                    Connecting you with NeoFind Support.
-                </p>
-
-            </div>
-
-        `;
-
-        try {
 
             const chatRef =
                 await db.collection("supportChats")
                     .add({
 
                         userEmail: email,
+
+                        userName:
+                            user.displayName ||
+                            email.split("@")[0],
 
                         category: category,
 
@@ -6665,39 +6520,39 @@ h1 {
                         status: "open",
 
                         createdAt:
-                            firebase.firestore
-                                .FieldValue
-                                .serverTimestamp(),
+                            firebase.firestore.FieldValue.serverTimestamp(),
 
                         lastMessageDate:
-                            firebase.firestore
-                                .FieldValue
-                                .serverTimestamp()
+                            firebase.firestore.FieldValue.serverTimestamp()
 
                     });
 
-            openUserChat(
-                chatRef.id
-            );
+
+            openUserChat(chatRef.id);
 
         } catch (error) {
 
-            app.innerHTML = `
+            console.error(error);
+
+            content.innerHTML = `
 
                 <div class="card">
 
-                    <h1>
-                        ⚠️ Could not create request
-                    </h1>
+                    <h2>❌ Could not create request</h2>
 
                     <p class="subtitle">
-                        ${escapeHTML(
-                            error.message
+                        Something went wrong while creating
+                        your support request.
+                    </p>
+
+                    <p class="error">
+                        ${escapeHtml(
+                            error.message || "Unknown error"
                         )}
                     </p>
 
                     <button
-                        class="back-btn"
+                        class="category-button"
                         onclick="location.reload()"
                     >
                         Try again
@@ -6711,161 +6566,242 @@ h1 {
 
     }
 
-    /* =========================
-       USER CHAT
-       ========================= */
 
     function openUserChat(chatId) {
 
-        const app =
-            document.getElementById("supportApp");
+        const content =
+            document.getElementById("supportContent");
 
-        const user =
-            firebase.auth().currentUser;
 
-        const email =
-            user.email.toLowerCase();
+        content.innerHTML = `
 
-        app.innerHTML = `
-
-            <div class="card chat-layout">
+            <div class="card chat-box">
 
                 <div
-                    class="chat-info"
-                    id="chatInfo"
+                    id="userChatHeader"
+                    class="chat-header"
                 >
                     Loading...
                 </div>
 
                 <div
-                    class="chat-messages"
-                    id="supportMessages"
+                    id="userMessages"
+                    class="messages"
                 ></div>
 
                 <div
-                    class="chat-input"
-                    id="chatInput"
-                >
-
-                    <textarea
-                        id="supportMessage"
-                        placeholder="Message NeoFind Support..."
-                    ></textarea>
-
-                    <button
-                        class="send-btn"
-                        id="sendSupportMessage"
-                    >
-                        Send
-                    </button>
-
-                </div>
+                    id="userChatInputArea"
+                ></div>
 
             </div>
 
         `;
 
-        const chatRef =
-            db.collection("supportChats")
-                .doc(chatId);
 
-        chatRef.get().then(doc => {
+        const messages =
+            document.getElementById("userMessages");
 
-            if (!doc.exists) {
 
-                showCategorySelection();
+        db.collection("supportChats")
+            .doc(chatId)
+            .onSnapshot(chatDoc => {
 
-                return;
-            }
+                if (!chatDoc.exists) return;
 
-            const data =
-                doc.data();
 
-            document.getElementById(
-                "chatInfo"
-            ).innerHTML = `
+                const data = chatDoc.data();
 
-                <div>
-                    <strong>
-                        NeoFind Support
-                    </strong>
-                </div>
 
-                <div class="chat-category">
+                document.getElementById(
+                    "userChatHeader"
+                ).innerHTML = `
 
-                    ${escapeHTML(
-                        data.category
-                    )}
+                    <h3>
+                        ${escapeHtml(
+                            data.category || "Support"
+                        )}
+                        →
+                        ${escapeHtml(
+                            data.subcategory || ""
+                        )}
+                    </h3>
 
-                    ›
+                    <small>
+                        Status:
+                        ${
+                            data.status === "open"
+                                ? `<span class="status-open">🟢 Open</span>`
+                                : `<span class="status-closed">🔴 Closed</span>`
+                        }
+                    </small>
 
-                    ${escapeHTML(
-                        data.subcategory
-                    )}
+                `;
 
-                </div>
 
-                <div class="ticket-meta">
+                const inputArea =
+                    document.getElementById(
+                        "userChatInputArea"
+                    );
 
-                    Support request from:
-                    ${escapeHTML(email)}
 
-                </div>
+                if (data.status === "closed") {
 
-            `;
+                    inputArea.innerHTML = `
 
-        });
+                        <div class="closed-message">
+                            This support request is closed.
+                        </div>
 
-        listenToMessages(
-            chatId,
-            false
-        );
+                    `;
 
-        document.getElementById(
-            "sendSupportMessage"
-        ).onclick = () => {
+                } else {
 
-            sendSupportMessage(
-                chatId,
-                email
-            );
+                    inputArea.innerHTML = `
 
-        };
+                        <div class="chat-input">
+
+                            <input
+                                id="userMessageInput"
+                                type="text"
+                                maxlength="5000"
+                                placeholder="Message NeoFind Support..."
+                            >
+
+                            <button
+                                id="sendUserMessage"
+                            >
+                                Send
+                            </button>
+
+                        </div>
+
+                    `;
+
+
+                    document
+                        .getElementById(
+                            "sendUserMessage"
+                        )
+                        .onclick =
+                            () => sendSupportMessage(
+                                chatId,
+                                "user"
+                            );
+
+
+                    document
+                        .getElementById(
+                            "userMessageInput"
+                        )
+                        .addEventListener(
+                            "keydown",
+                            event => {
+
+                                if (
+                                    event.key === "Enter"
+                                ) {
+
+                                    sendSupportMessage(
+                                        chatId,
+                                        "user"
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                }
+
+            });
+
+
+        db.collection("supportChats")
+            .doc(chatId)
+            .collection("messages")
+            .orderBy("date", "asc")
+            .onSnapshot(snapshot => {
+
+                messages.innerHTML = "";
+
+                snapshot.forEach(doc => {
+
+                    const data = doc.data();
+
+                    addMessageToContainer(
+                        messages,
+                        data
+                    );
+
+                });
+
+                messages.scrollTop =
+                    messages.scrollHeight;
+
+            });
 
     }
 
-    /* =========================
-       SEND USER MESSAGE
-       ========================= */
 
     async function sendSupportMessage(
         chatId,
-        email
+        senderType
     ) {
 
-        const textarea =
-            document.getElementById(
-                "supportMessage"
-            );
+        const inputId =
+            senderType === "user"
+                ? "userMessageInput"
+                : "adminMessageInput";
+
+
+        const input =
+            document.getElementById(inputId);
+
+
+        if (!input) return;
+
 
         const text =
-            textarea.value.trim();
+            input.value.trim();
+
 
         if (!text) return;
 
-        if (text.length > 5000) {
 
-            alert(
-                "Messages can contain up to 5000 characters."
-            );
+        const user =
+            firebase.auth().currentUser;
 
-            return;
 
-        }
+        if (!user) return;
 
-        textarea.value = "";
+
+        const email =
+            String(user.email || "").toLowerCase();
+
 
         try {
+
+            const chatDoc =
+                await db.collection("supportChats")
+                    .doc(chatId)
+                    .get();
+
+
+            if (!chatDoc.exists) return;
+
+
+            const chatData =
+                chatDoc.data();
+
+
+            if (
+                chatData.status === "closed"
+            ) {
+
+                return;
+
+            }
+
 
             await db.collection("supportChats")
                 .doc(chatId)
@@ -6874,171 +6810,163 @@ h1 {
 
                     from: email,
 
-                    fromName: "User",
+                    fromName:
+                        user.displayName ||
+                        email.split("@")[0],
 
                     text: text,
 
                     date:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
+                        firebase.firestore.FieldValue.serverTimestamp()
 
                 });
+
 
             await db.collection("supportChats")
                 .doc(chatId)
                 .update({
 
                     lastMessageDate:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
+                        firebase.firestore.FieldValue.serverTimestamp()
 
                 });
 
+
+            input.value = "";
+
         } catch (error) {
 
+            console.error(error);
+
             alert(
-                "Could not send message: " +
-                error.message
+                "Could not send message."
             );
 
         }
 
     }
 
-    /* =========================
-       MESSAGE LISTENER
-       ========================= */
 
-    function listenToMessages(
-        chatId,
-        adminMode
+    function addMessageToContainer(
+        container,
+        data
     ) {
 
-        db.collection("supportChats")
-            .doc(chatId)
-            .collection("messages")
-            .orderBy("date", "asc")
-            .onSnapshot(snapshot => {
+        const user =
+            firebase.auth().currentUser;
 
-                const box =
-                    document.getElementById(
-                        "supportMessages"
-                    );
 
-                if (!box) return;
+        const currentEmail =
+            user
+                ? String(user.email || "").toLowerCase()
+                : "";
 
-                box.innerHTML = "";
 
-                snapshot.forEach(doc => {
+        const message =
+            document.createElement("div");
 
-                    const data =
-                        doc.data();
 
-                    const admin =
-                        isAdmin(data.from);
+        const isMine =
+            String(data.from || "").toLowerCase()
+                === currentEmail;
 
-                    const div =
-                        document.createElement(
-                            "div"
-                        );
 
-                    div.className =
-                        "message " +
-                        (
-                            admin
-                                ? "admin"
-                                : "user"
-                        );
+        const isAdminMessage =
+            isAdmin(data.from);
 
-                    div.innerHTML = `
 
-                        <strong>
+        message.className =
+            "message " +
+            (
+                isMine
+                    ? "user"
+                    : "admin"
+            );
 
-                            ${escapeHTML(
-                                admin
-                                    ? "🛡️ NeoFind Administration"
-                                    : "User"
-                            )}
 
-                        </strong>
+        const date =
+            data.date &&
+            data.date.toDate
+                ? data.date.toDate()
+                : null;
 
-                        <div>
-                            ${escapeHTML(
-                                data.text
-                            )}
+
+        message.innerHTML = `
+
+            <div class="message-author">
+
+                ${
+                    isAdminMessage
+                        ? "🛡️ NeoFind Support"
+                        : escapeHtml(
+                            data.fromName ||
+                            data.from ||
+                            "User"
+                        )
+                }
+
+            </div>
+
+            <div>
+                ${escapeHtml(
+                    data.text || ""
+                )}
+            </div>
+
+            ${
+                date
+                    ? `
+                        <div class="message-time">
+                            ${date.toLocaleString()}
                         </div>
+                    `
+                    : ""
+            }
 
-                        <div class="message-meta">
+        `;
 
-                            ${escapeHTML(
-                                formatDate(
-                                    data.date
-                                )
-                            )}
 
-                        </div>
-
-                    `;
-
-                    box.appendChild(div);
-
-                });
-
-                box.scrollTop =
-                    box.scrollHeight;
-
-            });
+        container.appendChild(message);
 
     }
 
-    /* =========================
-       ADMIN PANEL
-       ========================= */
 
     function showAdminPanel() {
 
-        const app =
-            document.getElementById(
-                "supportApp"
-            );
+        const content =
+            document.getElementById("supportContent");
 
-        app.innerHTML = `
 
-            <div class="admin-layout">
+        content.innerHTML = `
+
+            <div class="chat-layout">
 
                 <div class="card">
 
-                    <h2>
-                        🛡️ Support Requests
-                    </h2>
+                    <h2>Support Requests</h2>
 
                     <div
-                        id="ticketList"
-                        class="ticket-list"
+                        id="adminRequests"
+                        class="request-list"
                     >
-                        Loading...
+
+                        <div class="loading">
+                            Loading requests...
+                        </div>
+
                     </div>
 
                 </div>
 
+
                 <div
-                    class="card"
-                    id="adminChat"
+                    id="adminChatArea"
+                    class="card chat-box"
                 >
 
-                    <h2>
-                        Select a request
-                    </h2>
-
-                    <p class="subtitle">
-
-                        Select a support request
-                        from the list to open
-                        the conversation.
-
-                    </p>
+                    <div class="loading">
+                        Select a support request.
+                    </div>
 
                 </div>
 
@@ -7046,15 +6974,12 @@ h1 {
 
         `;
 
-        listenToTickets();
 
-    }
+        const requests =
+            document.getElementById(
+                "adminRequests"
+            );
 
-    /* =========================
-       ADMIN TICKET LIST
-       ========================= */
-
-    function listenToTickets() {
 
         db.collection("supportChats")
             .orderBy(
@@ -7063,20 +6988,14 @@ h1 {
             )
             .onSnapshot(snapshot => {
 
-                const list =
-                    document.getElementById(
-                        "ticketList"
-                    );
+                requests.innerHTML = "";
 
-                if (!list) return;
-
-                list.innerHTML = "";
 
                 if (snapshot.empty) {
 
-                    list.innerHTML = `
+                    requests.innerHTML = `
 
-                        <div class="empty">
+                        <div class="loading">
                             No support requests.
                         </div>
 
@@ -7086,70 +7005,86 @@ h1 {
 
                 }
 
+
                 snapshot.forEach(doc => {
 
                     const data =
                         doc.data();
 
-                    const ticket =
-                        document.createElement(
-                            "div"
-                        );
 
-                    ticket.className =
-                        "ticket";
+                    const item =
+                        document.createElement("div");
 
-                    ticket.innerHTML = `
 
-                        <div class="ticket-title">
+                    item.className =
+                        "request-item";
 
-                            ${escapeHTML(
-                                data.category ||
-                                "Other"
-                            )}
 
-                            ›
+                    item.dataset.chatId =
+                        doc.id;
 
-                            ${escapeHTML(
-                                data.subcategory ||
-                                "Other"
-                            )}
 
-                        </div>
+                    item.innerHTML = `
 
-                        <div class="ticket-meta">
-
-                            ${escapeHTML(
-                                data.userEmail ||
-                                "Unknown email"
-                            )}
-
-                        </div>
-
-                        <div class="ticket-meta">
-
-                            Status:
-
+                        <strong>
                             ${
                                 data.status === "open"
-                                    ? "🟢 Open"
-                                    : "🔴 Closed"
+                                    ? "🟢"
+                                    : "🔴"
                             }
+                            ${escapeHtml(
+                                data.category ||
+                                "Support"
+                            )}
+                        </strong>
 
-                        </div>
+                        <small>
+                            ${escapeHtml(
+                                data.subcategory ||
+                                ""
+                            )}
+                        </small>
+
+                        <br>
+
+                        <small>
+                            ${escapeHtml(
+                                data.userEmail ||
+                                "Unknown user"
+                            )}
+                        </small>
 
                     `;
 
-                    ticket.onclick = () => {
+
+                    item.onclick = () => {
+
+                        document
+                            .querySelectorAll(
+                                ".request-item"
+                            )
+                            .forEach(el => {
+
+                                el.classList.remove(
+                                    "active"
+                                );
+
+                            });
+
+
+                        item.classList.add(
+                            "active"
+                        );
+
 
                         openAdminChat(
-                            doc.id,
-                            data
+                            doc.id
                         );
 
                     };
 
-                    list.appendChild(ticket);
+
+                    requests.appendChild(item);
 
                 });
 
@@ -7157,88 +7092,119 @@ h1 {
 
     }
 
-    /* =========================
-       ADMIN CHAT
-       ========================= */
 
-    function openAdminChat(
-        chatId,
-        chatData
-    ) {
+    function openAdminChat(chatId) {
 
-        const panel =
+        const area =
             document.getElementById(
-                "adminChat"
+                "adminChatArea"
             );
 
-        const admin =
-            firebase.auth().currentUser;
 
-        const adminEmail =
-            admin.email.toLowerCase();
+        area.innerHTML = `
 
-        panel.innerHTML = `
+            <div
+                id="adminChatHeader"
+                class="chat-header"
+            >
+                Loading...
+            </div>
 
-            <div class="chat-layout">
+            <div
+                id="adminMessages"
+                class="messages"
+            ></div>
 
-                <div class="chat-info">
+            <div
+                id="adminInputArea"
+            ></div>
 
-                    <div>
+        `;
 
-                        <strong>
-                            ${escapeHTML(
-                                chatData.userEmail
-                            )}
-                        </strong>
 
-                    </div>
+        const messages =
+            document.getElementById(
+                "adminMessages"
+            );
 
-                    <div class="chat-category">
 
-                        ${escapeHTML(
-                            chatData.category
+        db.collection("supportChats")
+            .doc(chatId)
+            .onSnapshot(doc => {
+
+                if (!doc.exists) return;
+
+
+                const data =
+                    doc.data();
+
+
+                document.getElementById(
+                    "adminChatHeader"
+                ).innerHTML = `
+
+                    <h3>
+                        ${escapeHtml(
+                            data.category ||
+                            "Support"
                         )}
-
-                        ›
-
-                        ${escapeHTML(
-                            chatData.subcategory
+                        →
+                        ${escapeHtml(
+                            data.subcategory ||
+                            ""
                         )}
+                    </h3>
 
-                    </div>
-
-                    <div class="ticket-meta">
-
+                    <small>
+                        User:
+                        ${escapeHtml(
+                            data.userEmail ||
+                            "Unknown"
+                        )}
+                        <br>
                         Status:
-
                         ${
-                            chatData.status === "open"
-                                ? "🟢 Open"
-                                : "🔴 Closed"
+                            data.status === "open"
+                                ? `<span class="status-open">🟢 Open</span>`
+                                : `<span class="status-closed">🔴 Closed</span>`
                         }
+                    </small>
 
-                    </div>
+                `;
 
-                </div>
 
-                <div
-                    class="chat-messages"
-                    id="supportMessages"
-                ></div>
+                const inputArea =
+                    document.getElementById(
+                        "adminInputArea"
+                    );
 
-                ${
-                    chatData.status === "open"
-                    ? `
+
+                if (
+                    data.status === "closed"
+                ) {
+
+                    inputArea.innerHTML = `
+
+                        <div class="closed-message">
+                            This support request is closed.
+                        </div>
+
+                    `;
+
+                } else {
+
+                    inputArea.innerHTML = `
 
                         <div class="chat-input">
 
-                            <textarea
-                                id="supportMessage"
+                            <input
+                                id="adminMessageInput"
+                                type="text"
+                                maxlength="5000"
                                 placeholder="Reply to the user..."
-                            ></textarea>
+                            >
 
                             <button
-                                class="send-btn"
                                 id="sendAdminMessage"
                             >
                                 Send
@@ -7247,152 +7213,113 @@ h1 {
                         </div>
 
                         <button
-                            class="close-btn"
-                            id="closeSupportChat"
+                            id="closeSupportRequest"
+                            class="close-button"
                         >
                             Close Request
                         </button>
 
-                    `
-                    : `
+                    `;
 
-                        <div class="closed-box">
 
-                            This support request
-                            is closed.
+                    document
+                        .getElementById(
+                            "sendAdminMessage"
+                        )
+                        .onclick =
+                            () => sendSupportMessage(
+                                chatId,
+                                "admin"
+                            );
 
-                        </div>
 
-                    `
+                    document
+                        .getElementById(
+                            "adminMessageInput"
+                        )
+                        .addEventListener(
+                            "keydown",
+                            event => {
+
+                                if (
+                                    event.key === "Enter"
+                                ) {
+
+                                    sendSupportMessage(
+                                        chatId,
+                                        "admin"
+                                    );
+
+                                }
+
+                            }
+                        );
+
+
+                    document
+                        .getElementById(
+                            "closeSupportRequest"
+                        )
+                        .onclick =
+                            () => closeSupportChat(
+                                chatId
+                            );
+
                 }
 
-            </div>
+            });
 
-        `;
 
-        listenToMessages(
-            chatId,
-            true
-        );
+        db.collection("supportChats")
+            .doc(chatId)
+            .collection("messages")
+            .orderBy("date", "asc")
+            .onSnapshot(snapshot => {
 
-        if (
-            chatData.status === "open"
-        ) {
+                messages.innerHTML = "";
 
-            document.getElementById(
-                "sendAdminMessage"
-            ).onclick = () => {
 
-                sendAdminSupportMessage(
-                    chatId,
-                    adminEmail
-                );
+                snapshot.forEach(doc => {
 
-            };
+                    addMessageToContainer(
+                        messages,
+                        doc.data()
+                    );
 
-            document.getElementById(
-                "closeSupportChat"
-            ).onclick = () => {
+                });
 
-                closeSupportChat(
-                    chatId,
-                    adminEmail
-                );
 
-            };
+                messages.scrollTop =
+                    messages.scrollHeight;
 
-        }
+            });
 
     }
 
-    /* =========================
-       ADMIN SEND MESSAGE
-       ========================= */
 
-    async function sendAdminSupportMessage(
-        chatId,
-        email
-    ) {
+    async function closeSupportChat(chatId) {
 
-        const textarea =
-            document.getElementById(
-                "supportMessage"
-            );
+        const user =
+            firebase.auth().currentUser;
 
-        const text =
-            textarea.value.trim();
 
-        if (!text) return;
+        if (!user) return;
 
-        if (text.length > 5000) {
+
+        const email =
+            String(user.email || "").toLowerCase();
+
+
+        if (!isAdmin(email)) {
 
             alert(
-                "Messages can contain up to 5000 characters."
+                "You do not have permission to close this request."
             );
 
             return;
 
         }
 
-        textarea.value = "";
-
-        try {
-
-            await db.collection("supportChats")
-                .doc(chatId)
-                .collection("messages")
-                .add({
-
-                    from: email,
-
-                    fromName: "Administration",
-
-                    text: text,
-
-                    date:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
-
-                });
-
-            await db.collection("supportChats")
-                .doc(chatId)
-                .update({
-
-                    lastMessageDate:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
-
-                });
-
-        } catch (error) {
-
-            alert(
-                "Could not send message: " +
-                error.message
-            );
-
-        }
-
-    }
-
-    /* =========================
-       CLOSE SUPPORT REQUEST
-       ========================= */
-
-    async function closeSupportChat(
-        chatId,
-        adminEmail
-    ) {
-
-        const confirmClose =
-            confirm(
-                "Are you sure you want to close this support request?"
-            );
-
-        if (!confirmClose) return;
 
         try {
 
@@ -7403,33 +7330,33 @@ h1 {
                     status: "closed",
 
                     closedAt:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp(),
+                        firebase.firestore.FieldValue.serverTimestamp(),
 
-                    closedBy: adminEmail,
-
-                    lastMessageDate:
-                        firebase.firestore
-                            .FieldValue
-                            .serverTimestamp()
+                    closedBy: email
 
                 });
 
-            alert(
-                "Support request closed."
-            );
-
-            showAdminPanel();
-
         } catch (error) {
 
+            console.error(error);
+
             alert(
-                "Could not close request: " +
-                error.message
+                "Could not close request."
             );
 
         }
+
+    }
+
+
+    function escapeHtml(value) {
+
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
 
     }
 
