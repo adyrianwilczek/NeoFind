@@ -2344,20 +2344,20 @@ async function getAIResponse(query) {
     }
 }
 
-/* ☀️ CIEKAWOSTKI O LECIE (AI, paczka + rotacja lokalna) */
+/* ☀️ CIEKAWOSTKI O JESIENI (AI, paczka + rotacja lokalna) */
 /* 💡 CIEKAWOSTKI Z AI (autumn / mundial / tech) - paczka + rotacja lokalna */
 let autumnFacts = {};          // per język
 let footballFacts = {};        // per język
 let techFacts = {};            // per język: { pl:[...], en:[...], es:[...] }
 const factsLoading = {};       // proste blokady wg klucza cache
 
-const autumn_FACTS_FALLBACK = [
-    "Przesilenie letnie (około 21 czerwca) to najdłuższy dzień roku na półkuli północnej.",
-    "Pory roku wynikają z nachylenia osi Ziemi, a nie z odległości od Słońca - latem Ziemia jest nawet nieco dalej od niego.",
-    "Cykady w upalne dni potrafią hałasować z głośnością bliską 100 decybeli.",
-    "Pierwsze nowożytne igrzyska olimpijskie odbyły się latem 1896 roku w Atenach.",
-    "Rozgrzane powietrze nad asfaltem ugina światło i tworzy miraże przypominające kałuże wody.",
-    "Najwyższą temperaturę na Ziemi zmierzono w Dolinie Śmierci: około 56,7 stopnia Celsjusza."
+const AUTUMN_FACTS_FALLBACK = [
+    "Jesień na półkuli północnej rozpoczyna się około 22 lub 23 września.",
+    "Liście zmieniają kolor jesienią, ponieważ drzewa przestają produkować chlorofil.",
+    "Dynie są owocami, a nie warzywami, ponieważ rozwijają się z kwiatów i zawierają nasiona.",
+    "Jesienią wiele ptaków migruje do cieplejszych regionów, aby przetrwać zimniejsze miesiące.",
+    "Żołędzie są nasionami dębów i jesienią często można znaleźć ich mnóstwo pod drzewami.",
+    "Wiewiórki jesienią gromadzą zapasy pożywienia, które mogą wykorzystać podczas zimy."
 ];
 const FOOTBALL_FACTS_FALLBACK = [
     "Pierwszy mundial odbył się w 1930 roku w Urugwaju, który został pierwszym mistrzem świata.",
