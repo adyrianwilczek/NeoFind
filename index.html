@@ -2158,52 +2158,52 @@ didYouKnow: [
     },
 
     autumn: {
-        search: "☀️ search...",
-        greet: "Hi {name}! enjoy autumn ☀️",
-        greetW: "Hi {name}! it's {temp}°C ☀️",
-        settings: "☀️ Settings",
-        language: "☀️ Language",
-        history: "☀️ History",
-        clearHistory: "☀️ Clear History",
-        console: "☀️ Debug console",
-        save: "☀️ Save",
-        report: "☀️ Report winter!",
-        admin: "☀️ autumn god",
-        noResults: "☀️ what do you mean",
-        favorites: "☀️ Fav",
-        noFavorites: "☀️ No fav",
-        theme: "☀️ Theme",
-        account: "☀️ account",
-        email: "☀️ Email",
-        password: "☀️ Password",
-        change: "☀️ Change",
-        logout: "☀️ Log out",
-        news: "☀️ NeoNews",
-        rateUs: "☀️ Rate Us",
+        search: "🍂 search...",
+        greet: "Hi {name}! enjoy autumn 🍂",
+        greetW: "Hi {name}! it's {temp}°C 🍂",
+        settings: "🍂 Settings",
+        language: "🍂 Language",
+        history: "🍂 History",
+        clearHistory: "🍂 Clear History",
+        console: "🍂 Debug console",
+        save: "🍂 Save",
+        report: "🍂 Report winter!",
+        admin: "🍂 autumn god",
+        noResults: "🍂 what do you mean",
+        favorites: "🍂 Fav",
+        noFavorites: "🍂 No fav",
+        theme: "🍂 Theme",
+        account: "🍂 account",
+        email: "🍂 Email",
+        password: "🍂 Password",
+        change: "🍂 Change",
+        logout: "🍂 Log out",
+        news: "🍂 NeoNews",
+        rateUs: "🍂 Rate Us",
         premium: "💎 good autumn",
-        banUser: "☀️ kick to winter",
-        unbanUser: "☀️ invite to autumn",
-        noHistory: "☀️ No history",
-        close: "☀️ Close", add: "☀️ Add", send: "☀️ Send",
-        friends: "☀️ Friends", profile: "☀️ Profile", navReport: "🌞", navChat: "☀️ Chat",
-        pendingTitle: "☀️ Waiting", friendsListTitle: "☀️ Friends",
-        noPending: "☀️ No pending", accept: "☀️ Accept", decline: "☀️ Decline",
-        chatBtnLabel: "☀️ Talk", noFriends: "☀️ No friends",
-        friendEmailPh: "☀️ email...",
-        adminPanelTitle: "☀️ God Panel", addResultTitle: "☀️ Add sun",
-        titlePh: "☀️ Title", descPh: "☀️ Description", linkPh: "☀️ Link",
-        banSystemTitle: "☀️ Banish winter", userEmailPh: "☀️ Email", ratingsTitle: "☀️ Sunny ratings",
-        reportPh: "☀️ Describe the winter...", messagePh: "☀️ Sunshine...",
-        currentPassPh: "☀️ Old password", newPassPh: "☀️ New password",
-        repeatPassPh: "☀️ Repeat", savePasswordBtn: "☀️ Save",
-        writeReviewPh: "☀️ Write something sunny...", sendRatingBtn: "☀️ Rate the sun",
-        didYouKnowTitle: "☀️ autumn fact:",
+        banUser: "🍂 kick to winter",
+        unbanUser: "🍂 invite to autumn",
+        noHistory: "🍂 No history",
+        close: "🍂 Close", add: "🍂 Add", send: "🍂 Send",
+        friends: "🍂 Friends", profile: "🍂 Profile", navReport: "🌞", navChat: "🍂 Chat",
+        pendingTitle: "🍂 Waiting", friendsListTitle: "🍂 Friends",
+        noPending: "🍂 No pending", accept: "🍂 Accept", decline: "🍂 Decline",
+        chatBtnLabel: "🍂 Talk", noFriends: "🍂 No friends",
+        friendEmailPh: "🍂 email...",
+        adminPanelTitle: "🍂 God Panel", addResultTitle: "🍂 Add sun",
+        titlePh: "🍂 Title", descPh: "🍂 Description", linkPh: "🍂 Link",
+        banSystemTitle: "🍂 Banish winter", userEmailPh: "🍂 Email", ratingsTitle: "🍂 Sunny ratings",
+        reportPh: "🍂 Describe the winter...", messagePh: "🍂 Sunshine...",
+        currentPassPh: "🍂 Old password", newPassPh: "🍂 New password",
+        repeatPassPh: "🍂 Repeat", savePasswordBtn: "🍂 Save",
+        writeReviewPh: "🍂 Write something sunny...", sendRatingBtn: "🍂 Rate the sun",
+        didYouKnowTitle: "🍂 autumn fact:",
 didYouKnow: [
     "The autumn is watching.",
     "You unlocked hidden NeoFind mode.",
     "Neo owns the system.",
     "Nothing is real.",
-    "☀️☀️☀️",
+    "🍂🍂🍂",
     "Join our dc https://discord.gg/KfRzhTc2T"
 ]
     }
@@ -2344,14 +2344,14 @@ async function getAIResponse(query) {
     }
 }
 
-/* ☀️ CIEKAWOSTKI O JESIENI (AI, paczka + rotacja lokalna) */
+/* 🍂 CIEKAWOSTKI O JESIENI (AI, paczka + rotacja lokalna) */
 /* 💡 CIEKAWOSTKI Z AI (autumn / mundial / tech) - paczka + rotacja lokalna */
 let autumnFacts = {};          // per język
 let footballFacts = {};        // per język
 let techFacts = {};            // per język: { pl:[...], en:[...], es:[...] }
 const factsLoading = {};       // proste blokady wg klucza cache
 
-const AUTUMN_FACTS_FALLBACK = [
+const autumn_FACTS_FALLBACK = [
     "Jesień na półkuli północnej rozpoczyna się około 22 lub 23 września.",
     "Liście zmieniają kolor jesienią, ponieważ drzewa przestają produkować chlorofil.",
     "Dynie są owocami, a nie warzywami, ponieważ rozwijają się z kwiatów i zawierają nasiona.",
@@ -4324,7 +4324,7 @@ function setAutumnMode(on, fresh) {
         localStorage.removeItem("autumn");
 
         if (btn) {
-            btn.textContent = "☀️";
+            btn.textContent = "🍂";
             btn.setAttribute(
                 "aria-label",
                 "autumn Mode"
