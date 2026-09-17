@@ -382,11 +382,186 @@ body {
     }
 }
 
-
 /* =========================================================
-   TUTAJ ZACZYNA SIĘ TWÓJ DOTYCHCZASOWY KOD
-   NIC NIE USUWAMY
+   🌧️ RAIN MODE
    ========================================================= */
+
+#rain-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 9990;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+body.rain-mode #rain-layer {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* lekko ciemniejsze, deszczowe niebo */
+body.rain-mode::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9989;
+    pointer-events: none;
+    background:
+        linear-gradient(
+            rgba(20, 35, 50, 0.18),
+            rgba(5, 15, 25, 0.25)
+        );
+}
+
+/* pojedyncze krople */
+.rain-drop {
+    position: absolute;
+    top: -80px;
+    width: 1.5px;
+    height: var(--rain-length);
+    left: var(--rain-left);
+    opacity: var(--rain-opacity);
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(190, 225, 255, 0.9),
+        rgba(255,255,255,0.3)
+    );
+    transform: rotate(12deg);
+    filter: blur(0.2px);
+    animation: rainFall var(--rain-speed) linear infinite;
+    animation-delay: var(--rain-delay);
+}
+
+@keyframes rainFall {
+    from {
+        transform: translate3d(0, -100px, 0) rotate(12deg);
+    }
+
+    to {
+        transform: translate3d(-120px, 120vh, 0) rotate(12deg);
+    }
+}
+
+/* błysk całego ekranu */
+#rain-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9995;
+    pointer-events: none;
+    background: white;
+    opacity: 0;
+}
+
+#rain-flash.active {
+    animation: lightningFlash 0.9s ease-out forwards;
+}
+
+@keyframes lightningFlash {
+    0% {
+        opacity: 0;
+    }
+
+    8% {
+        opacity: 0.82;
+    }
+
+    16% {
+        opacity: 0.2;
+    }
+
+    25% {
+        opacity: 0.62;
+    }
+
+    38% {
+        opacity: 0.08;
+    }
+
+    55% {
+        opacity: 0.25;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* sam piorun */
+.rain-lightning {
+    position: absolute;
+    width: 180px;
+    height: 75vh;
+    left: var(--bolt-left);
+    top: var(--bolt-top);
+    opacity: 0;
+    transform:
+        translate(-50%, -10%)
+        rotate(var(--bolt-rotation))
+        scale(var(--bolt-scale));
+    filter:
+        drop-shadow(0 0 4px white)
+        drop-shadow(0 0 12px rgba(180,220,255,0.95))
+        drop-shadow(0 0 28px rgba(100,170,255,0.7));
+    animation: lightningAppear 1.15s ease-out forwards;
+}
+
+/* nieregularny, powyginany piorun */
+.rain-lightning svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.rain-lightning path {
+    fill: none;
+    stroke: rgba(255,255,255,0.98);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.rain-lightning .bolt-glow {
+    stroke: rgba(150,210,255,0.65);
+    stroke-width: 16;
+    filter: blur(5px);
+}
+
+@keyframes lightningAppear {
+    0% {
+        opacity: 0;
+        filter:
+            drop-shadow(0 0 0 white)
+            drop-shadow(0 0 0 rgba(180,220,255,0));
+    }
+
+    8% {
+        opacity: 1;
+    }
+
+    20% {
+        opacity: 0.95;
+    }
+
+    35% {
+        opacity: 0.72;
+    }
+
+    55% {
+        opacity: 0.48;
+    }
+
+    75% {
+        opacity: 0.22;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
 
 :root {
     --topbar-h: 56px;
@@ -1304,6 +1479,8 @@ body.ocean {
         </div>
     </div>
 </div>
+<div id="rain-layer"></div>
+<div id="rain-flash"></div>
 <div id="loginScreen" style="display:none; text-align:center; margin-top:100px;">
     <div class="neoCountdownContainer" style="display:none; text-align:center; font-size:1.2rem; margin-bottom:20px; letter-spacing:2px; text-shadow:0 0 10px rgba(77,166,255,0.5);">
         <span class="neoCountdownLabel"></span>
@@ -1351,7 +1528,7 @@ body.ocean {
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
         <button class="lang-btn" data-lang="autumn" onclick="toggleAutumnMode()">🍂</button>
-        <button class="lang-btn" onclick="toggleMundialMode()" aria-label="Tryb mundialowy">⚽</button>
+        <button class="lang-btn" onclick="toggleRainMode()" aria-label="Tryb deszczowy">🌧️</button>
         <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" aria-label="Pełny ekran" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
             <svg id="fsIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
         </button>
@@ -2463,7 +2640,7 @@ function currentTips(){
 function currentTipTitle(){
     const l = factsLang();
     if(localStorage.getItem('mundial') === 'on'){
-        return l === "pl" ? "⚽ Ciekawostka piłkarska:" : (l === "es" ? "⚽ Dato futbolero:" : "⚽ Football fact:");
+        return l === "pl" ? "🌧️ Ciekawostka piłkarska:" : (l === "es" ? "🌧️ Dato futbolero:" : "🌧️ Football fact:");
     }
     const t = translations[currentLang];
     return (t && t.didYouKnowTitle) || "Did you know?";
@@ -2629,7 +2806,7 @@ if(badWord && badWord !== lastBadWord){
 
     // fifa
     if (value.includes("fifa") || value.includes("wyniki") || value.includes("mecze")) {
-    box.innerHTML = `<div class="instant-box">⚽ Loading results...</div>`;
+    box.innerHTML = `<div class="instant-box">🌧️ Loading results...</div>`;
 
     fetch("https://neofind-ai.adrian-wilczek.workers.dev/football")
     .then(r => r.json())
@@ -2638,10 +2815,10 @@ if(badWord && badWord !== lastBadWord){
             `${m.homeTeam.shortName} <b>${m.score.fullTime.home ?? "-"} - ${m.score.fullTime.away ?? "-"}</b> ${m.awayTeam.shortName}`
         ).join("<br>");
 
-        box.innerHTML = `<div class="instant-box">⚽ <b>🔴 Live scores</b><br>${mecze || "No matches right now"}</div>`;
+        box.innerHTML = `<div class="instant-box">🌧️ <b>🔴 Live scores</b><br>${mecze || "No matches right now"}</div>`;
     })
     .catch(() => {
-        box.innerHTML = `<div class="instant-box">⚽ Failed to download results.</div>`;
+        box.innerHTML = `<div class="instant-box">🌧️ Failed to download results.</div>`;
     });
 
     return;
@@ -4934,11 +5111,206 @@ function setMundialMode(on, fresh) {
     }
 }
 
-function toggleMundialMode() {
-    const turningOn = localStorage.getItem('mundial') !== 'on';
-    setMundialMode(turningOn, turningOn); // świeża paczka przy każdym włączeniu
-    logAction("UI_THEME", `Theme modifier toggled. WorldCup mode status changed.`, "tag-ui");
+/* =========================================================
+   🌧️ RAIN MODE
+   ========================================================= */
+
+let rainLightningTimer = null;
+let rainDropTimer = null;
+
+function createRainDrops() {
+    const layer = document.getElementById("rain-layer");
+
+    if (!layer) return;
+
+    layer.innerHTML = "";
+
+    const dropCount = window.innerWidth < 700 ? 130 : 260;
+
+    for (let i = 0; i < dropCount; i++) {
+        const drop = document.createElement("div");
+
+        drop.className = "rain-drop";
+
+        const left = Math.random() * 115;
+        const length = 12 + Math.random() * 28;
+        const speed = 0.45 + Math.random() * 0.75;
+        const delay = -(Math.random() * speed);
+        const opacity = 0.18 + Math.random() * 0.55;
+
+        drop.style.setProperty("--rain-left", left + "%");
+        drop.style.setProperty("--rain-length", length + "px");
+        drop.style.setProperty("--rain-speed", speed + "s");
+        drop.style.setProperty("--rain-delay", delay + "s");
+        drop.style.setProperty("--rain-opacity", opacity);
+
+        layer.appendChild(drop);
+    }
 }
+
+function randomLightningPath() {
+    const points = [];
+
+    let x = 90;
+    let y = 0;
+
+    points.push(`M ${x} ${y}`);
+
+    const segments = 8 + Math.floor(Math.random() * 6);
+
+    for (let i = 0; i < segments; i++) {
+        y += 100 / segments;
+
+        x += -30 + Math.random() * 60;
+
+        if (x < 25) x = 25;
+        if (x > 155) x = 155;
+
+        points.push(`L ${x} ${y}`);
+    }
+
+    return points.join(" ");
+}
+
+function createLightning() {
+    if (!document.body.classList.contains("rain-mode")) {
+        return;
+    }
+
+    const layer = document.getElementById("rain-layer");
+    const flash = document.getElementById("rain-flash");
+
+    if (!layer || !flash) return;
+
+    /* usuń poprzedni piorun */
+    document.querySelectorAll(".rain-lightning").forEach(el => {
+        el.remove();
+    });
+
+    const lightning = document.createElement("div");
+
+    lightning.className = "rain-lightning";
+
+    /* losowe miejsce */
+    lightning.style.setProperty(
+        "--bolt-left",
+        (8 + Math.random() * 84) + "%"
+    );
+
+    lightning.style.setProperty(
+        "--bolt-top",
+        (-5 + Math.random() * 18) + "%"
+    );
+
+    /* losowe przechylenie */
+    lightning.style.setProperty(
+        "--bolt-rotation",
+        (-12 + Math.random() * 24) + "deg"
+    );
+
+    /* różna wielkość */
+    lightning.style.setProperty(
+        "--bolt-scale",
+        (0.65 + Math.random() * 0.7).toFixed(2)
+    );
+
+    const path = randomLightningPath();
+
+    lightning.innerHTML = `
+        <svg viewBox="0 0 180 100" preserveAspectRatio="none">
+            <path
+                class="bolt-glow"
+                d="${path}">
+            </path>
+
+            <path
+                d="${path}">
+            </path>
+        </svg>
+    `;
+
+    layer.appendChild(lightning);
+
+    /* błysk ekranu */
+    flash.classList.remove("active");
+
+    void flash.offsetWidth;
+
+    flash.classList.add("active");
+
+    /* piorun zostaje chwilę i zanika animacją */
+    setTimeout(() => {
+        lightning.remove();
+    }, 1300);
+}
+
+function scheduleLightning() {
+    clearTimeout(rainLightningTimer);
+
+    if (!document.body.classList.contains("rain-mode")) {
+        return;
+    }
+
+    /* 10-15 sekund */
+    const delay = 10000 + Math.random() * 5000;
+
+    rainLightningTimer = setTimeout(() => {
+        createLightning();
+        scheduleLightning();
+    }, delay);
+}
+
+function toggleRainMode() {
+    const turningOn =
+        localStorage.getItem("rain") !== "on";
+
+    if (turningOn) {
+        localStorage.setItem("rain", "on");
+
+        document.body.classList.add("rain-mode");
+
+        createRainDrops();
+
+        /* pierwszy piorun po kilku sekundach */
+        clearTimeout(rainLightningTimer);
+
+        rainLightningTimer = setTimeout(() => {
+            createLightning();
+            scheduleLightning();
+        }, 3000 + Math.random() * 4000);
+
+    } else {
+        localStorage.setItem("rain", "off");
+
+        document.body.classList.remove("rain-mode");
+
+        clearTimeout(rainLightningTimer);
+        rainLightningTimer = null;
+
+        const layer = document.getElementById("rain-layer");
+
+        if (layer) {
+            layer.innerHTML = "";
+        }
+
+        const flash = document.getElementById("rain-flash");
+
+        if (flash) {
+            flash.classList.remove("active");
+        }
+    }
+}
+
+/* przywrócenie trybu po odświeżeniu */
+document.addEventListener("DOMContentLoaded", () => {
+    if (localStorage.getItem("rain") === "on") {
+        document.body.classList.add("rain-mode");
+
+        createRainDrops();
+
+        scheduleLightning();
+    }
+});
 
 // Przywróć tryb mundialowy po odświeżeniu strony (z cache, nie świeże)
 if (localStorage.getItem('mundial') === 'on') {
