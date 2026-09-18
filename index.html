@@ -2829,7 +2829,34 @@ if(badWord && badWord !== lastBadWord){
     saveToHistory(value);
 
     const results = document.getElementById("results");
-    const isAIQuery = aiKeywords.some(k => value === k || value.startsWith(k + " "));
+
+    // mody z Modrinth
+    if (value.startsWith("mod ")) {
+        const szukane = value.slice(4);
+        results.innerHTML = `<div class="instant-box">⛏️ Loading mods...</div>`;
+
+        fetch("https://api.modrinth.com/v2/search?limit=5&query=" + encodeURIComponent(szukane) + "&facets=" + encodeURIComponent('[["project_type:mod"]]'))
+        .then(r => r.json())
+        .then(odp => {
+            // ktoś pisze dalej, ta odpowiedź jest już nieaktualna
+            if (document.getElementById("search").value.toLowerCase().trim() !== value) return;
+
+            const mody = odp.hits.map(m => ({
+                title: m.title,
+                desc: m.description,
+                image: m.icon_url,
+                link: "https://modrinth.com/mod/" + m.slug,
+                extra: m.downloads + " downloads"
+            }));
+            renderCards(mody);
+        })
+        .catch(() => {
+            results.innerHTML = `<div class="instant-box">⛏️ Failed to download mods.</div>`;
+        });
+        return;
+    }
+
+    const isAIQuery =aiKeywords.some(k => value === k || value.startsWith(k + " "));
     if(isAIQuery){
     results.innerHTML = "<div class='result'>Thinking...</div>";
     getAIResponse(value).then(answer => {
@@ -3775,6 +3802,23 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+}
+
+// karty wyników z innych stron (mody, potem schematy i gry Roblox)
+// każdy element: { title, desc, image, link, extra }
+function renderCards(items) {
+    const results = document.getElementById("results");
+    if (!items.length) {
+        results.innerHTML = `<div class="instant-box">Nothing found.</div>`;
+        return;
+    }
+    results.innerHTML = items.map(item => `
+    <div class="result">
+        <a href="${escapeHtml(item.link)}" target="_blank">${escapeHtml(item.title)}</a>
+        <p>${escapeHtml(item.desc || "")}</p>
+        <p>${escapeHtml(item.extra || "")}</p>
+    </div>
+    `).join("");
 }
 
 /* =========================
