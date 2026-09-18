@@ -2498,8 +2498,42 @@ function highlight(text, query){
 }
 
 /* 🤖 AI */
+// Neo przy pytaniach o Minecraft i Roblox najpierw czyta wiki gry (trasa /wiki w Workerze)
+async function neoWiki(question) {
+    try {
+        const r = await fetch("https://neofind-ai.adrian-wilczek.workers.dev/wiki?q=" + encodeURIComponent(question));
+        const d = await r.json();
+        return (d.sources && d.sources.length) ? d : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// instrukcja dla Neo, wspólna dla czatu i odpowiedzi w wyszukiwarce
+function neoSystemPrompt(langName, wiki) {
+    let p = `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
+
+Games: you are the go-to guide for Minecraft and Roblox, including experiences like RIVALS, Blox Fruits, Adopt Me and Grow a Garden. Players come to you for tips, crafting, mechanics, items, mobs, weapons and strategies, so give practical, step by step help they can use in the game right away. When you name an item, block, mob or weapon and reply in a language other than English, add its English in-game name in brackets, because most players see the game in English. When wiki excerpts are given below, take game facts only from them; if they do not answer the question, say so honestly and suggest what to look up instead of guessing. Never invent crafting recipes, item stats, prices, drop rates, spawn chances or update dates. Never give Roblox promo codes or game codes: they expire fast, so tell the player to check the experience's official Discord, X account or Roblox group. Do not help with exploits, cheat scripts, duping, account trading or anything else that breaks Minecraft or Roblox rules. For Minecraft mods, remind them they can type "mod" and a name in the NeoFind search bar, for example "mod create". A joke or witty aside about a game must never add facts, numbers or claims that are not in the wiki excerpts, and if an excerpt is unclear about a price or stat, leave that detail out. Only mention NeoFind features from the list above, never suggest other things to search for in NeoFind.`;
+    if (wiki) {
+        p += "\n\nWiki excerpts for the current question (source: " + wiki.wiki + " wiki):\n\n" +
+            wiki.sources.map(s => "[" + s.title + "]\n" + s.text).join("\n\n");
+    }
+    return p;
+}
+
+// linki do stron wiki pod odpowiedzią Neo
+function neoSourcesHtml(wiki) {
+    if (!wiki) return "";
+    const links = wiki.sources.map(s =>
+        `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener" style="color:#00ffcc;">${escapeHtml(s.title)}</a>`
+    ).join(", ");
+    return `<div style="font-size:12px; opacity:0.75; margin-top:8px;">📖 Wiki: ${links}</div>`;
+}
+
 async function getAIResponse(query) {
     try {
+        const wiki = await neoWiki(query);
+        const langName = currentLang === "pl" ? "Polish" : (currentLang === "es" ? "Spanish" : "English");
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
             method: "POST",
             headers: {
@@ -2507,17 +2541,21 @@ async function getAIResponse(query) {
             },
             body: JSON.stringify({
                 model: "mistral-small-latest",
-                messages: [{ role: "user", content: query }],
-                max_tokens: 150
+                messages: [
+                    { role: "system", content: neoSystemPrompt(langName, wiki) + "\n\nThis answer appears under the search bar, so keep it to 2 to 4 sentences." },
+                    { role: "user", content: query }
+                ],
+                max_tokens: 300,
+                temperature: wiki ? 0.2 : 0.5
             })
         });
         const data = await response.json();
         if (data.choices && data.choices[0]) {
-            return data.choices[0].message.content;
+            return { text: data.choices[0].message.content, wiki };
         }
-        return "AI nie odpowiedziało. Spróbuj jeszcze raz za chwilę.";
+        return { text: "AI nie odpowiedziało. Spróbuj jeszcze raz za chwilę.", wiki: null };
     } catch (e) {
-        return "AI jest teraz niedostępne. Sprawdź połączenie i spróbuj ponownie.";
+        return { text: "AI jest teraz niedostępne. Sprawdź połączenie i spróbuj ponownie.", wiki: null };
     }
 }
 
@@ -2819,8 +2857,10 @@ if(badWord && badWord !== lastBadWord){
     if(isAIQuery){
     results.innerHTML = "<div class='result'>Thinking...</div>";
     getAIResponse(value).then(answer => {
+        // ktoś pisze dalej, ta odpowiedź jest już nieaktualna
+        if (document.getElementById("search").value.toLowerCase().trim() !== value) return;
         const p = document.createElement("p");
-        p.textContent = answer;
+        p.innerHTML = neoFormat(answer.text); // neoFormat najpierw robi escapeHtml
         const div = document.createElement("div");
         div.className = "result";
             const header = document.createElement("div");
@@ -2828,6 +2868,7 @@ if(badWord && badWord !== lastBadWord){
     header.style.cssText = "font-size:13px; opacity:0.6; margin-bottom:8px;";
     div.appendChild(header);
         div.appendChild(p);
+        div.insertAdjacentHTML("beforeend", neoSourcesHtml(answer.wiki));
         results.innerHTML = "";
         results.appendChild(div);
     });
@@ -5779,17 +5820,20 @@ window.sendNeoAiMessage = async function() {
     // Dopisz pytanie do historii (kontekst rozmowy)
     neoHistory.push({ role: "user", content: msgText });
 
+    // przy pytaniach o gry Neo najpierw czyta wiki
+    const wiki = await neoWiki(msgText);
+
     let aiReply = "";
     let gotReply = false;
     try {
         const requestBody = {
             model: "mistral-small-latest",
             messages: [
-                { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), premium codes, and a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${t.langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.` },
+                { role: "system", content: neoSystemPrompt(t.langName, wiki) },
                 ...neoHistory.slice(-10)
             ],
             max_tokens: 800,
-            temperature: 0.5
+            temperature: wiki ? 0.2 : 0.5 // z wiki mniej zgadywania
         };
 
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
@@ -5832,7 +5876,7 @@ window.sendNeoAiMessage = async function() {
     messages.innerHTML += `
         <div class="chat-row chat-row-them">
             <span class="chat-sender">Neo</span>
-            <div class="chat-msg-them">${neoFormat(aiReply)}</div>
+            <div class="chat-msg-them">${neoFormat(aiReply)}${gotReply ? neoSourcesHtml(wiki) : ""}</div>
         </div>
     `;
     messages.scrollTop = messages.scrollHeight;
@@ -9420,6 +9464,9 @@ async function giveOrbsToUser() {
 
     neoHistory.push({ role: "user", content: msgText });
 
+    // przy pytaniach o gry Neo najpierw czyta wiki
+    const wiki = await neoWiki(msgText);
+
     let aiReply = "";
     let gotReply = false;
 
@@ -9430,11 +9477,11 @@ async function giveOrbsToUser() {
             body: JSON.stringify({
                 model: "mistral-small-latest",
                 messages: [
-                    { role: "system", content: `You are Neo, the witty built-in AI assistant of NeoFind...` },
+                    { role: "system", content: neoSystemPrompt(t.langName, wiki) },
                     ...neoHistory.slice(-10)
                 ],
                 max_tokens: 800,
-                temperature: 0.5
+                temperature: wiki ? 0.2 : 0.5 // z wiki mniej zgadywania
             })
         });
 
@@ -9473,7 +9520,7 @@ async function giveOrbsToUser() {
     replyRow.style.cssText = 'display: flex; flex-direction: column; align-self: flex-start; max-width: 85%;';
     replyRow.innerHTML = `
         <span style="font-size: 11px; color: rgba(0,255,200,0.6); margin-bottom: 2px;">Neo</span>
-        <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 8px 12px; border-radius: 16px 16px 16px 2px; word-break: break-word; white-space: pre-wrap;">${neoFormat(aiReply)}</div>
+        <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 8px 12px; border-radius: 16px 16px 16px 2px; word-break: break-word; white-space: pre-wrap;">${neoFormat(aiReply)}${gotReply ? neoSourcesHtml(wiki) : ""}</div>
     `;
     messages.appendChild(replyRow);
     messages.scrollTop = messages.scrollHeight;
