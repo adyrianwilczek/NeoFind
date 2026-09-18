@@ -1436,43 +1436,43 @@ body.ocean {
     padding-bottom: 80px;
 }
 
-/* ============================= */
-/* NEO DAILY CHEST               */
-/* ============================= */
+/* ================================
+   NEO DAILY CHEST
+   ================================ */
 
 .neo-daily-chest {
     position: fixed;
     left: 50%;
-    bottom: 25px;
+    bottom: 92px;
     transform: translateX(-50%);
-    width: 130px;
-    height: 125px;
+    width: 150px;
+    height: 135px;
     z-index: 9999;
     cursor: pointer;
     text-align: center;
     user-select: none;
-    transition: transform 0.25s ease;
+    transition: transform .25s ease;
 }
 
 .neo-daily-chest:hover {
-    transform: translateX(-50%) scale(1.08);
+    transform: translateX(-50%) scale(1.07);
 }
 
 .neo-chest {
     position: relative;
-    width: 90px;
-    height: 75px;
+    width: 96px;
+    height: 78px;
     margin: 0 auto;
-    filter: drop-shadow(0 8px 15px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 9px 18px rgba(0,0,0,.5));
 }
 
 .neo-chest-body {
     position: absolute;
     left: 5px;
     bottom: 0;
-    width: 80px;
-    height: 48px;
-    background: linear-gradient(145deg, #75451d, #3f210f);
+    width: 86px;
+    height: 50px;
+    background: linear-gradient(145deg,#75451d,#3f210f);
     border: 3px solid #241207;
     border-radius: 5px 5px 10px 10px;
     overflow: hidden;
@@ -1482,14 +1482,14 @@ body.ocean {
     position: absolute;
     left: 2px;
     top: 4px;
-    width: 86px;
-    height: 30px;
-    background: linear-gradient(145deg, #a8672a, #4a2710);
+    width: 92px;
+    height: 31px;
+    background: linear-gradient(145deg,#a8672a,#4a2710);
     border: 3px solid #241207;
     border-radius: 12px 12px 5px 5px;
     transform-origin: bottom center;
     z-index: 2;
-    transition: transform 0.65s cubic-bezier(.2,.8,.2,1);
+    transition: transform .65s cubic-bezier(.2,.8,.2,1);
 }
 
 .neo-chest-lock {
@@ -1519,29 +1519,17 @@ body.ocean {
     position: absolute;
     left: 50%;
     top: 25px;
-    width: 100px;
-    height: 70px;
-    transform: translate(-50%, -50%);
+    width: 115px;
+    height: 80px;
+    transform: translate(-50%,-50%);
     background: radial-gradient(
         circle,
-        rgba(0, 242, 254, 0.45),
-        rgba(79, 172, 254, 0.15),
+        rgba(0,242,254,.45),
+        rgba(79,172,254,.15),
         transparent 70%
     );
     filter: blur(10px);
     animation: neoChestGlow 2s infinite ease-in-out;
-}
-
-@keyframes neoChestGlow {
-    0%, 100% {
-        opacity: 0.55;
-        transform: translate(-50%, -50%) scale(0.9);
-    }
-
-    50% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.15);
-    }
 }
 
 .neo-chest-label {
@@ -1553,12 +1541,32 @@ body.ocean {
 }
 
 .neo-daily-chest.shake {
-    animation: neoChestShake 0.5s ease;
+    animation: neoChestShake .5s ease;
+}
+
+.neo-daily-chest.opening .neo-chest-lid {
+    transform: rotateX(75deg) translateY(-8px);
+}
+
+.neo-daily-chest.opening .neo-chest-glow {
+    animation: neoChestOpenGlow .7s ease forwards;
+}
+
+@keyframes neoChestGlow {
+    0%,100% {
+        opacity: .55;
+        transform: translate(-50%,-50%) scale(.9);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%,-50%) scale(1.15);
+    }
 }
 
 @keyframes neoChestShake {
-    0% {
-        transform: translateX(-50%) rotate(0deg);
+    0%,100% {
+        transform: translateX(-50%) rotate(0);
     }
 
     20% {
@@ -1576,35 +1584,23 @@ body.ocean {
     80% {
         transform: translateX(-50%) rotate(4deg);
     }
-
-    100% {
-        transform: translateX(-50%) rotate(0deg);
-    }
-}
-
-.neo-daily-chest.opening .neo-chest-lid {
-    transform: rotateX(75deg) translateY(-8px);
-}
-
-.neo-daily-chest.opening .neo-chest-glow {
-    animation: neoChestOpenGlow 0.7s ease forwards;
 }
 
 @keyframes neoChestOpenGlow {
     0% {
         opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
+        transform: translate(-50%,-50%) scale(1);
     }
 
     100% {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(2.5);
+        transform: translate(-50%,-50%) scale(2.5);
     }
 }
 
-/* ============================= */
-/* REWARD POPUP                  */
-/* ============================= */
+/* ================================
+   REWARD POPUP
+   ================================ */
 
 .neo-chest-reward {
     position: fixed;
@@ -1613,34 +1609,34 @@ body.ocean {
     align-items: center;
     justify-content: center;
     z-index: 10000;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(0,0,0,.55);
     backdrop-filter: blur(5px);
 }
 
 .neo-chest-reward.show {
     display: flex;
-    animation: neoRewardFade 0.3s ease;
+    animation: neoRewardFade .3s ease;
 }
 
 .neo-reward-box {
     position: relative;
-    width: min(360px, 90vw);
+    width: min(360px,90vw);
     padding: 35px 25px;
     border-radius: 22px;
     text-align: center;
-    background: rgba(20, 25, 40, 0.97);
-    border: 2px solid rgba(0, 242, 254, 0.5);
+    background: rgba(20,25,40,.97);
+    border: 2px solid rgba(0,242,254,.5);
     box-shadow:
-        0 0 30px rgba(0, 242, 254, 0.25),
-        0 20px 60px rgba(0, 0, 0, 0.5);
-    animation: neoRewardPop 0.45s cubic-bezier(.2,.8,.2,1);
+        0 0 30px rgba(0,242,254,.25),
+        0 20px 60px rgba(0,0,0,.5);
+    animation: neoRewardPop .45s cubic-bezier(.2,.8,.2,1);
 }
 
 .neo-reward-close {
     position: absolute;
     top: 10px;
     right: 14px;
-    border: none;
+    border: 0;
     background: transparent;
     color: white;
     font-size: 28px;
@@ -1655,17 +1651,6 @@ body.ocean {
     margin-bottom: 10px;
 }
 
-.neo-reward-icon {
-    font-size: 65px;
-    margin: 10px 0;
-}
-
-.neo-reward-text {
-    color: white;
-    font-size: 22px;
-    font-weight: 800;
-}
-
 .neo-reward-rarity.common {
     color: #bfc5cc;
 }
@@ -1678,20 +1663,26 @@ body.ocean {
     color: #b56cff;
 }
 
-@keyframes neoRewardFade {
-    from {
-        opacity: 0;
-    }
+.neo-reward-icon {
+    font-size: 65px;
+    margin: 10px 0;
+}
 
-    to {
-        opacity: 1;
-    }
+.neo-reward-text {
+    color: white;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+@keyframes neoRewardFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 @keyframes neoRewardPop {
     from {
         opacity: 0;
-        transform: scale(0.7);
+        transform: scale(.7);
     }
 
     to {
@@ -1700,9 +1691,9 @@ body.ocean {
     }
 }
 
-/* ============================= */
-/* CONFETTI                      */
-/* ============================= */
+/* ================================
+   CONFETTI
+   ================================ */
 
 .neo-confetti {
     position: fixed;
@@ -1718,28 +1709,28 @@ body.ocean {
 @keyframes neoConfettiFall {
     0% {
         opacity: 1;
-        transform: translate(0, 0) rotate(0deg);
+        transform: translate(0,0) rotate(0);
     }
 
     100% {
         opacity: 0;
         transform:
             translate(
-                calc((var(--x)) * 1px),
-                calc((var(--y)) * 1px)
+                calc(var(--x) * 1px),
+                calc(var(--y) * 1px)
             )
             rotate(720deg);
     }
 }
 
-@media (max-width: 600px) {
+@media(max-width:600px) {
     .neo-daily-chest {
-        bottom: 15px;
-        transform: translateX(-50%) scale(0.9);
+        bottom: 88px;
+        transform: translateX(-50%) scale(.9);
     }
 
     .neo-daily-chest:hover {
-        transform: translateX(-50%) scale(0.96);
+        transform: translateX(-50%) scale(.96);
     }
 }
 
@@ -6255,7 +6246,7 @@ function triggerCustomLockScreen(userEmail, blockReason) {
             <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
         </div>
         <!-- NEO DAILY CHEST -->
-<div id="neoDailyChest" class="neo-daily-chest" onclick="openNeoDailyChest()">
+<div id="neoDailyChest" class="neo-daily-chest">
     <div class="neo-chest-glow"></div>
 
     <div class="neo-chest">
@@ -6273,14 +6264,23 @@ function triggerCustomLockScreen(userEmail, blockReason) {
     </div>
 </div>
 
-<!-- REWARD POPUP -->
 <div id="neoChestReward" class="neo-chest-reward">
     <div class="neo-reward-box">
-        <button class="neo-reward-close" onclick="closeNeoChestReward()">×</button>
+
+        <button
+            class="neo-reward-close"
+            onclick="closeNeoChestReward()">
+            ×
+        </button>
 
         <div id="neoRewardRarity" class="neo-reward-rarity"></div>
-        <div id="neoRewardIcon" class="neo-reward-icon">🎁</div>
+
+        <div id="neoRewardIcon" class="neo-reward-icon">
+            🎁
+        </div>
+
         <div id="neoRewardText" class="neo-reward-text"></div>
+
     </div>
 </div>
     </body>`;
@@ -9368,22 +9368,20 @@ async function validateAndTrackApiKey(apiKey) {
     };
 }
 
-/* ============================= */
-/* NEO DAILY CHEST               */
-/* ============================= */
-
 (function () {
-    "use strict";
 
     const CHEST_DATE_KEY = "neoFindDailyChestDate";
 
+    /* TYLKO 3 SKRZYNIE */
     const CHEST_WEIGHTS = {
         common: 50,
         rare: 15,
         epic: 5
     };
 
+    /* ZAWSZE JEDNA NAGRODA */
     const REWARDS = {
+
         common: [
             {
                 type: "orbs",
@@ -9441,9 +9439,32 @@ async function validateAndTrackApiKey(apiKey) {
                 weight: 2
             }
         ]
+
     };
 
+
+    function today() {
+
+        const d = new Date();
+
+        return d.getFullYear() + "-" +
+            String(d.getMonth() + 1).padStart(2, "0") + "-" +
+            String(d.getDate()).padStart(2, "0");
+
+    }
+
+
+    function openedToday() {
+
+        return localStorage.getItem(
+            CHEST_DATE_KEY
+        ) === today();
+
+    }
+
+
     function weightedRandom(items) {
+
         const total = items.reduce(
             (sum, item) => sum + item.weight,
             0
@@ -9452,45 +9473,35 @@ async function validateAndTrackApiKey(apiKey) {
         let random = Math.random() * total;
 
         for (const item of items) {
+
             random -= item.weight;
 
             if (random < 0) {
                 return item;
             }
+
         }
 
         return items[items.length - 1];
+
     }
 
-    function getToday() {
-        const now = new Date();
-
-        return [
-            now.getFullYear(),
-            String(now.getMonth() + 1).padStart(2, "0"),
-            String(now.getDate()).padStart(2, "0")
-        ].join("-");
-    }
-
-    function hasOpenedToday() {
-        return localStorage.getItem(CHEST_DATE_KEY) === getToday();
-    }
-
-    function markOpenedToday() {
-        localStorage.setItem(
-            CHEST_DATE_KEY,
-            getToday()
-        );
-    }
 
     function addOrbs(amount) {
-        if (typeof window.userOrbs === "number") {
-            window.userOrbs += amount;
-        } else {
-            const current =
-                Number(localStorage.getItem("userOrbs")) || 0;
 
-            window.userOrbs = current + amount;
+        if (typeof window.userOrbs === "number") {
+
+            window.userOrbs += amount;
+
+        } else {
+
+            window.userOrbs =
+                Number(
+                    localStorage.getItem("userOrbs")
+                ) || 0;
+
+            window.userOrbs += amount;
+
         }
 
         localStorage.setItem(
@@ -9505,196 +9516,299 @@ async function validateAndTrackApiKey(apiKey) {
         if (typeof window.renderMissions === "function") {
             window.renderMissions();
         }
+
     }
 
+
     function givePremium(days) {
+
         const now = Date.now();
-        const currentUntil =
-            Number(localStorage.getItem("neoPremiumUntil")) || 0;
 
-        const base =
-            currentUntil > now
-                ? currentUntil
-                : now;
+        const old =
+            Number(
+                localStorage.getItem(
+                    "neoPremiumUntil"
+                )
+            ) || 0;
 
-        const newUntil =
-            base + days * 24 * 60 * 60 * 1000;
+        const newDate =
+            Math.max(now, old) +
+            days * 86400000;
 
         localStorage.setItem(
             "neoPremiumUntil",
-            String(newUntil)
+            String(newDate)
         );
 
         localStorage.setItem(
             "userPremium",
             "true"
         );
+
     }
+
 
     function createConfetti() {
+
+        const colors = [
+            "#00f2fe",
+            "#4facfe",
+            "#9b51e0",
+            "#ffffff",
+            "#ffd166"
+        ];
+
         for (let i = 0; i < 80; i++) {
-            const confetti =
+
+            const piece =
                 document.createElement("div");
 
-            confetti.className = "neo-confetti";
+            piece.className =
+                "neo-confetti";
 
-            confetti.style.setProperty(
+            piece.style.setProperty(
                 "--x",
-                Math.round(Math.random() * 700 - 350)
+                Math.round(
+                    Math.random() * 700 - 350
+                )
             );
 
-            confetti.style.setProperty(
+            piece.style.setProperty(
                 "--y",
-                Math.round(Math.random() * 600 - 200)
+                Math.round(
+                    Math.random() * 600 - 200
+                )
             );
 
-            confetti.style.transform =
-                `rotate(${Math.random() * 360}deg)`;
-
-            confetti.style.background =
-                [
-                    "#00f2fe",
-                    "#4facfe",
-                    "#9b51e0",
-                    "#ffffff",
-                    "#ffd166"
-                ][
-                    Math.floor(Math.random() * 5)
+            piece.style.background =
+                colors[
+                    Math.floor(
+                        Math.random() *
+                        colors.length
+                    )
                 ];
 
-            document.body.appendChild(confetti);
+            document.body.appendChild(piece);
 
-            setTimeout(() => {
-                confetti.remove();
-            }, 1600);
+            setTimeout(
+                () => piece.remove(),
+                1600
+            );
+
         }
+
     }
 
-    function getRarityName(rarity) {
-        if (rarity === "common") return "Zwykła skrzynia";
-        if (rarity === "rare") return "Rzadka skrzynia";
-        if (rarity === "epic") return "Epicka skrzynia";
 
-        return "Skrzynia";
+    function rarityName(rarity) {
+
+        if (rarity === "common")
+            return "Zwykła skrzynia";
+
+        if (rarity === "rare")
+            return "Rzadka skrzynia";
+
+        return "Epicka skrzynia";
+
     }
+
 
     function showReward(rarity, reward) {
+
         const popup =
-            document.getElementById("neoChestReward");
+            document.getElementById(
+                "neoChestReward"
+            );
 
         const rarityElement =
-            document.getElementById("neoRewardRarity");
+            document.getElementById(
+                "neoRewardRarity"
+            );
 
         const iconElement =
-            document.getElementById("neoRewardIcon");
+            document.getElementById(
+                "neoRewardIcon"
+            );
 
         const textElement =
-            document.getElementById("neoRewardText");
+            document.getElementById(
+                "neoRewardText"
+            );
+
 
         rarityElement.textContent =
-            getRarityName(rarity);
+            rarityName(rarity);
 
         rarityElement.className =
             "neo-reward-rarity " + rarity;
 
+
         if (reward.type === "orbs") {
+
             iconElement.textContent = "🪙";
 
             textElement.textContent =
-                `+${reward.amount} Orbs`;
+                "+" + reward.amount + " Orbs";
 
             addOrbs(reward.amount);
+
         }
 
-        else if (reward.type === "confetti") {
+
+        if (reward.type === "confetti") {
+
             iconElement.textContent = "🎉";
 
             textElement.textContent =
                 "Efekt konfetti!";
 
             createConfetti();
+
         }
 
-        else if (reward.type === "premium") {
+
+        if (reward.type === "premium") {
+
             iconElement.textContent = "⭐";
 
             textElement.textContent =
-                `Premium na ${reward.days} dni`;
+                "Premium na " +
+                reward.days +
+                " dni";
 
             givePremium(reward.days);
+
         }
 
+
         popup.classList.add("show");
+
     }
 
+
     window.openNeoDailyChest = function () {
+
         const chest =
-            document.getElementById("neoDailyChest");
+            document.getElementById(
+                "neoDailyChest"
+            );
 
         if (!chest) return;
 
-        if (hasOpenedToday()) return;
+        if (openedToday()) {
+            chest.style.display = "none";
+            return;
+        }
+
 
         chest.classList.add("shake");
 
+
         setTimeout(() => {
+
             chest.classList.remove("shake");
+
             chest.classList.add("opening");
+
         }, 450);
 
+
         setTimeout(() => {
+
             const rarity =
                 weightedRandom(
-                    Object.entries(CHEST_WEIGHTS)
-                        .map(([name, weight]) => ({
+                    Object.entries(
+                        CHEST_WEIGHTS
+                    ).map(
+                        ([name, weight]) => ({
                             name,
                             weight
-                        }))
+                        })
+                    )
                 ).name;
 
-            const reward =
-                weightedRandom(REWARDS[rarity]);
 
-            markOpenedToday();
+            const reward =
+                weightedRandom(
+                    REWARDS[rarity]
+                );
+
+
+            localStorage.setItem(
+                CHEST_DATE_KEY,
+                today()
+            );
+
 
             chest.style.display = "none";
+
 
             showReward(
                 rarity,
                 reward
             );
+
         }, 1050);
+
     };
 
+
     window.closeNeoChestReward = function () {
+
         const popup =
-            document.getElementById("neoChestReward");
+            document.getElementById(
+                "neoChestReward"
+            );
 
         if (popup) {
             popup.classList.remove("show");
         }
+
     };
 
-    function updateChestVisibility() {
+
+    function initDailyChest() {
+
         const chest =
-            document.getElementById("neoDailyChest");
+            document.getElementById(
+                "neoDailyChest"
+            );
 
         if (!chest) return;
 
-        if (hasOpenedToday()) {
-            chest.style.display = "none";
-        } else {
-            chest.style.display = "block";
+
+        chest.addEventListener(
+            "click",
+            window.openNeoDailyChest
+        );
+
+
+        if (openedToday()) {
+
+            chest.style.display =
+                "none";
+
         }
+
     }
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        updateChestVisibility
-    );
+
+    if (
+        document.readyState === "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            initDailyChest
+        );
+
+    } else {
+
+        initDailyChest();
+
+    }
 
 })();
-
 // ==========================================
 // REKRUTACJA NA ADMINA (/application)
 // ==========================================
