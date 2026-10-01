@@ -3666,6 +3666,22 @@ loginScreen.style.display = "none";
 app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
 
+if (!user) return;
+
+    const snap = await db.collection("users")
+        .doc(user.uid)
+        .get();
+
+    const data = snap.exists ? snap.data() : {};
+
+    userOrbs = Number(data.orbs) || 0;
+    window.userOrbs = userOrbs;
+
+    localStorage.setItem("userOrbs", String(userOrbs));
+
+    renderMissions();
+});
+
 // Powitanie ustawiamy od razu, temperaturę dopisujemy jak przyjdzie z pogody
 greetTemp = null;
 renderGreeting();
@@ -9487,8 +9503,9 @@ async function validateAndTrackApiKey(apiKey) {
     }
 
 
-    function addOrbs(amount) {
-
+    async function addOrbs(amount) {
+    await changeUserOrbs(amount);
+}
         if (typeof window.userOrbs === "number") {
 
             window.userOrbs += amount;
@@ -9849,7 +9866,8 @@ const ALL_MISSIONS = [
     { id: 'search_75', title: 'Ultimate Researcher', desc: 'Complete a massive marathon of 75 searches', target: 75, reward: 500, type: 'search' }
 ];
 
-let userOrbs = parseInt(localStorage.getItem('userOrbs') || '0');
+let userOrbs = Number(localStorage.getItem('userOrbs') || '0');
+window.userOrbs = userOrbs;
 
 function initDailyMissions() {
     const today = new Date().toDateString();
@@ -9883,15 +9901,18 @@ function updateMissionProgress(type) {
     }
 }
 
-function claimReward(id) {
+async function claimReward(id) {
     let data = initDailyMissions();
     const m = data.missions.find(x => x.id === id);
 
     if (m && m.progress >= m.target && !m.claimed) {
         m.claimed = true;
-        userOrbs += m.reward;
+        const success = await changeUserOrbs(m.reward);
 
-        localStorage.setItem('userOrbs', userOrbs);
+if (!success) {
+    alert("Nie udało się odebrać Orbs.");
+    return;
+}
         localStorage.setItem('dailyMissionsData', JSON.stringify(data));
 
         if (typeof confetti === 'function') confetti();
@@ -9927,20 +9948,75 @@ function renderMissions() {
     });
 }
 
-function buyPremiumWithOrbs() {
-    if (localStorage.getItem('userPremium') === 'true') {
-        alert("You already have an active Premium status!");
+async function buyPremiumWithOrbs() {
+    const user = auth.currentUser;
+
+    if (!user) {
+        alert("Musisz być zalogowany.");
         return;
     }
 
-    if (userOrbs >= 1000) {
-        userOrbs -= 1000;
-        localStorage.setItem('userOrbs', userOrbs);
-        localStorage.setItem('userPremium', 'true');
-        alert("🎉 Congratulations! Premium Unlocked!");
+    try {
+        const ref = db.collection("users").doc(user.uid);
+
+        const result = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.data() || {};
+
+            const orbs = Number(data.orbs) || 0;
+
+            if (orbs < 1000) {
+                return { error: "NOT_ENOUGH_ORBS" };
+            }
+
+            const premiumUntil = new Date();
+            premiumUntil.setMonth(premiumUntil.getMonth() + 1);
+
+            transaction.set(ref, {
+                orbs: orbs - 1000,
+                premiumUntil: premiumUntil.getTime()
+            }, { merge: true });
+
+            return {
+                orbs: orbs - 1000,
+                premiumUntil: premiumUntil.getTime()
+            };
+        });
+
+        if (result.error === "NOT_ENOUGH_ORBS") {
+            alert("Not enough Orbs! Required: 1000.");
+            return;
+        }
+
+        userOrbs = result.orbs;
+        window.userOrbs = result.orbs;
+
+        localStorage.setItem(
+            "userOrbs",
+            String(result.orbs)
+        );
+
+        localStorage.setItem(
+            "userPremium",
+            "true"
+        );
+
+        localStorage.setItem(
+            "neoPremiumUntil",
+            String(result.premiumUntil)
+        );
+
+        alert("🎉 Premium unlocked for 1 month!");
+
         renderMissions();
-    } else {
-        alert("Not enough Orbs! Required: 1000.");
+
+        if (typeof window.updateUI === "function") {
+            window.updateUI();
+        }
+
+    } catch (error) {
+        console.error("Premium purchase error:", error);
+        alert("Nie udało się kupić Premium.");
     }
 }
 
@@ -9956,6 +10032,56 @@ function closeOrbsPanel() {
 }
 
 initDailyMissions();
+
+async function changeUserOrbs(delta) {
+    const user = auth.currentUser;
+
+    if (!user) {
+        alert("Musisz być zalogowany.");
+        return false;
+    }
+
+    try {
+        const ref = db.collection("users").doc(user.uid);
+
+        const newBalance = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const current = Number(snap.data()?.orbs) || 0;
+            const next = current + Number(delta);
+
+            if (next < 0) {
+                throw new Error("NOT_ENOUGH_ORBS");
+            }
+
+            transaction.set(ref, {
+                orbs: next
+            }, { merge: true });
+
+            return next;
+        });
+
+        userOrbs = newBalance;
+        window.userOrbs = newBalance;
+        localStorage.setItem("userOrbs", String(newBalance));
+
+        renderMissions();
+
+        if (typeof window.updateUI === "function") {
+            window.updateUI();
+        }
+
+        return true;
+
+    } catch (error) {
+        if (error.message !== "NOT_ENOUGH_ORBS") {
+            console.error("Błąd Orbs:", error);
+        }
+
+        return false;
+    }
+}
+
+window.changeUserOrbs = changeUserOrbs;
 
 // --- OBSŁUGA SYSTEMU ORBS DLA ADMINA ---
 
