@@ -9503,37 +9503,21 @@ async function validateAndTrackApiKey(apiKey) {
 
 
     async function addOrbs(amount) {
-    await changeUserOrbs(amount);
-}
-        if (typeof window.userOrbs === "number") {
+    const success = await changeUserOrbs(amount);
 
-            window.userOrbs += amount;
-
-        } else {
-
-            window.userOrbs =
-                Number(
-                    localStorage.getItem("userOrbs")
-                ) || 0;
-
-            window.userOrbs += amount;
-
-        }
-
-        localStorage.setItem(
-            "userOrbs",
-            String(window.userOrbs)
-        );
-
-        if (typeof window.updateUI === "function") {
-            window.updateUI();
-        }
-
-        if (typeof window.renderMissions === "function") {
-            window.renderMissions();
-        }
-
+    if (!success) {
+        console.error("Nie udało się dodać Orbs.");
+        return;
     }
+
+    if (typeof window.updateUI === "function") {
+        window.updateUI();
+    }
+
+    if (typeof window.renderMissions === "function") {
+        window.renderMissions();
+    }
+}
 
 
     function givePremium(days) {
