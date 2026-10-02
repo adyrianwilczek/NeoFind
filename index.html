@@ -3522,6 +3522,64 @@ const PREMIUM_EMAILS = [
     "j.e.wilkowska@gmail.com"
 ];
 
+/* =========================================================
+   NEO ECONOMY: CLOUD ORBS + PREMIUM
+   ========================================================= */
+async function syncUserEconomy(user) {
+    if (!user || typeof db === "undefined") {
+        return { orbs: Number(localStorage.getItem("userOrbs") || 0), premium: false };
+    }
+
+    const ref = db.collection("users").doc(user.uid);
+
+    try {
+        const snap = await ref.get();
+        const data = snap.exists ? snap.data() : {};
+
+        let orbs = Number(data.orbs);
+        if (!Number.isFinite(orbs) || orbs < 0) {
+            orbs = Number(localStorage.getItem("userOrbs") || 0);
+            if (!Number.isFinite(orbs) || orbs < 0) orbs = 0;
+            await ref.set({ email: user.email || "", orbs }, { merge: true });
+        }
+
+        const permanentPremium =
+            data.premium === true ||
+            PREMIUM_EMAILS.map(e => e.toLowerCase()).includes(
+                String(user.email || "").toLowerCase()
+            );
+
+        const premiumUntil = Number(data.premiumUntil || 0);
+        const premium = permanentPremium || premiumUntil > Date.now();
+
+        userOrbs = Math.floor(orbs);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        localStorage.setItem("userPremium", premium ? "true" : "false");
+        if (premiumUntil > 0) {
+            localStorage.setItem("neoPremiumUntil", String(premiumUntil));
+        }
+
+        renderMissions();
+        return { orbs: userOrbs, premium };
+    } catch (error) {
+        console.error("Neo economy sync failed:", error);
+        return {
+            orbs: Number(localStorage.getItem("userOrbs") || 0),
+            premium: localStorage.getItem("userPremium") === "true"
+        };
+    }
+}
+
+function isPremiumActive() {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (user && PREMIUM_EMAILS.map(e => e.toLowerCase()).includes(String(user.email || "").toLowerCase())) {
+        return true;
+    }
+    const until = Number(localStorage.getItem("neoPremiumUntil") || 0);
+    return localStorage.getItem("userPremium") === "true" &&
+        (until === 0 || until > Date.now());
+}
+
 /* =========================
    REGISTER
 ========================= */
@@ -3699,11 +3757,9 @@ db.collection("customResults").get().then(snapshot => {
 
 document.getElementById("accountEmail").innerText = user.email;
 document.getElementById("accountName").innerText = user.displayName || user.email.split('@')[0];
-    if (PREMIUM_EMAILS.includes(user.email)) {
-    document.getElementById("premiumBadge").style.display = "block";
-} else {
-    document.getElementById("premiumBadge").style.display = "none";
-}
+    const economy = await syncUserEconomy(user);
+    document.getElementById("premiumBadge").style.display =
+        economy.premium ? "block" : "none";
 
     if (ADMIN_EMAILS.includes(user.email)) {
         document.getElementById("adminBtn").style.display = "flex";
@@ -9239,7 +9295,7 @@ window.generateApiKey = async function() {
     if (!user) return alert("Musisz być zalogowany!");
 
     // Sprawdzamy czy użytkownik ma Premium (z bazy/lokalnie)
-    const userPremium = localStorage.getItem("userPremium") === "true"; 
+    const userPremium = isPremiumActive();
     const dailyLimit = userPremium ? 1000 : 250;
 
     const newKey = "nf_live_" + Array.from(crypto.getRandomValues(new Uint8Array(16)))
@@ -9487,64 +9543,77 @@ async function validateAndTrackApiKey(apiKey) {
     }
 
 
-    function addOrbs(amount) {
+    async function addOrbs(amount) {
 
-        if (typeof window.userOrbs === "number") {
+        amount = Number(amount);
 
-            window.userOrbs += amount;
+        if (!Number.isFinite(amount) || amount <= 0) return false;
 
-        } else {
+        const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+        if (!user || typeof db === "undefined") return false;
 
-            window.userOrbs =
-                Number(
-                    localStorage.getItem("userOrbs")
-                ) || 0;
+        try {
+            const ref = db.collection("users").doc(user.uid);
+            const result = await db.runTransaction(async transaction => {
+                const snap = await transaction.get(ref);
+                const current = snap.exists ? Number(snap.data().orbs || 0) : 0;
+                const next = Math.max(0, Math.floor(current)) + Math.floor(amount);
 
-            window.userOrbs += amount;
+                transaction.set(ref, {
+                    email: user.email || "",
+                    orbs: next
+                }, { merge: true });
 
+                return next;
+            });
+
+            userOrbs = result;
+            localStorage.setItem("userOrbs", String(userOrbs));
+
+            if (typeof window.updateUI === "function") window.updateUI();
+            if (typeof window.renderMissions === "function") window.renderMissions();
+            return true;
+        } catch (error) {
+            console.error("Failed to add Orbs:", error);
+            return false;
         }
-
-        localStorage.setItem(
-            "userOrbs",
-            String(window.userOrbs)
-        );
-
-        if (typeof window.updateUI === "function") {
-            window.updateUI();
-        }
-
-        if (typeof window.renderMissions === "function") {
-            window.renderMissions();
-        }
-
     }
 
 
-    function givePremium(days) {
+    async function givePremium(days) {
 
-        const now = Date.now();
+        const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+        if (!user || typeof db === "undefined") return false;
 
-        const old =
-            Number(
-                localStorage.getItem(
-                    "neoPremiumUntil"
-                )
-            ) || 0;
+        days = Number(days);
+        if (!Number.isFinite(days) || days <= 0) return false;
 
-        const newDate =
-            Math.max(now, old) +
-            days * 86400000;
+        try {
+            const ref = db.collection("users").doc(user.uid);
+            const newDate = await db.runTransaction(async transaction => {
+                const snap = await transaction.get(ref);
+                const data = snap.exists ? snap.data() : {};
+                const oldUntil = Number(data.premiumUntil || 0);
+                const until = Math.max(Date.now(), oldUntil) + days * 86400000;
 
-        localStorage.setItem(
-            "neoPremiumUntil",
-            String(newDate)
-        );
+                transaction.set(ref, {
+                    email: user.email || "",
+                    premiumUntil: until
+                }, { merge: true });
 
-        localStorage.setItem(
-            "userPremium",
-            "true"
-        );
+                return until;
+            });
 
+            localStorage.setItem("neoPremiumUntil", String(newDate));
+            localStorage.setItem("userPremium", "true");
+
+            const badge = document.getElementById("premiumBadge");
+            if (badge) badge.style.display = "block";
+            return true;
+        } catch (error) {
+            console.error("Failed to grant Premium:", error);
+            return false;
+        }
     }
 
 
@@ -9851,6 +9920,12 @@ const ALL_MISSIONS = [
 
 let userOrbs = parseInt(localStorage.getItem('userOrbs') || '0');
 
+if (typeof auth !== "undefined") {
+    auth.onAuthStateChanged(async user => {
+        if (user) await syncUserEconomy(user);
+    });
+}
+
 function initDailyMissions() {
     const today = new Date().toDateString();
     let saved = JSON.parse(localStorage.getItem('dailyMissionsData') || '{}');
@@ -9883,19 +9958,54 @@ function updateMissionProgress(type) {
     }
 }
 
-function claimReward(id) {
-    let data = initDailyMissions();
+async function claimReward(id) {
+    const data = initDailyMissions();
     const m = data.missions.find(x => x.id === id);
 
-    if (m && m.progress >= m.target && !m.claimed) {
-        m.claimed = true;
-        userOrbs += m.reward;
+    if (!m || m.progress < m.target || m.claimed) return;
 
-        localStorage.setItem('userOrbs', userOrbs);
-        localStorage.setItem('dailyMissionsData', JSON.stringify(data));
+    const ok = await addOrbsToCloud(m.reward);
+    if (!ok) {
+        alert("Could not save your Orbs. Please try again.");
+        return;
+    }
 
-        if (typeof confetti === 'function') confetti();
+    m.claimed = true;
+    localStorage.setItem('dailyMissionsData', JSON.stringify(data));
+
+    if (typeof confetti === 'function') confetti();
+    renderMissions();
+}
+
+async function addOrbsToCloud(amount) {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user || typeof db === "undefined") return false;
+
+    amount = Number(amount);
+    if (!Number.isFinite(amount) || amount <= 0) return false;
+
+    try {
+        const ref = db.collection("users").doc(user.uid);
+        const next = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const current = snap.exists ? Number(snap.data().orbs || 0) : 0;
+            const value = Math.max(0, Math.floor(current)) + Math.floor(amount);
+
+            transaction.set(ref, {
+                email: user.email || "",
+                orbs: value
+            }, { merge: true });
+
+            return value;
+        });
+
+        userOrbs = next;
+        localStorage.setItem("userOrbs", String(userOrbs));
         renderMissions();
+        return true;
+    } catch (error) {
+        console.error("Orbs transaction failed:", error);
+        return false;
     }
 }
 
@@ -9927,20 +10037,53 @@ function renderMissions() {
     });
 }
 
-function buyPremiumWithOrbs() {
-    if (localStorage.getItem('userPremium') === 'true') {
+async function buyPremiumWithOrbs() {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user || typeof db === "undefined") {
+        alert("You must be logged in.");
+        return;
+    }
+
+    if (isPremiumActive()) {
         alert("You already have an active Premium status!");
         return;
     }
 
-    if (userOrbs >= 1000) {
-        userOrbs -= 1000;
+    try {
+        const ref = db.collection("users").doc(user.uid);
+
+        await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
+
+            if (current < 1000) throw new Error("NOT_ENOUGH_ORBS");
+
+            transaction.set(ref, {
+                email: user.email || "",
+                orbs: current - 1000,
+                premium: true,
+                premiumUntil: 0
+            }, { merge: true });
+        });
+
+        userOrbs = Math.max(0, userOrbs - 1000);
         localStorage.setItem('userOrbs', userOrbs);
         localStorage.setItem('userPremium', 'true');
+        localStorage.removeItem('neoPremiumUntil');
+
+        const badge = document.getElementById("premiumBadge");
+        if (badge) badge.style.display = "block";
+
         alert("🎉 Congratulations! Premium Unlocked!");
         renderMissions();
-    } else {
-        alert("Not enough Orbs! Required: 1000.");
+    } catch (error) {
+        if (error.message === "NOT_ENOUGH_ORBS") {
+            alert("Not enough Orbs! Required: 1000.");
+        } else {
+            console.error("Premium purchase failed:", error);
+            alert("Could not complete the Premium purchase. Please try again.");
+        }
     }
 }
 
@@ -9977,9 +10120,9 @@ async function giveOrbsToUser() {
     const targetEmail = rawInput.toLowerCase();
     const amount = parseInt(amountInput.value, 10);
 
-    if (!rawInput || isNaN(amount)) {
+    if (!rawInput || !Number.isInteger(amount) || amount <= 0) {
         statusEl.style.color = '#ff8080';
-        statusEl.innerText = 'Podaj poprawny e-mail/UID oraz ilość Orbs!';
+        statusEl.innerText = 'Podaj poprawny e-mail/UID oraz dodatnią liczbę Orbs!';
         return;
     }
 
