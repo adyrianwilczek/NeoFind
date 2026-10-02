@@ -3761,6 +3761,8 @@ document.getElementById("accountName").innerText = user.displayName || user.emai
     document.getElementById("premiumBadge").style.display =
         economy.premium ? "block" : "none";
 
+    watchAdminOrbGrants(user);
+
     if (ADMIN_EMAILS.includes(user.email)) {
         document.getElementById("adminBtn").style.display = "flex";
     } else {
@@ -9918,6 +9920,51 @@ const ALL_MISSIONS = [
     { id: 'search_75', title: 'Ultimate Researcher', desc: 'Complete a massive marathon of 75 searches', target: 75, reward: 500, type: 'search' }
 ];
 
+let adminOrbGrantUnsubscribe = null;
+
+function showAdminOrbGrantPopup(amount) {
+    const lang = (typeof currentLang !== "undefined" && currentLang) ? currentLang : "en";
+    const messages = {
+        en: `You got ${amount} Orbs from admin!`,
+        pl: `Otrzymałeś ${amount} Orbs od admina!`,
+        es: `¡Has recibido ${amount} Orbs del administrador!`
+    };
+
+    alert(messages[lang] || messages.en);
+}
+
+function watchAdminOrbGrants(user) {
+    if (adminOrbGrantUnsubscribe) {
+        adminOrbGrantUnsubscribe();
+        adminOrbGrantUnsubscribe = null;
+    }
+
+    if (!user || typeof db === "undefined") return;
+
+    const ref = db.collection("users").doc(user.uid);
+
+    adminOrbGrantUnsubscribe = ref.onSnapshot(snapshot => {
+        if (!snapshot.exists) return;
+
+        const grant = snapshot.data().lastAdminOrbGrant;
+        if (!grant || !grant.id) return;
+
+        const seenKey = "neoFindLastSeenAdminOrbGrant";
+        const seenId = localStorage.getItem(seenKey);
+
+        if (seenId === String(grant.id)) return;
+
+        localStorage.setItem(seenKey, String(grant.id));
+
+        const amount = Math.floor(Number(grant.amount) || 0);
+        if (amount > 0) {
+            showAdminOrbGrantPopup(amount);
+        }
+    }, error => {
+        console.error("Admin Orbs notification listener failed:", error);
+    });
+}
+
 let userOrbs = parseInt(localStorage.getItem('userOrbs') || '0');
 
 if (typeof auth !== "undefined") {
@@ -10149,7 +10196,14 @@ async function giveOrbsToUser() {
                 const currentOrbs = Number(doc.data().orbs) || 0;
                 const newOrbs = currentOrbs + amount;
 
-                await doc.ref.update({ orbs: newOrbs });
+                await doc.ref.update({
+                    orbs: newOrbs,
+                    lastAdminOrbGrant: {
+                        id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+                        amount,
+                        at: Date.now()
+                    }
+                });
 
                 statusEl.style.color = '#00ffcc';
                 statusEl.innerText = `Dodano ${amount} Orbs do konta ${doc.data().email || targetEmail}! (Łącznie: ${newOrbs})`;
@@ -10170,6 +10224,12 @@ async function giveOrbsToUser() {
 
             const updateData = { orbs: newOrbs };
             if (!data.email) updateData.email = targetEmail; // uzupełnia e-mail jeśli go brakowało
+
+            updateData.lastAdminOrbGrant = {
+                id: `${Date.now()}_${Math.random().toString(36).slice(2)}`,
+                amount,
+                at: Date.now()
+            };
 
             await docDirect.ref.update(updateData);
 
