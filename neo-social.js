@@ -663,6 +663,33 @@
 
             .ns-profile-head{
                 text-align:center;
+                position:relative;
+            }
+
+            .ns-profile-close{
+                position:absolute;
+                top:12px;
+                right:12px;
+                width:38px;
+                height:38px;
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                padding:0;
+                border-radius:11px;
+                border:1px solid #25434b;
+                background:rgba(16,36,43,0.9);
+                color:#fff;
+                cursor:pointer;
+                font-size:22px;
+                line-height:1;
+                transition:.15s;
+            }
+
+            .ns-profile-close:hover{
+                background:#173139;
+                border-color:#00b991;
+                transform:scale(1.05);
             }
 
             .ns-profile-stats{
@@ -4167,6 +4194,15 @@
 
                 <div
                     class="ns-card ns-profile-head">
+
+                    <button
+                        class="ns-profile-close"
+                        type="button"
+                        onclick="closeNeoSocial()"
+                        aria-label="Close profile"
+                        title="Close">
+                        ×
+                    </button>
 
                     <img
                         id="ns-profile-avatar-preview"
