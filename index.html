@@ -1898,7 +1898,7 @@ body.ocean {
 <!-- ⬇️ BOTTOM NAV -->
 <div id="bottomNav">
     <button onclick="openAnnouncements()">
-        <span class="nav-icon">🔔</span>
+        <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg></span>
         <span class="nav-label" id="navAnnouncementsLabel">Announcements</span>
         <span id="announcementBadge" style="display:none;position:absolute;top:2px;margin-left:8px;background:#ff4d6d;color:white;border-radius:10px;padding:1px 5px;font-size:9px;">0</span>
     </button>
@@ -3319,7 +3319,7 @@ function useSuggestion(text){
 
 /* ⚙️ SETTINGS */
 function closeAllPanels(updateUrl = true){
-    ["adminBox","reportBox","newsBox","friendsBox","settingsBox","chatPanel"].forEach(id => {
+    ["adminBox","reportBox","newsBox","friendsBox","settingsBox","chatPanel","announcementsBox"].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = "none";
     });
