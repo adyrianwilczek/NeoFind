@@ -3215,7 +3215,7 @@ if(badWord && badWord !== lastBadWord){
 results.innerHTML = filtered.map((item, i) => {
     const fullIndex = list.indexOf(item);
     const rawLink = String(item.link || "");
-    const safeLink = /^https?:\\/\\//i.test(rawLink) ? rawLink : "#";
+    const safeLink = /^https?:\/\//i.test(rawLink) ? rawLink : "#";
     const copyValue = JSON.stringify(rawLink).replace(/'/g, "&#39;");
     const domain = (() => {
         try {
