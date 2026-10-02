@@ -1183,6 +1183,32 @@ body.ocean {
 #neoAiSend svg { width: 18px; height: 18px; }
 #neoAiInput:disabled, #neoAiSend:disabled { opacity: 0.5; cursor: default; }
 
+/* 🤖 NeoAI model selector */
+#neoAiModelSelect {
+    min-width: 116px;
+    max-width: 145px;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(0,255,200,0.28);
+    border-radius: 18px;
+    background: rgba(8,22,28,0.92);
+    color: #dffff8;
+    font-family: 'Oxanium', sans-serif;
+    font-size: 10.5px;
+    outline: none;
+    cursor: pointer;
+    box-shadow: 0 0 12px rgba(0,255,200,0.08);
+}
+#neoAiModelSelect:hover { border-color: rgba(0,255,200,0.55); }
+#neoAiModelSelect:focus { box-shadow: 0 0 0 2px rgba(0,255,200,0.12); }
+#neoAiModelSelect option { background: #08161c; color: #e8fffa; }
+.neo-ai-model-row { display:flex; gap:7px; align-items:center; width:100%; }
+.neo-ai-model-row #neoAiInput { flex:1; min-width:0; }
+@media (max-width: 430px) {
+    #neoAiModelSelect { min-width: 96px; max-width: 112px; font-size: 9px; padding: 0 7px; }
+    .neo-ai-model-row { gap:5px; }
+}
+
 @media (max-width: 600px) {
     /* ── homeWrapper: jedyne źródło marginesów bocznych (16px każda strona) ── */
     #homeWrapper {
@@ -2291,7 +2317,18 @@ NOTE! Do not share the key with anyone.
         </div>
     </div>
     <div id="neoAiInputArea">
-        <input id="neoAiInput" placeholder="Type to Neo..." onkeydown="if(event.key==='Enter'){ sendNeoAiMessage(); }">
+        <div class="neo-ai-model-row">
+            <input id="neoAiInput" placeholder="Type to Neo..." onkeydown="if(event.key==='Enter'){ sendNeoAiMessage(); }">
+            <select id="neoAiModelSelect" title="Choose NeoAI model" aria-label="Choose NeoAI model" onchange="selectNeoAiModel(this.value)">
+                <option value="neoai-1.0">NeoAI 1.0</option>
+                <option value="neoai-1.3">NeoAI 1.3</option>
+                <option value="neoai-3.1-iaoen">3.1 IAoen</option>
+                <option value="neoai-1.5">NeoAI 1.5</option>
+                <option value="neoai-1.8">NeoAI 1.8</option>
+                <option value="neoai-2.0">NeoAI 2.0</option>
+                <option value="neoai-2.3" selected>NeoAI 2.3</option>
+            </select>
+        </div>
         <button id="neoAiSend" onclick="sendNeoAiMessage()" aria-label="Wyślij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
     </div>
 </div>
@@ -6079,6 +6116,40 @@ function neoLang() {
 }
 function neoT() { return NEO_TEXT[neoLang()] || NEO_TEXT.en; }
 
+/* 🤖 NeoAI models */
+const NEO_AI_MODELS = {
+    "neoai-1.0": { name: "NeoAI 1.0", desc: "Najprostszy i najsłabszy", apiModel: "neoai-1.0" },
+    "neoai-1.3": { name: "NeoAI 1.3", desc: "Lepszy, ale nadal podstawowy", apiModel: "neoai-1.3" },
+    "neoai-3.1-iaoen": { name: "3.1 IAoen", desc: "Żartobliwy, odwraca odpowiedzi", apiModel: "neoai-1.3" },
+    "neoai-1.5": { name: "NeoAI 1.5", desc: "Lepszy i w miarę szybki", apiModel: "neoai-1.5" },
+    "neoai-1.8": { name: "NeoAI 1.8", desc: "Szybki i mądry", apiModel: "neoai-1.8" },
+    "neoai-2.0": { name: "NeoAI 2.0", desc: "Bardzo mądry i szybki", apiModel: "neoai-2.0" },
+    "neoai-2.3": { name: "NeoAI 2.3", desc: "Najnowszy i najbardziej zaawansowany", apiModel: "neoai-2.3" }
+};
+
+let neoAiSelectedModel = localStorage.getItem("neoAiSelectedModel") || "neoai-2.3";
+if (!NEO_AI_MODELS[neoAiSelectedModel]) neoAiSelectedModel = "neoai-2.3";
+
+function selectNeoAiModel(modelId) {
+    if (!NEO_AI_MODELS[modelId]) return;
+    neoAiSelectedModel = modelId;
+    localStorage.setItem("neoAiSelectedModel", modelId);
+    const select = document.getElementById("neoAiModelSelect");
+    if (select && select.value !== modelId) select.value = modelId;
+    if (select) select.title = NEO_AI_MODELS[modelId].desc;
+}
+
+function initNeoAiModelSelector() {
+    const select = document.getElementById("neoAiModelSelect");
+    if (!select) return;
+    select.value = neoAiSelectedModel;
+    select.title = NEO_AI_MODELS[neoAiSelectedModel].desc;
+}
+
+function neoAiReverseText(text) {
+    return String(text || "").split("").reverse().join("");
+}
+
 // Formatuje odpowiedź Neo: najpierw escapeHtml (bezpieczeństwo), potem prosty markdown (**bold**, *italic*).
 // Łamanie linii ogarnia CSS (white-space: pre-wrap), więc newline'y z modelu zostają.
 function neoFormat(raw) {
@@ -6091,6 +6162,7 @@ function neoFormat(raw) {
 }
 
 // Otwiera/zamyka pływające okienko Neo
+initNeoAiModelSelector();
 window.toggleNeoAiChat = function() {
     const box = document.getElementById('neoAiTmpChat');
     if (!box) return;
@@ -6182,7 +6254,7 @@ window.sendNeoAiMessage = async function() {
     let gotReply = false;
     try {
         const requestBody = {
-            model: "mistral-small-latest",
+            model: NEO_AI_MODELS[neoAiSelectedModel].apiModel,
             messages: [
                 { role: "system", content: neoSystemPrompt(t.langName, wiki) },
                 ...neoHistory.slice(-10)
@@ -6202,6 +6274,9 @@ window.sendNeoAiMessage = async function() {
             const resData = await response.json();
             if (resData.choices && resData.choices[0] && resData.choices[0].message) {
                 aiReply = resData.choices[0].message.content;
+                if (neoAiSelectedModel === "neoai-3.1-iaoen") {
+                    aiReply = neoAiReverseText(aiReply);
+                }
                 gotReply = true;
             } else if (resData.error) {
                 aiReply = `Błąd API: ${resData.error.message || JSON.stringify(resData.error)}`;
