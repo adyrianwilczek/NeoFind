@@ -1309,6 +1309,7 @@ body.ocean {
     max-height: none;
     overflow-y: auto;
     box-sizing: border-box;
+    padding: 92px 24px 140px !important;
     padding: 24px;
     background: linear-gradient(135deg, rgba(15,32,39,0.55), rgba(44,83,100,0.55));
     backdrop-filter: blur(12px);
@@ -1372,6 +1373,34 @@ body.ocean {
     .settings-grid { grid-template-columns: 1fr; }
     .lang-btn { padding: 7px 10px; font-size: 13px; }
 }
+
+/* 🔔 ANNOUNCEMENTS */
+#announcementsBox {
+    display:none;
+    position:fixed;
+    inset:0;
+    width:100%;
+    height:100vh;
+    overflow-y:auto;
+    box-sizing:border-box;
+    padding:90px 24px 130px;
+    background:linear-gradient(135deg,rgba(8,20,27,.97),rgba(20,39,48,.97));
+    z-index:10000;
+}
+.announcement-card {
+    max-width:760px;
+    margin:0 auto 10px;
+    padding:16px;
+    border:1px solid rgba(0,255,200,.18);
+    border-radius:14px;
+    background:rgba(255,255,255,.045);
+    text-align:left;
+}
+.announcement-card h3 { margin:0 0 7px; }
+.announcement-card p { margin:0; white-space:pre-wrap; opacity:.82; line-height:1.5; }
+.announcement-card small { opacity:.45; }
+.announcement-delete { float:right; }
+.announcement-empty { opacity:.5; text-align:center; padding:30px; }
 
 /* 🔝 TOP BAR */
 #topBar {
@@ -1868,6 +1897,11 @@ body.ocean {
 
 <!-- ⬇️ BOTTOM NAV -->
 <div id="bottomNav">
+    <button onclick="openAnnouncements()">
+        <span class="nav-icon">🔔</span>
+        <span class="nav-label" id="navAnnouncementsLabel">Announcements</span>
+        <span id="announcementBadge" style="display:none;position:absolute;top:2px;margin-left:8px;background:#ff4d6d;color:white;border-radius:10px;padding:1px 5px;font-size:9px;">0</span>
+    </button>
     <button onclick="openFriends()">
         <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M2 20c0-4 3.5-6 7-6s7 2 7 6"/><path d="M16 3a4 4 0 0 1 0 8"/><path d="M22 20c0-3.5-2.5-5-6-5"/></svg></span>
         <span class="nav-label" id="navFriendsLabel">Friends</span>
@@ -2073,6 +2107,15 @@ NOTE! Do not share the key with anyone.
 
 <!-- FRIENDS BUTTON moved to #bottomNav -->
 
+<!-- 🔔 ANNOUNCEMENTS -->
+<div id="announcementsBox">
+    <h2 style="text-align:center;">Announcements</h2>
+    <div id="announcementsList"></div>
+    <div style="text-align:center;margin-top:20px;">
+        <button onclick="closeAllPanels()">Close</button>
+    </div>
+</div>
+
 <!-- FRIENDS BOX -->
 <div id="friendsBox">
     <h2 id="friendsBoxTitle">Friends</h2>
@@ -2264,6 +2307,13 @@ NOTE! Do not share the key with anyone.
 <input id="giveOrbsAmount" type="number" placeholder="Amount of Orbs"><br><br>
 <button onclick="giveOrbsToUser()">Give Orbs</button>
 <p id="giveOrbsStatus" style="font-size:13px; margin-top:5px;"></p>
+
+<hr style="border:0;border-top:1px solid rgba(0,255,200,.2);margin:20px 0;">
+<h3>Global Announcement</h3>
+<input id="announcementAdminTitle" placeholder="Announcement title"><br>
+<textarea id="announcementAdminBody" placeholder="Announcement text" style="width:90%;min-height:90px;"></textarea><br>
+<button onclick="adminCreateAnnouncement()">Send to everyone</button>
+<p id="announcementAdminStatus" style="font-size:12px;opacity:.7;"></p>
 
 <h3 id="ratingsTitleEl">Ratings</h3>
 <div id="ratingsList"></div>
@@ -2846,7 +2896,7 @@ async function neoWiki(question) {
 
 // instrukcja dla Neo, wspólna dla czatu i odpowiedzi w wyszukiwarce
 function neoSystemPrompt(langName, wiki) {
-    let p = `You are Neo, the witty built-in AI assistant of NeoFind, a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
+    let p = `You are Neo, the witty built-in AI assistant and system guide of NeoFind. You have a verified internal feature manifest below. Treat it as the source of truth for what NeoFind currently contains. If a feature is absent from the manifest, say it is not currently part of NeoFind instead of inventing it. You know the following current NeoFind systems: search, NeoAI chat with model selector (NeoAI 1.0, 1.3, 3.1 IAoen, 1.5, 1.8, 2.0, 2.3), friends and friend requests, real-time chat with text/images/audio, announcements, persistent Firestore user notifications, admin global announcements, Orbs economy and daily missions, Premium, API key panel, settings, language/theme controls, search history, favorites, ratings, reports, admin panel, bans, seasonal modes, developer console, F1 diagnostics, F9 panic page, NeoNews/update pages, Minecraft mod search, weather and AI features. Current notification events include admin Orb grants, Premium purchases, chat messages, friend requests, and global admin announcements. The user can delete their own notifications. Admins can create global announcements. The authoritative live backend is Firebase/Firestore. Do not claim a feature exists unless it is in this manifest or explicitly supplied in the conversation.  a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
 
 Games: you are the go-to guide for Minecraft and Roblox, including experiences like RIVALS, Blox Fruits, Adopt Me and Grow a Garden. Players come to you for tips, crafting, mechanics, items, mobs, weapons and strategies, so give practical, step by step help they can use in the game right away. When you name an item, block, mob or weapon and reply in a language other than English, add its English in-game name in brackets, because most players see the game in English. When wiki excerpts are given below, take game facts only from them; if they do not answer the question, say so honestly and suggest what to look up instead of guessing. Never invent crafting recipes, item stats, prices, drop rates, spawn chances or update dates. Never give Roblox promo codes or game codes: they expire fast, so tell the player to check the experience's official Discord, X account or Roblox group. Do not help with exploits, cheat scripts, duping, account trading or anything else that breaks Minecraft or Roblox rules. For Minecraft mods, remind them they can type "mod" and a name in the NeoFind search bar, for example "mod create". A joke or witty aside about a game must never add facts, numbers or claims that are not in the wiki excerpts, and if an excerpt is unclear about a price or stat, leave that detail out. Only mention NeoFind features from the list above, never suggest other things to search for in NeoFind.`;
     if (wiki) {
@@ -3291,7 +3341,7 @@ function openPanel(id, onOpen){
     closeAllPanels();
     if(!isOpen){
         panel.style.display = "block";
-        if(window.innerWidth > 600){
+        if(window.innerWidth > 600 && id !== "settingsBox"){
             const searchEl = document.getElementById("search");
             const navEl = document.getElementById("bottomNav");
             if(searchEl && navEl){
@@ -3305,6 +3355,146 @@ function openPanel(id, onOpen){
         }
         document.getElementById("backdrop").style.display = "block";
         if(onOpen) onOpen();
+    }
+}
+
+/* 🔔 ANNOUNCEMENTS SYSTEM */
+let announcementsUnsubscribe = null;
+let announcementsGlobalUnsubscribe = null;
+
+function announcementDateValue(v){
+    if(!v) return 0;
+    if(v.toMillis) return v.toMillis();
+    if(v.toDate) return v.toDate().getTime();
+    return new Date(v).getTime() || 0;
+}
+
+async function createUserAnnouncement(uid, data){
+    if(!uid || typeof db === "undefined") return;
+    await db.collection("users").doc(uid).collection("announcements").add({
+        ...data,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        read: false
+    });
+}
+
+async function openAnnouncements(){
+    openPanel("announcementsBox", async () => {
+        const user = auth.currentUser;
+        if(!user) {
+            document.getElementById("announcementsList").innerHTML = '<div class="announcement-empty">Log in to see your announcements.</div>';
+            return;
+        }
+        await renderAnnouncements();
+    });
+}
+
+async function renderAnnouncements(){
+    const user = auth.currentUser;
+    const box = document.getElementById("announcementsList");
+    if(!user || !box) return;
+    try {
+        const snap = await db.collection("users").doc(user.uid)
+            .collection("announcements").get();
+        const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
+            .sort((a,b) => announcementDateValue(b.createdAt)-announcementDateValue(a.createdAt));
+        box.innerHTML = docs.length ? docs.map(a => `
+            <div class="announcement-card">
+                <button class="announcement-delete" onclick="deleteAnnouncement('${a.id}')">Delete</button>
+                <h3>${escapeHtml(a.title || "Announcement")}</h3>
+                <p>${escapeHtml(a.body || "")}</p>
+                <small>${new Date(announcementDateValue(a.createdAt) || Date.now()).toLocaleString()}</small>
+            </div>
+        `).join("") : '<div class="announcement-empty">No announcements yet.</div>';
+        const badge = document.getElementById("announcementBadge");
+        if(badge) {
+            const unread = docs.filter(a => !a.read).length;
+            badge.textContent = unread;
+            badge.style.display = unread ? "inline-block" : "none";
+        }
+    } catch(e) {
+        box.innerHTML = '<div class="announcement-empty">Could not load announcements.</div>';
+        console.error("Announcements:", e);
+    }
+}
+
+async function deleteAnnouncement(id){
+    const user = auth.currentUser;
+    if(!user || !id) return;
+    await db.collection("users").doc(user.uid).collection("announcements").doc(id).delete();
+    renderAnnouncements();
+}
+
+async function markAnnouncementsRead(){
+    const user = auth.currentUser;
+    if(!user) return;
+    const snap = await db.collection("users").doc(user.uid).collection("announcements")
+        .where("read","==",false).get().catch(()=>null);
+    if(!snap) return;
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.update(d.ref,{read:true}));
+    if(snap.size) await batch.commit();
+}
+
+async function addAnnouncementToUser(user, title, body, type, extra={}){
+    if(!user) return;
+    await createUserAnnouncement(user.uid, {
+        title, body, type,
+        ...extra
+    });
+}
+
+function startAnnouncementListeners(user){
+    if(announcementsUnsubscribe) announcementsUnsubscribe();
+    if(announcementsGlobalUnsubscribe) announcementsGlobalUnsubscribe();
+    if(!user || typeof db === "undefined") return;
+
+    const personalRef = db.collection("users").doc(user.uid).collection("announcements");
+    announcementsUnsubscribe = personalRef.onSnapshot(() => {
+        if(document.getElementById("announcementsBox")?.style.display === "block") renderAnnouncements();
+    });
+
+    // Global announcements are copied to the user's Firestore notification list.
+    // This makes them persistent for that user after their next visit/login.
+    announcementsGlobalUnsubscribe = db.collection("announcements").onSnapshot(async snap => {
+        for(const doc of snap.docs){
+            const a = doc.data();
+            const seenRef = personalRef.doc("global_" + doc.id);
+            const seen = await seenRef.get();
+            if(!seen.exists){
+                await seenRef.set({
+                    title:a.title || "Announcement",
+                    body:a.body || "",
+                    type:"admin",
+                    globalId:doc.id,
+                    createdAt:a.createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+                    read:false
+                });
+            }
+        }
+        if(document.getElementById("announcementsBox")?.style.display === "block") renderAnnouncements();
+    });
+}
+
+async function adminCreateAnnouncement(){
+    const user = auth.currentUser;
+    const titleEl = document.getElementById("announcementAdminTitle");
+    const bodyEl = document.getElementById("announcementAdminBody");
+    const status = document.getElementById("announcementAdminStatus");
+    if(!user || !ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((user.email||"").toLowerCase())) return;
+    const title = titleEl.value.trim();
+    const body = bodyEl.value.trim();
+    if(!title || !body){ status.textContent = "Title and text are required."; return; }
+    try {
+        await db.collection("announcements").add({
+            title, body, author:user.email,
+            createdAt:firebase.firestore.FieldValue.serverTimestamp()
+        });
+        titleEl.value = "";
+        bodyEl.value = "";
+        status.textContent = "Announcement created.";
+    } catch(e) {
+        status.textContent = "Error: " + e.message;
     }
 }
 
@@ -4332,6 +4522,16 @@ async function sendFriendRequest(){
         });
         status.innerText = "✅ Request sent to " + targetEmail;
         document.getElementById("friendEmailInput").value = "";
+        // The recipient gets a persistent friend-request announcement.
+        const targetSnap = await db.collection("users").where("email","==",targetEmail).get();
+        for(const d of targetSnap.docs){
+            await createUserAnnouncement(d.id, {
+                title:"New friend request",
+                body:(user.email || "Someone") + " sent you a friend request.",
+                type:"friend_request",
+                from:user.email
+            });
+        }
     } catch(e) {
         status.innerText = "❌ Error: " + e.message;
     }
@@ -4376,6 +4576,15 @@ async function loadFriendRequests(){
 async function acceptFriend(docId, fromEmail){
     try {
         await db.collection("friendRequests").doc(docId).update({ status: "accepted" });
+        const acceptedUser = auth.currentUser;
+        const fromSnap = await db.collection("users").where("email","==",fromEmail).get();
+        for(const d of fromSnap.docs){
+            await createUserAnnouncement(d.id, {
+                title:"Friend request accepted",
+                body:(acceptedUser?.email || "Someone") + " accepted your friend request.",
+                type:"friend_accept"
+            });
+        }
         document.getElementById("friendStatus").innerText = "✅ " + fromEmail + " is now your friend!";
         loadFriendRequests();
         loadFriends();
@@ -4641,6 +4850,15 @@ async function sendChatMessage(){
                 text: text,
                 date: new Date()
             });
+        const recipientSnap = await db.collection("users").where("email","==",currentChatFriend).get();
+        for(const d of recipientSnap.docs){
+            await createUserAnnouncement(d.id, {
+                title:"New chat message",
+                body:(chatDisplayName() || auth.currentUser.email) + " sent you a message.",
+                type:"chat_message",
+                from:auth.currentUser.email
+            });
+        }
     } catch(e) {
         input.value = text;
         alert("Error sending: " + e.message);
@@ -10078,7 +10296,14 @@ let userOrbs = parseInt(localStorage.getItem('userOrbs') || '0');
 
 if (typeof auth !== "undefined") {
     auth.onAuthStateChanged(async user => {
-        if (user) await syncUserEconomy(user);
+        if (user) {
+            await syncUserEconomy(user);
+            startAnnouncementListeners(user);
+            setTimeout(renderAnnouncements, 500);
+        } else {
+            if(announcementsUnsubscribe) announcementsUnsubscribe();
+            if(announcementsGlobalUnsubscribe) announcementsGlobalUnsubscribe();
+        }
     });
 }
 
@@ -10224,6 +10449,7 @@ async function buyPremiumWithOrbs() {
         });
 
         userOrbs = Math.max(0, userOrbs - 1000);
+        await addAnnouncementToUser(user, "Premium activated", "Your Premium has been activated for your account.", "premium_purchase");
         localStorage.setItem('userOrbs', userOrbs);
         localStorage.setItem('userPremium', 'true');
         localStorage.removeItem('neoPremiumUntil');
@@ -10313,6 +10539,7 @@ async function giveOrbsToUser() {
                         at: Date.now()
                     }
                 });
+                await createUserAnnouncement(doc.id, "Admin gave you Orbs", "You received " + amount + " Orbs from an admin.", "admin_orbs");
 
                 statusEl.style.color = '#00ffcc';
                 statusEl.innerText = `Dodano ${amount} Orbs do konta ${doc.data().email || targetEmail}! (Łącznie: ${newOrbs})`;
