@@ -1299,9 +1299,31 @@ body.ocean {
     #fsBtn { display: none !important; }
 }
 
+#settingsCloseBtn{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:40px;
+    height:40px;
+    border:1px solid rgba(0,255,200,0.18);
+    border-radius:12px;
+    background:rgba(10,25,31,0.75);
+    color:#fff;
+    font-size:24px;
+    line-height:1;
+    cursor:pointer;
+    z-index:10001;
+}
+#settingsCloseBtn:hover{
+    background:rgba(0,255,200,0.12);
+    border-color:rgba(0,255,200,0.45);
+}
+
 /* ⚙️ SETTINGS PANEL */
 #settingsBox {
     display: none;
+    position: relative;
+
     position: fixed;
     inset: 0;
     width: 100%;
@@ -2001,6 +2023,7 @@ NOTE! Do not share the key with anyone.
 
     <!-- ⚙️ SETTINGS -->
     <div id="settingsBox" style="display:none; text-align:center;">
+        <button id="settingsCloseBtn" type="button" onclick="closeAllPanels()" aria-label="Close settings" title="Close">×</button>
         <h3 id="settingsTitle">Settings</h3>
 
         <div class="settings-grid">
