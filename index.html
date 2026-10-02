@@ -695,11 +695,6 @@ select:focus {
 }
 
 /* 📊 RESULTS */
-/* Stable-width numerals for live counters */
-#results, #neoCountdown, #neoCountdownTimer, [id*="countdown" i] {
-    font-variant-numeric: tabular-nums;
-}
-
 #results {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -723,16 +718,6 @@ select:focus {
 .result:hover {
     transform: scale(1.02);
     background: rgba(255,255,255,0.15);
-}
-
-@keyframes resultIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.result {
-    animation: resultIn .35s ease both;
-    animation-delay: var(--result-delay, 0ms);
 }
 
 .result a {
@@ -763,9 +748,6 @@ button:hover {
     border-color: rgba(0,255,200,0.45);
     transform: scale(1.03);
 }
-
-button:active { transform: scale(0.96); }
-.result:active { transform: scale(0.98); }
 
 button:focus-visible, input:focus-visible, a:focus-visible {
     outline: 2px solid rgba(0,255,200,0.7);
@@ -3199,9 +3181,8 @@ if(badWord && badWord !== lastBadWord){
     }
     const list = data[currentLang] || [];
     const filtered = list.filter(item =>
-        ((item.title || "").toLowerCase().includes(value) ||
-        (item.desc || "").toLowerCase().includes(value)) &&
-        isSafeResult(item)
+        (item.title || "").toLowerCase().includes(value) ||
+        (item.desc || "").toLowerCase().includes(value)
     );
     if(!filtered.length){
     results.innerHTML = `
@@ -3212,27 +3193,14 @@ if(badWord && badWord !== lastBadWord){
         </div>`;
     return;
 }
-results.innerHTML = filtered.map((item, i) => {
+results.innerHTML = filtered.map((item) => {
     const fullIndex = list.indexOf(item);
-    const rawLink = String(item.link || "");
-    const safeLink = /^https?:\/\//i.test(rawLink) ? rawLink : "#";
-    const copyValue = JSON.stringify(rawLink).replace(/'/g, "&#39;");
-    const domain = (() => {
-        try {
-            return new URL(safeLink).hostname;
-        } catch {
-            return "";
-        }
-    })();
-    const favicon = domain
-        ? `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32" width="16" height="16" style="vertical-align:middle; margin-right:8px;" onerror="this.style.display='none'" alt="">`
-        : "";
     return `
-    <div class="result" style="--result-delay:${Math.min(i, 8) * 60}ms">
-        ${favicon}<a href="${escapeHtml(safeLink)}" target="_blank" rel="noopener noreferrer">${escapeHtml(highlight(item.title, value))}</a>
+    <div class="result">
+        <a href="${item.link}" target="_blank">${highlight(item.title, value)}</a>
         <span class="star ${isFavorite(item) ? 'active' : ''}" onclick="toggleFavorite(${fullIndex})">★</span>
-        <button onclick='copyLink(${copyValue})' style="padding:3px 8px; font-size:12px; margin-left:8px; border-radius:8px;">🔗 Copy</button>
-        <p>${escapeHtml(highlight(item.desc, value))}</p>
+        <button onclick="copyLink('${item.link}')" style="padding:3px 8px; font-size:12px; margin-left:8px; border-radius:8px;">🔗 Copy</button>
+        <p>${highlight(item.desc, value)}</p>
     </div>
     `;
 }).join("");
@@ -6283,7 +6251,7 @@ auth.onAuthStateChanged(async (user) => {
     if (user) {
         // --- 1. SPRAWDZANIE CZY UŻYTKOWNIK JEST ZBANOWANY ---
         if (BLOCKED_EMAILS.includes(user.email)) {
-            triggerCustomLockScreen(user.email, "Account permanently blocked.");
+            triggerPermanentBanScreen(user.email);
             return; // Przerywa dalsze działanie skryptu, dziecko/użytkownik nic nie zrobi
         }
 
