@@ -1185,19 +1185,20 @@ body.ocean {
 
 /* 🤖 NeoAI model selector */
 #neoAiModelSelect {
-    min-width: 116px;
-    max-width: 145px;
-    height: 34px;
-    padding: 0 10px;
+    width: 82px;
+    min-width: 82px;
+    max-width: 82px;
+    height: 30px;
+    padding: 0 4px;
     border: 1px solid rgba(0,255,200,0.28);
-    border-radius: 18px;
+    border-radius: 15px;
     background: rgba(8,22,28,0.92);
     color: #dffff8;
     font-family: 'Oxanium', sans-serif;
-    font-size: 10.5px;
+    font-size: 9px;
     outline: none;
     cursor: pointer;
-    box-shadow: 0 0 12px rgba(0,255,200,0.08);
+    box-shadow: 0 0 10px rgba(0,255,200,0.08);
 }
 #neoAiModelSelect:hover { border-color: rgba(0,255,200,0.55); }
 #neoAiModelSelect:focus { box-shadow: 0 0 0 2px rgba(0,255,200,0.12); }
@@ -1205,8 +1206,8 @@ body.ocean {
 .neo-ai-model-row { display:flex; gap:7px; align-items:center; width:100%; }
 .neo-ai-model-row #neoAiInput { flex:1; min-width:0; }
 @media (max-width: 430px) {
-    #neoAiModelSelect { min-width: 96px; max-width: 112px; font-size: 9px; padding: 0 7px; }
-    .neo-ai-model-row { gap:5px; }
+    #neoAiModelSelect { width: 70px; min-width: 70px; max-width: 70px; font-size: 8px; }
+    .neo-ai-model-row { gap: 4px; }
 }
 
 @media (max-width: 600px) {
@@ -6253,14 +6254,24 @@ window.sendNeoAiMessage = async function() {
     let aiReply = "";
     let gotReply = false;
     try {
+        const MODEL_CONFIG = {
+            "neoai-1.0": { max_tokens: 220, temperature: 0.15, prompt: "Be concise and basic. Give short, simple answers." },
+            "neoai-1.3": { max_tokens: 400, temperature: 0.35, prompt: "Use basic reasoning. Keep answers fairly short." },
+            "neoai-3.1-iaoen": { max_tokens: 400, temperature: 0.35, prompt: "Answer normally. The client will apply IAoen mode." },
+            "neoai-1.5": { max_tokens: 650, temperature: 0.45, prompt: "Reason carefully and answer clearly." },
+            "neoai-1.8": { max_tokens: 850, temperature: 0.5, prompt: "Use stronger reasoning and useful detail." },
+            "neoai-2.0": { max_tokens: 1100, temperature: 0.45, prompt: "Use strong reasoning, context and detailed answers." },
+            "neoai-2.3": { max_tokens: 1500, temperature: 0.4, prompt: "Use the strongest available reasoning, context awareness and accuracy. Prefer useful, well-structured answers." }
+        };
+        const activeModel = MODEL_CONFIG[neoAiSelectedModel] || MODEL_CONFIG["neoai-2.3"];
         const requestBody = {
-            model: NEO_AI_MODELS[neoAiSelectedModel].apiModel,
+            model: activeModel.apiModel || "mistral-small-latest",
             messages: [
-                { role: "system", content: neoSystemPrompt(t.langName, wiki) },
+                { role: "system", content: neoSystemPrompt(t.langName, wiki) + "\n\nNEOAI MODEL PROFILE:\n" + activeModel.prompt },
                 ...neoHistory.slice(-10)
             ],
-            max_tokens: 800,
-            temperature: wiki ? 0.2 : 0.5 // z wiki mniej zgadywania
+            max_tokens: activeModel.max_tokens,
+            temperature: wiki ? Math.min(activeModel.temperature, 0.25) : activeModel.temperature
         };
 
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
