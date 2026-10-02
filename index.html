@@ -1303,12 +1303,12 @@ body.ocean {
 #settingsBox {
     display: none;
     position: fixed;
-    top: 275px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 85%;
-    max-height: calc(100vh - 375px);
+    inset: 0;
+    width: 100%;
+    height: 100vh;
+    max-height: none;
     overflow-y: auto;
+    box-sizing: border-box;
     padding: 24px;
     background: linear-gradient(135deg, rgba(15,32,39,0.55), rgba(44,83,100,0.55));
     backdrop-filter: blur(12px);
@@ -3268,7 +3268,7 @@ function useSuggestion(text){
 }
 
 /* ⚙️ SETTINGS */
-function closeAllPanels(){
+function closeAllPanels(updateUrl = true){
     ["adminBox","reportBox","newsBox","friendsBox","settingsBox","chatPanel"].forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = "none";
@@ -3279,6 +3279,9 @@ function closeAllPanels(){
     clearTimeout(typingTimeout);
     setTyping(false);
     if(typingListener){ typingListener(); typingListener = null; }
+    if(updateUrl && window.location.pathname === "/settings"){
+        history.pushState({ neoPage: "home" }, "", "/");
+    }
 }
 
 function openPanel(id, onOpen){
@@ -3305,12 +3308,23 @@ function openPanel(id, onOpen){
     }
 }
 
-function openSettings(){
+function openSettings(pushUrl = true){
+    if(pushUrl && window.location.pathname !== "/settings"){
+        history.pushState({ neoPage: "settings" }, "", "/settings");
+    }
     openPanel("settingsBox", () => {
         document.getElementById("settingsLang").value = currentLang;
         showHistory();
     });
 }
+
+window.addEventListener("popstate", () => {
+    if(window.location.pathname === "/settings"){
+        openSettings(false);
+    } else {
+        closeAllPanels();
+    }
+});
 
 function saveSettings(){
     const lang = document.getElementById("settingsLang").value;
@@ -6732,6 +6746,15 @@ if (typeof auth !== 'undefined') {
         }
     });
 }
+
+// --- ROUTING DLA /settings ---
+(function(){
+    if(window.location.pathname === "/settings"){
+        const start = () => openSettings(false);
+        if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once:true });
+        else start();
+    }
+})();
 
 // --- BLOK OBSŁUGI PARAMETRU ?p=update DLA NEOFIND ---
 
