@@ -10924,6 +10924,63 @@ window.addEventListener("load", function () {
 </script>
 
 
+
+<style id="neo-fullscreen-panels-fix">
+/* FULLSCREEN ANNOUNCEMENTS */
+#announcementsBox{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100dvh !important;
+    max-height:none !important;
+    left:0 !important;
+    top:0 !important;
+    transform:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    box-sizing:border-box !important;
+    padding:88px 24px 120px !important;
+    border-radius:0 !important;
+}
+#announcementsBox h2{margin-top:0;}
+#announcementsList{width:100%;}
+
+/* FULLSCREEN ADMIN */
+#adminBox{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100dvh !important;
+    max-height:none !important;
+    left:0 !important;
+    top:0 !important;
+    transform:none !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    box-sizing:border-box !important;
+    padding:88px 24px 120px !important;
+    border-radius:0 !important;
+}
+#adminContent{max-width:1000px;margin:20px auto 0;}
+
+/* REPORT */
+#reportBox{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    min-height:100dvh !important;
+    left:0 !important;
+    top:0 !important;
+    transform:none !important;
+    box-sizing:border-box !important;
+    padding:88px 24px 120px !important;
+    border-radius:0 !important;
+    overflow-y:auto !important;
+}
+#reportText{max-width:900px;min-height:180px;display:block;margin:20px auto;box-sizing:border-box;}
+#send-report-btn{margin:0 auto;}
+</style>
+
 <!-- =========================================================
      NEO SOCIAL
      ========================================================= -->
@@ -10934,6 +10991,17 @@ window.addEventListener("load", function () {
 <!-- =========================================================
      NEOFIND STARTUP
      ========================================================= -->
+
+<script>
+/* REPORT BUTTON FIX */
+document.addEventListener("DOMContentLoaded", function(){
+    const btn = document.getElementById("send-report-btn");
+    if(!btn) return;
+    btn.addEventListener("click", function(){
+        if(typeof sendReport === "function") sendReport();
+    });
+});
+</script>
 
 <script>
 updateDidYouKnow();
