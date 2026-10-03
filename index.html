@@ -2210,7 +2210,15 @@ NOTE! Do not share the key with anyone.
     <p>Buy premium for 1 month</p>
     <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
 
-    <br><br>
+    
+    <hr>
+    <h3>Send Orbs</h3>
+    <p>Premium users can send their own Orbs to another NeoFind user.</p>
+    <input id="orbTransferEmail" type="email" placeholder="Recipient email">
+    <input id="orbTransferAmount" type="number" min="1" step="1" placeholder="Amount of Orbs">
+    <button onclick="sendOrbsToUser()">Send Orbs</button>
+    <div id="orbTransferStatus" style="margin-top:10px;min-height:20px;"></div>
+<br><br>
     <button onclick="closeOrbsPanel()">❌</button>
 </div>
         <div id="parentalControlPanel" style="margin-top: 25px; padding: 20px; border: 1px solid #3f3f46; border-radius: 12px; background: #13131a; color: white; font-family: 'Oxanium', sans-serif;">
@@ -4004,6 +4012,125 @@ function isPremiumActive() {
     return localStorage.getItem("userPremium") === "true" &&
         (until === 0 || until > Date.now());
 }
+
+/* =========================================================
+   ORB TRANSFERS: PREMIUM -> USER
+   ========================================================= */
+window.sendOrbsToUser = async function () {
+    const statusEl = document.getElementById("orbTransferStatus");
+    const emailEl = document.getElementById("orbTransferEmail");
+    const amountEl = document.getElementById("orbTransferAmount");
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+
+    const setStatus = (message, ok = false) => {
+        if (!statusEl) return;
+        statusEl.textContent = message;
+        statusEl.style.color = ok ? "#00ffcc" : "#ff8080";
+    };
+
+    if (!user || typeof db === "undefined") {
+        setStatus("You must be logged in.");
+        return;
+    }
+
+    if (!isPremiumActive()) {
+        setStatus("Premium is required to send Orbs.");
+        return;
+    }
+
+    const targetEmail = String(emailEl?.value || "").trim().toLowerCase();
+    const amount = Math.floor(Number(amountEl?.value));
+
+    if (!targetEmail || !Number.isFinite(amount) || amount <= 0) {
+        setStatus("Enter a recipient email and a valid amount.");
+        return;
+    }
+
+    const senderEmail = String(user.email || "").trim().toLowerCase();
+    if (!senderEmail || targetEmail === senderEmail) {
+        setStatus("You cannot send Orbs to yourself.");
+        return;
+    }
+
+    try {
+        const targetSnap = await db.collection("users")
+            .where("email", "==", targetEmail)
+            .limit(1)
+            .get();
+
+        if (targetSnap.empty) {
+            setStatus("Recipient was not found.");
+            return;
+        }
+
+        const recipientRef = targetSnap.docs[0].ref;
+        const senderRef = db.collection("users").doc(user.uid);
+        const transferId = "orb_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+
+        await db.runTransaction(async transaction => {
+            const senderSnap = await transaction.get(senderRef);
+            const recipientSnap = await transaction.get(recipientRef);
+
+            if (!senderSnap.exists || !recipientSnap.exists) {
+                throw new Error("User account not found.");
+            }
+
+            const senderData = senderSnap.data();
+            const recipientData = recipientSnap.data();
+            const senderOrbs = Math.max(0, Math.floor(Number(senderData.orbs || 0)));
+            const recipientOrbs = Math.max(0, Math.floor(Number(recipientData.orbs || 0)));
+
+            if (senderOrbs < amount) {
+                throw new Error("You do not have enough Orbs.");
+            }
+
+            transaction.update(senderRef, {
+                orbs: senderOrbs - amount,
+                lastOrbTransferOut: {
+                    id: transferId,
+                    toUid: recipientRef.id,
+                    toEmail: targetEmail,
+                    amount,
+                    at: Date.now()
+                }
+            });
+
+            transaction.update(recipientRef, {
+                orbs: recipientOrbs + amount,
+                lastOrbTransferIn: {
+                    id: transferId,
+                    fromUid: user.uid,
+                    fromEmail: senderEmail,
+                    amount,
+                    at: Date.now()
+                }
+            });
+        });
+
+        userOrbs = Math.max(0, userOrbs - amount);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        if (typeof window.updateUI === "function") window.updateUI();
+        if (typeof window.renderMissions === "function") window.renderMissions();
+
+        if (typeof createUserAnnouncement === "function") {
+            await createUserAnnouncement(
+                recipientRef.id,
+                "You received Orbs",
+                senderEmail + " sent you " + amount + " Orbs.",
+                "orb_transfer",
+                { from: senderEmail, amount }
+            ).catch(e => console.error("Orb transfer announcement failed:", e));
+        }
+
+        setStatus("Sent " + amount + " Orbs to " + targetEmail + ".", true);
+        if (emailEl) emailEl.value = "";
+        if (amountEl) amountEl.value = "";
+    } catch (error) {
+        console.error("Orb transfer failed:", error);
+        setStatus(error.message || "Could not send Orbs.");
+    }
+};
+
 
 /* =========================
    REGISTER
