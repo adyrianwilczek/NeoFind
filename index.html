@@ -26,7 +26,6 @@ body {
     min-height: 100vh;
     background: var(--bg, linear-gradient(135deg, #0f2027, #203a43, #2c5364));
     overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
 }
 
 /* =========================================================
@@ -640,22 +639,13 @@ input, select, textarea {
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 
-    transition: box-shadow 0.2s, background-color 0.2s;
+    transition: 0.2s;
 }
 
 input:focus {
     outline: none;
-    box-shadow: 0 0 0 1px rgba(0,255,200,0.5), 0 0 20px rgba(0,200,255,0.35);
-}
-
-/* checkbox nie dziedziczy wyglądu pola tekstowego */
-input[type="checkbox"] {
-    width: auto;
-    padding: 0;
-    margin: 0;
-    box-shadow: none;
-    backdrop-filter: none;
-    accent-color: #00ffc8;
+    transform: scale(1.02);
+    box-shadow: 0 0 20px rgba(0,200,255,0.6);
 }
 
 input::placeholder {
@@ -722,7 +712,7 @@ select:focus {
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.3);
 
-    transition: transform 0.2s, background-color 0.2s;
+    transition: 0.2s;
 }
 
 .result:hover {
@@ -749,17 +739,13 @@ button {
     cursor: pointer;
     background: rgba(0,180,140,0.08);
     color: rgba(200,240,235,0.9);
-    transition: background-color 0.2s, border-color 0.2s, transform 0.15s;
+    transition: 0.2s;
     font-size: 13px;
 }
 
 button:hover {
     background: rgba(0,200,150,0.18);
     border-color: rgba(0,255,200,0.45);
-}
-
-button:active {
-    transform: scale(0.96);
 }
 
 button:focus-visible, input:focus-visible, a:focus-visible {
@@ -1826,127 +1812,6 @@ body.ocean {
 }
 
 
-/* =========================================================
-   DOPRACOWANIE WYGLĄDU
-   ========================================================= */
-h1, h2, h3 { text-wrap: balance; }
-input, select, textarea, button { font-family: inherit; }
-hr { border: none; height: 1px; background: rgba(0,255,200,0.15); }
-p { text-wrap: pretty; }
-.neoCountdownTime, #userOrbsCount { font-variant-numeric: tabular-nums; }
-
-/* wyszukiwarka i podpowiedzi mają tę samą szerokość */
-#search,
-#suggestions,
-.api-panel-row {
-    width: min(680px, calc(100% - 32px));
-    box-sizing: border-box;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-#suggestions {
-    margin-top: 6px;
-    background: rgba(15,32,39,0.92);
-    backdrop-filter: blur(12px);
-    border-radius: 16px;
-    box-shadow: 0 0 0 1px rgba(0,255,200,0.12), 0 16px 40px rgba(0,0,0,0.35);
-}
-#suggestions div {
-    padding: 12px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-}
-#suggestions div:last-child { border-bottom: none; }
-#suggestions:empty { display: none; }
-#suggestions div:hover { background: rgba(0,255,200,0.08); }
-
-.api-panel-row {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 4px;
-    margin-bottom: 10px;
-}
-.api-panel-btn {
-    background: none;
-    border-color: transparent;
-    color: rgba(200,240,235,0.55);
-    font-family: inherit;
-    font-size: 12px;
-    padding: 6px 12px;
-}
-.api-panel-btn:hover { color: #00ffc8; }
-
-/* ekran logowania jako karta */
-#loginScreen {
-    max-width: 380px;
-    margin: 80px auto 40px !important;
-    padding: 32px 24px;
-    box-sizing: border-box;
-    background: rgba(15,32,39,0.6);
-    backdrop-filter: blur(14px);
-    border-radius: 24px;
-    box-shadow: 0 0 0 1px rgba(0,255,200,0.12), 0 20px 50px rgba(0,0,0,0.35);
-}
-#loginScreen h1 { margin: 0 0 4px; font-size: 28px; }
-#loginScreen h3 {
-    margin: 24px 0 12px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    color: rgba(0,220,200,0.6);
-}
-#loginScreen input:not([type="checkbox"]) {
-    width: 100%;
-    box-sizing: border-box;
-    border-radius: 14px;
-}
-#loginScreen button {
-    width: 100%;
-    margin-top: 6px;
-    padding: 12px;
-    font-size: 15px;
-    font-weight: 600;
-    background: rgba(0,200,150,0.18);
-    border-color: rgba(0,255,200,0.45);
-    color: #e2fffa;
-}
-#loginScreen #strengthBar { width: 100% !important; }
-
-/* wiersze konta w ustawieniach: przycisk Change przy prawej krawędzi */
-.settings-col .result {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-.settings-col .result span {
-    min-width: 0;
-    overflow-wrap: anywhere;
-    opacity: 0.85;
-}
-.settings-col .result button { margin-left: auto; }
-.settings-col .result:hover { transform: none; }
-#loginScreen div:has(> #acceptPolicy) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-@media (max-width: 440px) {
-    #loginScreen { margin: 40px 16px !important; }
-
-    /* górny pasek mieści się na telefonie */
-    #topBar { gap: 8px; }
-    #topBar > div:first-child {
-        min-width: 0;
-        overflow-x: auto;
-        scrollbar-width: none;
-    }
-    #topBar > button { flex-shrink: 0; }
-    #fsBtn { display: none; }
-}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -2094,8 +1959,8 @@ p { text-wrap: pretty; }
     <div class="searchBox">
 <input type="text" id="search" placeholder="Search...">
 <!-- PRZYCISK PRZEŁĄCZANIA WIDOKU (umieść go np. w menu/nagłówku) -->
-<div class="api-panel-row">
-    <button onclick="window.toggleApiPanel()" class="api-panel-btn">
+<div style="text-align: right; margin-bottom: 10px;">
+    <button onclick="window.toggleApiPanel()" style="background: transparent; color: #4da6ff; border: 1px solid #4da6ff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: inherit;">
         🔑 Panel API
     </button>
 </div>
@@ -2227,7 +2092,15 @@ NOTE! Do not share the key with anyone.
 
     
 <br><br>
-    <button onclick="closeOrbsPanel()">❌</button>
+    <div id="orbTransferSection" style="margin-top:20px;">
+    <h3>Send Orbs</h3>
+    <input id="orbTransferEmail" type="email" placeholder="Recipient email">
+    <input id="orbTransferAmount" type="number" min="1" step="1" placeholder="Amount of Orbs">
+    <button onclick="sendOrbsToUser()">Send Orbs</button>
+    <div id="orbTransferStatus" style="margin-top:8px;"></div>
+</div>
+
+<button onclick="closeOrbsPanel()">❌</button>
 </div>
         <div id="parentalControlPanel" style="margin-top: 25px; padding: 20px; border: 1px solid #3f3f46; border-radius: 12px; background: #13131a; color: white; font-family: 'Oxanium', sans-serif;">
     </div>
@@ -11242,6 +11115,123 @@ showHistory();
 checkNews();
 loadNews();
 updateUI();
+
+/* =========================================================
+   PREMIUM ORB TRANSFER
+   ========================================================= */
+window.sendOrbsToUser = async function () {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    const status = document.getElementById("orbTransferStatus");
+    const emailInput = document.getElementById("orbTransferEmail");
+    const amountInput = document.getElementById("orbTransferAmount");
+
+    const showStatus = (message, ok = false) => {
+        if (!status) return;
+        status.textContent = message;
+        status.style.color = ok ? "#00ffc8" : "#ff8080";
+    };
+
+    if (!user || typeof db === "undefined") {
+        showStatus("You must be logged in.");
+        return;
+    }
+
+    if (typeof isPremiumActive !== "function" || !isPremiumActive()) {
+        showStatus("Premium is required to send Orbs.");
+        return;
+    }
+
+    const targetEmail = String(emailInput?.value || "").trim().toLowerCase();
+    const amount = Math.floor(Number(amountInput?.value));
+    const senderEmail = String(user.email || "").trim().toLowerCase();
+
+    if (!targetEmail || !Number.isFinite(amount) || amount <= 0) {
+        showStatus("Enter a recipient email and a valid amount.");
+        return;
+    }
+
+    if (!senderEmail || targetEmail === senderEmail) {
+        showStatus("You cannot send Orbs to yourself.");
+        return;
+    }
+
+    try {
+        const targetSnap = await db.collection("users")
+            .where("email", "==", targetEmail)
+            .limit(1)
+            .get();
+
+        if (targetSnap.empty) {
+            showStatus("Recipient was not found.");
+            return;
+        }
+
+        const senderRef = db.collection("users").doc(user.uid);
+        const recipientRef = targetSnap.docs[0].ref;
+        const amountAtStart = amount;
+
+        await db.runTransaction(async transaction => {
+            const senderSnap = await transaction.get(senderRef);
+            const recipientSnap = await transaction.get(recipientRef);
+
+            if (!senderSnap.exists || !recipientSnap.exists) {
+                throw new Error("User account not found.");
+            }
+
+            const senderData = senderSnap.data();
+            const recipientData = recipientSnap.data();
+            const senderOrbs = Math.max(0, Math.floor(Number(senderData.orbs || 0)));
+            const recipientOrbs = Math.max(0, Math.floor(Number(recipientData.orbs || 0)));
+
+            if (senderOrbs < amountAtStart) {
+                throw new Error("You do not have enough Orbs.");
+            }
+
+            transaction.update(senderRef, {
+                orbs: senderOrbs - amountAtStart,
+                lastOrbTransferOut: {
+                    toUid: recipientRef.id,
+                    toEmail: targetEmail,
+                    amount: amountAtStart,
+                    at: Date.now()
+                }
+            });
+
+            transaction.update(recipientRef, {
+                orbs: recipientOrbs + amountAtStart,
+                lastOrbTransferIn: {
+                    fromUid: user.uid,
+                    fromEmail: senderEmail,
+                    amount: amountAtStart,
+                    at: Date.now()
+                }
+            });
+        });
+
+        userOrbs = Math.max(0, userOrbs - amountAtStart);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        if (typeof window.updateUI === "function") window.updateUI();
+        if (typeof window.renderMissions === "function") window.renderMissions();
+
+        if (typeof createUserAnnouncement === "function") {
+            await createUserAnnouncement(
+                recipientRef.id,
+                "You received Orbs",
+                senderEmail + " sent you " + amountAtStart + " Orbs.",
+                "orb_transfer",
+                { from: senderEmail, amount: amountAtStart }
+            ).catch(e => console.error("Orb transfer announcement failed:", e));
+        }
+
+        if (emailInput) emailInput.value = "";
+        if (amountInput) amountInput.value = "";
+        showStatus("Sent " + amountAtStart + " Orbs to " + targetEmail + ".", true);
+    } catch (error) {
+        console.error("Orb transfer failed:", error);
+        showStatus(error.message || "Could not send Orbs.");
+    }
+};
+
 </script>
 
 
