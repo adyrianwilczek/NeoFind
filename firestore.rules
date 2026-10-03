@@ -409,13 +409,17 @@ service cloud.firestore {
           && newOrbs() - oldOrbs() <= 500;
       }
 
-      /* 4. zakup Premium: dokładnie 1000 orbs */
+      /* 4. zakup Premium: dokładnie 1000 orbs za 30 dni */
       function isPremiumPurchase() {
-        return changedKeys().hasOnly(['orbs', 'premium', 'premiumUntil', 'email'])
+        let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
+          ? resource.data.get('premiumUntil', 0)
+          : nowMs();
+        return changedKeys().hasOnly(['orbs', 'premiumUntil', 'email'])
           && orbsValid()
           && newOrbs() == oldOrbs() - 1000
-          && request.resource.data.premium == true
-          && request.resource.data.premiumUntil == 0;
+          && request.resource.data.premiumUntil is int
+          && request.resource.data.premiumUntil > nowMs()
+          && request.resource.data.premiumUntil <= premiumBase + 30 * 86400000 + 600000;
       }
 
       allow read: if isAdmin()

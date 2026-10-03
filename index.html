@@ -10542,26 +10542,29 @@ async function buyPremiumWithOrbs() {
     try {
         const ref = db.collection("users").doc(user.uid);
 
-        await db.runTransaction(async transaction => {
+        // Premium na 30 dni (dokładane do Premium ze skrzyni, jeśli jeszcze trwa)
+        const until = await db.runTransaction(async transaction => {
             const snap = await transaction.get(ref);
             const data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
 
             if (current < 1000) throw new Error("NOT_ENOUGH_ORBS");
 
+            const premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + 30 * 86400000;
+
             transaction.set(ref, {
-                email: user.email || "",
                 orbs: current - 1000,
-                premium: true,
-                premiumUntil: 0
+                premiumUntil
             }, { merge: true });
+
+            return premiumUntil;
         });
 
         userOrbs = Math.max(0, userOrbs - 1000);
-        await addAnnouncementToUser(user, "Premium activated", "Your Premium has been activated for your account.", "premium_purchase");
+        await addAnnouncementToUser(user, "Premium activated", "Your Premium is active until " + new Date(until).toLocaleDateString() + ".", "premium_purchase");
         localStorage.setItem('userOrbs', userOrbs);
         localStorage.setItem('userPremium', 'true');
-        localStorage.removeItem('neoPremiumUntil');
+        localStorage.setItem('neoPremiumUntil', String(until));
 
         const badge = document.getElementById("premiumBadge");
         if (badge) badge.style.display = "block";
