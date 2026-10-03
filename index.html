@@ -1912,6 +1912,21 @@ p { text-wrap: pretty; }
     color: #e2fffa;
 }
 #loginScreen #strengthBar { width: 100% !important; }
+
+/* wiersze konta w ustawieniach: przycisk Change przy prawej krawędzi */
+.settings-col .result {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.settings-col .result span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    opacity: 0.85;
+}
+.settings-col .result button { margin-left: auto; }
+.settings-col .result:hover { transform: none; }
 #loginScreen div:has(> #acceptPolicy) {
     display: flex;
     align-items: center;
@@ -1992,7 +2007,7 @@ p { text-wrap: pretty; }
     <h3>Register</h3>
     <input id="regUser" placeholder="E-mail" aria-label="E-mail do rejestracji" autocomplete="email"><br>
     <input id="regPass" type="password" placeholder="Password" aria-label="Hasło do rejestracji" autocomplete="new-password" oninput="checkPasswordStrength(this.value)"><br>
-<div id="strengthBar" style="height:6px; width:80%; margin:4px auto; border-radius:3px; background:#333; max-width:400px;">
+<div id="strengthBar" style="height:6px; width:80%; margin:4px auto; border-radius:3px; background:rgba(255,255,255,0.1); max-width:400px;">
     <div id="strengthFill" style="height:100%; width:0%; border-radius:3px; transition:0.3s;"></div>
 </div>
 <div id="strengthLabel" style="font-size:12px; opacity:0.7; margin-bottom:8px;"></div>
@@ -3149,6 +3164,48 @@ const TECH_FACTS_FALLBACK = [
     "NeoFind powstaje krok po kroku, bo tworzy go młody programista i wciąż dochodzą nowe funkcje."
 ];
 
+// zapasowe ciekawostki w języku systemu (gdy AI jeszcze nie odpowiedziało albo nie działa)
+const FACTS_FALLBACK = {
+    autumn: {
+        pl: autumn_FACTS_FALLBACK,
+        en: [
+            "Autumn in the northern hemisphere starts around 22 or 23 September.",
+            "Leaves change colour in autumn because trees stop producing chlorophyll.",
+            "Pumpkins are fruits, not vegetables, because they grow from flowers and contain seeds.",
+            "Many birds migrate to warmer regions in autumn to survive the colder months.",
+            "Acorns are oak seeds, and in autumn you can find loads of them under the trees.",
+            "Squirrels store food in autumn so they have something to eat in winter."
+        ],
+        es: [
+            "En el hemisferio norte el otoño empieza hacia el 22 o 23 de septiembre.",
+            "Las hojas cambian de color en otoño porque los árboles dejan de producir clorofila.",
+            "Las calabazas son frutos y no verduras, porque nacen de flores y tienen semillas.",
+            "En otoño muchas aves migran a zonas más cálidas para sobrevivir a los meses fríos.",
+            "Las bellotas son las semillas del roble y en otoño hay montones bajo los árboles.",
+            "Las ardillas guardan comida en otoño para tener reservas durante el invierno."
+        ]
+    },
+    tech: {
+        pl: TECH_FACTS_FALLBACK,
+        en: [
+            "The first computer “bug” was a real moth pulled out of a relay in 1947.",
+            "Linux runs most of the world's supercomputers and almost every Android phone.",
+            "The first video game, “Tennis for Two”, was made in 1958 on an oscilloscope.",
+            "The F and J keys have bumps so your fingers find the middle of the keyboard without looking.",
+            "The word “robot” comes from a 1920 Czech play and roughly means “hard work”.",
+            "NeoFind grows step by step: a young developer builds it and new features keep arriving."
+        ],
+        es: [
+            "El primer “bug” informático fue una polilla de verdad que sacaron de un relé en 1947.",
+            "Linux funciona en la mayoría de los superordenadores del mundo y en casi todos los móviles Android.",
+            "El primer videojuego, “Tennis for Two”, se hizo en 1958 con un osciloscopio.",
+            "Las teclas F y J tienen relieves para que los dedos encuentren el centro del teclado sin mirar.",
+            "La palabra “robot” viene de una obra checa de 1920 y significa más o menos “trabajo duro”.",
+            "NeoFind crece paso a paso: lo crea un joven programador y no paran de llegar funciones nuevas."
+        ]
+    }
+};
+
 // generyczny loader paczki ciekawostek z AI (Worker Mistral), cache 6h, fallback
 async function loadFactsPack(cacheKey, prompt, fallback, force){
     try {
@@ -3209,18 +3266,18 @@ function factsPrompt(topic, lang){
     return `Give 15 true, genuinely interesting facts ${t}. Write in English with nice, slightly youthful and a touch ironic language, but with flawless spelling, grammar, syntax and punctuation. Mix serious with lighter ones, to hook 11-year-olds and older kids. One per line, no numbering, no dashes, max one sentence each. Do not add any intro, comment or summary - output only the facts, one per line.`;
 }
 
-async function loadautumnFacts(force){ const l = factsLang(); autumnFacts[l] = await loadFactsPack("autumnFacts_v2_" + l, factsPrompt("autumn", l), autumn_FACTS_FALLBACK, force); }
-async function loadTechFacts(force){ const l = factsLang(); techFacts[l] = await loadFactsPack("techFacts_v2_" + l, factsPrompt("tech", l), TECH_FACTS_FALLBACK, force); }
+async function loadautumnFacts(force){ const l = factsLang(); autumnFacts[l] = await loadFactsPack("autumnFacts_v2_" + l, factsPrompt("autumn", l), FACTS_FALLBACK.autumn[l], force); }
+async function loadTechFacts(force){ const l = factsLang(); techFacts[l] = await loadFactsPack("techFacts_v2_" + l, factsPrompt("tech", l), FACTS_FALLBACK.tech[l], force); }
 
 // pula ciekawostek dla aktualnego trybu (autumn > tech), w języku systemu
 function currentTips(){
     const l = factsLang();
     if(localStorage.getItem('autumn') === 'on'){
-        const f = autumnFacts[l]; return (f && f.length) ? f : autumn_FACTS_FALLBACK;
+        const f = autumnFacts[l]; return (f && f.length) ? f : FACTS_FALLBACK.autumn[l];
     }
     const f = techFacts[l];
     if(f && f.length) return f;
-    return TECH_FACTS_FALLBACK;
+    return FACTS_FALLBACK.tech[l];
 }
 
 // tytuł nad ciekawostką wg trybu, w języku systemu
