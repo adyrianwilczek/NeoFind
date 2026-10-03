@@ -5344,6 +5344,186 @@ function switchLang(lang){
     location.reload();
 }
 
+/* =========================================================
+   NEOFIND FULL UI LOCALIZATION
+   Covers static text, placeholders, titles and dynamically
+   created UI text. Main languages: English, Polish, Spanish.
+   ========================================================= */
+const NEOFIND_UI_I18N = {
+    "NeoFind Login": ["NeoFind Login","Logowanie do NeoFind","Inicio de sesión de NeoFind"],
+    "Login": ["Login","Zaloguj się","Iniciar sesión"],
+    "Forgot password?": ["Forgot password?","Zapomniałeś hasła?","¿Olvidaste tu contraseña?"],
+    "Register": ["Register","Zarejestruj się","Registrarse"],
+    "Code will expire in:": ["Code will expire in:","Kod wygaśnie za:","El código caduca en:"],
+    "Announcements": ["Announcements","Ogłoszenia","Anuncios"],
+    "Friends": ["Friends","Znajomi","Amigos"],
+    "Chat": ["Chat","Czat","Chat"],
+    "Profile": ["Profile","Profil","Perfil"],
+    "Admin": ["Admin","Admin","Admin"],
+    "Report": ["Report","Zgłoś","Reportar"],
+    "API Keys": ["API Keys","Klucze API","Claves API"],
+    "Debug Console": ["Debug Console","Konsola debug","Consola de depuración"],
+    "Export": ["Export","Eksportuj","Exportar"],
+    "Close": ["Close","Zamknij","Cerrar"],
+    "Settings": ["Settings","Ustawienia","Ajustes"],
+    "Language": ["Language","Język","Idioma"],
+    "Theme": ["Theme","Motyw","Tema"],
+    "Classic": ["Classic","Klasyczny","Clásico"],
+    "Space": ["Space","Kosmos","Espacio"],
+    "Matrix": ["Matrix","Matrix","Matrix"],
+    "Ocean": ["Ocean","Ocean","Océano"],
+    "Account": ["Account","Konto","Cuenta"],
+    "Email:": ["Email:","Email:","Correo:"],
+    "Name:": ["Name:","Nazwa:","Nombre:"],
+    "Change": ["Change","Zmień","Cambiar"],
+    "Premium": ["Premium","Premium","Premium"],
+    "Password": ["Password","Hasło","Contraseña"],
+    "Save password": ["Save password","Zapisz hasło","Guardar contraseña"],
+    "Missions and Orbs": ["Missions and Orbs","Misje i Orbs","Misiones y Orbs"],
+    "Free Orbs and missions": ["Free Orbs and missions","Darmowe Orbs i misje","Orbs gratis y misiones"],
+    "You have:": ["You have:","Masz:","Tienes:"],
+    "Orbs": ["Orbs","Orbs","Orbs"],
+    "Daily missions": ["Daily missions","Codzienne misje","Misiones diarias"],
+    "Orbs Shop": ["Orbs Shop","Sklep Orbs","Tienda de Orbs"],
+    "Buy premium for 1 month": ["Buy premium for 1 month","Kup Premium na 1 miesiąc","Comprar Premium por 1 mes"],
+    "Buy Premium (1000 Orbs)": ["Buy Premium (1000 Orbs)","Kup Premium (1000 Orbs)","Comprar Premium (1000 Orbs)"],
+    "Send Orbs": ["Send Orbs","Wyślij Orbs","Enviar Orbs"],
+    "History": ["History","Historia","Historial"],
+    "Clear history": ["Clear history","Wyczyść historię","Borrar historial"],
+    "Log Out": ["Log Out","Wyloguj się","Cerrar sesión"],
+    "Rate us": ["Rate us","Oceń nas","Califícanos"],
+    "Favorites": ["Favorites","Ulubione","Favoritos"],
+    "Send rating": ["Send rating","Wyślij ocenę","Enviar calificación"],
+    "Add": ["Add","Dodaj","Agregar"],
+    "Pending Requests": ["Pending Requests","Oczekujące zaproszenia","Solicitudes pendientes"],
+    "Friends list": ["Friends list","Lista znajomych","Lista de amigos"],
+    "Admin Panel": ["Admin Panel","Panel admina","Panel de administración"],
+    "Add result": ["Add result","Dodaj wynik","Agregar resultado"],
+    "Ban system": ["Ban system","System banów","Sistema de baneos"],
+    "Ban user": ["Ban user","Zbanuj użytkownika","Banear usuario"],
+    "Unban user": ["Unban user","Odbanuj użytkownika","Desbanear usuario"],
+    "Give Orbs to User": ["Give Orbs to User","Daj Orbs użytkownikowi","Dar Orbs a un usuario"],
+    "Give Orbs": ["Give Orbs","Daj Orbs","Dar Orbs"],
+    "Global Announcement": ["Global Announcement","Ogłoszenie globalne","Anuncio global"],
+    "Send to everyone": ["Send to everyone","Wyślij do wszystkich","Enviar a todos"],
+    "Ratings": ["Ratings","Oceny","Calificaciones"],
+    "Report problem": ["Report problem","Zgłoś problem","Reportar problema"],
+    "Send Report": ["Send Report","Wyślij zgłoszenie","Enviar reporte"],
+    "Neo AI": ["Neo AI","Neo AI","Neo AI"],
+    "online": ["online","online","en línea"],
+    "Latest Updates": ["Latest Updates","Najnowsze aktualizacje","Últimas actualizaciones"],
+    "What is NeoFind?": ["What is NeoFind?","Czym jest NeoFind?","¿Qué es NeoFind?"],
+    "About NeoFind": ["About NeoFind","O NeoFind","Acerca de NeoFind"],
+    "Support": ["Support","Wsparcie","Soporte"],
+    "Chat ended": ["Chat ended","Czat zakończony","Chat finalizado"],
+    "User Safety": ["User Safety","Bezpieczeństwo użytkowników","Seguridad de los usuarios"],
+    "Nothing found.": ["Nothing found.","Nic nie znaleziono.","No se encontró nada."],
+    "Loading...": ["Loading...","Ładowanie...","Cargando..."],
+    "Ładowanie...": ["Loading...","Ładowanie...","Cargando..."],
+    "No friends yet": ["No friends yet","Brak znajomych","Aún no tienes amigos"],
+    "Error": ["Error","Błąd","Error"],
+    "Error loading requests": ["Error loading requests","Błąd ładowania zaproszeń","Error al cargar las solicitudes"],
+    "Error loading friends": ["Error loading friends","Błąd ładowania znajomych","Error al cargar los amigos"],
+    "Copy": ["Copy","Kopiuj","Copiar"],
+    "Delete": ["Delete","Usuń","Eliminar"],
+    "No announcements yet.": ["No announcements yet.","Brak ogłoszeń.","No hay anuncios."],
+    "Could not load announcements.": ["Could not load announcements.","Nie udało się wczytać ogłoszeń.","No se pudieron cargar los anuncios."],
+    "Log in to see your announcements.": ["Log in to see your announcements.","Zaloguj się, aby zobaczyć swoje ogłoszenia.","Inicia sesión para ver tus anuncios."],
+    "No history yet": ["No history yet","Brak historii","Aún no hay historial"],
+    "Try different keywords or check your spelling.": ["Try different keywords or check your spelling.","Spróbuj innych słów kluczowych lub sprawdź pisownię.","Prueba otras palabras clave o revisa la ortografía."],
+    "Loading mods...": ["Loading mods...","Ładowanie modów...","Cargando mods..."],
+    "Failed to download mods.": ["Failed to download mods.","Nie udało się pobrać modów.","No se pudieron descargar los mods."],
+    "Thinking...": ["Thinking...","Myślę...","Pensando..."],
+    "You": ["You","Ty","Tú"],
+    "Neo is typing": ["Neo is typing","Neo pisze","Neo está escribiendo"],
+    "Connection Error. Try again. ⚡": ["Connection Error. Try again. ⚡","Błąd połączenia. Spróbuj ponownie. ⚡","Error de conexión. Inténtalo de nuevo. ⚡"],
+    "Send": ["Send","Wyślij","Enviar"],
+    "Otwórz zakupy w Google Shopping ➔": ["Open Google Shopping ➔","Otwórz zakupy w Google Shopping ➔","Abrir Google Shopping ➔"],
+    "Your access to NeoFind has been restricted by the automated security system.": ["Your access to NeoFind has been restricted by the automated security system.","Twój dostęp do NeoFind został ograniczony przez automatyczny system bezpieczeństwa.","El acceso a NeoFind ha sido restringido por el sistema de seguridad automático."],
+    "Reason:": ["Reason:","Powód:","Motivo:"],
+    "Target ID:": ["Target ID:","ID celu:","ID del objetivo:"],
+    "Contact with support": ["Contact with support","Skontaktuj się ze wsparciem","Contactar con soporte"],
+    "Access Restricted": ["Access Restricted","Dostęp ograniczony","Acceso restringido"],
+    "NeoFind is locked by Parental Control during this time period.": ["NeoFind is locked by Parental Control during this time period.","NeoFind jest zablokowany przez kontrolę rodzicielską w tym czasie.","NeoFind está bloqueado por el control parental durante este período."],
+    "Locked from:": ["Locked from:","Zablokowane od:","Bloqueado od:"],
+    "Unlock (Parent Only)": ["Unlock (Parent Only)","Odblokuj (tylko rodzic)","Desbloquear (solo padre/matka)"],
+    "Please log in to manage parental controls.": ["Please log in to manage parental controls.","Zaloguj się, aby zarządzać kontrolą rodzicielską.","Inicia sesión para administrar el control parental."],
+    "Parental Control Settings": ["Parental Control Settings","Ustawienia kontroli rodzicielskiej","Ajustes del control parental"],
+    "Disable Protection": ["Disable Protection","Wyłącz ochronę","Desactivar protección"],
+    "Forgot PIN?": ["Forgot PIN?","Zapomniałeś PIN-u?","¿Olvidaste el PIN?"],
+    "Setup Parental Control": ["Setup Parental Control","Konfiguracja kontroli rodzicielskiej","Configurar control parental"],
+    "Parent's Email (for remote PIN recovery):": ["Parent's Email (for remote PIN recovery):","Email rodzica (do zdalnego odzyskiwania PIN-u):","Correo del padre/madre (para recuperar el PIN):"],
+    "Create Secret PIN Code:": ["Create Secret PIN Code:","Utwórz tajny kod PIN:","Crear código PIN secreto:"],
+    "Restrict Usage Hours:": ["Restrict Usage Hours:","Ogranicz godziny korzystania:","Restringir horas de uso:"],
+    "From:": ["From:","Od:","Desde:"],
+    "To:": ["To:","Do:","Hasta:"],
+    "Save to Cloud & Lock": ["Save to Cloud & Lock","Zapisz w chmurze i zablokuj","Guardar en la nube y bloquear"],
+    "NeoFind Support": ["NeoFind Support","Wsparcie NeoFind","Soporte de NeoFind"],
+    "Firebase has not been initialized.": ["Firebase has not been initialized.","Firebase nie zostało zainicjalizowane.","Firebase no se ha inicializado."],
+    "Firebase is not available.": ["Firebase is not available.","Firebase jest niedostępne.","Firebase no está disponible."],
+    "Claimed ✓": ["Claimed ✓","Odebrano ✓","Reclamado ✓"],
+    "⬅ Wróć do NeoFind": ["⬅ Back to NeoFind","⬅ Wróć do NeoFind","⬅ Volver a NeoFind"],
+    "Wyślij": ["Send","Wyślij","Enviar"],
+    "Zaloguj się": ["Log in","Zaloguj się","Iniciar sesión"],
+    "Brak znajomych": ["No friends yet","Brak znajomych","No hay amigos"],
+    "Błąd": ["Error","Błąd","Error"]
+};
+
+function neofindLangIndex() {
+    return currentLang === "pl" ? 1 : currentLang === "es" ? 2 : 0;
+}
+
+function neofindTranslateText(value) {
+    const raw = String(value || "");
+    const trimmed = raw.trim();
+    if (!trimmed) return value;
+    const entry = NEOFIND_UI_I18N[trimmed];
+    if (!entry) return value;
+    const translated = entry[neofindLangIndex()];
+    return raw.replace(trimmed, translated);
+}
+
+function neofindTranslatePage(root = document.body) {
+    if (!root) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    let node;
+    while ((node = walker.nextNode())) nodes.push(node);
+    nodes.forEach(n => {
+        const parent = n.parentElement;
+        if (!parent || /^(SCRIPT|STYLE|NOSCRIPT)$/i.test(parent.tagName)) return;
+        const translated = neofindTranslateText(n.nodeValue);
+        if (translated !== n.nodeValue) n.nodeValue = translated;
+    });
+
+    root.querySelectorAll?.("input[placeholder], textarea[placeholder], [title], [aria-label]").forEach(el => {
+        ["placeholder","title","aria-label"].forEach(attr => {
+            if (!el.hasAttribute(attr)) return;
+            const old = el.getAttribute(attr);
+            const translated = neofindTranslateText(old);
+            if (translated !== old) el.setAttribute(attr, translated);
+        });
+    });
+}
+
+let neofindLocalizationObserver = null;
+function startNeoFindLocalization() {
+    if (neofindLocalizationObserver || !document.body) return;
+    neofindLocalizationObserver = new MutationObserver(mutations => {
+        for (const m of mutations) {
+            m.addedNodes.forEach(node => {
+                if (node.nodeType === Node.ELEMENT_NODE) neofindTranslatePage(node);
+                else if (node.nodeType === Node.TEXT_NODE) {
+                    const translated = neofindTranslateText(node.nodeValue);
+                    if (translated !== node.nodeValue) node.nodeValue = translated;
+                }
+            });
+        }
+    });
+    neofindLocalizationObserver.observe(document.body, {childList:true, subtree:true});
+}
+
+
 function updateLanguage(){
     renderGreeting();
     const t = translations[currentLang];
@@ -5433,6 +5613,8 @@ function updateLanguage(){
     upd("chatInput", t.messagePh, "placeholder");
 
     showHistory();
+    neofindTranslatePage(document.body);
+    startNeoFindLocalization();
 }
 
 function showUpdate(){
