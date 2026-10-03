@@ -2368,6 +2368,7 @@ NOTE! Do not share the key with anyone.
     z-index:9999;
     text-align:center;
 ">
+    <button id="reportCloseBtn" type="button" onclick="closeReport()" aria-label="Close report" title="Close">×</button>
     <h3 id="reportBoxTitle">Report problem</h3>
 
     <input id="reportText" placeholder="Describe problem..."><br><br>
@@ -2907,7 +2908,12 @@ function highlight(text, query){
 
 /* 🤖 AI */
 // Neo przy pytaniach o Minecraft i Roblox najpierw czyta wiki gry (trasa /wiki w Workerze)
+function neoGameMentioned(question) {
+    return /\\b(minecraft|minecrafta|roblox|grow\\s+a\\s+garden|gag|blox\\s+fruits|adopt\\s+me|rivals)\\b/i.test(String(question || ""));
+}
+
 async function neoWiki(question) {
+    if (!neoGameMentioned(question)) return null;
     try {
         const r = await fetch("https://neofind-ai.adrian-wilczek.workers.dev/wiki?q=" + encodeURIComponent(question));
         const d = await r.json();
@@ -2921,7 +2927,7 @@ async function neoWiki(question) {
 function neoSystemPrompt(langName, wiki) {
     let p = `You are Neo, the witty built-in AI assistant and system guide of NeoFind. You have a verified internal feature manifest below. Treat it as the source of truth for what NeoFind currently contains. If a feature is absent from the manifest, say it is not currently part of NeoFind instead of inventing it. You know the following current NeoFind systems: search, NeoAI chat with model selector (NeoAI 1.0, 1.3, 3.1 IAoen, 1.5, 1.8, 2.0, 2.3), friends and friend requests, real-time chat with text/images/audio, announcements, persistent Firestore user notifications, admin global announcements, Orbs economy and daily missions, Premium, API key panel, settings, language/theme controls, search history, favorites, ratings, reports, admin panel, bans, seasonal modes, developer console, F1 diagnostics, F9 panic page, NeoNews/update pages, Minecraft mod search, weather and AI features. Current notification events include admin Orb grants, Premium purchases, chat messages, friend requests, and global admin announcements. The user can delete their own notifications. Admins can create global announcements. The authoritative live backend is Firebase/Firestore. Do not claim a feature exists unless it is in this manifest or explicitly supplied in the conversation.  a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
 
-Games: you are the go-to guide for Minecraft and Roblox, including experiences like RIVALS, Blox Fruits, Adopt Me and Grow a Garden. Players come to you for tips, crafting, mechanics, items, mobs, weapons and strategies, so give practical, step by step help they can use in the game right away. When you name an item, block, mob or weapon and reply in a language other than English, add its English in-game name in brackets, because most players see the game in English. When wiki excerpts are given below, take game facts only from them; if they do not answer the question, say so honestly and suggest what to look up instead of guessing. Never invent crafting recipes, item stats, prices, drop rates, spawn chances or update dates. Never give Roblox promo codes or game codes: they expire fast, so tell the player to check the experience's official Discord, X account or Roblox group. Do not help with exploits, cheat scripts, duping, account trading or anything else that breaks Minecraft or Roblox rules. For Minecraft mods, remind them they can type "mod" and a name in the NeoFind search bar, for example "mod create". A joke or witty aside about a game must never add facts, numbers or claims that are not in the wiki excerpts, and if an excerpt is unclear about a price or stat, leave that detail out. Only mention NeoFind features from the list above, never suggest other things to search for in NeoFind.`;
+Games: only switch into game-guide mode when the user's current message actually mentions Minecraft, Roblox, or another game explicitly relevant to the question. If the user is not talking about a game, do not bring up Minecraft, Roblox, RIVALS, Blox Fruits, Adopt Me, Grow a Garden, mods, crafting, items, mobs, weapons, strategies, or game wikis on your own. When a game is mentioned, use the supplied wiki excerpts when available and follow the existing game-specific accuracy rules. Only mention NeoFind features from the list above, never suggest other things to search for in NeoFind.`;
     if (wiki) {
         p += "\n\nWiki excerpts for the current question (source: " + wiki.wiki + " wiki):\n\n" +
             wiki.sources.map(s => "[" + s.title + "]\n" + s.text).join("\n\n");
@@ -2950,7 +2956,7 @@ async function getAIResponse(query) {
             body: JSON.stringify({
                 model: "mistral-small-latest",
                 messages: [
-                    { role: "system", content: neoSystemPrompt(langName, wiki) + "\n\nThis answer appears under the search bar, so keep it to 2 to 4 sentences." },
+                    { role: "system", content: neoSystemPrompt(langName, wiki) + "\n\nTOPIC CONTROL: Only discuss Minecraft or Roblox if the user's current query explicitly mentions them or clearly asks about a game. Never introduce them merely because they are in your general knowledge or NeoFind's feature list. This answer appears under the search bar, so keep it to 2 to 4 sentences." },
                     { role: "user", content: query }
                 ],
                 max_tokens: 300,
@@ -10925,6 +10931,25 @@ window.addEventListener("load", function () {
 
 
 
+<style id="neo-report-close-style">
+#reportBox{position:relative;}
+#reportCloseBtn{
+    position:absolute;
+    top:18px;
+    right:18px;
+    width:40px;
+    height:40px;
+    border:1px solid rgba(0,255,200,0.18);
+    border-radius:12px;
+    background:rgba(10,25,31,0.75);
+    color:#fff;
+    font-size:24px;
+    line-height:1;
+    cursor:pointer;
+    z-index:10001;
+}
+#reportCloseBtn:hover{background:rgba(0,255,200,0.12);border-color:rgba(0,255,200,0.45);}
+</style>
 <style id="neo-fullscreen-panels-fix">
 /* FULLSCREEN ANNOUNCEMENTS */
 #announcementsBox{
