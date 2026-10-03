@@ -3469,7 +3469,7 @@ async function renderAnnouncements(){
             .sort((a,b) => announcementDateValue(b.createdAt)-announcementDateValue(a.createdAt));
         box.innerHTML = docs.length ? docs.map(a => `
             <div class="announcement-card">
-                <button class="announcement-delete" onclick="deleteAnnouncement('${a.id}')">Delete</button>
+                <button class="announcement-delete" data-id="${escapeHtml(a.id)}" onclick="deleteAnnouncement(this.dataset.id)">Delete</button>
                 <h3>${escapeHtml(a.title || "Announcement")}</h3>
                 <p>${escapeHtml(a.body || "")}</p>
                 <small>${new Date(announcementDateValue(a.createdAt) || Date.now()).toLocaleString()}</small>
@@ -6114,7 +6114,7 @@ function startNeoCountdown(labelText, targetDateString) {
 
 // ⏳ KONFIGURACJA ODLICZANIA (zmień tekst i datę poniżej):
 const NEO_COUNTDOWN = {
-    enabled: true,                      // false = ukryj licznik true = pokaż licznik
+    enabled: false,                     // false = ukryj licznik true = pokaż licznik
     label:  "end of holidays:",        // ← tekst przed licznikiem
     target: "2026-09-01T00:00:00"       // ← data do której odliczamy (RRRR-MM-DDTGG:MM:SS)
 };
