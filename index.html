@@ -2996,7 +2996,14 @@ const aiKeywords = [
 let currentLang = "en";
 
 function updateDidYouKnow(){
-    const t = translations[currentLang];
+    const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
     const tips = currentTips();
     const titleEl = document.getElementById("didYouKnowTitle");
     if(titleEl) titleEl.innerText = currentTipTitle();
@@ -3219,7 +3226,14 @@ function currentTips(){
 
 // tytuł nad ciekawostką wg trybu, w języku systemu
 function currentTipTitle(){
-    const t = translations[currentLang];
+    const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
     return (t && t.didYouKnowTitle) || "Did you know?";
 }
 
@@ -4736,7 +4750,14 @@ async function loadFriendRequests(){
             .get();
 
         if(snapshot.empty){
-            const t = translations[currentLang];
+            const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
             box.innerHTML = "<p style='opacity:0.5'>" + t.noPending + "</p>";
             return;
         }
@@ -4744,7 +4765,14 @@ async function loadFriendRequests(){
         box.innerHTML = "";
         snapshot.forEach(doc => {
             const req = doc.data();
-            const t = translations[currentLang];
+            const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
             box.innerHTML += `
                 <div class="friend-item">
                     <span>${req.from}</span>
@@ -5685,7 +5713,14 @@ function startNeoFindLocalization() {
 
 function updateLanguage(){
     renderGreeting();
-    const t = translations[currentLang];
+    const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
     document.querySelectorAll(".lang-btn").forEach(b => {
         if(b.dataset.lang === "autumn"){
             b.classList.toggle("lang-active", localStorage.getItem('autumn') === 'on');
@@ -5779,11 +5814,25 @@ function updateLanguage(){
 function showUpdate(){
     const box = document.getElementById("updates");
     if(!box) return;
-    const t = translations[currentLang];
+    const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
     box.innerHTML = `<div class="result"><h3>${t.whatsNew}</h3><p>${GLOBAL_UPDATE}</p></div>`;
 }
 function updateUI(){
-    const t = translations[currentLang];
+    const activeTranslations = translations[currentLang] || translations.en;
+    const t = new Proxy(activeTranslations, {
+        get(target, key) {
+            if (key in target && target[key] !== undefined && target[key] !== null) return target[key];
+            if (translations.en && key in translations.en && translations.en[key] !== undefined && translations.en[key] !== null) return translations.en[key];
+            return typeof key === "string" ? key : undefined;
+        }
+    });
 
     document.getElementById("accountTitle").innerText = t.account;
     document.getElementById("logoutBtn").innerText = t.logout;
