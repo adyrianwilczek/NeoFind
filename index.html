@@ -4021,8 +4021,8 @@ async function syncUserEconomy(user) {
 
         let orbs = Number(data.orbs);
         if (!Number.isFinite(orbs) || orbs < 0) {
-            orbs = Number(localStorage.getItem("userOrbs") || 0);
-            if (!Number.isFinite(orbs) || orbs < 0) orbs = 0;
+            // nowe konto zaczyna od 0, saldo z localStorage dałoby się podrobić
+            orbs = 0;
             await ref.set({ email: user.email || "", orbs }, { merge: true });
         }
 
@@ -10077,81 +10077,23 @@ async function validateAndTrackApiKey(apiKey) {
     }
 
 
-    async function addOrbs(amount) {
+    // po udanym zapisie w Firestore odśwież licznik orbs i odznakę Premium
+    function applyChestRewardLocally(saved) {
 
-        amount = Number(amount);
-
-        if (!Number.isFinite(amount) || amount <= 0) return false;
-
-        const user = (typeof auth !== "undefined") ? auth.currentUser : null;
-        if (!user || typeof db === "undefined") return false;
-
-        try {
-            const ref = db.collection("users").doc(user.uid);
-            const result = await db.runTransaction(async transaction => {
-                const snap = await transaction.get(ref);
-                const current = snap.exists ? Number(snap.data().orbs || 0) : 0;
-                const next = Math.max(0, Math.floor(current)) + Math.floor(amount);
-
-                transaction.set(ref, {
-                    email: user.email || "",
-                    orbs: next,
-                    lastDailyChestReward: {
-                        amount: Math.floor(amount),
-                        at: Date.now()
-                    }
-                }, { merge: true });
-
-                return next;
-            });
-
-            userOrbs = result;
+        if (typeof saved.orbs === "number") {
+            userOrbs = saved.orbs;
             localStorage.setItem("userOrbs", String(userOrbs));
-
             if (typeof window.updateUI === "function") window.updateUI();
             if (typeof window.renderMissions === "function") window.renderMissions();
-            return true;
-        } catch (error) {
-            console.error("Failed to add Orbs:", error);
-            return false;
         }
-    }
 
-
-    async function givePremium(days) {
-
-        const user = (typeof auth !== "undefined") ? auth.currentUser : null;
-        if (!user || typeof db === "undefined") return false;
-
-        days = Number(days);
-        if (!Number.isFinite(days) || days <= 0) return false;
-
-        try {
-            const ref = db.collection("users").doc(user.uid);
-            const newDate = await db.runTransaction(async transaction => {
-                const snap = await transaction.get(ref);
-                const data = snap.exists ? snap.data() : {};
-                const oldUntil = Number(data.premiumUntil || 0);
-                const until = Math.max(Date.now(), oldUntil) + days * 86400000;
-
-                transaction.set(ref, {
-                    email: user.email || "",
-                    premiumUntil: until
-                }, { merge: true });
-
-                return until;
-            });
-
-            localStorage.setItem("neoPremiumUntil", String(newDate));
+        if (typeof saved.premiumUntil === "number") {
+            localStorage.setItem("neoPremiumUntil", String(saved.premiumUntil));
             localStorage.setItem("userPremium", "true");
-
             const badge = document.getElementById("premiumBadge");
             if (badge) badge.style.display = "block";
-            return true;
-        } catch (error) {
-            console.error("Failed to grant Premium:", error);
-            return false;
         }
+
     }
 
 
@@ -10257,8 +10199,6 @@ async function validateAndTrackApiKey(apiKey) {
             textElement.textContent =
                 "+" + reward.amount + " Orbs";
 
-            addOrbs(reward.amount);
-
         }
 
 
@@ -10283,8 +10223,6 @@ async function validateAndTrackApiKey(apiKey) {
                 reward.days +
                 " dni";
 
-            givePremium(reward.days);
-
         }
 
 
@@ -10293,26 +10231,48 @@ async function validateAndTrackApiKey(apiKey) {
     }
 
 
-    // zapisuje datę otwarcia w Firestore, żeby skrzynia nie otwierała się drugi raz
-    // po wyczyszczeniu przeglądarki albo na innym urządzeniu
-    async function claimChestInCloud(user) {
+    // zapisuje w jednej transakcji datę otwarcia, czas serwera i nagrodę.
+    // Reguły Firestore sprawdzają odstęp od poprzedniego otwarcia i wysokość nagrody,
+    // więc nie da się dopisać sobie orbs z konsoli przeglądarki.
+    async function claimChestInCloud(user, reward) {
 
         const ref = db.collection("users").doc(user.uid);
 
         try {
-            await db.runTransaction(async transaction => {
+            const saved = await db.runTransaction(async transaction => {
                 const snap = await transaction.get(ref);
-                if (snap.exists && snap.data().dailyChestDate === today()) {
+                const data = snap.exists ? snap.data() : {};
+                if (data.dailyChestDate === today()) {
                     throw new Error("ALREADY_OPENED");
                 }
-                transaction.set(ref, { dailyChestDate: today() }, { merge: true });
+
+                const update = {
+                    dailyChestDate: today(),
+                    lastChestAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                const result = {};
+
+                if (reward.type === "orbs") {
+                    const amount = Math.floor(reward.amount);
+                    update.orbs = Math.max(0, Math.floor(Number(data.orbs || 0))) + amount;
+                    update.lastDailyChestReward = { amount, at: Date.now() };
+                    result.orbs = update.orbs;
+                }
+
+                if (reward.type === "premium") {
+                    const oldUntil = Number(data.premiumUntil || 0);
+                    update.premiumUntil = Math.max(Date.now(), oldUntil) + reward.days * 86400000;
+                    result.premiumUntil = update.premiumUntil;
+                }
+
+                transaction.set(ref, update, { merge: true });
+                return result;
             });
-            return true;
+            return { status: "ok", saved };
         } catch (error) {
-            if (error.message === "ALREADY_OPENED") return false;
-            // inny błąd (np. reguły): nie blokujemy skrzyni, zostaje sama data lokalna
-            console.error("Daily chest cloud check failed:", error);
-            return true;
+            if (error.message === "ALREADY_OPENED") return { status: "already" };
+            console.error("Daily chest claim failed:", error);
+            return { status: "error" };
         }
 
     }
@@ -10340,15 +10300,39 @@ async function validateAndTrackApiKey(apiKey) {
             return;
         }
 
+        const rarity =
+            weightedRandom(
+                Object.entries(
+                    CHEST_WEIGHTS
+                ).map(
+                    ([name, weight]) => ({
+                        name,
+                        weight
+                    })
+                )
+            ).name;
+
+        const reward =
+            weightedRandom(
+                REWARDS[rarity]
+            );
+
         chestBusy = true;
-        const canOpen = await claimChestInCloud(user);
+        const claim = await claimChestInCloud(user, reward);
         chestBusy = false;
 
-        if (!canOpen) {
+        if (claim.status === "already") {
             localStorage.setItem(CHEST_DATE_KEY, today());
             chest.style.display = "none";
             return;
         }
+
+        if (claim.status === "error") {
+            alert("Nie udało się otworzyć skrzyni. Spróbuj trochę później.");
+            return;
+        }
+
+        applyChestRewardLocally(claim.saved);
 
 
         chest.classList.add("shake");
@@ -10364,25 +10348,6 @@ async function validateAndTrackApiKey(apiKey) {
 
 
         setTimeout(() => {
-
-            const rarity =
-                weightedRandom(
-                    Object.entries(
-                        CHEST_WEIGHTS
-                    ).map(
-                        ([name, weight]) => ({
-                            name,
-                            weight
-                        })
-                    )
-                ).name;
-
-
-            const reward =
-                weightedRandom(
-                    REWARDS[rarity]
-                );
-
 
             localStorage.setItem(
                 CHEST_DATE_KEY,
@@ -10634,12 +10599,18 @@ async function addOrbsToCloud(amount) {
         const ref = db.collection("users").doc(user.uid);
         const next = await db.runTransaction(async transaction => {
             const snap = await transaction.get(ref);
-            const current = snap.exists ? Number(snap.data().orbs || 0) : 0;
+            const data = snap.exists ? snap.data() : {};
+            const current = Number(data.orbs || 0);
             const value = Math.max(0, Math.floor(current)) + Math.floor(amount);
 
+            // licznik nagród z misji w danym dniu (UTC), reguły Firestore pilnują limitu
+            const day = Math.floor(Date.now() / 86400000);
+            const claims = (data.missionDay === day ? Number(data.missionClaims || 0) : 0) + 1;
+
             transaction.set(ref, {
-                email: user.email || "",
-                orbs: value
+                orbs: value,
+                missionDay: day,
+                missionClaims: claims
             }, { merge: true });
 
             return value;
