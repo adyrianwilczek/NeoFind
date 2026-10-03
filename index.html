@@ -2501,6 +2501,45 @@ z-index:9999;
     <!-- Odznaki zostaną wstrzyknięte automatycznie przez skrypt JS -->
 </div>
     
+<!-- NEO DAILY CHEST -->
+<div id="neoDailyChest" class="neo-daily-chest">
+    <div class="neo-chest-glow"></div>
+
+    <div class="neo-chest">
+        <div class="neo-chest-lid">
+            <div class="neo-chest-lock"></div>
+        </div>
+
+        <div class="neo-chest-body">
+            <div class="neo-chest-band"></div>
+        </div>
+    </div>
+
+    <div class="neo-chest-label">
+        🎁 Codzienna skrzynia
+    </div>
+</div>
+
+<div id="neoChestReward" class="neo-chest-reward">
+    <div class="neo-reward-box">
+
+        <button
+            class="neo-reward-close"
+            onclick="closeNeoChestReward()">
+            ×
+        </button>
+
+        <div id="neoRewardRarity" class="neo-reward-rarity"></div>
+
+        <div id="neoRewardIcon" class="neo-reward-icon">
+            🎁
+        </div>
+
+        <div id="neoRewardText" class="neo-reward-text"></div>
+
+    </div>
+</div>
+
 <!-- Firebase scripts -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -2925,7 +2964,7 @@ async function neoWiki(question) {
 
 // instrukcja dla Neo, wspólna dla czatu i odpowiedzi w wyszukiwarce
 function neoSystemPrompt(langName, wiki) {
-    let p = `You are Neo, the witty built-in AI assistant and system guide of NeoFind. You have a verified internal feature manifest below. Treat it as the source of truth for what NeoFind currently contains. If a feature is absent from the manifest, say it is not currently part of NeoFind instead of inventing it. You know the following current NeoFind systems: search, NeoAI chat with model selector (NeoAI 1.0, 1.3, 3.1 IAoen, 1.5, 1.8, 2.0, 2.3), friends and friend requests, real-time chat with text/images/audio, announcements, persistent Firestore user notifications, admin global announcements, Orbs economy and daily missions, Premium, API key panel, settings, language/theme controls, search history, favorites, ratings, reports, admin panel, bans, seasonal modes, developer console, F1 diagnostics, F9 panic page, NeoNews/update pages, Minecraft mod search, weather and AI features. Current notification events include admin Orb grants, Premium purchases, chat messages, friend requests, and global admin announcements. The user can delete their own notifications. Admins can create global announcements. The authoritative live backend is Firebase/Firestore. Do not claim a feature exists unless it is in this manifest or explicitly supplied in the conversation.  a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
+    let p = `You are Neo, the witty built-in AI assistant and system guide of NeoFind. You have a verified internal feature manifest in this prompt. Treat it as the source of truth for what NeoFind currently contains. If a feature is absent from the manifest, say it is not currently part of NeoFind instead of inventing it. You know the following current NeoFind systems: search, NeoAI chat with model selector (NeoAI 1.0, 1.3, 3.1 IAoen, 1.5, 1.8, 2.0, 2.3), friends and friend requests, real-time chat with text/images/audio, announcements, persistent Firestore user notifications, admin global announcements, Orbs economy and daily missions, Premium, API key panel, settings, language/theme controls, search history, favorites, ratings, reports, admin panel, bans, seasonal modes, developer console, F1 diagnostics, F9 panic page, NeoNews/update pages, Minecraft mod search, weather and AI features. Current notification events include admin Orb grants, Premium purchases, chat messages, friend requests, and global admin announcements. The user can delete their own notifications. Admins can create global announcements. The authoritative live backend is Firebase/Firestore. Do not claim a feature exists unless it is in this manifest or explicitly supplied in the conversation. NeoFind is a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
 
 Games: only switch into game-guide mode when the user's current message actually mentions Minecraft, Roblox, or another game explicitly relevant to the question. If the user is not talking about a game, do not bring up Minecraft, Roblox, RIVALS, Blox Fruits, Adopt Me, Grow a Garden, mods, crafting, items, mobs, weapons, strategies, or game wikis on your own. When a game is mentioned, use the supplied wiki excerpts when available and follow the existing game-specific accuracy rules. Only mention NeoFind features from the list above, never suggest other things to search for in NeoFind.`;
     if (wiki) {
@@ -3426,6 +3465,7 @@ async function renderAnnouncements(){
         const snap = await db.collection("users").doc(user.uid)
             .collection("announcements").get();
         const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
+            .filter(a => !a.hidden)
             .sort((a,b) => announcementDateValue(b.createdAt)-announcementDateValue(a.createdAt));
         box.innerHTML = docs.length ? docs.map(a => `
             <div class="announcement-card">
@@ -3450,7 +3490,10 @@ async function renderAnnouncements(){
 async function deleteAnnouncement(id){
     const user = auth.currentUser;
     if(!user || !id) return;
-    await db.collection("users").doc(user.uid).collection("announcements").doc(id).delete();
+    const ref = db.collection("users").doc(user.uid).collection("announcements").doc(id);
+    // globalne tylko ukrywamy: po usunięciu nasłuch skopiowałby je z powrotem
+    if(id.startsWith("global_")) await ref.update({ hidden:true, read:true });
+    else await ref.delete();
     renderAnnouncements();
 }
 
@@ -3486,11 +3529,13 @@ function startAnnouncementListeners(user){
     // Global announcements are copied to the user's Firestore notification list.
     // This makes them persistent for that user after their next visit/login.
     announcementsGlobalUnsubscribe = db.collection("announcements").onSnapshot(async snap => {
+        // jeden odczyt listy użytkownika zamiast osobnego get() dla każdego ogłoszenia
+        const mine = await personalRef.get();
+        const seenIds = new Set(mine.docs.map(d => d.id));
         for(const doc of snap.docs){
             const a = doc.data();
             const seenRef = personalRef.doc("global_" + doc.id);
-            const seen = await seenRef.get();
-            if(!seen.exists){
+            if(!seenIds.has(seenRef.id)){
                 await seenRef.set({
                     title:a.title || "Announcement",
                     body:a.body || "",
@@ -3510,7 +3555,7 @@ async function adminCreateAnnouncement(){
     const titleEl = document.getElementById("announcementAdminTitle");
     const bodyEl = document.getElementById("announcementAdminBody");
     const status = document.getElementById("announcementAdminStatus");
-    if(!user || !ADMIN_EMAILS.map(x=>x.toLowerCase()).includes((user.email||"").toLowerCase())) return;
+    if(!user || !isAdmin(user.email)) return;
     const title = titleEl.value.trim();
     const body = bodyEl.value.trim();
     if(!title || !body){ status.textContent = "Title and text are required."; return; }
@@ -3560,7 +3605,7 @@ function saveSettings(){
 /* ADMIN PANEL CONTROL */
 function openAdmin(){
     const user = auth.currentUser;
-    if(!user || !ADMIN_EMAILS.includes(user.email)){
+    if(!user || !isAdmin(user.email)){
         alert("🚫 Access denied.");
         return;
     }
@@ -3594,7 +3639,7 @@ function saveToHistory(query){
     let history = JSON.parse(localStorage.getItem("historyV2")) || [];
     if(history.find(h => h.q === query)) return;
     history.unshift({ q: query, t: Date.now() });
-    const historyLimit = PREMIUM_EMAILS.includes(auth.currentUser?.email) ? 1500 : 500;
+    const historyLimit = isPremiumEmail(auth.currentUser?.email) ? 1500 : 500;
     if(history.length > historyLimit) history.pop();
     localStorage.setItem("historyV2", JSON.stringify(history));
 }
@@ -3771,13 +3816,13 @@ const OWNER_EMAILS = [
     "adrian.wilczek@hotmail.com"
 ]
     
+// maile małymi literami, porównuje je isAdmin() i isPremiumEmail()
 const ADMIN_EMAILS = [
     "adrian.wilczek@hotmail.com",
     "michal.szyszynski@outlook.com",
-    "Michal.szyszynski@outlook.com",
     "account.neofind@gmail.com",
     "support.neofind@gmail.com",
-    "Michal.wilkowski@outlook.com",
+    "michal.wilkowski@outlook.com",
     "michal.wilkowski@gmail.com",
     "j.e.wilkowska@gmail.com"
 ]
@@ -3785,13 +3830,16 @@ const ADMIN_EMAILS = [
 const PREMIUM_EMAILS = [
     "adrian.wilczek@hotmail.com",
     "michal.szyszynski@outlook.com",
-    "Michal.szyszynski@outlook.com",
     "account.neofind@gmail.com",
     "support.neofind@gmail.com",
-    "Michal.wilkowski@outlook.com",
+    "michal.wilkowski@outlook.com",
     "michal.wilkowski@gmail.com",
     "j.e.wilkowska@gmail.com"
 ];
+
+function isPremiumEmail(email){
+    return PREMIUM_EMAILS.includes(String(email || "").trim().toLowerCase());
+}
 
 /* =========================================================
    NEO ECONOMY: CLOUD ORBS + PREMIUM
@@ -4034,7 +4082,7 @@ document.getElementById("accountName").innerText = user.displayName || user.emai
 
     watchAdminOrbGrants(user);
 
-    if (ADMIN_EMAILS.includes(user.email)) {
+    if (isAdmin(user.email)) {
         document.getElementById("adminBtn").style.display = "flex";
     } else {
         document.getElementById("adminBox").style.display = "none";
@@ -5992,8 +6040,8 @@ document.addEventListener("DOMContentLoaded", () => {
 ['mundial', 'footballFacts_v2_pl', 'footballFacts_v2_en', 'footballFacts_v2_es'].forEach(k => localStorage.removeItem(k));
 
 // Admin / Owner
-function isOwner(email){ return OWNER_EMAILS.includes(email); }
-function isAdmin(email){ return ADMIN_EMAILS.includes(email); }
+function isOwner(email){ return OWNER_EMAILS.includes(String(email || "").trim().toLowerCase()); }
+function isAdmin(email){ return ADMIN_EMAILS.includes(String(email || "").trim().toLowerCase()); }
 
 // ========================================================
 // ⏱️ OSPALONY SYSTEM ODLICZANIA NAD LOGIEM
@@ -6650,44 +6698,6 @@ function triggerCustomLockScreen(userEmail, blockReason) {
             <p>Target ID: <span class="email-badge">${userEmail}</span></p>
             <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
         </div>
-        <!-- NEO DAILY CHEST -->
-<div id="neoDailyChest" class="neo-daily-chest">
-    <div class="neo-chest-glow"></div>
-
-    <div class="neo-chest">
-        <div class="neo-chest-lid">
-            <div class="neo-chest-lock"></div>
-        </div>
-
-        <div class="neo-chest-body">
-            <div class="neo-chest-band"></div>
-        </div>
-    </div>
-
-    <div class="neo-chest-label">
-        🎁 Codzienna skrzynia
-    </div>
-</div>
-
-<div id="neoChestReward" class="neo-chest-reward">
-    <div class="neo-reward-box">
-
-        <button
-            class="neo-reward-close"
-            onclick="closeNeoChestReward()">
-            ×
-        </button>
-
-        <div id="neoRewardRarity" class="neo-reward-rarity"></div>
-
-        <div id="neoRewardIcon" class="neo-reward-icon">
-            🎁
-        </div>
-
-        <div id="neoRewardText" class="neo-reward-text"></div>
-
-    </div>
-</div>
     </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
@@ -10113,16 +10123,59 @@ async function validateAndTrackApiKey(apiKey) {
     }
 
 
-    window.openNeoDailyChest = function () {
+    // zapisuje datę otwarcia w Firestore, żeby skrzynia nie otwierała się drugi raz
+    // po wyczyszczeniu przeglądarki albo na innym urządzeniu
+    async function claimChestInCloud(user) {
+
+        const ref = db.collection("users").doc(user.uid);
+
+        try {
+            await db.runTransaction(async transaction => {
+                const snap = await transaction.get(ref);
+                if (snap.exists && snap.data().dailyChestDate === today()) {
+                    throw new Error("ALREADY_OPENED");
+                }
+                transaction.set(ref, { dailyChestDate: today() }, { merge: true });
+            });
+            return true;
+        } catch (error) {
+            if (error.message === "ALREADY_OPENED") return false;
+            // inny błąd (np. reguły): nie blokujemy skrzyni, zostaje sama data lokalna
+            console.error("Daily chest cloud check failed:", error);
+            return true;
+        }
+
+    }
+
+
+    let chestBusy = false;
+
+    window.openNeoDailyChest = async function () {
 
         const chest =
             document.getElementById(
                 "neoDailyChest"
             );
 
-        if (!chest) return;
+        if (!chest || chestBusy) return;
 
         if (openedToday()) {
+            chest.style.display = "none";
+            return;
+        }
+
+        const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+        if (!user) {
+            alert("Zaloguj się, żeby otworzyć skrzynię dnia.");
+            return;
+        }
+
+        chestBusy = true;
+        const canOpen = await claimChestInCloud(user);
+        chestBusy = false;
+
+        if (!canOpen) {
+            localStorage.setItem(CHEST_DATE_KEY, today());
             chest.style.display = "none";
             return;
         }
@@ -10210,11 +10263,24 @@ async function validateAndTrackApiKey(apiKey) {
         );
 
 
-        if (openedToday()) {
+        // skrzynia tylko dla zalogowanych, do czasu sprawdzenia jest schowana
+        chest.style.display = "none";
 
-            chest.style.display =
-                "none";
-
+        // po zalogowaniu sprawdź też, czy nie była już dziś otwarta na innym urządzeniu
+        if (typeof auth !== "undefined") {
+            auth.onAuthStateChanged(async user => {
+                chest.style.display = "none";
+                if (!user) return;
+                try {
+                    const snap = await db.collection("users").doc(user.uid).get();
+                    if (snap.exists && snap.data().dailyChestDate === today()) {
+                        localStorage.setItem(CHEST_DATE_KEY, today());
+                    }
+                } catch (error) {
+                    console.error("Daily chest sync failed:", error);
+                }
+                if (!openedToday()) chest.style.display = "block";
+            });
         }
 
     }
