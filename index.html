@@ -3695,6 +3695,7 @@ async function adminCreateAnnouncement(){
 }
 
 function openSettings(pushUrl = true){
+    if (typeof updateMissionProgress === "function") updateMissionProgress("settings");
     if(pushUrl && window.location.pathname !== "/settings"){
         history.pushState({ neoPage: "settings" }, "", "/settings");
     }
@@ -5447,6 +5448,7 @@ function setAutumnMode(on, fresh) {
 
 // 🍂 Przycisk Autumn Mode
 function toggleAutumnMode() {
+    if (typeof updateMissionProgress === "function") updateMissionProgress("autumn");
 
     const turningOn =
         localStorage.getItem("autumn") !== "on";
@@ -6189,6 +6191,8 @@ if ("serviceWorker" in navigator) {
 // Enter = Pierwszy wynik
 document.getElementById("search").addEventListener("keydown", function(e){
     if(e.key === "Enter"){
+        const query = this.value.trim();
+        if (query && typeof updateMissionProgress === "function") updateMissionProgress("search");
         const firstLink = document.querySelector("#results .result a");
         if(firstLink){
             window.open(firstLink.href, "_blank");
@@ -6947,6 +6951,7 @@ function neoFormat(raw) {
 // Otwiera/zamyka pływające okienko Neo
 initNeoAiModelSelector();
 window.toggleNeoAiChat = function() {
+    if (typeof updateMissionProgress === "function") updateMissionProgress("open_ai");
     const box = document.getElementById('neoAiTmpChat');
     if (!box) return;
     const isOpen = box.style.display === 'flex';
@@ -6978,6 +6983,7 @@ window.sendNeoAiMessage = async function() {
 
     const msgText = input.value.trim();
     if (!msgText) return;
+    if (typeof updateMissionProgress === "function") updateMissionProgress("open_ai");
     input.value = '';
 
     const t = neoT();
@@ -10900,7 +10906,7 @@ function initDailyMissions() {
     let saved = JSON.parse(localStorage.getItem('dailyMissionsData') || '{}');
 
     if (saved.date !== today) {
-        const selected = ALL_MISSIONS.sort(() => 0.5 - Math.random())
+        const selected = [...ALL_MISSIONS].sort(() => 0.5 - Math.random())
             .slice(0, 3)
             .map(m => ({ ...m, progress: 0, claimed: false }));
 
