@@ -4055,31 +4055,49 @@ window.register = function () {
 window.login = function () {
     const email = document.getElementById("logUser").value.trim();
     const pass = document.getElementById("logPass").value;
-
     if (!email || !pass) return alert("Fill all!");
-    
-    window.checkMomBirthdayOverlay(document.getElementById('logUser').value);
+
+    let lock = readLoginLock(email);
+    if (lock.lockUntil > Date.now()) {
+        const remaining = Math.ceil((lock.lockUntil - Date.now()) / 1000);
+        const minutes = Math.ceil(remaining / 60);
+        return alert("Logowanie jest czasowo zablokowane. Spróbuj ponownie za " +
+            (minutes >= 60 ? Math.ceil(minutes / 60) + " godz." : minutes + " min.") + ".");
+    }
+    if (lock.lockUntil && Date.now() >= lock.lockUntil) {
+        if ((lock.lockDuration || 0) >= LOGIN_LOCK_STEPS[LOGIN_LOCK_STEPS.length - 1]) {
+            localStorage.removeItem(loginLockKey(email));
+            lock = { failures: 0, level: 0, lockUntil: 0, lockDuration: 0 };
+        } else {
+            lock.lockUntil = 0;
+            localStorage.setItem(loginLockKey(email), JSON.stringify(lock));
+        }
+    }
+
+    window.checkMomBirthdayOverlay(email);
     logAction("SEC_AUTH", `Inbound authentication handshake initiated for: ${email}`, "tag-sec");
 
     auth.signInWithEmailAndPassword(email, pass)
-        .then(async (userCredential) => {
-            // Jeśli użytkownik przed tym sukcesem wywalił się dokładnie 3 razy:
-            if (passwordFailCount === 3) {
-                const reason = "Suspicious login patterns detected (3 failed attempts followed by a delayed success).";
-                
-                // Wysyłamy cichy alert do Firebase dla Twojej wiadomości
-                sendAlertToFirebase(email, "BRUTE_FORCE", reason);
-                
-                // Odpalamy ekran z konfetti i odcinamy gościa
-                triggerCustomLockScreen(email, reason);
-                return;
-            }
-            passwordFailCount = 0; // Reset przy normalnym logowaniu
+        .then(async () => {
+            localStorage.removeItem(loginLockKey(email));
+            passwordFailCount = 0;
         })
         .catch(async (err) => {
-            passwordFailCount++;
-            logAction("SEC_AUTH_FAIL", `Failed password attempt ${passwordFailCount} for: ${email}`, "tag-sec");
-            alert(`${err.message} (Attempt ${passwordFailCount} of 3)`);
+            // Tylko błędne dane logowania podbijają licznik.
+            if (["auth/wrong-password", "auth/invalid-credential", "auth/user-not-found"].includes(err.code)) {
+                const state = recordFailedLogin(email);
+                passwordFailCount = state.failures || 0;
+                logAction("SEC_AUTH_FAIL", `Failed password attempt for: ${email}`, "tag-sec");
+                if (state.lockUntil > Date.now()) {
+                    const duration = state.lockDuration;
+                    const label = duration >= 86400000 ? "24 godziny" : duration >= 600000 ? "10 minut" : duration >= 300000 ? "5 minut" : "1 minutę";
+                    alert("Trzy błędne próby. Logowanie zablokowane na " + label + ".");
+                } else {
+                    alert("Nieprawidłowy e-mail lub hasło. Błędne próby: " + (state.failures || 0) + "/3.");
+                }
+            } else {
+                alert(err.message);
+            }
         });
 };
 
@@ -4127,6 +4145,31 @@ function renderGreeting(){
     el.textContent = tpl.replace('{name}', name).replace('{temp}', greetTemp);
 }
 
+async function recordNeoVisitStreak(user) {
+    if (!user || typeof db === "undefined") return { streak: 0, eligible: false };
+    const date = new Date();
+    const todayKey = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+    const yesterdayDate = new Date(date);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayKey = yesterdayDate.getFullYear() + "-" + String(yesterdayDate.getMonth() + 1).padStart(2, "0") + "-" + String(yesterdayDate.getDate()).padStart(2, "0");
+    const ref = db.collection("users").doc(user.uid);
+    try {
+        return await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            if (data.neoVisitDate === todayKey) {
+                return { streak: Number(data.neoVisitStreak || 1), eligible: Number(data.neoVisitStreak || 1) >= 3 };
+            }
+            const streak = data.neoVisitDate === yesterdayKey ? Number(data.neoVisitStreak || 0) + 1 : 1;
+            transaction.set(ref, { neoVisitDate: todayKey, neoVisitStreak: streak }, { merge: true });
+            return { streak, eligible: streak >= 3 };
+        });
+    } catch (error) {
+        console.error("NeoFind visit streak update failed:", error);
+        return { streak: 0, eligible: false };
+    }
+}
+
 auth.onAuthStateChanged(async user => {
     authResolved = true;
     const loginScreen = document.getElementById("loginScreen");
@@ -4163,6 +4206,7 @@ if (!user.emailVerified) {
     return;
 }
 
+const visitStreak = await recordNeoVisitStreak(user);
 loginScreen.style.display = "none";
 app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
@@ -9863,9 +9907,44 @@ function sendWelcomeEmail(userEmail) {
         });
 }
 
-// Liczniki naruszeń dla aktualnej sesji
+// Licznik błędnych haseł i blokady logowania (na tym urządzeniu/przeglądarce).
 let passwordFailCount = 0;
 let bannedWordsCount = 0;
+
+const LOGIN_LOCK_STEPS = [60 * 1000, 5 * 60 * 1000, 10 * 60 * 1000, 24 * 60 * 60 * 1000];
+function loginLockKey(email) {
+    return "neoLoginLock:" + String(email || "").trim().toLowerCase();
+}
+function readLoginLock(email) {
+    try {
+        const value = JSON.parse(localStorage.getItem(loginLockKey(email)) || "{}");
+        if (value.lockUntil && Date.now() >= value.lockUntil) {
+            // Po 24 godzinach blokada i poziom eskalacji resetują się.
+            if ((value.lockDuration || 0) >= LOGIN_LOCK_STEPS[LOGIN_LOCK_STEPS.length - 1]) {
+                localStorage.removeItem(loginLockKey(email));
+                return { failures: 0, level: 0, lockUntil: 0, lockDuration: 0 };
+            }
+            value.lockUntil = 0;
+        }
+        return { failures: 0, level: 0, lockUntil: 0, lockDuration: 0, ...value };
+    } catch (_) {
+        return { failures: 0, level: 0, lockUntil: 0, lockDuration: 0 };
+    }
+}
+function recordFailedLogin(email) {
+    const state = readLoginLock(email);
+    if (state.lockUntil > Date.now()) return state;
+    state.failures = (state.failures || 0) + 1;
+    if (state.failures >= 3) {
+        const level = Math.min(state.level || 0, LOGIN_LOCK_STEPS.length - 1);
+        state.lockDuration = LOGIN_LOCK_STEPS[level];
+        state.lockUntil = Date.now() + state.lockDuration;
+        state.level = Math.min(level + 1, LOGIN_LOCK_STEPS.length - 1);
+        state.failures = 0;
+    }
+    localStorage.setItem(loginLockKey(email), JSON.stringify(state));
+    return state;
+}
 
 // Funkcja automatycznie wysyłająca alert o incydencie bezpieczeństwa do Firestore
 async function sendAlertToFirebase(userEmail, alertType, description) {
@@ -10508,6 +10587,9 @@ async function validateAndTrackApiKey(apiKey) {
                 if (data.dailyChestDate === today()) {
                     throw new Error("ALREADY_OPENED");
                 }
+                if (Number(data.neoVisitStreak || 0) < 3 || !data.neoVisitDate || data.neoVisitDate !== today()) {
+                    throw new Error("STREAK_REQUIRED");
+                }
 
                 const update = {
                     dailyChestDate: today(),
@@ -10534,6 +10616,7 @@ async function validateAndTrackApiKey(apiKey) {
             return { status: "ok", saved };
         } catch (error) {
             if (error.message === "ALREADY_OPENED") return { status: "already" };
+            if (error.message === "STREAK_REQUIRED") return { status: "streak" };
             console.error("Daily chest claim failed:", error);
             return { status: "error" };
         }
@@ -10587,6 +10670,11 @@ async function validateAndTrackApiKey(apiKey) {
         if (claim.status === "already") {
             localStorage.setItem(CHEST_DATE_KEY, today());
             chest.style.display = "none";
+            return;
+        }
+
+        if (claim.status === "streak") {
+            alert("Daily Chest odblokowuje się po 3 dniach z rzędu odwiedzania NeoFind. Opuścisz jeden dzień, a seria zacznie się od nowa.");
             return;
         }
 
@@ -10674,8 +10762,15 @@ async function validateAndTrackApiKey(apiKey) {
                     if (snap.exists && snap.data().dailyChestDate === today()) {
                         localStorage.setItem(CHEST_DATE_KEY, today());
                     }
+                    const profile = snap.exists ? snap.data() : {};
+                    const streakEligible = Number(profile.neoVisitStreak || 0) >= 3 && profile.neoVisitDate === today();
+                    if (!streakEligible) {
+                        chest.style.display = "none";
+                        return;
+                    }
                 } catch (error) {
                     console.error("Daily chest sync failed:", error);
+                    return;
                 }
                 if (!openedToday()) chest.style.display = "block";
             });
