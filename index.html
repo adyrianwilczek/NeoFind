@@ -1902,6 +1902,7 @@ body.ocean {
         <button class="lang-btn" data-lang="en" onclick="switchLang('en')">EN</button>
         <button class="lang-btn" data-lang="pl" onclick="switchLang('pl')">PL</button>
         <button class="lang-btn" data-lang="es" onclick="switchLang('es')">ES</button>
+        <button class="lang-btn" data-lang="fr" onclick="switchLang('fr')">FR</button>
         <button class="lang-btn" data-lang="autumn" onclick="toggleAutumnMode()">🍂</button>
         <button class="lang-btn" onclick="toggleRainMode()" aria-label="Tryb deszczowy">🌧️</button>
         <button onclick="toggleFullscreen()" id="fsBtn" title="Fullscreen" aria-label="Pełny ekran" style="background:none; border:1px solid rgba(0,255,200,0.15); border-radius:6px; padding:3px 7px; color:rgba(200,240,235,0.45); cursor:pointer; line-height:1; margin-left:4px; transition:0.15s;" onmouseover="this.style.color='rgba(200,240,235,0.8)';this.style.borderColor='rgba(0,255,200,0.3)'" onmouseout="this.style.color='rgba(200,240,235,0.45)';this.style.borderColor='rgba(0,255,200,0.15)'">
@@ -2032,6 +2033,7 @@ NOTE! Do not share the key with anyone.
                 <select id="settingsLang">
                     <option value="en">EN</option>
                     <option value="es">ES</option>
+                    <option value="fr">FR</option>
                     <option value="pl">PL</option>
                 </select>
                 <h4 id="themeLabel" style="margin-top:16px;">Theme</h4>
@@ -2675,6 +2677,75 @@ const translations = {
 ]
     },
 
+    fr: {
+        search: "Rechercher...",
+        greet: "Bonjour {name} ! Heureux de vous voir 👋",
+        greetW: "Bonjour {name} ! Il fait {temp}°C 🌤",
+        settings: "Paramètres",
+        language: "Langue",
+        history: "Historique",
+        clearHistory: "Effacer l'historique",
+        console: "Console de débogage",
+        save: "Enregistrer",
+        report: "Signaler un problème",
+        admin: "Admin",
+        noResults: "Essayez autre chose",
+        favorites: "Favoris",
+        noFavorites: "Aucun favori",
+        theme: "Thème",
+        account: "Compte",
+        email: "E-mail",
+        password: "Mot de passe",
+        change: "Modifier",
+        logout: "Se déconnecter",
+        news: "NeoNews",
+        rateUs: "Nous noter",
+        premium: "Premium",
+        banUser: "Bannir l'utilisateur",
+        unbanUser: "Débannir l'utilisateur",
+        noHistory: "Aucun historique",
+        close: "Fermer",
+        add: "Ajouter",
+        send: "Envoyer",
+        friends: "Amis",
+        profile: "Profil",
+        navReport: "Signaler",
+        navChat: "Chat",
+        pendingTitle: "Demandes en attente",
+        friendsListTitle: "Liste d'amis",
+        noPending: "Aucune demande en attente",
+        accept: "Accepter",
+        decline: "Refuser",
+        chatBtnLabel: "Chat",
+        noFriends: "Aucun ami pour le moment",
+        friendEmailPh: "E-mail de l'ami...",
+        adminPanelTitle: "Panneau d'administration",
+        addResultTitle: "Ajouter un résultat",
+        titlePh: "Titre",
+        descPh: "Description",
+        linkPh: "Lien",
+        banSystemTitle: "Système de bannissement",
+        userEmailPh: "E-mail de l'utilisateur",
+        ratingsTitle: "Évaluations",
+        reportPh: "Décrivez le problème...",
+        messagePh: "Message...",
+        currentPassPh: "Mot de passe actuel",
+        newPassPh: "Nouveau mot de passe",
+        repeatPassPh: "Répéter le nouveau mot de passe",
+        savePasswordBtn: "Enregistrer le mot de passe",
+        writeReviewPh: "Écrivez un avis...",
+        sendRatingBtn: "Envoyer l'évaluation",
+        didYouKnowTitle: "Le saviez-vous ?",
+        didYouKnow: [
+            "NeoFind a été créé par un jeune développeur.",
+            "Vous pouvez utiliser l'IA directement dans la recherche.",
+            "NeoFind possède une calculatrice intégrée.",
+            "Vous pouvez débloquer des fonctionnalités cachées.",
+            "NeoFind continue de se développer rapidement.",
+            "Rejoignez notre Discord ici : https://discord.gg/KfRzhTc2T"
+        ]
+    },
+
     pl: {
         search: "Szukaj...",
         greet: "Cześć {name}! miło Cię widzieć 👋",
@@ -2981,7 +3052,7 @@ function neoSourcesHtml(wiki) {
 async function getAIResponse(query) {
     try {
         const wiki = await neoWiki(query);
-        const langName = currentLang === "pl" ? "Polish" : (currentLang === "es" ? "Spanish" : "English");
+        const langName = currentLang === "pl" ? "Polish" : (currentLang === "es" ? "Spanish" : (currentLang === "fr" ? "French" : "English"));
         const response = await fetch("https://neofind-ai.adrian-wilczek.workers.dev", {
             method: "POST",
             headers: {
@@ -5349,6 +5420,87 @@ function switchLang(lang){
    Covers static text, placeholders, titles and dynamically
    created UI text. Main languages: English, Polish, Spanish.
    ========================================================= */
+const NEOFIND_UI_I18N_FR = {
+    "NeoFind Login":"Connexion à NeoFind",
+    "Login":"Connexion",
+    "Forgot password?":"Mot de passe oublié ?",
+    "Register":"S'inscrire",
+    "Code will expire in:":"Le code expirera dans :",
+    "Announcements":"Annonces",
+    "Friends":"Amis",
+    "Chat":"Chat",
+    "Profile":"Profil",
+    "Admin":"Admin",
+    "Report":"Signaler",
+    "API Keys":"Clés API",
+    "Debug Console":"Console de débogage",
+    "Export":"Exporter",
+    "Close":"Fermer",
+    "Settings":"Paramètres",
+    "Language":"Langue",
+    "Theme":"Thème",
+    "Classic":"Classique",
+    "Space":"Espace",
+    "Matrix":"Matrix",
+    "Ocean":"Océan",
+    "Account":"Compte",
+    "Email:":"E-mail :",
+    "Name:":"Nom :",
+    "Change":"Modifier",
+    "Premium":"Premium",
+    "Password":"Mot de passe",
+    "Save password":"Enregistrer le mot de passe",
+    "Missions and Orbs":"Missions et Orbs",
+    "Free Orbs and missions":"Orbs gratuits et missions",
+    "You have:":"Vous avez :",
+    "Orbs":"Orbs",
+    "Daily missions":"Missions quotidiennes",
+    "Orbs Shop":"Boutique Orbs",
+    "Buy premium for 1 month":"Acheter Premium pour 1 mois",
+    "Buy Premium (1000 Orbs)":"Acheter Premium (1000 Orbs)",
+    "Send Orbs":"Envoyer des Orbs",
+    "History":"Historique",
+    "Clear history":"Effacer l'historique",
+    "Log Out":"Se déconnecter",
+    "Rate us":"Nous noter",
+    "Favorites":"Favoris",
+    "Send rating":"Envoyer l'évaluation",
+    "Add":"Ajouter",
+    "Pending Requests":"Demandes en attente",
+    "Friends list":"Liste d'amis",
+    "Admin Panel":"Panneau d'administration",
+    "Add result":"Ajouter un résultat",
+    "Title":"Titre",
+    "Description":"Description",
+    "Link":"Lien",
+    "Ban system":"Système de bannissement",
+    "Ratings":"Évaluations",
+    "Send":"Envoyer",
+    "Cancel":"Annuler",
+    "Save":"Enregistrer",
+    "Search...":"Rechercher...",
+    "Try different keywords or check your spelling.":"Essayez d'autres mots-clés ou vérifiez l'orthographe.",
+    "Copy":"Copier",
+    "News":"Actualités",
+    "No results":"Aucun résultat",
+    "Support":"Assistance",
+    "Help":"Aide",
+    "Delete":"Supprimer",
+    "Read":"Lire",
+    "Unread":"Non lu",
+    "Loading...":"Chargement...",
+    "Error":"Erreur",
+    "Success":"Succès",
+    "Welcome":"Bienvenue",
+    "Username":"Nom d'utilisateur",
+    "Display name":"Nom d'affichage",
+    "Change language":"Changer de langue",
+    "French":"Français",
+    "English":"Anglais",
+    "Polish":"Polonais",
+    "Spanish":"Espagnol"
+};
+
 const NEOFIND_UI_I18N = {
     "NeoFind Login": ["NeoFind Login","Logowanie do NeoFind","Inicio de sesión de NeoFind"],
     "Login": ["Login","Zaloguj się","Iniciar sesión"],
@@ -5470,10 +5622,17 @@ const NEOFIND_UI_I18N = {
 };
 
 function neofindLangIndex() {
-    return currentLang === "pl" ? 1 : currentLang === "es" ? 2 : 0;
+    return currentLang === "pl" ? 1 : currentLang === "es" ? 2 : currentLang === "fr" ? 3 : 0;
 }
 
 function neofindTranslateText(value) {
+    if (currentLang === "fr") {
+        const rawFr = String(value || "");
+        const trimmedFr = rawFr.trim();
+        if (trimmedFr && NEOFIND_UI_I18N_FR[trimmedFr]) {
+            return rawFr.replace(trimmedFr, NEOFIND_UI_I18N_FR[trimmedFr]);
+        }
+    }
     const raw = String(value || "");
     const trimmed = raw.trim();
     if (!trimmed) return value;
