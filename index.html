@@ -12120,5 +12120,136 @@ window.sendOrbsToUser = async function () {
 </script>
 
 
+<!-- =========================================================
+     DEVELOPER DEVTOOLS GATE
+     ========================================================= -->
+<script>
+(function () {
+    const DEVELOPER_EMAILS = [
+        "adrian.wilczek@hotmail.com",
+        "michal.wilkowski@gmail.com"
+    ];
+
+    function normalizeDeveloperEmail(email) {
+        return String(email || "").trim().toLowerCase();
+    }
+
+    function isNeoFindDeveloper() {
+        const user = (typeof auth !== "undefined" && auth && auth.currentUser)
+            ? auth.currentUser
+            : null;
+
+        if (!user || !user.email) return false;
+
+        return DEVELOPER_EMAILS.includes(
+            normalizeDeveloperEmail(user.email)
+        );
+    }
+
+    function showNiceTryPopup() {
+        let popup = document.getElementById("neoDeveloperGate");
+
+        if (!popup) {
+            popup = document.createElement("div");
+            popup.id = "neoDeveloperGate";
+            popup.innerHTML = `
+                <div class="neo-developer-gate-backdrop"></div>
+                <div class="neo-developer-gate-card" role="dialog" aria-modal="true">
+                    <div class="neo-developer-gate-title">Nice try</div>
+                    <div class="neo-developer-gate-text">Developer access required.</div>
+                    <button type="button" id="neoDeveloperGateClose">OK</button>
+                </div>
+            `;
+
+            const style = document.createElement("style");
+            style.id = "neoDeveloperGateStyle";
+            style.textContent = `
+                #neoDeveloperGate {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 2147483647;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-family: 'Oxanium', sans-serif;
+                }
+
+                .neo-developer-gate-backdrop {
+                    position: absolute;
+                    inset: 0;
+                    background: rgba(0,0,0,0.72);
+                    backdrop-filter: blur(8px);
+                }
+
+                .neo-developer-gate-card {
+                    position: relative;
+                    z-index: 1;
+                    width: min(420px, calc(100vw - 40px));
+                    box-sizing: border-box;
+                    padding: 28px;
+                    text-align: center;
+                    border-radius: 20px;
+                    background: linear-gradient(135deg, rgba(15,32,39,0.96), rgba(32,58,67,0.96));
+                    border: 1px solid rgba(0,255,200,0.28);
+                    box-shadow: 0 20px 80px rgba(0,0,0,0.65);
+                }
+
+                .neo-developer-gate-title {
+                    font-size: 30px;
+                    font-weight: 700;
+                    color: #00ffcc;
+                    margin-bottom: 8px;
+                }
+
+                .neo-developer-gate-text {
+                    color: rgba(255,255,255,0.7);
+                    font-size: 14px;
+                    margin-bottom: 20px;
+                }
+
+                .neo-developer-gate-card button {
+                    min-width: 90px;
+                }
+            `;
+            document.head.appendChild(style);
+            document.body.appendChild(popup);
+
+            document.getElementById("neoDeveloperGateClose")
+                ?.addEventListener("click", function () {
+                    popup.remove();
+                });
+
+            popup.querySelector(".neo-developer-gate-backdrop")
+                ?.addEventListener("click", function () {
+                    popup.remove();
+                });
+        }
+    }
+
+    function handleDevToolsShortcut(event) {
+        const isF12 = event.key === "F12" || event.keyCode === 123;
+        const isCtrlShiftS =
+            event.ctrlKey &&
+            event.shiftKey &&
+            (String(event.key || "").toLowerCase() === "s" || event.keyCode === 83);
+
+        if (!isF12 && !isCtrlShiftS) return;
+
+        if (!isNeoFindDeveloper()) {
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            showNiceTryPopup();
+        }
+    }
+
+    window.addEventListener("keydown", handleDevToolsShortcut, true);
+
+    window.NeoFindDeveloperTools = {
+        isDeveloper: isNeoFindDeveloper
+    };
+})();
+</script>
+
 </body>
 </html>
