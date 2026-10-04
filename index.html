@@ -11287,11 +11287,18 @@ async function redeemCode(code) {
 
         const result = await db.runTransaction(async transaction => {
             const codeSnap = await transaction.get(codeRef);
-            if (!codeSnap.exists || codeSnap.data().active === false) {
+
+            // The built-in NeoAI easter egg is always available even before
+            // an admin has opened NeoFind and synced the redeem-code config.
+            let config = codeSnap.exists ? codeSnap.data() : null;
+            if (!config && normalized === "NEO_I_WANT_ORBS_PLS") {
+                config = { orbs: 10, premiumDays: 0, scope: "global", active: true };
+            }
+
+            if (!config || config.active === false) {
                 return { status: "invalid" };
             }
 
-            const config = codeSnap.data();
             const scope = config.scope === "global" ? "global" : "user";
             const claimId = scope === "global"
                 ? normalized
