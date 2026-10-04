@@ -2238,6 +2238,14 @@ NOTE! Do not share the key with anyone.
     <p>Buy premium for 1 month</p>
     <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
 
+    <hr style="border:0;border-top:1px solid rgba(0,255,200,.2);margin:20px 0;">
+    <h3>Redeem Code</h3>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <input id="redeemCodeInput" type="text" maxlength="80" placeholder="Enter redeem code" style="max-width:420px;margin:0;">
+        <button onclick="redeemCodeFromPanel()">Redeem</button>
+    </div>
+    <div id="redeemCodeStatus" style="margin-top:10px;font-size:13px;min-height:20px;"></div>
+
     
 <br><br>
     <div id="orbTransferSection" style="margin-top:20px;">
@@ -4399,6 +4407,7 @@ document.getElementById("accountName").innerText = user.displayName || user.emai
 
     if (isAdmin(user.email)) {
         document.getElementById("adminBtn").style.display = "flex";
+        syncRedeemCodeConfigs().catch(() => {});
     } else {
         document.getElementById("adminBox").style.display = "none";
         document.getElementById("adminBtn").style.display = "none";
@@ -11231,6 +11240,154 @@ function closeOrbsPanel() {
 
 initDailyMissions();
 
+// =========================================================
+   // REDEEM CODES
+   // Dodawaj tutaj nowe kody:
+   // code: kod wpisywany przez użytkownika
+   // orbs: ile Orbs daje
+   // premiumDays: ile dni Premium daje
+   // scope: "global" = tylko jedna osoba w całym NeoFind
+   //        "user"   = każdy użytkownik może użyć raz
+   // =========================================================
+const REDEEM_CODES = {
+    "NEO_I_WANT_ORBS_PLS": {
+        orbs: 10,
+        premiumDays: 0,
+        scope: "global"
+    }
+};
+
+async function syncRedeemCodeConfigs() {
+    if (!auth.currentUser || !isAdmin(auth.currentUser.email)) return;
+    for (const [code, config] of Object.entries(REDEEM_CODES)) {
+        try {
+            await db.collection("redeemCodes").doc(code).set({
+                orbs: Number(config.orbs) || 0,
+                premiumDays: Number(config.premiumDays) || 0,
+                scope: config.scope === "global" ? "global" : "user",
+                active: true,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+        } catch (e) {
+            console.error("Redeem code sync failed:", code, e);
+        }
+    }
+}
+
+async function redeemCode(code) {
+    const user = auth.currentUser;
+    if (!user) return { status: "not_logged" };
+
+    const normalized = String(code || "").trim().toUpperCase();
+    if (!normalized) return { status: "invalid" };
+
+    try {
+        const codeRef = db.collection("redeemCodes").doc(normalized);
+        const userRef = db.collection("users").doc(user.uid);
+
+        const result = await db.runTransaction(async transaction => {
+            const codeSnap = await transaction.get(codeRef);
+            if (!codeSnap.exists || codeSnap.data().active === false) {
+                return { status: "invalid" };
+            }
+
+            const config = codeSnap.data();
+            const scope = config.scope === "global" ? "global" : "user";
+            const claimId = scope === "global"
+                ? normalized
+                : normalized + "_" + user.uid;
+            const claimRef = db.collection("redeemClaims").doc(claimId);
+
+            const claimSnap = await transaction.get(claimRef);
+            if (claimSnap.exists) {
+                return { status: "already" };
+            }
+
+            const userSnap = await transaction.get(userRef);
+            const data = userSnap.exists ? userSnap.data() : {};
+            const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
+            const orbReward = Math.max(0, Math.floor(Number(config.orbs || 0)));
+            const premiumDays = Math.max(0, Math.floor(Number(config.premiumDays || 0)));
+            const currentPremiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0));
+            const newPremiumUntil = premiumDays > 0
+                ? currentPremiumUntil + premiumDays * 86400000
+                : Number(data.premiumUntil || 0);
+
+            transaction.set(claimRef, {
+                codeId: normalized,
+                uid: user.uid,
+                scope,
+                redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            transaction.set(userRef, {
+                orbs: currentOrbs + orbReward,
+                ...(premiumDays > 0 ? { premiumUntil: newPremiumUntil } : {}),
+                lastRedeemCode: normalized,
+                lastRedeemAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            return {
+                status: "redeemed",
+                orbs: orbReward,
+                premiumDays,
+                premiumUntil: newPremiumUntil
+            };
+        });
+
+        if (result.status === "redeemed") {
+            userOrbs = Number(userOrbs || 0) + Number(result.orbs || 0);
+            localStorage.setItem("userOrbs", String(userOrbs));
+
+            if (result.premiumDays > 0) {
+                localStorage.setItem("userPremium", "true");
+                localStorage.setItem("neoPremiumUntil", String(result.premiumUntil));
+                const badge = document.getElementById("premiumBadge");
+                if (badge) badge.style.display = "block";
+            }
+
+            renderMissions();
+        }
+
+        return result;
+    } catch (e) {
+        console.error("Redeem code failed:", e);
+        return { status: "error", error: e };
+    }
+}
+
+async function redeemCodeFromPanel() {
+    const input = document.getElementById("redeemCodeInput");
+    const status = document.getElementById("redeemCodeStatus");
+    if (!input || !status) return;
+
+    status.style.color = "#4da6ff";
+    status.textContent = "Checking code...";
+
+    const result = await redeemCode(input.value);
+
+    if (result.status === "redeemed") {
+        const rewards = [];
+        if (result.orbs) rewards.push("+" + result.orbs + " Orbs");
+        if (result.premiumDays) rewards.push("+" + result.premiumDays + " days Premium");
+        status.style.color = "#00ffcc";
+        status.textContent = "Code redeemed! " + rewards.join(" • ");
+        input.value = "";
+    } else if (result.status === "already") {
+        status.style.color = "#ffcc66";
+        status.textContent = "You already redeemed this code.";
+    } else if (result.status === "invalid") {
+        status.style.color = "#ff8080";
+        status.textContent = "Invalid or inactive code.";
+    } else if (result.status === "not_logged") {
+        status.style.color = "#ff8080";
+        status.textContent = "You must be logged in.";
+    } else {
+        status.style.color = "#ff8080";
+        status.textContent = "Could not redeem this code.";
+    }
+}
+
 // --- OBSŁUGA SYSTEMU ORBS DLA ADMINA ---
 
 // ==========================================
@@ -11537,6 +11694,33 @@ async function giveOrbsToUser() {
     `;
     messages.appendChild(userRow);
     messages.scrollTop = messages.scrollHeight;
+
+    // ========================================================
+    // SECRET EASTER EGG: "I WANT ORBS PLS"
+    // Jednorazowo w całym NeoFind.
+    // ========================================================
+    if (msgText.trim().toLowerCase() === "i want orbs pls") {
+        const eggResult = await redeemCode("NEO_I_WANT_ORBS_PLS");
+        const eggReply = eggResult.status === "redeemed"
+            ? "UHHH OK I'L GIVE YOU ORBS BUT SHUT UPP"
+            : eggResult.status === "already"
+                ? "bro i already give you orbs"
+                : eggResult.status === "not_logged"
+                    ? "bro you need to be logged in"
+                    : "bro something went wrong";
+
+        const eggRow = document.createElement('div');
+        eggRow.className = 'chat-row chat-row-them';
+        eggRow.style.cssText = 'display: flex; flex-direction: column; align-self: flex-start; max-width: 85%;';
+        eggRow.innerHTML = `
+            <span style="font-size: 11px; color: rgba(0,255,200,0.6); margin-bottom: 2px;">Neo</span>
+            <div style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); color: #e0f7f3; padding: 8px 12px; border-radius: 16px 16px 16px 2px; word-break: break-word; white-space: pre-wrap;">${escapeHtml(eggReply)}</div>
+        `;
+        messages.appendChild(eggRow);
+        messages.scrollTop = messages.scrollHeight;
+        input.focus();
+        return;
+    }
 
     // 3. Obsługa komendy /shoping
     if (msgText.toLowerCase().startsWith('/shoping') || msgText.toLowerCase().startsWith('/shopping')) {
