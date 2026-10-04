@@ -4194,6 +4194,23 @@
                             ""
                         }
 
+                        ${
+                            typeof getNeoUserBadgeTypes === "function"
+                            ?
+                            neoBadgeHtml(
+                                getNeoUserBadgeTypes(
+                                    user,
+                                    Number(
+                                        userOrbs ||
+                                        localStorage.getItem("userOrbs") ||
+                                        0
+                                    )
+                                )
+                            )
+                            :
+                            ""
+                        }
+
                     </h2>
 
                     <div
