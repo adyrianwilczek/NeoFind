@@ -1962,6 +1962,11 @@ body.ocean {
 </script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <meta name="google-site-verification" content="5FkGuLai_JBGQ7e0vj9ipYedqFX7CL5nFlMQG95aQUE"/>
+<style id="neo-profile-badges-style">
+.neo-profile-badge{display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;width:30px;height:30px;margin-left:5px;position:relative;top:-2px}
+.neo-profile-badge-svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 6px rgba(77,166,255,.28))}
+#premiumBadge .neo-profile-badge{width:34px;height:34px;margin-left:0}
+</style>
 </head>
 <body>
     <div id="neofind-loading">
@@ -2203,7 +2208,7 @@ NOTE! Do not share the key with anyone.
                     <span id="accountName"></span>
                     <button onclick="changeDisplayName()" id="changeNameBtn">Change</button>
                 </div>
-                <div id="premiumBadge" style="display:none; color:#00ffff; font-weight:bold; margin-top:10px;">Premium</div>
+                <div id="premiumBadge" style="display:none; margin-top:10px;"></div>
                 <div class="result" style="margin-top:8px;">
                     <b>Password:</b>
                     <span>******</span>
@@ -4116,6 +4121,56 @@ const PREMIUM_EMAILS = [
 
 function isPremiumEmail(email){
     return PREMIUM_EMAILS.includes(String(email || "").trim().toLowerCase());
+}
+
+/* =========================================================
+   NEOFIND PROFILE BADGES
+   ========================================================= */
+const DEVELOPER_BADGE_EMAILS = [
+    "adrian.wilczek@hotmail.com",
+    "michal.wilkowski@gmail.com"
+];
+
+function neoBadgeSvg(type) {
+    const defs = `
+        <defs>
+            <linearGradient id="neoBadgePremiumGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#22c55e"/>
+            </linearGradient>
+            <linearGradient id="neoBadgeOrbGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00f2fe"/>
+                <stop offset="50%" stop-color="#4da6ff"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+        </defs>`;
+    const base = (content, gradient=false) => `
+        <svg class="neo-profile-badge-svg" viewBox="0 0 40 40" aria-hidden="true">
+            ${gradient ? defs : ""}
+            ${content}
+        </svg>`;
+    if (type === "owner") return base(`<circle cx="20" cy="20" r="18" fill="#f5b942"/><path d="M9 27h22l-2-13-6 5-3-8-3 8-6-5z" fill="#fff4b0"/><path d="M11 30h18" stroke="#8a5a00" stroke-width="2" stroke-linecap="round"/>`);
+    if (type === "admin") return base(`<circle cx="20" cy="20" r="18" fill="#2387ff"/><path d="M20 7l10 4v8c0 7-4.8 11.2-10 14-5.2-2.8-10-7-10-14v-8z" fill="none" stroke="#bfe1ff" stroke-width="2.5"/><path d="M15 20l3 3 7-7" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
+    if (type === "developer") return base(`<circle cx="20" cy="20" r="18" fill="#2387ff"/><path d="M13 27l4-8 4 4 4-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 14l2-2 3 2-2 3zM25 26l2 2-3 2-2-2z" fill="#bfe1ff"/>`);
+    if (type === "orbs") return base(`<circle cx="20" cy="20" r="17" fill="url(#neoBadgeOrbGradient)"/><path d="M12 21c0-6 3-10 8-10s8 4 8 10-3 9-8 9-8-3-8-9z" fill="rgba(255,255,255,.16)" stroke="#fff" stroke-width="1.5"/><circle cx="17" cy="17" r="2.5" fill="#fff" opacity=".85"/>`, true);
+    if (type === "premium") return base(`<circle cx="20" cy="20" r="18" fill="url(#neoBadgePremiumGradient)"/><path d="M10 16l4 13h12l4-13-6 5-4-8-4 8z" fill="#fff" opacity=".95"/><path d="M12 31h16" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>`, true);
+    return "";
+}
+
+function neoBadgeHtml(types) {
+    const unique = [...new Set((Array.isArray(types) ? types : [types]).filter(Boolean))];
+    return unique.map(type => `<span class="neo-profile-badge" title="${type === "premium" ? "Premium" : type === "admin" ? "Admin" : type === "developer" ? "Developer" : type === "owner" ? "Owner" : "50,000 Orbs"}">${neoBadgeSvg(type)}</span>`).join("");
+}
+
+function getNeoUserBadgeTypes(user, orbs) {
+    const email = String(user?.email || "").trim().toLowerCase();
+    const types = [];
+    if (email === "adrian.wilczek@hotmail.com") types.push("owner");
+    else if (DEVELOPER_BADGE_EMAILS.includes(email)) types.push("developer");
+    if (typeof ADMIN_EMAILS !== "undefined" && ADMIN_EMAILS.map(e => String(e).toLowerCase()).includes(email)) types.push("admin");
+    if (isPremiumActive()) types.push("premium");
+    if (Number(orbs || 0) >= 50000) types.push("orbs");
+    return types;
 }
 
 /* =========================================================
