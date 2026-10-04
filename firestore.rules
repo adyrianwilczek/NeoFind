@@ -312,6 +312,42 @@ service cloud.firestore {
 
 
     /* =========================================================
+       REDEEM CODES
+       ========================================================= */
+
+    match /redeemCodes/{codeId} {
+      allow read: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    match /redeemClaims/{claimId} {
+      allow read: if isAdmin()
+        || (isLoggedIn() && resource.data.uid == request.auth.uid);
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.codeId is string
+        && request.resource.data.scope in ['global', 'user']
+        && request.resource.data.redeemedAt == request.time
+        && (
+          (
+            request.resource.data.scope == 'global'
+            && claimId == request.resource.data.codeId
+            && get(/databases/$(database)/documents/redeemCodes/$(request.resource.data.codeId)).data.scope == 'global'
+          )
+          ||
+          (
+            request.resource.data.scope == 'user'
+            && claimId == request.resource.data.codeId + '_' + request.auth.uid
+            && get(/databases/$(database)/documents/redeemCodes/$(request.resource.data.codeId)).data.scope == 'user'
+          )
+        );
+
+      allow update, delete: if isAdmin();
+    }
+
+
+    /* =========================================================
        USERS
        ========================================================= */
 
@@ -409,6 +445,48 @@ service cloud.firestore {
           && newOrbs() - oldOrbs() <= 500;
       }
 
+      /* 5. Redeem code: reward must come from the server-side redeemCodes config,
+         and the claim + reward must be committed atomically. */
+      function isRedeemReward() {
+        let codeId = request.resource.data.get('lastRedeemCode', '');
+        let codeRef = /databases/$(database)/documents/redeemCodes/$(codeId);
+        let code = get(codeRef).data;
+        let scope = code.get('scope', 'invalid');
+        let claimId = scope == 'global'
+          ? codeId
+          : codeId + '_' + request.auth.uid;
+        let claimRef = /databases/$(database)/documents/redeemClaims/$(claimId);
+        let orbReward = code.get('orbs', 0);
+        let premiumDays = code.get('premiumDays', 0);
+        let premiumBase = resource.data.get('premiumUntil', 0) > request.time.toMillis()
+          ? resource.data.get('premiumUntil', 0)
+          : request.time.toMillis();
+        return changedKeys().hasOnly([
+            'orbs', 'premiumUntil', 'lastRedeemCode', 'lastRedeemAt'
+          ])
+          && code.get('active', false) == true
+          && scope in ['global', 'user']
+          && orbReward is int
+          && orbReward >= 0
+          && orbReward <= 100000
+          && premiumDays is int
+          && premiumDays >= 0
+          && premiumDays <= 3650
+          && request.resource.data.lastRedeemCode == codeId
+          && request.resource.data.lastRedeemAt == request.time
+          && request.resource.data.orbs == resource.data.get('orbs', 0) + orbReward
+          && (
+            premiumDays == 0
+            ? request.resource.data.get('premiumUntil', 0) == resource.data.get('premiumUntil', 0)
+            : request.resource.data.premiumUntil == premiumBase + duration.value(premiumDays, 'd')
+          )
+          && !exists(claimRef)
+          && getAfter(claimRef).data.uid == request.auth.uid
+          && getAfter(claimRef).data.codeId == codeId
+          && getAfter(claimRef).data.scope == scope
+          && getAfter(claimRef).data.redeemedAt == request.time;
+      }
+
       /* 4. zakup Premium: dokładnie 1000 orbs za 30 dni */
       function isPremiumPurchase() {
         let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
@@ -448,6 +526,7 @@ service cloud.firestore {
             || isDailyChest()
             || isMissionReward()
             || isPremiumPurchase()
+            || isRedeemReward()
           )
         );
 
