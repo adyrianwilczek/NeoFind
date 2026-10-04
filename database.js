@@ -1353,7 +1353,7 @@ const data = {
             { title: "Llama 4", desc: "Nadchodzący Meta.", link: "https://ai.meta.com/" },
             { title: "Mistral 3", desc: "Nadchodzący Mistral.", link: "https://mistral.ai/" },
             { title: "xAI", desc: "Najnowsze osiągnięcia xAI.", link: "https://x.ai/" }
-    ],,
+    ],
 { title: "Programming: variables 1", desc: "Temat programowania związany z tworzeniem, testowaniem i rozwijaniem oprogramowania. Hasło variables 1. W NeoFind możesz wyszukać dodatkowe informacje, definicje, zastosowania i powiązane zagadnienia.", link: "https://pl.wikipedia.org/wiki/Programming_variables_1" },
 { title: "Programming: functions 1", desc: "Temat programowania związany z tworzeniem, testowaniem i rozwijaniem oprogramowania. Hasło functions 1. W NeoFind możesz wyszukać dodatkowe informacje, definicje, zastosowania i powiązane zagadnienia.", link: "https://pl.wikipedia.org/wiki/Programming_functions_1" },
 { title: "Programming: arrays 1", desc: "Temat programowania związany z tworzeniem, testowaniem i rozwijaniem oprogramowania. Hasło arrays 1. W NeoFind możesz wyszukać dodatkowe informacje, definicje, zastosowania i powiązane zagadnienia.", link: "https://pl.wikipedia.org/wiki/Programming_arrays_1" },
