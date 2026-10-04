@@ -348,6 +348,42 @@ service cloud.firestore {
 
 
     /* =========================================================
+       REDEEM CODES
+       ========================================================= */
+
+    match /redeemCodes/{codeId} {
+      allow read: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    match /redeemClaims/{claimId} {
+      allow read: if isAdmin()
+        || (isLoggedIn() && resource.data.uid == request.auth.uid);
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.codeId is string
+        && request.resource.data.scope in ['global', 'user']
+        && request.resource.data.redeemedAt == request.time
+        && (
+          (
+            request.resource.data.scope == 'global'
+            && claimId == request.resource.data.codeId
+            && get(/databases/$(database)/documents/redeemCodes/$(request.resource.data.codeId)).data.scope == 'global'
+          )
+          ||
+          (
+            request.resource.data.scope == 'user'
+            && claimId == request.resource.data.codeId + '_' + request.auth.uid
+            && get(/databases/$(database)/documents/redeemCodes/$(request.resource.data.codeId)).data.scope == 'user'
+          )
+        );
+
+      allow update, delete: if isAdmin();
+    }
+
+
+    /* =========================================================
        USERS
        ========================================================= */
 
