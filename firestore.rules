@@ -478,7 +478,7 @@ service cloud.firestore {
           && (
             premiumDays == 0
             ? request.resource.data.get('premiumUntil', 0) == resource.data.get('premiumUntil', 0)
-            : request.resource.data.premiumUntil == premiumBase + duration.value(premiumDays, 'd')
+            : request.resource.data.premiumUntil == premiumBase + premiumDays * 86400000
           )
           && !exists(claimRef)
           && getAfter(claimRef).data.uid == request.auth.uid
