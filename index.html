@@ -11191,6 +11191,52 @@ async function giveOrbsToUser() {
     }
 }
 
+
+// Ctrl+A → Ctrl+C → Ctrl+V Easter egg
+(function initCopyPasteEasterEgg(){
+    const searchInput = document.getElementById("search");
+    if (!searchInput) return;
+
+    let copiedAllFromSearch = false;
+
+    searchInput.addEventListener("copy", function(){
+        const selectedText = window.getSelection ? window.getSelection().toString() : "";
+        copiedAllFromSearch =
+            document.activeElement === searchInput &&
+            selectedText === searchInput.value &&
+            searchInput.value.trim().length > 0;
+    });
+
+    searchInput.addEventListener("paste", function(){
+        if (!copiedAllFromSearch) return;
+
+        const messages = {
+            en: "Do you really have to copy the whole text and paste it into the search field? ;-;",
+            pl: "naprawdę musisz kopiować cały tekst i wklejać w polu wyszukiwania? ;-;",
+            es: "¿de verdad tienes que copiar todo el texto y pegarlo en el campo de búsqueda? ;-;",
+            fr: "tu dois vraiment copier tout le texte et le coller dans le champ de recherche ? ;-;"
+        };
+
+        const message = messages[currentLang] || messages.en;
+
+        // To jest tekst w polu wyszukiwania, a nie komunikat/alert.
+        setTimeout(function(){
+            searchInput.value = message;
+            searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+            searchInput.focus();
+        }, 0);
+
+        copiedAllFromSearch = false;
+    });
+
+    searchInput.addEventListener("input", function(){
+        // Zwykłe pisanie/wklejanie resetuje stan easter egga.
+        if (this.value.trim() !== "") {
+            const selection = window.getSelection ? window.getSelection().toString() : "";
+            if (selection !== this.value) copiedAllFromSearch = false;
+        }
+    });
+})();
 </script>
 
 <!-- ======================================================== -->
