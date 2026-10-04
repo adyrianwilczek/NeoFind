@@ -11250,11 +11250,17 @@ initDailyMissions();
    //        "user"   = każdy użytkownik może użyć raz
    // =========================================================
 const REDEEM_CODES = {
-    "NEO_I_WANT_ORBS_PLS": {
-        orbs: 10,
+    "AUTUMN26": {
+        orbs: 0,
+        premiumDays: 7,
+        scope: "user"
+    },
+    {
+    "GIVEMESOMEORBSMEOW": {
+        orbs: 5,
         premiumDays: 0,
-        scope: "global"
-    }
+        scope: "user"
+    }    
 };
 
 async function syncRedeemCodeConfigs() {
