@@ -2244,7 +2244,26 @@ NOTE! Do not share the key with anyone.
 
     <h3>Orbs Shop</h3>
     <p>Buy premium for 1 month</p>
-    <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
+        <button onclick="openPremiumTrial()">Try out for free</button>
+    </div>
+
+    <div id="premiumTrialBox" style="display:none;margin:16px auto 0;max-width:760px;padding:16px;border:1px solid rgba(0,255,200,.22);border-radius:14px;background:rgba(0,0,0,.2);text-align:left;">
+        <h4 style="margin-top:0;">NeoFind Premium free trial</h4>
+        <div id="premiumTrialTerms" style="min-height:120px;padding:12px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.04);white-space:pre-wrap;">
+PLACE YOUR NEOFIND PREMIUM TERMS HERE.
+</div>
+        <label style="display:flex;gap:8px;align-items:flex-start;margin:12px 0;">
+            <input id="premiumTrialAccept" type="checkbox" style="margin-top:3px;">
+            <span>I have read and accept the NeoFind Premium terms.</span>
+        </label>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+            <button onclick="startPremiumTrial()">Accept and start 7-day Premium</button>
+            <button type="button" onclick="closePremiumTrial()">Cancel</button>
+        </div>
+        <div id="premiumTrialStatus" style="margin-top:10px;min-height:20px;text-align:center;"></div>
+    </div>
 
     <hr style="border:0;border-top:1px solid rgba(0,255,200,.2);margin:20px 0;">
     <h3>Redeem Code</h3>
@@ -4230,6 +4249,11 @@ async function syncUserEconomy(user) {
         const premiumUntil = Number(data.premiumUntil || 0);
         const premium = permanentPremium || premiumUntil > Date.now();
 
+        window.neoPremiumState = {
+            premium,
+            premiumUntil
+        };
+
         userOrbs = Math.floor(orbs);
         localStorage.setItem("userOrbs", String(userOrbs));
         localStorage.setItem("userPremium", premium ? "true" : "false");
@@ -4253,9 +4277,12 @@ function isPremiumActive() {
     if (user && PREMIUM_EMAILS.map(e => e.toLowerCase()).includes(String(user.email || "").toLowerCase())) {
         return true;
     }
-    const until = Number(localStorage.getItem("neoPremiumUntil") || 0);
-    return localStorage.getItem("userPremium") === "true" &&
-        (until === 0 || until > Date.now());
+
+    const state = window.neoPremiumState;
+    return !!state?.premium && (
+        Number(state.premiumUntil || 0) === 0 ||
+        Number(state.premiumUntil || 0) > Date.now()
+    );
 }
 
 
@@ -11350,6 +11377,100 @@ async function buyPremiumWithOrbs() {
         } else {
             console.error("Premium purchase failed:", error);
             alert("Could not complete the Premium purchase. Please try again.");
+        }
+    }
+}
+
+function openPremiumTrial() {
+    const box = document.getElementById("premiumTrialBox");
+    const checkbox = document.getElementById("premiumTrialAccept");
+    const status = document.getElementById("premiumTrialStatus");
+    if (box) box.style.display = "block";
+    if (checkbox) checkbox.checked = false;
+    if (status) status.textContent = "";
+}
+
+function closePremiumTrial() {
+    const box = document.getElementById("premiumTrialBox");
+    if (box) box.style.display = "none";
+}
+
+async function startPremiumTrial() {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    const checkbox = document.getElementById("premiumTrialAccept");
+    const status = document.getElementById("premiumTrialStatus");
+
+    const showStatus = (message, ok = false) => {
+        if (status) {
+            status.textContent = message;
+            status.style.color = ok ? "#00ffc8" : "#ff8080";
+        }
+    };
+
+    if (!user || typeof db === "undefined") {
+        showStatus("You must be logged in.");
+        return;
+    }
+
+    if (!checkbox?.checked) {
+        showStatus("You must accept the NeoFind Premium terms first.");
+        return;
+    }
+
+    if (isPremiumActive()) {
+        showStatus("You already have active Premium.");
+        return;
+    }
+
+    try {
+        const ref = db.collection("users").doc(user.uid);
+        const until = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+
+            if (data.premiumTrialUsed === true) {
+                throw new Error("TRIAL_ALREADY_USED");
+            }
+
+            if (Number(data.premiumUntil || 0) > Date.now() || data.premium === true) {
+                throw new Error("PREMIUM_ACTIVE");
+            }
+
+            const now = Date.now();
+            const trialUntil = now + 7 * 86400000;
+
+            transaction.set(ref, {
+                premiumUntil: trialUntil,
+                premiumTrialUsed: true,
+                premiumTrialAcceptedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                premiumTrialStartedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                premiumTrialTermsVersion: 1
+            }, { merge: true });
+
+            return trialUntil;
+        });
+
+        window.neoPremiumState = {
+            premium: true,
+            premiumUntil: until
+        };
+        localStorage.setItem("neoPremiumUntil", String(until));
+        localStorage.setItem("userPremium", "true");
+
+        closePremiumTrial();
+        const badge = document.getElementById("premiumBadge");
+        if (badge) badge.style.display = "block";
+        renderNeoFindAccountBadges(user, { premium: true, premiumUntil: until, orbs: userOrbs });
+        renderMissions();
+        showStatus("7-day Premium activated.", true);
+    } catch (error) {
+        if (error.message === "TRIAL_ALREADY_USED") {
+            showStatus("Your 7-day Premium trial has already been used on this account.");
+        } else if (error.message === "PREMIUM_ACTIVE") {
+            showStatus("You already have active Premium.");
+        } else {
+            console.error("Premium trial activation failed:", error);
+            showStatus("Could not start the Premium trial. Please try again.");
         }
     }
 }
