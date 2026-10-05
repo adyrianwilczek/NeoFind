@@ -3864,6 +3864,7 @@ function openSettings(pushUrl = true){
     openPanel("settingsBox", () => {
         document.getElementById("settingsLang").value = currentLang;
         showHistory();
+        showFavorites();
     });
 }
 
@@ -3999,6 +4000,7 @@ function toggleFavorite(index){
         favs.push(item);
     }
     localStorage.setItem("favorites", JSON.stringify(favs));
+    showFavorites();
     document.getElementById("search").dispatchEvent(new Event("input"));
 }
 
@@ -4585,17 +4587,52 @@ window.openPasswordBox = function () {
 /* Brakujące funkcje */
 function showFavorites(){
     const box = document.getElementById("favoritesList");
-    let favs = getFavorites();
-    if(!favs.length){
-        box.innerText = translations[currentLang].noFavorites;
+    if (!box) return;
+
+    let favs = [];
+    try {
+        const raw = localStorage.getItem("favorites");
+        const parsed = raw ? JSON.parse(raw) : [];
+        favs = Array.isArray(parsed) ? parsed.filter(item =>
+            item && typeof item === "object" && item.title && item.link
+        ) : [];
+    } catch (e) {
+        console.warn("Favorites data was invalid, resetting it.", e);
+        localStorage.removeItem("favorites");
+    }
+
+    if (!favs.length) {
+        box.innerHTML = `<div class="result" style="text-align:center;opacity:.7;">${escapeHtml(translations[currentLang]?.noFavorites || "No favorites")}</div>`;
         return;
     }
-    box.innerHTML = favs.map(item => `
-        <div class="result">
-            <a href="${item.link}" target="_blank">${item.title}</a>
-            <p>${item.desc}</p>
-        </div>
-    `).join("");
+
+    box.innerHTML = favs.map((item, index) => {
+        const title = escapeHtml(String(item.title));
+        const desc = escapeHtml(String(item.desc || ""));
+        const link = escapeHtml(String(item.link));
+
+        return `
+            <div class="result" data-favorite-index="${index}">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <a href="${link}" target="_blank" rel="noopener noreferrer" style="flex:1;">${title}</a>
+                    <button type="button" onclick="removeFavoriteFromList(${index})" title="Remove from favorites" aria-label="Remove ${title} from favorites" style="padding:4px 9px;border-radius:8px;">★</button>
+                </div>
+                ${desc ? `<p>${desc}</p>` : ""}
+            </div>
+        `;
+    }).join("");
+}
+
+function removeFavoriteFromList(index){
+    let favs = getFavorites();
+    if (!Array.isArray(favs) || !favs[index]) return;
+
+    favs.splice(index, 1);
+    localStorage.setItem("favorites", JSON.stringify(favs));
+    showFavorites();
+
+    const search = document.getElementById("search");
+    if (search) search.dispatchEvent(new Event("input"));
 }
 
 function showFact(){
