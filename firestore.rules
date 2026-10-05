@@ -400,7 +400,8 @@ service cloud.firestore {
           'orbs', 'premium', 'premiumUntil',
           'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
           'missionDay', 'missionClaims',
-          'lastAdminOrbGrant'
+          'lastAdminOrbGrant', 'premiumTrialUsed', 'premiumTrialAcceptedAt',
+          'premiumTrialStartedAt', 'premiumTrialTermsVersion'
         ];
       }
 
@@ -523,6 +524,25 @@ service cloud.firestore {
           && getAfter(claimRef).data.redeemedAt == request.time;
       }
 
+      /* 4. darmowy Premium trial: dokładnie raz na konto, 7 dni, po akceptacji warunków */
+      function isPremiumTrial() {
+        let trialUntil = request.time.toMillis() + 7 * 86400000;
+        return changedKeys().hasOnly([
+            'premiumUntil',
+            'premiumTrialUsed',
+            'premiumTrialAcceptedAt',
+            'premiumTrialStartedAt',
+            'premiumTrialTermsVersion'
+          ])
+          && resource.data.get('premiumTrialUsed', false) != true
+          && request.resource.data.premiumTrialUsed == true
+          && request.resource.data.premiumTrialTermsVersion == 1
+          && request.resource.data.premiumTrialAcceptedAt == request.time
+          && request.resource.data.premiumTrialStartedAt == request.time
+          && request.resource.data.premiumUntil is int
+          && request.resource.data.premiumUntil == trialUntil;
+      }
+
       /* 4. zakup Premium: dokładnie 1000 orbs za 30 dni */
       function isPremiumPurchase() {
         let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
@@ -562,6 +582,7 @@ service cloud.firestore {
             || isDailyChest()
             || isMissionReward()
             || isPremiumPurchase()
+            || isPremiumTrial()
             || isRedeemReward()
           )
         );
