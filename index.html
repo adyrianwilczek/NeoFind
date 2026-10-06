@@ -7758,8 +7758,8 @@ window.sendNeoAiMessage = async function() {
     messages.scrollTop = messages.scrollHeight;
 
     // /remember: account memory, not localStorage
-    if (/^\\/remember(?:\\s|$)/i.test(msgText)) {
-        const remembered = msgText.replace(/^\\/remember\\s*/i, '').trim();
+    if (msgText.trim().toLowerCase() === "/remember" || msgText.trim().toLowerCase().startsWith("/remember ")) {
+        const remembered = msgText.trim().slice(9).trim();
         if (!remembered) {
             messages.innerHTML += '<div class="chat-row chat-row-them"><span class="chat-sender">Neo</span><div class="chat-msg-them">Use /remember followed by what you want me to remember.</div></div>';
         } else if (!neoAiCurrentUser()) {
@@ -7773,8 +7773,8 @@ window.sendNeoAiMessage = async function() {
     }
 
     // /shopping: render offer cards inside NeoAI, never open Google
-    if (/^\\/(shoping|shopping)(?:\\s|$)/i.test(msgText)) {
-        const query = msgText.replace(/^\\/(shoping|shopping)\\s*/i, '').trim();
+    if (msgText.trim().toLowerCase() === "/shopping" || msgText.trim().toLowerCase() === "/shoping" || msgText.trim().toLowerCase().startsWith("/shopping ") || msgText.trim().toLowerCase().startsWith("/shoping ")) {
+        const query = msgText.trim().replace(/^\/(shoping|shopping)\s*/i, '').trim();
         const shoppingRow = document.createElement("div");
         shoppingRow.className = "chat-row chat-row-them";
         shoppingRow.innerHTML = '<span class="chat-sender">Neo</span><div class="chat-msg-them">Searching offers...</div>';
