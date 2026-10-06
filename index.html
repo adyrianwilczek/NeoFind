@@ -3031,12 +3031,12 @@ document.addEventListener("DOMContentLoaded", function(){
 </script>
 
 <script>
-updateDidYouKnow();
-updateLanguage();
-showHistory();
-checkNews();
-loadNews();
-updateUI();
+if (typeof updateDidYouKnow === "function") updateDidYouKnow();
+if (typeof updateLanguage === "function") updateLanguage();
+if (typeof showHistory === "function") showHistory();
+if (typeof checkNews === "function") checkNews();
+if (typeof loadNews === "function") loadNews();
+if (typeof updateUI === "function") updateUI();
 
 /* =========================================================
    PREMIUM ORB TRANSFER
