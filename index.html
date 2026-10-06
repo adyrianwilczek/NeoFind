@@ -1812,7 +1812,41 @@ body.ocean {
 }
 
 
-</style>
+<style>
+/* NeoAI 2.3: chats, memory and shopping */
+#neoAiHeader{display:flex;align-items:center;gap:9px}
+#neoAiMenuBtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(0,255,200,.16);border-radius:10px;background:rgba(255,255,255,.04);color:#dffff8;cursor:pointer;flex-shrink:0}
+#neoAiMenuBtn:hover{background:rgba(0,255,200,.1);border-color:rgba(0,255,200,.4)}
+#neoAiMenuBtn svg,#neoAiClose svg,#neoAiSidebarClose svg,.neo-chat-action svg,.neo-sidebar-action svg{width:18px;height:18px}
+#neoAiClose{display:flex;align-items:center;justify-content:center}
+#neoAiSidebar{position:absolute;z-index:20;inset:0 auto 0 0;width:280px;max-width:88%;display:none;flex-direction:column;background:linear-gradient(180deg,rgba(7,20,26,.99),rgba(10,29,36,.99));border-right:1px solid rgba(0,255,200,.18);box-shadow:12px 0 40px rgba(0,0,0,.45);overflow:hidden}
+#neoAiSidebar.neo-open{display:flex}
+#neoAiSidebarHead{display:flex;align-items:center;justify-content:space-between;padding:13px;border-bottom:1px solid rgba(255,255,255,.08)}
+#neoAiSidebarHead strong{font-size:14px}
+#neoAiSidebarClose{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.04);color:#fff;cursor:pointer}
+#neoAiNewChat{margin:12px;padding:10px 12px;border:1px solid rgba(0,255,200,.24);border-radius:10px;background:rgba(0,255,200,.08);color:#dffff8;cursor:pointer;text-align:left}
+#neoAiNewChat:hover{background:rgba(0,255,200,.14)}
+#neoAiChatList{flex:1;overflow-y:auto;padding:0 8px 10px}
+.neo-chat-item{display:flex;align-items:center;gap:6px;padding:8px;border-radius:10px;margin:3px 0;cursor:pointer}
+.neo-chat-item:hover,.neo-chat-item.active{background:rgba(255,255,255,.07)}
+.neo-chat-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+.neo-chat-pin{font-size:10px;opacity:.8}
+.neo-chat-actions{display:flex;gap:2px;opacity:.7}
+.neo-chat-action,.neo-sidebar-action{width:27px;height:27px;display:flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:transparent;color:#cfeee8;cursor:pointer}
+.neo-chat-action:hover,.neo-sidebar-action:hover{background:rgba(0,255,200,.12);color:#fff}
+#neoAiMemoryBtn{margin:4px 12px 12px;padding:9px 11px;border:1px solid rgba(255,255,255,.1);border-radius:10px;background:rgba(255,255,255,.04);color:#dffff8;cursor:pointer;text-align:left}
+#neoAiMemoryPanel{position:absolute;z-index:25;inset:0;display:none;flex-direction:column;background:rgba(7,20,26,.99);padding:16px;overflow:auto}
+#neoAiMemoryPanel.neo-open{display:flex}
+#neoAiMemoryPanel textarea{width:100%;min-height:180px;resize:vertical;box-sizing:border-box;border:1px solid rgba(0,255,200,.2);border-radius:12px;background:rgba(0,0,0,.25);color:#eafffb;padding:12px}
+.neo-memory-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.neo-memory-note{font-size:12px;opacity:.7;line-height:1.5}
+.neo-shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:8px}
+.neo-shop-card{padding:12px;border:1px solid rgba(0,255,200,.16);border-radius:12px;background:rgba(255,255,255,.045)}
+.neo-shop-price{font-size:18px;font-weight:700;color:#7ffbe4;margin:6px 0}
+.neo-shop-domain{font-size:12px;opacity:.7;margin-bottom:10px}
+.neo-shop-link{display:inline-flex;padding:7px 10px;border-radius:8px;background:rgba(0,255,200,.12);color:#bffff2;text-decoration:none;font-size:12px}
+@media(max-width:600px){#neoAiSidebar{width:86%}.neo-shop-grid{grid-template-columns:1fr}}
+</style></style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
 
 /* === NEOFIND CUSTOM POPUP SYSTEM === */
@@ -2639,9 +2673,40 @@ Search. Connect. Discover.
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
     <div id="neoAiHeader">
+        <button id="neoAiMenuBtn" onclick="toggleNeoAiSidebar()" aria-label="Chats" title="Chats">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+        </button>
         <span class="neo-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.4c.9.6 4.1.6 5 0"/></svg></span>
         <span class="neo-title"><b>Neo AI</b><small><span class="neo-dot"></span>online</small></span>
-        <button id="neoAiClose" onclick="toggleNeoAiChat()" aria-label="Zamknij czat">✕</button>
+        <button id="neoAiClose" onclick="toggleNeoAiChat()" aria-label="Zamknij czat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div id="neoAiSidebar">
+        <div id="neoAiSidebarHead">
+            <strong>Chats</strong>
+            <button id="neoAiSidebarClose" onclick="toggleNeoAiSidebar()" aria-label="Close chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <button id="neoAiNewChat" onclick="createNeoAiChat()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            <span id="neoAiNewChatText">New chat</span>
+        </button>
+        <div id="neoAiChatList"></div>
+        <button id="neoAiMemoryBtn" onclick="openNeoAiMemory()">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 5h12v14H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
+            <span id="neoAiMemoryBtnText">Memory</span>
+        </button>
+    </div>
+    <div id="neoAiMemoryPanel">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <strong id="neoAiMemoryTitle">Neo memory</strong>
+            <button class="neo-sidebar-action" onclick="closeNeoAiMemory()" aria-label="Close memory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <p id="neoAiMemoryDescription" class="neo-memory-note">This is a summary of what Neo remembers about you. To add something, write /remember followed by the information.</p>
+        <textarea id="neoAiMemoryText"></textarea>
+        <div class="neo-memory-actions">
+            <button onclick="saveNeoAiMemory()">Save memory</button>
+            <button onclick="closeNeoAiMemory()">Cancel</button>
+        </div>
+        <p id="neoAiMemoryStatus" class="neo-memory-note"></p>
     </div>
     <div id="neoAiMessages">
         <div class="chat-row chat-row-them">
@@ -7342,12 +7407,332 @@ window.toggleNeoAiChat = function() {
         const input = document.getElementById('neoAiInput');
         if (input) input.placeholder = t.placeholder;
         box.style.display = 'flex';
+        loadNeoAiMemory();
+        loadNeoAiChats();
         if (input) setTimeout(() => input.focus(), 60);
     }
 };
 
-// Pamięć rozmowy Neo (kontekst dla modelu) — trzymana w tej sesji
+// NeoAI 2.3: account-based chats and memory
 let neoHistory = [];
+let neoAiActiveChatId = null;
+let neoAiChats = [];
+let neoAiMemory = "";
+
+const NEO_AI_CHAT_COLLECTION = "neoAiChats";
+const NEO_AI_MEMORY_COLLECTION = "neoAiMemory";
+const NEO_AI_SHOPPING_ENDPOINT = "https://neofind-ai.adrian-wilczek.workers.dev/shopping";
+
+function neoAiCurrentUser() {
+    return (typeof auth !== "undefined" && auth) ? auth.currentUser : null;
+}
+
+function neoAiChatId() {
+    return neoAiActiveChatId;
+}
+
+function neoAiResetMessages(greeting = true) {
+    const messages = document.getElementById("neoAiMessages");
+    if (!messages) return;
+    const t = neoT();
+    messages.innerHTML = greeting ? `
+        <div class="chat-row chat-row-them">
+            <span class="chat-sender">Neo</span>
+            <div class="chat-msg-them" id="neoAiGreetTxt">${escapeHtml(t.greet)}</div>
+        </div>` : "";
+}
+
+function neoAiRenderMessages(rows) {
+    const messages = document.getElementById("neoAiMessages");
+    if (!messages) return;
+    messages.innerHTML = "";
+    const t = neoT();
+    (rows || []).forEach(row => {
+        const el = document.createElement("div");
+        el.className = "chat-row " + (row.role === "user" ? "chat-row-me" : "chat-row-them");
+        el.innerHTML = `<span class="chat-sender">${row.role === "user" ? t.you : "Neo"}</span><div class="${row.role === "user" ? "chat-msg-me" : "chat-msg-them"}">${row.role === "user" ? escapeHtml(row.content) : neoFormat(row.content)}</div>`;
+        messages.appendChild(el);
+    });
+    messages.scrollTop = messages.scrollHeight;
+}
+
+async function loadNeoAiMemory() {
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") {
+        neoAiMemory = "";
+        return;
+    }
+    try {
+        const snap = await db.collection(NEO_AI_MEMORY_COLLECTION).doc(user.uid).get();
+        neoAiMemory = snap.exists ? String(snap.data().summary || "") : "";
+    } catch (e) {
+        console.error("NeoAI memory load failed:", e);
+        neoAiMemory = "";
+    }
+}
+
+async function saveNeoAiMemory() {
+    const user = neoAiCurrentUser();
+    const area = document.getElementById("neoAiMemoryText");
+    const status = document.getElementById("neoAiMemoryStatus");
+    if (!user || typeof db === "undefined") {
+        if (status) status.textContent = "Log in to save memory.";
+        return;
+    }
+    const summary = String(area?.value || "").trim();
+    try {
+        await db.collection(NEO_AI_MEMORY_COLLECTION).doc(user.uid).set({
+            uid: user.uid,
+            summary,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        neoAiMemory = summary;
+        if (status) status.textContent = "Memory saved.";
+    } catch (e) {
+        console.error("NeoAI memory save failed:", e);
+        if (status) status.textContent = "Could not save memory.";
+    }
+}
+
+async function openNeoAiMemory() {
+    await loadNeoAiMemory();
+    const panel = document.getElementById("neoAiMemoryPanel");
+    const area = document.getElementById("neoAiMemoryText");
+    if (area) area.value = neoAiMemory;
+    if (panel) panel.classList.add("neo-open");
+}
+
+function closeNeoAiMemory() {
+    const panel = document.getElementById("neoAiMemoryPanel");
+    if (panel) panel.classList.remove("neo-open");
+}
+
+function toggleNeoAiSidebar() {
+    const side = document.getElementById("neoAiSidebar");
+    if (!side) return;
+    side.classList.toggle("neo-open");
+    if (side.classList.contains("neo-open")) loadNeoAiChats();
+}
+
+async function loadNeoAiChats() {
+    const list = document.getElementById("neoAiChatList");
+    const user = neoAiCurrentUser();
+    if (!list) return;
+    if (!user || typeof db === "undefined") {
+        list.innerHTML = '<div style="padding:12px;font-size:12px;opacity:.65;">Log in to save chats to your account.</div>';
+        return;
+    }
+    try {
+        const snap = await db.collection(NEO_AI_CHAT_COLLECTION)
+            .where("uid", "==", user.uid)
+            .get();
+        neoAiChats = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+            .sort((a,b) => Number(b.pinned||false)-Number(a.pinned||false) || ((b.updatedAt?.toMillis?.()||0) - (a.updatedAt?.toMillis?.()||0)));
+        list.innerHTML = neoAiChats.length ? neoAiChats.map(chat => `
+            <div class="neo-chat-item ${chat.id === neoAiActiveChatId ? "active" : ""}" onclick="openNeoAiChat('${escapeHtml(chat.id)}')">
+                <div class="neo-chat-title" title="${escapeHtml(chat.title || "New chat")}">${escapeHtml(chat.title || "New chat")}</div>
+                ${chat.pinned ? '<span class="neo-chat-pin">Pinned</span>' : ''}
+                <div class="neo-chat-actions">
+                    <button class="neo-chat-action" onclick="event.stopPropagation();togglePinNeoAiChat('${escapeHtml(chat.id)}')" title="Pin">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4h8l-1 6 3 3H6l3-3z"/><path d="M12 13v7"/></svg>
+                    </button>
+                    <button class="neo-chat-action" onclick="event.stopPropagation();renameNeoAiChat('${escapeHtml(chat.id)}')" title="Rename">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14 6l4 4"/></svg>
+                    </button>
+                    <button class="neo-chat-action" onclick="event.stopPropagation();deleteNeoAiChat('${escapeHtml(chat.id)}')" title="Delete">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14M10 7V4h4v3M8 7l1 13h6l1-13"/></svg>
+                    </button>
+                </div>
+            </div>`).join("") : '<div style="padding:12px;font-size:12px;opacity:.65;">No chats yet.</div>';
+    } catch (e) {
+        console.error("NeoAI chats load failed:", e);
+        list.innerHTML = '<div style="padding:12px;font-size:12px;opacity:.65;">Could not load chats.</div>';
+    }
+}
+
+async function createNeoAiChat() {
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") {
+        neoAiActiveChatId = null;
+        neoHistory = [];
+        neoAiResetMessages(true);
+        toggleNeoAiSidebar();
+        return;
+    }
+    try {
+        const ref = await db.collection(NEO_AI_CHAT_COLLECTION).add({
+            uid: user.uid,
+            title: "New chat",
+            pinned: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        neoAiActiveChatId = ref.id;
+        neoHistory = [];
+        neoAiResetMessages(true);
+        await loadNeoAiChats();
+        toggleNeoAiSidebar();
+    } catch (e) {
+        console.error("NeoAI chat creation failed:", e);
+    }
+}
+
+async function openNeoAiChat(chatId) {
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") return;
+    try {
+        const chatSnap = await db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId).get();
+        if (!chatSnap.exists || chatSnap.data().uid !== user.uid) return;
+        const msgSnap = await db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId).collection("messages").orderBy("createdAt", "asc").get();
+        neoAiActiveChatId = chatId;
+        neoHistory = msgSnap.docs.map(d => {
+            const x = d.data();
+            return { role: x.role, content: String(x.content || "") };
+        });
+        neoAiRenderMessages(neoHistory);
+        toggleNeoAiSidebar();
+    } catch (e) {
+        console.error("NeoAI chat open failed:", e);
+    }
+}
+
+async function ensureNeoAiChat(firstMessage) {
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") return null;
+    if (neoAiActiveChatId) return neoAiActiveChatId;
+    const ref = await db.collection(NEO_AI_CHAT_COLLECTION).add({
+        uid: user.uid,
+        title: String(firstMessage).slice(0, 80) || "New chat",
+        pinned: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    neoAiActiveChatId = ref.id;
+    return ref.id;
+}
+
+async function saveNeoAiMessage(role, content) {
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") return;
+    try {
+        const chatId = await ensureNeoAiChat(role === "user" ? content : "New chat");
+        if (!chatId) return;
+        await db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId).collection("messages").add({
+            uid: user.uid,
+            role,
+            content: String(content),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        await db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId).set({
+            uid: user.uid,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            ...(role === "user" ? { title: String(content).slice(0, 80) } : {})
+        }, { merge: true });
+    } catch (e) {
+        console.error("NeoAI message save failed:", e);
+    }
+}
+
+async function renameNeoAiChat(chatId) {
+    const user = neoAiCurrentUser();
+    const chat = neoAiChats.find(x => x.id === chatId);
+    if (!user || !chat || typeof db === "undefined") return;
+    const name = prompt("New chat name:", chat.title || "New chat");
+    if (!name?.trim()) return;
+    await db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId).update({
+        title: name.trim().slice(0, 100),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await loadNeoAiChats();
+}
+
+async function togglePinNeoAiChat(chatId) {
+    const user = neoAiCurrentUser();
+    const chat = neoAiChats.find(x => x.id === chatId);
+    if (!user || !chat || typeof db === "undefined") return;
+    await db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId).update({
+        pinned: !chat.pinned,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await loadNeoAiChats();
+}
+
+async function deleteNeoAiChat(chatId) {
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") return;
+    if (!confirm("Delete this chat?")) return;
+    try {
+        const ref = db.collection(NEO_AI_CHAT_COLLECTION).doc(chatId);
+        const msgs = await ref.collection("messages").get();
+        const batch = db.batch();
+        msgs.docs.forEach(d => batch.delete(d.ref));
+        batch.delete(ref);
+        await batch.commit();
+        if (neoAiActiveChatId === chatId) {
+            neoAiActiveChatId = null;
+            neoHistory = [];
+            neoAiResetMessages(true);
+        }
+        await loadNeoAiChats();
+    } catch (e) {
+        console.error("NeoAI chat delete failed:", e);
+    }
+}
+
+async function handleNeoAiRememberCommand(msgText) {
+    if (!/^\/remember(?:\\s|$)/i.test(msgText)) return false;
+    const value = msgText.replace(/^\/remember\\s*/i, "").trim();
+    if (!value) return true;
+    const user = neoAiCurrentUser();
+    if (!user || typeof db === "undefined") return true;
+
+    await loadNeoAiMemory();
+    const existing = neoAiMemory ? neoAiMemory.split(/\\n+/).map(x => x.trim()).filter(Boolean) : [];
+    if (!existing.some(x => x.toLowerCase() === value.toLowerCase())) existing.push(value);
+    neoAiMemory = existing.join("\\n");
+    await db.collection(NEO_AI_MEMORY_COLLECTION).doc(user.uid).set({
+        uid: user.uid,
+        summary: neoAiMemory,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+    return true;
+}
+
+function neoAiMemoryPrompt() {
+    return neoAiMemory ? "\\n\\nNEOFIND MEMORY (use only when relevant):\\n" + neoAiMemory : "";
+}
+
+function neoAiRenderShoppingOffers(query, offers) {
+    const safeQuery = escapeHtml(query);
+    const cards = (Array.isArray(offers) ? offers : []).filter(x => x && x.url).map(offer => {
+        const url = escapeHtml(String(offer.url));
+        const title = escapeHtml(String(offer.title || offer.name || "Offer"));
+        const price = escapeHtml(String(offer.price || "Price unavailable"));
+        let domain = "";
+        try { domain = new URL(offer.url).hostname; } catch (_) { domain = String(offer.domain || ""); }
+        return `<div class="neo-shop-card"><strong>${title}</strong><div class="neo-shop-price">${price}</div><div class="neo-shop-domain">${escapeHtml(domain)}</div><a class="neo-shop-link" href="${url}" target="_blank" rel="noopener noreferrer">Go to offer</a></div>`;
+    }).join("");
+    return `<div>Offers for <strong>${safeQuery}</strong></div><div class="neo-shop-grid">${cards || '<div class="neo-shop-card">No offers were returned.</div>'}</div>`;
+}
+
+async function handleNeoAiShopping(query) {
+    if (!query) return "Enter a product to search, for example: /shopping headphones";
+    try {
+        const response = await fetch(NEO_AI_SHOPPING_ENDPOINT, {
+            method: "POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({query, language: neoLang()})
+        });
+        if (!response.ok) throw new Error("shopping endpoint " + response.status);
+        const data = await response.json();
+        return neoAiRenderShoppingOffers(query, data.offers || data.results || []);
+    } catch (e) {
+        console.error("NeoAI shopping failed:", e);
+        return `<div><strong>Shopping is temporarily unavailable.</strong><br><span style="font-size:12px;opacity:.7;">The NeoFind shopping service did not return offer data.</span></div>`;
+    }
+}
+
+
 
 window.sendNeoAiMessage = async function() {
     const input = document.getElementById('neoAiInput');
@@ -7372,30 +7757,35 @@ window.sendNeoAiMessage = async function() {
     `;
     messages.scrollTop = messages.scrollHeight;
 
-    // ========================================================
-    // OBSŁUGA KOMENDY /SHOPING (Nie wymaga API, natychmiast otwieranie zakupów)
-    // ========================================================
-    if (msgText.toLowerCase().startsWith('/shoping') || msgText.toLowerCase().startsWith('/shopping')) {
-        const query = msgText.replace(/^\/(shoping|shopping)\s*/i, '').trim();
-        let shopReply = "";
-        if (query) {
-            const shopUrl = `https://www.google.com/search?tbm=shop&q=${encodeURIComponent(query)}`;
-            shopReply = `🛒 Wyszukuję produkty dla: **${query}**.\n\n<a href="${shopUrl}" target="_blank" style="color:#00ffcc;font-weight:bold;text-decoration:underline;">Otwórz zakupy w Google Shopping ➔</a>`;
-            window.open(shopUrl, '_blank');
+    // /remember: account memory, not localStorage
+    if (/^\\/remember(?:\\s|$)/i.test(msgText)) {
+        const remembered = msgText.replace(/^\\/remember\\s*/i, '').trim();
+        if (!remembered) {
+            messages.innerHTML += '<div class="chat-row chat-row-them"><span class="chat-sender">Neo</span><div class="chat-msg-them">Use /remember followed by what you want me to remember.</div></div>';
+        } else if (!neoAiCurrentUser()) {
+            messages.innerHTML += '<div class="chat-row chat-row-them"><span class="chat-sender">Neo</span><div class="chat-msg-them">Log in so I can save that memory to your account.</div></div>';
         } else {
-            shopReply = "Podaj przedmiot, który chcesz wyszukać, np.: `/shoping laptop`";
+            await handleNeoAiRememberCommand(msgText);
+            messages.innerHTML += '<div class="chat-row chat-row-them"><span class="chat-sender">Neo</span><div class="chat-msg-them">I will remember that.</div></div>';
         }
-
-        messages.innerHTML += `
-            <div class="chat-row chat-row-them">
-                <span class="chat-sender">Neo</span>
-                <div class="chat-msg-them">${neoFormat(shopReply)}</div>
-            </div>
-        `;
-        messages.scrollTop = messages.scrollHeight;
         input.focus();
         return;
     }
+
+    // /shopping: render offer cards inside NeoAI, never open Google
+    if (/^\\/(shoping|shopping)(?:\\s|$)/i.test(msgText)) {
+        const query = msgText.replace(/^\\/(shoping|shopping)\\s*/i, '').trim();
+        const shoppingRow = document.createElement("div");
+        shoppingRow.className = "chat-row chat-row-them";
+        shoppingRow.innerHTML = '<span class="chat-sender">Neo</span><div class="chat-msg-them">Searching offers...</div>';
+        messages.appendChild(shoppingRow);
+        messages.scrollTop = messages.scrollHeight;
+        const html = await handleNeoAiShopping(query);
+        shoppingRow.querySelector(".chat-msg-them").innerHTML = html;
+        input.focus();
+        return;
+    }
+
 
     // Blokada wejścia na czas odpowiedzi (mniej spamu + mniej wywołań API)
     input.disabled = true;
@@ -7410,6 +7800,7 @@ window.sendNeoAiMessage = async function() {
 
     // Dopisz pytanie do historii (kontekst rozmowy)
     neoHistory.push({ role: "user", content: msgText });
+    await saveNeoAiMessage("user", msgText);
 
     // przy pytaniach o gry Neo najpierw czyta wiki
     const wiki = await neoWiki(msgText);
@@ -7430,7 +7821,7 @@ window.sendNeoAiMessage = async function() {
         const requestBody = {
             model: activeModel.apiModel || "mistral-small-latest",
             messages: [
-                { role: "system", content: neoSystemPrompt(t.langName, wiki) + "\n\nNEOAI MODEL PROFILE:\n" + activeModel.prompt },
+                { role: "system", content: neoSystemPrompt(t.langName, wiki) + neoAiMemoryPrompt() + "\n\nNEOAI MODEL PROFILE:\n" + activeModel.prompt },
                 ...neoHistory.slice(-10)
             ],
             max_tokens: activeModel.max_tokens,
@@ -7470,7 +7861,7 @@ window.sendNeoAiMessage = async function() {
 
     // Zapamiętaj odpowiedź tylko gdy prawdziwa (błędu nie trzymamy w kontekście)
     if (gotReply) {
-        neoHistory.push({ role: "assistant", content: aiReply });
+        neoHistory.push({ role: "assistant", content: aiReply });\n    await saveNeoAiMessage("assistant", aiReply);
         if (neoHistory.length > 20) neoHistory = neoHistory.slice(-20);
     } else {
         neoHistory.pop(); // cofnij pytanie, żeby błąd nie zaśmiecał historii
