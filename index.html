@@ -7861,7 +7861,8 @@ window.sendNeoAiMessage = async function() {
 
     // Zapamiętaj odpowiedź tylko gdy prawdziwa (błędu nie trzymamy w kontekście)
     if (gotReply) {
-        neoHistory.push({ role: "assistant", content: aiReply });\n    await saveNeoAiMessage("assistant", aiReply);
+        neoHistory.push({ role: "assistant", content: aiReply });
+        await saveNeoAiMessage("assistant", aiReply);
         if (neoHistory.length > 20) neoHistory = neoHistory.slice(-20);
     } else {
         neoHistory.pop(); // cofnij pytanie, żeby błąd nie zaśmiecał historii
