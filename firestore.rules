@@ -572,6 +572,62 @@ service cloud.firestore {
 
 
     /* =========================================================
+       NEOAI 2.3
+       ========================================================= */
+
+    match /neoAiChats/{chatId} {
+      allow read: if isLoggedIn()
+        && resource.data.uid == request.auth.uid;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.pinned is bool;
+
+      allow update: if isLoggedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.pinned is bool;
+
+      allow delete: if isLoggedIn()
+        && resource.data.uid == request.auth.uid;
+    }
+
+    match /neoAiChats/{chatId}/messages/{messageId} {
+      allow read: if isLoggedIn()
+        && get(/databases/$(database)/documents/neoAiChats/$(chatId)).data.uid == request.auth.uid;
+
+      allow create: if isLoggedIn()
+        && get(/databases/$(database)/documents/neoAiChats/$(chatId)).data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role in ['user', 'assistant']
+        && request.resource.data.content is string;
+
+      allow delete: if isLoggedIn()
+        && get(/databases/$(database)/documents/neoAiChats/$(chatId)).data.uid == request.auth.uid;
+
+      allow update: if false;
+    }
+
+    match /neoAiMemory/{userId} {
+      allow read: if isLoggedIn()
+        && userId == request.auth.uid;
+
+      allow create, update: if isLoggedIn()
+        && userId == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.summary is string
+        && request.resource.data.summary.size() <= 10000;
+
+      allow delete: if isLoggedIn()
+        && userId == request.auth.uid;
+    }
+
+
+    /* =========================================================
        MAIL
        ========================================================= */
 
