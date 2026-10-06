@@ -2569,7 +2569,7 @@ Search. Connect. Discover.
 </div>
     
 <!-- 🔮 PŁYWAJĄCY PRZYCISK NEO AI (prawy dolny róg) -->
-<button id="neoAiFloatBtn" onclick="window.location.hash='neoai'; window.dispatchEvent(new Event('hashchange'));" title="Neo AI" aria-label="Neo AI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.4c.9.6 4.1.6 5 0"/></svg>Neo AI</button>
+<button id="neoAiFloatBtn" onclick="window.location.hash='#neoai'; window.dispatchEvent(new Event('hashchange'));" title="Neo AI" aria-label="Neo AI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.4c.9.6 4.1.6 5 0"/></svg>Neo AI</button>
 
 <!-- ======================================================== -->
 <!-- PEŁNOEKRANOWY CZAT NEO AI (TYLKO DLA ŚCIEŻKI /neoai)     -->
@@ -2879,7 +2879,9 @@ Search. Connect. Discover.
     
     document.addEventListener('DOMContentLoaded', checkNeoRoute);
     window.addEventListener('popstate', checkNeoRoute);
-    window.addEventListener('hashchange', checkNeoRoute); // Obsługa wpisania #neoai w locie
+    window.addEventListener('hashchange', checkNeoRoute);
+    // Uruchom od razu, jeśli skrypt został załadowany po DOMContentLoaded.
+    if (document.readyState !== 'loading') checkNeoRoute();
 })();
 </script>
 
