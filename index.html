@@ -1849,8 +1849,7 @@ body.ocean {
 .neo-shop-link{display:inline-flex;padding:7px 10px;border-radius:8px;background:rgba(0,255,200,.12);color:#bffff2;text-decoration:none;font-size:12px}
 @media(max-width:600px){#neoAiSidebar{width:86%}.neo-shop-grid{grid-template-columns:1fr}}
 </style>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
+<script>
 /* === NEOFIND CUSTOM POPUP SYSTEM === */
 (function initNeoFindPopups(){
     if (document.getElementById("neoCustomPopup")) return;
@@ -1858,142 +1857,41 @@ body.ocean {
     const style = document.createElement("style");
     style.id = "neoCustomPopupStyle";
     style.textContent = `
-        #neoCustomPopup {
-            position: fixed;
-            inset: 0;
-            z-index: 2147483647;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            background: rgba(2, 7, 18, .68);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            font-family: inherit;
-        }
-        #neoCustomPopup.show { display: flex; animation: neoPopupFade .18s ease-out; }
-        #neoCustomPopupCard {
-            width: min(440px, 94vw);
-            color: #eefcff;
-            background:
-                radial-gradient(circle at 15% 0%, rgba(0,242,254,.18), transparent 42%),
-                radial-gradient(circle at 100% 100%, rgba(155,81,224,.16), transparent 45%),
-                rgba(10,15,30,.96);
-            border: 1px solid rgba(79,172,254,.48);
-            border-radius: 20px;
-            padding: 22px;
-            box-shadow: 0 0 50px rgba(0,180,255,.16), 0 18px 70px rgba(0,0,0,.55);
-            transform: translateY(8px) scale(.98);
-            animation: neoPopupCard .2s ease-out forwards;
-        }
-        #neoCustomPopupTop {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 13px;
-        }
-        #neoCustomPopupIcon {
-            width: 38px;
-            height: 38px;
-            display: grid;
-            place-items: center;
-            border-radius: 12px;
-            background: linear-gradient(135deg, rgba(0,242,254,.2), rgba(155,81,224,.2));
-            border: 1px solid rgba(0,242,254,.25);
-            font-size: 20px;
-        }
-        #neoCustomPopupTitle {
-            flex: 1;
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: .3px;
-        }
-        #neoCustomPopupClose {
-            border: 0;
-            background: transparent;
-            color: rgba(230,250,255,.6);
-            font-size: 23px;
-            cursor: pointer;
-            line-height: 1;
-            padding: 4px 7px;
-            border-radius: 9px;
-        }
-        #neoCustomPopupClose:hover { background: rgba(255,255,255,.08); color: white; }
-        #neoCustomPopupMessage {
-            white-space: pre-wrap;
-            overflow-wrap: anywhere;
-            color: rgba(225,244,250,.86);
-            font-size: 14px;
-            line-height: 1.6;
-            margin: 0 0 18px;
-        }
-        #neoCustomPopupOk {
-            width: 100%;
-            border: 0;
-            border-radius: 12px;
-            padding: 11px 16px;
-            cursor: pointer;
-            color: #03131b;
-            font-weight: 800;
-            background: linear-gradient(135deg, #00f2fe, #4facfe 55%, #9b51e0);
-            box-shadow: 0 7px 25px rgba(0,180,255,.18);
-        }
-        #neoCustomPopupOk:hover { filter: brightness(1.08); transform: translateY(-1px); }
-        @keyframes neoPopupFade { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes neoPopupCard { to { transform: translateY(0) scale(1) } }
-    `;
+#neoCustomPopup{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.68);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);font-family:inherit}
+#neoCustomPopup.show{display:flex;animation:neoPopupFade .18s ease-out}
+#neoCustomPopupCard{width:min(440px,94vw);color:#eefcff;background:radial-gradient(circle at 15% 0%,rgba(0,242,254,.18),transparent 42%),radial-gradient(circle at 100% 100%,rgba(155,81,224,.16),transparent 45%),rgba(10,15,30,.96);border:1px solid rgba(79,172,254,.48);border-radius:20px;padding:22px;box-shadow:0 0 50px rgba(0,180,255,.16),0 18px 70px rgba(0,0,0,.55);transform:translateY(8px) scale(.98);animation:neoPopupCard .2s ease-out forwards}
+#neoCustomPopupTop{display:flex;align-items:center;gap:12px;margin-bottom:13px}
+#neoCustomPopupIcon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,rgba(0,242,254,.2),rgba(155,81,224,.2));border:1px solid rgba(0,242,254,.25);font-size:20px}
+#neoCustomPopupTitle{flex:1;font-size:16px;font-weight:700;letter-spacing:.3px}
+#neoCustomPopupClose{border:0;background:transparent;color:rgba(230,250,255,.6);font-size:23px;cursor:pointer;line-height:1;padding:4px 7px;border-radius:9px}
+#neoCustomPopupMessage{white-space:pre-wrap;overflow-wrap:anywhere;color:rgba(225,244,250,.86);font-size:14px;line-height:1.6;margin:0 0 18px}
+#neoCustomPopupOk{width:100%;border:0;border-radius:12px;padding:11px 16px;cursor:pointer;color:#03131b;font-weight:800;background:linear-gradient(135deg,#00f2fe,#4facfe 55%,#9b51e0);box-shadow:0 7px 25px rgba(0,180,255,.18)}
+@keyframes neoPopupFade{from{opacity:0}to{opacity:1}}
+@keyframes neoPopupCard{to{transform:translateY(0) scale(1)}}
+`;
     document.head.appendChild(style);
 
-    const popup = document.createElement("div");
-    popup.id = "neoCustomPopup";
-    popup.innerHTML = `
-        <div id="neoCustomPopupCard" role="dialog" aria-modal="true" aria-labelledby="neoCustomPopupTitle">
-            <div id="neoCustomPopupTop">
-                <div id="neoCustomPopupIcon">✦</div>
-                <div id="neoCustomPopupTitle">NeoFind</div>
-                <button id="neoCustomPopupClose" aria-label="Close">×</button>
-            </div>
-            <p id="neoCustomPopupMessage"></p>
-            <button id="neoCustomPopupOk">OK</button>
-        </div>
-    `;
+    const popup=document.createElement("div");
+    popup.id="neoCustomPopup";
+    popup.innerHTML=`
+<div id="neoCustomPopupCard" role="dialog" aria-modal="true" aria-labelledby="neoCustomPopupTitle">
+<div id="neoCustomPopupTop"><div id="neoCustomPopupIcon">✦</div><div id="neoCustomPopupTitle">NeoFind</div><button id="neoCustomPopupClose" aria-label="Close">×</button></div>
+<p id="neoCustomPopupMessage"></p><button id="neoCustomPopupOk">OK</button>
+</div>`;
     document.body.appendChild(popup);
 
-    const title = popup.querySelector("#neoCustomPopupTitle");
-    const message = popup.querySelector("#neoCustomPopupMessage");
-    const close = popup.querySelector("#neoCustomPopupClose");
-    const ok = popup.querySelector("#neoCustomPopupOk");
-
-    let previousOverflow = "";
-    function closePopup(){
-        popup.classList.remove("show");
-        popup.style.display = "none";
-        document.body.style.overflow = previousOverflow;
-    }
-    close.addEventListener("click", closePopup);
-    ok.addEventListener("click", closePopup);
-    popup.addEventListener("click", e => {
-        if(e.target === popup) closePopup();
-    });
-    document.addEventListener("keydown", e => {
-        if(popup.classList.contains("show") && e.key === "Escape") closePopup();
-    });
-
-    window.neoPopup = function(text, options = {}){
-        title.textContent = options.title || "NeoFind";
-        message.textContent = String(text ?? "");
-        popup.querySelector("#neoCustomPopupIcon").textContent = options.icon || "✦";
-        ok.textContent = options.button || "OK";
-        previousOverflow = document.body.style.overflow;
-        popup.style.display = "flex";
-        requestAnimationFrame(() => popup.classList.add("show"));
-        document.body.style.overflow = "hidden";
-    };
-
-    // All existing alert() calls now use the same NeoFind popup.
-    window.alert = function(text){
-        window.neoPopup(text, { title: "NeoFind", icon: "✦", button: "OK" });
-    };
+    const title=popup.querySelector("#neoCustomPopupTitle");
+    const message=popup.querySelector("#neoCustomPopupMessage");
+    const close=popup.querySelector("#neoCustomPopupClose");
+    const ok=popup.querySelector("#neoCustomPopupOk");
+    let previousOverflow="";
+    function closePopup(){popup.classList.remove("show");popup.style.display="none";document.body.style.overflow=previousOverflow}
+    close.addEventListener("click",closePopup);
+    ok.addEventListener("click",closePopup);
+    popup.addEventListener("click",e=>{if(e.target===popup)closePopup()});
+    document.addEventListener("keydown",e=>{if(popup.classList.contains("show")&&e.key==="Escape")closePopup()});
+    window.neoPopup=function(text,options={}){title.textContent=options.title||"NeoFind";message.textContent=String(text??"");popup.querySelector("#neoCustomPopupIcon").textContent=options.icon||"✦";ok.textContent=options.button||"OK";previousOverflow=document.body.style.overflow;popup.style.display="flex";requestAnimationFrame(()=>popup.classList.add("show"));document.body.style.overflow="hidden"};
+    window.alert=function(text){window.neoPopup(text,{title:"NeoFind",icon:"✦",button:"OK"})};
 })();
 </script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
