@@ -1869,7 +1869,7 @@ body.ocean {
 @keyframes neoPopupFade{from{opacity:0}to{opacity:1}}
 @keyframes neoPopupCard{to{transform:translateY(0) scale(1)}}
 `;
-    document.head.appendChild(style);
+    (document.head || document.documentElement).appendChild(style);
 
     const popup=document.createElement("div");
     popup.id="neoCustomPopup";
@@ -1878,7 +1878,8 @@ body.ocean {
 <div id="neoCustomPopupTop"><div id="neoCustomPopupIcon">✦</div><div id="neoCustomPopupTitle">NeoFind</div><button id="neoCustomPopupClose" aria-label="Close">×</button></div>
 <p id="neoCustomPopupMessage"></p><button id="neoCustomPopupOk">OK</button>
 </div>`;
-    document.body.appendChild(popup);
+    const mountRoot = document.body || document.documentElement;
+    mountRoot.appendChild(popup);
 
     const title=popup.querySelector("#neoCustomPopupTitle");
     const message=popup.querySelector("#neoCustomPopupMessage");
