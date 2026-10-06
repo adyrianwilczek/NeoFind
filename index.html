@@ -1846,8 +1846,8 @@ body.ocean {
 .neo-shop-domain{font-size:12px;opacity:.7;margin-bottom:10px}
 .neo-shop-link{display:inline-flex;padding:7px 10px;border-radius:8px;background:rgba(0,255,200,.12);color:#bffff2;text-decoration:none;font-size:12px}
 @media(max-width:600px){#neoAiSidebar{width:86%}.neo-shop-grid{grid-template-columns:1fr}}
-</style></style>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
+</style>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 /* === NEOFIND CUSTOM POPUP SYSTEM === */
 (function initNeoFindPopups(){
@@ -2673,51 +2673,51 @@ Search. Connect. Discover.
 <!-- 🤖 CHWILOWY CZAT Z NEO AI -->
 <div id="neoAiTmpChat" style="display:none;">
     <div id="neoAiHeader">
-        <button id="neoAiMenuBtn" onclick="toggleNeoAiSidebar()" aria-label="Chats" title="Chats">
+        <button id="neoAiFloating_neoAiMenuBtn" onclick="toggleNeoAiSidebar()" aria-label="Chats" title="Chats">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
         </button>
         <span class="neo-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="8" width="16" height="11" rx="3.5"/><path d="M12 8V4.5"/><circle cx="12" cy="3.2" r="1.4" fill="currentColor" stroke="none"/><circle cx="9" cy="13" r="1.15" fill="currentColor" stroke="none"/><circle cx="15" cy="13" r="1.15" fill="currentColor" stroke="none"/><path d="M9.5 16.4c.9.6 4.1.6 5 0"/></svg></span>
         <span class="neo-title"><b>Neo AI</b><small><span class="neo-dot"></span>online</small></span>
-        <button id="neoAiClose" onclick="toggleNeoAiChat()" aria-label="Zamknij czat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        <button id="neoAiFloating_neoAiClose" onclick="window.location.hash='neoai'; window.dispatchEvent(new Event('hashchange')); " aria-label="Zamknij czat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
-    <div id="neoAiSidebar">
-        <div id="neoAiSidebarHead">
+    <div id="neoAiFloating_neoAiSidebar">
+        <div id="neoAiFloating_neoAiSidebarHead">
             <strong>Chats</strong>
-            <button id="neoAiSidebarClose" onclick="toggleNeoAiSidebar()" aria-label="Close chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+            <button id="neoAiFloating_neoAiSidebarClose" onclick="toggleNeoAiSidebar()" aria-label="Close chats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
-        <button id="neoAiNewChat" onclick="createNeoAiChat()">
+        <button id="neoAiFloating_neoAiNewChat" onclick="createNeoAiChat()">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            <span id="neoAiNewChatText">New chat</span>
+            <span id="neoAiFloating_neoAiNewChatText">New chat</span>
         </button>
-        <div id="neoAiChatList"></div>
-        <button id="neoAiMemoryBtn" onclick="openNeoAiMemory()">
+        <div id="neoAiFloating_neoAiChatList"></div>
+        <button id="neoAiFloating_neoAiMemoryBtn" onclick="openNeoAiMemory()">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 5h12v14H6z"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
-            <span id="neoAiMemoryBtnText">Memory</span>
+            <span id="neoAiFloating_neoAiMemoryBtnText">Memory</span>
         </button>
     </div>
-    <div id="neoAiMemoryPanel">
+    <div id="neoAiFloating_neoAiMemoryPanel">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <strong id="neoAiMemoryTitle">Neo memory</strong>
+            <strong id="neoAiFloating_neoAiMemoryTitle">Neo memory</strong>
             <button class="neo-sidebar-action" onclick="closeNeoAiMemory()" aria-label="Close memory"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
-        <p id="neoAiMemoryDescription" class="neo-memory-note">This is a summary of what Neo remembers about you. To add something, write /remember followed by the information.</p>
-        <textarea id="neoAiMemoryText"></textarea>
+        <p id="neoAiFloating_neoAiMemoryDescription" class="neo-memory-note">This is a summary of what Neo remembers about you. To add something, write /remember followed by the information.</p>
+        <textarea id="neoAiFloating_neoAiMemoryText"></textarea>
         <div class="neo-memory-actions">
             <button onclick="saveNeoAiMemory()">Save memory</button>
             <button onclick="closeNeoAiMemory()">Cancel</button>
         </div>
-        <p id="neoAiMemoryStatus" class="neo-memory-note"></p>
+        <p id="neoAiFloating_neoAiMemoryStatus" class="neo-memory-note"></p>
     </div>
-    <div id="neoAiMessages">
+    <div id="neoAiFloating_neoAiMessages">
         <div class="chat-row chat-row-them">
             <span class="chat-sender">Neo</span>
-            <div class="chat-msg-them" id="neoAiGreetTxt">Hi! I'm Neo. How can I help you today? ✨</div>
+            <div class="chat-msg-them" id="neoAiFloating_neoAiGreetTxt">Hi! I'm Neo. How can I help you today? ✨</div>
         </div>
     </div>
-    <div id="neoAiInputArea">
+    <div id="neoAiFloating_neoAiInputArea">
         <div class="neo-ai-model-row">
-            <input id="neoAiInput" placeholder="Type to Neo..." onkeydown="if(event.key==='Enter'){ sendNeoAiMessage(); }">
-            <select id="neoAiModelSelect" title="Choose NeoAI model" aria-label="Choose NeoAI model" onchange="selectNeoAiModel(this.value)">
+            <input id="neoAiFloating_neoAiInput" placeholder="Type to Neo..." onkeydown="if(event.key==='Enter'){ sendNeoAiMessage(); }">
+            <select id="neoAiFloating_neoAiModelSelect" title="Choose NeoAI model" aria-label="Choose NeoAI model" onchange="selectNeoAiModel(this.value)">
                 <option value="neoai-1.0">NeoAI 1.0</option>
                 <option value="neoai-1.3">NeoAI 1.3</option>
                 <option value="neoai-3.1-iaoen">3.1 IAoen</option>
@@ -2727,7 +2727,7 @@ Search. Connect. Discover.
                 <option value="neoai-2.3" selected>NeoAI 2.3</option>
             </select>
         </div>
-        <button id="neoAiSend" onclick="sendNeoAiMessage()" aria-label="Wyślij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
+        <button id="neoAiFloating_neoAiSend" onclick="sendNeoAiMessage()" aria-label="Wyślij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
     </div>
 </div>
     
@@ -7438,7 +7438,7 @@ function neoAiResetMessages(greeting = true) {
     messages.innerHTML = greeting ? `
         <div class="chat-row chat-row-them">
             <span class="chat-sender">Neo</span>
-            <div class="chat-msg-them" id="neoAiGreetTxt">${escapeHtml(t.greet)}</div>
+            <div class="chat-msg-them" id="neoAiFloating_neoAiGreetTxt">${escapeHtml(t.greet)}</div>
         </div>` : "";
 }
 
@@ -7815,7 +7815,6 @@ window.sendNeoAiMessage = async function() {
     // Dopisz pytanie do historii (kontekst rozmowy)
     neoHistory.push({ role: "user", content: msgText });
     await saveNeoAiMessage("user", msgText);
-    await saveNeoAiMessage("user", msgText);
 
     // przy pytaniach o gry Neo najpierw czyta wiki
     const wiki = await neoWiki(msgText);
@@ -7877,7 +7876,6 @@ window.sendNeoAiMessage = async function() {
     // Zapamiętaj odpowiedź tylko gdy prawdziwa (błędu nie trzymamy w kontekście)
     if (gotReply) {
         neoHistory.push({ role: "assistant", content: aiReply });
-        await saveNeoAiMessage("assistant", aiReply);
         await saveNeoAiMessage("assistant", aiReply);
         if (neoHistory.length > 20) neoHistory = neoHistory.slice(-20);
     } else {
