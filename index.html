@@ -7680,14 +7680,14 @@ async function deleteNeoAiChat(chatId) {
 }
 
 async function handleNeoAiRememberCommand(msgText) {
-    if (!/^\/remember(?:\\s|$)/i.test(msgText)) return false;
-    const value = msgText.replace(/^\/remember\\s*/i, "").trim();
+    if (!/^\/remember(?:\s|$)/i.test(msgText)) return false;
+    const value = msgText.replace(/^\/remember\s*/i, "").trim();
     if (!value) return true;
     const user = neoAiCurrentUser();
     if (!user || typeof db === "undefined") return true;
 
     await loadNeoAiMemory();
-    const existing = neoAiMemory ? neoAiMemory.split(/\\n+/).map(x => x.trim()).filter(Boolean) : [];
+    const existing = neoAiMemory ? neoAiMemory.split(/\n+/).map(x => x.trim()).filter(Boolean) : [];
     if (!existing.some(x => x.toLowerCase() === value.toLowerCase())) existing.push(value);
     neoAiMemory = existing.join("\\n");
     await db.collection(NEO_AI_MEMORY_COLLECTION).doc(user.uid).set({
