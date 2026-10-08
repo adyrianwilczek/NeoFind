@@ -1423,6 +1423,15 @@ body.ocean {
     .lang-btn { padding: 7px 10px; font-size: 13px; }
 }
 
+/* FULL-SCREEN APP ROUTES */
+#adminBox,#reportBox,#newsBox,#friendsBox,#settingsBox,#chatPanel,#announcementsBox,#neoSocialBox{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;top:0!important;left:0!important;right:0!important;bottom:0!important;transform:none!important;margin:0!important;border-radius:0!important;box-sizing:border-box!important;overflow-y:auto!important;padding:88px 24px 110px!important;z-index:10000!important}
+#chatPanel{padding:0!important;display:none;flex-direction:row;overflow:hidden!important}
+#friendsBox,#settingsBox,#reportBox,#adminBox,#newsBox,#announcementsBox,#neoSocialBox{background:linear-gradient(135deg,rgba(8,20,27,.98),rgba(20,39,48,.98))}
+.friend-item{display:flex;align-items:center;gap:8px;max-width:760px;margin:8px auto;padding:12px;border:1px solid rgba(0,255,200,.15);border-radius:12px;background:rgba(255,255,255,.04);text-align:left}
+.friend-item>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}.friend-action{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.12);border-radius:9px;background:rgba(255,255,255,.04);color:#dffff8;cursor:pointer}.friend-action svg{width:17px;height:17px}
+#blockedList{max-width:760px;margin:0 auto}.blocked-item{display:flex;align-items:center;gap:8px;padding:10px;border:1px solid rgba(255,100,120,.15);border-radius:11px;background:rgba(255,80,100,.04);margin:7px 0}.blocked-item span{flex:1}
+#neoSocialBox{display:none;color:#eafffb}.neo-route-head{max-width:900px;margin:0 auto 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}.neo-route-head h2{margin:0}.neo-route-close{width:38px;height:38px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(255,255,255,.05);color:#fff;cursor:pointer}
+
 /* 🔔 ANNOUNCEMENTS */
 #announcementsBox {
     display:none;
@@ -2438,8 +2447,19 @@ Search. Connect. Discover.
     <h3 id="friendsListTitleEl">Friends list</h3>
     <div id="friendsList"></div>
 
+    <h3 style="max-width:760px;margin:28px auto 10px;text-align:left;">Blocked</h3>
+    <div id="blockedList"></div>
+
     <br>
     <button onclick="closeFriends()" id="closeFriendsBtn">Close</button>
+</div>
+
+<!-- NEOSOCIAL ROUTE -->
+<div id="neoSocialBox">
+    <div class="neo-route-head"><h2>NeoSocial</h2><button class="neo-route-close" onclick="closeAllPanels()">✕</button></div>
+    <div style="max-width:760px;margin:0 auto;padding:24px;border:1px solid rgba(0,255,200,.16);border-radius:16px;background:rgba(255,255,255,.04);">
+        <h3>NeoSocial</h3><p style="opacity:.7;">Social features, friends and chats are available from this section.</p>
+    </div>
 </div>
 
 <!-- CHAT PANEL -->
@@ -3799,45 +3819,29 @@ function useSuggestion(text){
 }
 
 /* ⚙️ SETTINGS */
-function closeAllPanels(updateUrl = true){
-    ["adminBox","reportBox","newsBox","friendsBox","settingsBox","chatPanel","announcementsBox"].forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.style.display = "none";
-    });
-    const bd = document.getElementById("backdrop");
-    if(bd) bd.style.display = "none";
-    document.body.style.overflow = "";
-    clearTimeout(typingTimeout);
-    setTyping(false);
-    if(typingListener){ typingListener(); typingListener = null; }
-    if(updateUrl && window.location.pathname === "/settings"){
-        history.pushState({ neoPage: "home" }, "", "/");
-    }
+const NEO_PANEL_ROUTES={settingsBox:"/settings",friendsBox:"/friends",announcementsBox:"/annoucements",newsBox:"/neonews",reportBox:"/report",adminBox:"/admin",neoSocialBox:"/neosocial"};
+function neoPathForPanel(id){return NEO_PANEL_ROUTES[id]||"/";}
+function closeAllPanels(updateUrl=true){
+["adminBox","reportBox","newsBox","friendsBox","settingsBox","chatPanel","announcementsBox","neoSocialBox"].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+const bd=document.getElementById("backdrop");if(bd)bd.style.display="none";document.body.style.overflow="";
+if(typeof typingTimeout!=="undefined")clearTimeout(typingTimeout);
+if(typeof setTyping==="function")setTyping(false);
+if(typeof typingListener!=="undefined"&&typingListener){typingListener();typingListener=null;}
+if(updateUrl&&window.location.pathname!=="/")history.pushState({neoPage:"home"},"","/");
 }
-
-function openPanel(id, onOpen){
-    const panel = document.getElementById(id);
-    if(!panel) return;
-    const isOpen = panel.style.display === "block";
-    closeAllPanels();
-    if(!isOpen){
-        panel.style.display = "block";
-        if(window.innerWidth > 600 && id !== "settingsBox"){
-            const searchEl = document.getElementById("search");
-            const navEl = document.getElementById("bottomNav");
-            if(searchEl && navEl){
-                const margin = 20;
-                const top = searchEl.getBoundingClientRect().bottom + margin;
-                const bottom = window.innerHeight - navEl.getBoundingClientRect().top + margin;
-                panel.style.top = top + "px";
-                panel.style.bottom = bottom + "px";
-                panel.style.maxHeight = "none";
-            }
-        }
-        document.getElementById("backdrop").style.display = "block";
-        if(onOpen) onOpen();
-    }
+function openPanel(id,onOpen){
+const panel=document.getElementById(id);if(!panel)return;closeAllPanels(false);panel.style.display=id==="chatPanel"?"flex":"block";document.body.style.overflow="hidden";
+const path=neoPathForPanel(id);if(path&&window.location.pathname!==path)history.pushState({neoPage:path},"",path);if(onOpen)onOpen();
 }
+function openNeoSocial(){openPanel("neoSocialBox");}
+function routeNeoFind(){
+const path=window.location.pathname.replace(/\/+$/,"")||"/";if(path==="/"){closeAllPanels(false);return;}
+if(path==="/chat"||path.startsWith("/chat/")){const encoded=path.slice(6);if(encoded&&auth.currentUser)openChat(decodeURIComponent(encoded),false);return;}
+const panel=Object.keys(NEO_PANEL_ROUTES).find(id=>NEO_PANEL_ROUTES[id]===path);
+if(panel){if(panel==="settingsBox")openSettings(false);else if(panel==="friendsBox")openFriends(false);else if(panel==="announcementsBox")openAnnouncements(false);else if(panel==="newsBox")openNews(false);else if(panel==="reportBox")openReport(false);else if(panel==="adminBox")openAdmin(false);else openPanel(panel);return;}
+closeAllPanels(false);
+}
+window.addEventListener("popstate",routeNeoFind);window.addEventListener("DOMContentLoaded",()=>setTimeout(routeNeoFind,0));
 
 /* 🔔 ANNOUNCEMENTS SYSTEM */
 let announcementsUnsubscribe = null;
@@ -3859,7 +3863,7 @@ async function createUserAnnouncement(uid, data){
     });
 }
 
-async function openAnnouncements(){
+async function openAnnouncements(pushUrl = true){
     openPanel("announcementsBox", async () => {
         const user = auth.currentUser;
         if(!user) {
@@ -3987,9 +3991,6 @@ async function adminCreateAnnouncement(){
 
 function openSettings(pushUrl = true){
     if (typeof updateMissionProgress === "function") updateMissionProgress("settings");
-    if(pushUrl && window.location.pathname !== "/settings"){
-        history.pushState({ neoPage: "settings" }, "", "/settings");
-    }
     openPanel("settingsBox", () => {
         document.getElementById("settingsLang").value = currentLang;
         showHistory();
@@ -4018,7 +4019,7 @@ function saveSettings(){
 
 
 /* ADMIN PANEL CONTROL */
-function openAdmin(){
+function openAdmin(pushUrl = true){
     const user = auth.currentUser;
     if(!user || !isAdmin(user.email)){
         alert("🚫 Access denied.");
@@ -4915,7 +4916,7 @@ function handleCommand(e){
 }
 
 // Report Problem
-function openReport(){ openPanel("reportBox"); }
+function openReport(pushUrl = true){ openPanel("reportBox"); }
 function closeReport(){ closeAllPanels(); }
 
 function sendReport(){
@@ -5020,7 +5021,7 @@ function checkNews(){
     }
 }
 
-function openNews(){
+function openNews(pushUrl = true){
     openPanel("newsBox", () => {
         loadNews();
         const badge = document.getElementById("newsBadge");
@@ -5144,7 +5145,7 @@ function setTyping(active){
     }
 }
 
-function openFriends(){
+function openFriends(pushUrl = true){
     openPanel("friendsBox", () => {
         loadFriendRequests();
         loadFriends();
@@ -5273,50 +5274,41 @@ async function declineFriend(docId){
 }
 
 async function loadFriends(){
-    const user = auth.currentUser;
-    const box = document.getElementById("friendsList");
-    box.innerHTML = "Loading...";
-
-    try {
-        const snap1 = await db.collection("friendRequests")
-            .where("from", "==", user.email)
-            .where("status", "==", "accepted")
-            .get();
-
-        const snap2 = await db.collection("friendRequests")
-            .where("to", "==", user.email)
-            .where("status", "==", "accepted")
-            .get();
-
-        let friends = [];
-        snap1.forEach(doc => friends.push(doc.data().to));
-        snap2.forEach(doc => friends.push(doc.data().from));
-
-        if(!friends.length){
-            box.innerHTML = "<p style='opacity:0.5'>" + translations[currentLang].noFriends + "</p>";
-            return;
-        }
-
-        box.innerHTML = friends.map(email => `
-            <div class="friend-item">
-                <span>${email}</span>
-                <button onclick="openChat('${email}')">${translations[currentLang].chatBtnLabel}</button>
-            </div>
-        `).join("");
-    } catch(e) {
-        box.innerHTML = "<p style='color:red'>Error loading friends</p>";
-    }
+const user=auth.currentUser,box=document.getElementById("friendsList"),blockedBox=document.getElementById("blockedList");if(!user||!box)return;box.innerHTML="Loading...";if(blockedBox)blockedBox.innerHTML="Loading...";
+try{
+const r=await Promise.all([
+db.collection("friendRequests").where("from","==",user.email).where("status","==","accepted").get(),
+db.collection("friendRequests").where("to","==",user.email).where("status","==","accepted").get(),
+db.collection("friendRequests").where("blockedBy","==",user.email).where("status","==","blocked").get()
+]);
+const friends=[];r[0].forEach(d=>friends.push(d.data().to));r[1].forEach(d=>friends.push(d.data().from));const unique=[...new Set(friends.map(x=>String(x).toLowerCase()))];
+box.innerHTML=unique.length?unique.map(email=>'<div class="friend-item"><span>'+escapeHtml(email)+'</span><button class="friend-action" onclick="openChat(\''+escapeHtml(email)+'\')" title="Chat" aria-label="Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H7l-4 3v-5.5A7.5 7.5 0 0 1 4 5.5 7.5 7.5 0 0 1 11.5 4H12a7.5 7.5 0 0 1 8 7.5Z"/></svg></button><button class="friend-action" onclick="removeFriend(\''+escapeHtml(email)+'\')" title="Remove friend" aria-label="Remove friend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5M14 11v5"/></svg></button><button class="friend-action" onclick="blockFriend(\''+escapeHtml(email)+'\')" title="Block friend" aria-label="Block friend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="m6 6 12 12"/></svg></button></div>').join(""):'<p style="opacity:.5">'+(translations[currentLang].noFriends||"No friends yet.")+'</p>';
+if(blockedBox){const blocked=[...new Set(r[2].docs.map(d=>String(d.data().blockedUser||d.data().to||"").toLowerCase()))];blockedBox.innerHTML=blocked.length?blocked.map(email=>'<div class="blocked-item"><span>'+escapeHtml(email)+'</span><button class="friend-action" onclick="unblockFriend(\''+escapeHtml(email)+'\')" title="Unblock" aria-label="Unblock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg></button></div>').join(""):'<p style="opacity:.5">No blocked users.</p>';}
+}catch(e){console.error("Friends:",e);box.innerHTML="<p style='color:red'>Error loading friends</p>";if(blockedBox)blockedBox.innerHTML="<p style='color:red'>Error loading blocked users</p>";}
+}
+async function removeFriend(email){
+const user=auth.currentUser;if(!user||!email)return;if(!confirm("Remove this person from your friends?"))return;const ref=db.collection("friendRequests").doc(getChatId(user.email,email)),snap=await ref.get();if(snap.exists)await ref.update({status:"removed",removedBy:user.email,updatedAt:firebase.firestore.FieldValue.serverTimestamp()});await loadFriends();await loadChatContacts();
+}
+async function blockFriend(email){
+const user=auth.currentUser;if(!user||!email)return;if(!confirm("Block this person?"))return;const ref=db.collection("friendRequests").doc(getChatId(user.email,email)),snap=await ref.get();const data={status:"blocked",blockedBy:user.email,blockedUser:email,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};if(snap.exists)await ref.update(data);else await ref.set({from:user.email,to:email,...data});if(currentChatFriend===email){currentChatFriend=null;closeAllPanels();}await loadFriends();await loadChatContacts();
+}
+async function unblockFriend(email){
+const user=auth.currentUser;if(!user||!email)return;const ref=db.collection("friendRequests").doc(getChatId(user.email,email)),snap=await ref.get();if(snap.exists&&snap.data().blockedBy===user.email)await ref.update({status:"removed",blockedBy:firebase.firestore.FieldValue.delete(),blockedUser:firebase.firestore.FieldValue.delete(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()});await loadFriends();
 }
 
 function getChatId(email1, email2){
     return [email1.toLowerCase(), email2.toLowerCase()].sort().join("__");
 }
 
-function openChat(friendEmail){
+function openChat(friendEmail,pushUrl=true){
     currentChatFriend = friendEmail;
+    closeAllPanels(false);
     document.getElementById("chatWithLabel").innerText = friendEmail.split('@')[0];
     document.getElementById("friendsBox").style.display = "none";
     document.getElementById("chatPanel").style.display = "flex";
+    document.body.style.overflow = "hidden";
+    const chatPath="/chat/"+encodeURIComponent(friendEmail);
+    if(pushUrl && window.location.pathname!==chatPath) history.pushState({neoPage:"chat",friend:friendEmail},"",chatPath);
     document.getElementById("chatMessages").innerHTML = "";
     document.querySelectorAll(".chat-contact-item").forEach(el => {
         el.classList.toggle("active", el.textContent.trim() === friendEmail.split('@')[0]);
