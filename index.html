@@ -12185,24 +12185,23 @@ async function giveOrbsToUser() {
         const clean=String(text||"").trim();
         if(!clean)return;
 
-        const open=()=>{
-            const fullPage=document.getElementById("neoAiFullPage");
-            const input=document.getElementById("neoAiInput");
-            if(!fullPage||!input){
-                setTimeout(open,50);
-                return;
-            }
+        const openNeoChat=window.openNeoAiChat;
+        if(typeof openNeoChat==="function"){
+            openNeoChat(clean);
+            return;
+        }
+
+        /* Fallback only if the chat opener has not been initialized yet. */
+        const input=document.getElementById("neoAiInput");
+        const fullPage=document.getElementById("neoAiFullPage");
+        if(fullPage&&input){
             fullPage.style.display="flex";
             input.value=clean;
             input.focus();
-            window.sendNeoAiMessage();
-        };
-
-        if(window.location.hash!=="#neoai"){
-            window.location.hash="#neoai";
+            if(typeof window.sendNeoAiMessage==="function")window.sendNeoAiMessage();
         }
-        setTimeout(open,80);
     };
+
 
     let neoHistory = [];
 
