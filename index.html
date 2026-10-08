@@ -1423,9 +1423,6 @@ body.ocean {
     .lang-btn { padding: 7px 10px; font-size: 13px; }
 }
 
-
-#neoSelectionAsk{position:fixed;display:none;z-index:2147483000;padding:9px 13px;border:1px solid rgba(0,255,200,.35);border-radius:10px;background:rgba(7,20,26,.97);color:#dffff8;box-shadow:0 8px 28px rgba(0,0,0,.35);font:600 13px Oxanium,sans-serif;cursor:pointer;white-space:nowrap;}
-#neoSelectionAsk:hover{background:rgba(0,255,200,.12)}
 /* FULL-SCREEN APP ROUTES */
 #adminBox,#reportBox,#newsBox,#friendsBox,#settingsBox,#chatPanel,#announcementsBox,#neoSocialBox{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;top:0!important;left:0!important;right:0!important;bottom:0!important;transform:none!important;margin:0!important;border-radius:0!important;box-sizing:border-box!important;overflow-y:auto!important;padding:88px 24px 110px!important;z-index:10000!important}
 #chatPanel{padding:0!important;display:none;flex-direction:row;overflow:hidden!important}
@@ -12123,85 +12120,6 @@ async function giveOrbsToUser() {
         if (fullPage) fullPage.style.display = 'none';
         history.pushState({}, '', window.location.pathname);
     };
-
-    /* Ask NeoAI about selected NeoFind text */
-    (function initNeoSelectionAsk(){
-        if(window.__neoSelectionAskReady)return;
-        window.__neoSelectionAskReady=true;
-
-        const btn=document.createElement("button");
-        btn.id="neoSelectionAsk";
-        btn.type="button";
-        btn.textContent="Zapytaj NeoAI";
-        document.body.appendChild(btn);
-
-        let selectedText="";
-
-        function hide(){
-            btn.style.display="none";
-            selectedText="";
-        }
-
-        function showForSelection(){
-            const sel=window.getSelection();
-            if(!sel||sel.rangeCount===0){hide();return;}
-            const text=sel.toString().trim();
-            if(!text||text.length<1){hide();return;}
-            if(document.getElementById("neoAiFullPage")?.contains(sel.anchorNode)){hide();return;}
-
-            selectedText=text;
-            const range=sel.getRangeAt(0);
-            const rect=range.getBoundingClientRect();
-            const top=Math.max(8,rect.top-46);
-            const left=Math.min(Math.max(8,rect.left),window.innerWidth-btn.offsetWidth-8);
-            btn.style.top=top+"px";
-            btn.style.left=left+"px";
-            btn.style.display="block";
-        }
-
-        btn.addEventListener("mousedown",e=>e.preventDefault());
-        btn.addEventListener("click",()=>{
-            const text=selectedText.trim();
-            hide();
-            if(!text)return;
-            window.openNeoAiWithSelection(text);
-        });
-
-        document.addEventListener("mouseup",()=>setTimeout(showForSelection,0));
-        document.addEventListener("keyup",e=>{
-            if(e.key==="Shift"||e.key==="ArrowLeft"||e.key==="ArrowRight"||e.key==="ArrowUp"||e.key==="ArrowDown"){
-                setTimeout(showForSelection,0);
-            }
-        });
-        document.addEventListener("scroll",hide,{passive:true});
-        document.addEventListener("mousedown",e=>{
-            if(e.target!==btn&&!btn.contains(e.target))setTimeout(()=>{
-                if(!window.getSelection()?.toString().trim())hide();
-            },0);
-        });
-    })();
-
-    window.openNeoAiWithSelection=function(text){
-        const clean=String(text||"").trim();
-        if(!clean)return;
-
-        const openNeoChat=window.openNeoAiChat;
-        if(typeof openNeoChat==="function"){
-            openNeoChat(clean);
-            return;
-        }
-
-        /* Fallback only if the chat opener has not been initialized yet. */
-        const input=document.getElementById("neoAiInput");
-        const fullPage=document.getElementById("neoAiFullPage");
-        if(fullPage&&input){
-            fullPage.style.display="flex";
-            input.value=clean;
-            input.focus();
-            if(typeof window.sendNeoAiMessage==="function")window.sendNeoAiMessage();
-        }
-    };
-
 
     let neoHistory = [];
 
