@@ -1840,6 +1840,10 @@ body.ocean {
 }
 
 
+
+    .orb-chest-card{padding:16px;border-radius:16px;border:1px solid rgba(0,242,254,.2);background:rgba(255,255,255,.04);cursor:pointer;transition:.2s;}
+    .orb-chest-card:hover{transform:translateY(-3px);border-color:rgba(0,242,254,.55);box-shadow:0 8px 30px rgba(0,242,254,.12);}
+    .orb-chest-card:active{transform:scale(.98);}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
 
@@ -2266,6 +2270,58 @@ NOTE! Do not share the key with anyone.
     <h3>Daily missions</h3>
     <div id="dailyMissionsContainer">
         <!-- Misje generują się tu automatycznie przez JS -->
+    </div>
+
+
+    <hr style="border:0;border-top:1px solid rgba(0,255,200,.2);margin:20px 0;">
+    <h3>Chest Shop</h3>
+    <p>Buy a chest with Orbs. Better chests have better rewards.</p>
+    <div id="orbChestShop" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:12px;">
+        <button class="orb-chest-card" onclick="buyOrbChest('normal')">
+            <span style="font-size:38px;">📦</span><br>
+            <b>Normal Chest</b><br><small>25 Orbs</small>
+        </button>
+        <button class="orb-chest-card" onclick="buyOrbChest('rare')">
+            <span style="font-size:38px;">🎁</span><br>
+            <b>Rare Chest</b><br><small>50 Orbs</small>
+        </button>
+        <button class="orb-chest-card" onclick="buyOrbChest('epic')">
+            <span style="font-size:38px;">💎</span><br>
+            <b>Epic Chest</b><br><small>100 Orbs</small>
+        </button>
+        <button class="orb-chest-card" onclick="buyOrbChest('neofind')">
+            <span style="font-size:38px;">🌌</span><br>
+            <b>NeoFind Chest</b><br><small>200 Orbs</small>
+        </button>
+    </div>
+    <div id="orbChestInventory" style="margin-top:14px;font-size:14px;"></div>
+    <div style="margin-top:10px;opacity:.72;font-size:12px;">
+        Rewards: Normal 25/50/75 • Rare 100/125/150 • Epic 175/200/225 • NeoFind 250/300/325, Premium 3 days, or Premium 7 days + 250 Orbs.
+    </div>
+
+    <div id="ownerChestGrantSection" style="display:none;margin-top:20px;padding:16px;border:1px solid rgba(255,215,0,.25);border-radius:14px;background:rgba(255,215,0,.04);">
+        <h3 style="margin-top:0;">OWNER • Give Chest</h3>
+        <input id="ownerChestEmail" type="email" placeholder="User email">
+        <select id="ownerChestType" style="margin:8px 0;">
+            <option value="normal">Normal Chest</option>
+            <option value="rare">Rare Chest</option>
+            <option value="epic">Epic Chest</option>
+            <option value="neofind">NeoFind Chest</option>
+        </select>
+        <input id="ownerChestAmount" type="number" min="1" max="100" value="1" placeholder="Amount">
+        <button onclick="ownerGrantChest()">Give Chest</button>
+        <p id="ownerChestGrantStatus" style="font-size:13px;min-height:18px;"></p>
+    </div>
+
+    <div id="orbChestModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:100000;align-items:center;justify-content:center;padding:20px;">
+        <div style="width:min(460px,95vw);padding:28px;border-radius:24px;text-align:center;background:linear-gradient(145deg,rgba(15,25,45,.98),rgba(35,15,60,.98));border:1px solid rgba(0,242,254,.35);box-shadow:0 0 70px rgba(0,242,254,.18);">
+            <div id="orbChestModalIcon" style="font-size:90px;cursor:pointer;transition:transform .2s;">📦</div>
+            <h2 id="orbChestModalTitle">Chest</h2>
+            <p id="orbChestModalText">Click the chest to open it.</p>
+            <button id="orbChestOpenButton" onclick="openOwnedOrbChest()">Open Chest</button>
+            <button onclick="closeOrbChestModal()" style="margin-left:8px;">Close</button>
+            <div id="orbChestReward" style="margin-top:16px;min-height:28px;font-size:18px;font-weight:700;"></div>
+        </div>
     </div>
 
     <hr>
@@ -11463,6 +11519,293 @@ function renderMissions() {
     });
 }
 
+
+/* =========================================================
+   ORB CHEST SHOP
+   ========================================================= */
+const ORB_CHEST_DEFINITIONS = {
+    normal: {
+        label: "Normal Chest",
+        price: 25,
+        icon: "📦",
+        rewards: [
+            { type: "orbs", amount: 25, weight: 50 },
+            { type: "orbs", amount: 50, weight: 30 },
+            { type: "orbs", amount: 75, weight: 20 }
+        ]
+    },
+    rare: {
+        label: "Rare Chest",
+        price: 50,
+        icon: "🎁",
+        rewards: [
+            { type: "orbs", amount: 100, weight: 50 },
+            { type: "orbs", amount: 125, weight: 30 },
+            { type: "orbs", amount: 150, weight: 20 }
+        ]
+    },
+    epic: {
+        label: "Epic Chest",
+        price: 100,
+        icon: "💎",
+        rewards: [
+            { type: "orbs", amount: 175, weight: 50 },
+            { type: "orbs", amount: 200, weight: 30 },
+            { type: "orbs", amount: 225, weight: 20 }
+        ]
+    },
+    neofind: {
+        label: "NeoFind Chest",
+        price: 200,
+        icon: "🌌",
+        rewards: [
+            { type: "orbs", amount: 250, weight: 45 },
+            { type: "orbs", amount: 300, weight: 25 },
+            { type: "orbs", amount: 325, weight: 15 },
+            { type: "premium", days: 3, weight: 10 },
+            { type: "premium_orbs", days: 7, amount: 250, weight: 5 }
+        ]
+    }
+};
+
+let orbChestInventory = { normal: 0, rare: 0, epic: 0, neofind: 0 };
+let selectedOrbChestType = null;
+let orbChestOpening = false;
+
+function weightedOrbChestReward(rewards) {
+    const total = rewards.reduce((sum, r) => sum + r.weight, 0);
+    let roll = Math.random() * total;
+    for (const reward of rewards) {
+        roll -= reward.weight;
+        if (roll <= 0) return reward;
+    }
+    return rewards[rewards.length - 1];
+}
+
+function renderOrbChestInventory() {
+    const el = document.getElementById("orbChestInventory");
+    if (!el) return;
+    el.innerHTML =
+        "Your chests: " +
+        "📦 " + (orbChestInventory.normal || 0) +
+        " &nbsp; 🎁 " + (orbChestInventory.rare || 0) +
+        " &nbsp; 💎 " + (orbChestInventory.epic || 0) +
+        " &nbsp; 🌌 " + (orbChestInventory.neofind || 0);
+}
+
+async function loadOrbChestInventory() {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+        const snap = await db.collection("users").doc(user.uid).get();
+        const data = snap.exists ? snap.data() : {};
+        orbChestInventory = {
+            normal: Math.max(0, Number(data.chestInventory?.normal || 0)),
+            rare: Math.max(0, Number(data.chestInventory?.rare || 0)),
+            epic: Math.max(0, Number(data.chestInventory?.epic || 0)),
+            neofind: Math.max(0, Number(data.chestInventory?.neofind || 0))
+        };
+        renderOrbChestInventory();
+        updateOwnerChestSection();
+    } catch (e) {
+        console.error("Chest inventory load failed:", e);
+    }
+}
+
+async function buyOrbChest(type) {
+    const user = auth.currentUser;
+    const def = ORB_CHEST_DEFINITIONS[type];
+    if (!user || !def) {
+        alert("You must be logged in.");
+        return;
+    }
+
+    try {
+        await db.runTransaction(async transaction => {
+            const ref = db.collection("users").doc(user.uid);
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
+            if (current < def.price) throw new Error("NOT_ENOUGH_ORBS");
+
+            const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
+            inv[type] = Math.max(0, Number(inv[type] || 0)) + 1;
+
+            transaction.set(ref, {
+                orbs: current - def.price,
+                chestInventory: inv
+            }, { merge: true });
+        });
+
+        userOrbs = Math.max(0, userOrbs - def.price);
+        localStorage.setItem("userOrbs", userOrbs);
+        updateOrbsDisplay();
+        await loadOrbChestInventory();
+        openOrbChestModal(type);
+    } catch (e) {
+        if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + def.price + ".");
+        else {
+            console.error("Chest purchase failed:", e);
+            alert("Could not buy this chest.");
+        }
+    }
+}
+
+function openOrbChestModal(type) {
+    if (!ORB_CHEST_DEFINITIONS[type]) return;
+    selectedOrbChestType = type;
+    const modal = document.getElementById("orbChestModal");
+    const icon = document.getElementById("orbChestModalIcon");
+    const title = document.getElementById("orbChestModalTitle");
+    const text = document.getElementById("orbChestModalText");
+    const reward = document.getElementById("orbChestReward");
+    if (!modal) return;
+
+    icon.textContent = ORB_CHEST_DEFINITIONS[type].icon;
+    title.textContent = ORB_CHEST_DEFINITIONS[type].label;
+    text.textContent = "Click the chest or the button to open it.";
+    reward.textContent = "";
+    modal.style.display = "flex";
+}
+
+function closeOrbChestModal() {
+    if (orbChestOpening) return;
+    const modal = document.getElementById("orbChestModal");
+    if (modal) modal.style.display = "none";
+    selectedOrbChestType = null;
+}
+
+async function openOwnedOrbChest() {
+    const user = auth.currentUser;
+    const type = selectedOrbChestType;
+    if (!user || !type || orbChestOpening) return;
+
+    if ((orbChestInventory[type] || 0) < 1) {
+        alert("You don't have this chest.");
+        closeOrbChestModal();
+        return;
+    }
+
+    orbChestOpening = true;
+    const button = document.getElementById("orbChestOpenButton");
+    const icon = document.getElementById("orbChestModalIcon");
+    const rewardEl = document.getElementById("orbChestReward");
+    if (button) button.disabled = true;
+    if (rewardEl) rewardEl.textContent = "Opening...";
+
+    try {
+        const def = ORB_CHEST_DEFINITIONS[type];
+        const reward = weightedOrbChestReward(def.rewards);
+        const ref = db.collection("users").doc(user.uid);
+
+        await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
+            if (Number(inv[type] || 0) < 1) throw new Error("NO_CHEST");
+
+            inv[type]--;
+            const update = {
+                chestInventory: inv,
+                lastChestReward: { chest: type, reward, at: Date.now() }
+            };
+
+            const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
+
+            if (reward.type === "orbs") {
+                update.orbs = currentOrbs + reward.amount;
+            } else if (reward.type === "premium") {
+                update.premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + reward.days * 86400000;
+            } else if (reward.type === "premium_orbs") {
+                update.orbs = currentOrbs + reward.amount;
+                update.premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + reward.days * 86400000;
+            }
+
+            transaction.set(ref, update, { merge: true });
+        });
+
+        if (reward.type === "orbs" || reward.type === "premium_orbs") {
+            userOrbs = Math.max(0, userOrbs) + reward.amount;
+            localStorage.setItem("userOrbs", userOrbs);
+            updateOrbsDisplay();
+        }
+        if (reward.type === "premium" || reward.type === "premium_orbs") {
+            const until = Math.max(Date.now(), Number(localStorage.getItem("neoPremiumUntil") || 0)) + reward.days * 86400000;
+            localStorage.setItem("neoPremiumUntil", String(until));
+            localStorage.setItem("userPremium", "true");
+        }
+
+        if (icon) icon.style.transform = "scale(1.2) rotate(8deg)";
+        setTimeout(() => { if (icon) icon.style.transform = ""; }, 220);
+
+        if (reward.type === "orbs") rewardEl.textContent = "You won " + reward.amount + " Orbs!";
+        if (reward.type === "premium") rewardEl.textContent = "You won " + reward.days + " days of Premium!";
+        if (reward.type === "premium_orbs") rewardEl.textContent = "You won " + reward.days + " days of Premium + " + reward.amount + " Orbs!";
+
+        await loadOrbChestInventory();
+    } catch (e) {
+        console.error("Chest opening failed:", e);
+        if (rewardEl) rewardEl.textContent = e.message === "NO_CHEST" ? "You don't have this chest." : "Could not open the chest.";
+        await loadOrbChestInventory();
+    } finally {
+        orbChestOpening = false;
+        if (button) button.disabled = false;
+    }
+}
+
+function updateOwnerChestSection() {
+    const section = document.getElementById("ownerChestGrantSection");
+    if (!section) return;
+    const user = auth.currentUser;
+    section.style.display = user && isOwner(user.email) ? "block" : "none";
+}
+
+async function ownerGrantChest() {
+    const user = auth.currentUser;
+    const email = document.getElementById("ownerChestEmail")?.value.trim().toLowerCase();
+    const type = document.getElementById("ownerChestType")?.value;
+    const amount = Math.max(1, Math.min(100, Math.floor(Number(document.getElementById("ownerChestAmount")?.value || 1))));
+    const status = document.getElementById("ownerChestGrantStatus");
+
+    if (!user || !isOwner(user.email)) {
+        if (status) status.textContent = "Owner access required.";
+        return;
+    }
+    if (!email || !ORB_CHEST_DEFINITIONS[type]) {
+        if (status) status.textContent = "Enter a valid email and chest type.";
+        return;
+    }
+
+    try {
+        const query = await db.collection("users").where("email", "==", email).limit(1).get();
+        if (query.empty) throw new Error("USER_NOT_FOUND");
+
+        const target = query.docs[0];
+        await db.runTransaction(async transaction => {
+            const ref = db.collection("users").doc(target.id);
+            const snap = await transaction.get(ref);
+            const data = snap.data() || {};
+            const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
+            inv[type] = Math.max(0, Number(inv[type] || 0)) + amount;
+            transaction.set(ref, {
+                chestInventory: inv,
+                lastAdminChestGrant: {
+                    by: user.email,
+                    chest: type,
+                    amount,
+                    at: firebase.firestore.FieldValue.serverTimestamp()
+                }
+            }, { merge: true });
+        });
+
+        if (status) status.textContent = "Gave " + amount + " " + ORB_CHEST_DEFINITIONS[type].label + "(s) to " + email + ".";
+    } catch (e) {
+        console.error("Owner chest grant failed:", e);
+        if (status) status.textContent = e.message === "USER_NOT_FOUND" ? "User not found." : "Could not give the chest.";
+    }
+}
+
+
 async function buyPremiumWithOrbs() {
     const user = (typeof auth !== "undefined") ? auth.currentUser : null;
     if (!user || typeof db === "undefined") {
@@ -11612,6 +11955,7 @@ async function startPremiumTrial() {
 }
 
 function openOrbsPanel() {
+    setTimeout(() => { loadOrbChestInventory(); updateOwnerChestSection(); }, 0);
     renderMissions();
     const box = document.getElementById('orbsBox');
     if (box) box.style.display = 'block';
