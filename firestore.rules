@@ -31,6 +31,12 @@ service cloud.firestore {
         ];
     }
 
+    function isOwnerAccount() {
+      return isLoggedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == "adrian.wilczek@hotmail.com";
+    }
+
 
     /* =========================================================
        NEOFIND
@@ -400,7 +406,8 @@ service cloud.firestore {
           'orbs', 'premium', 'premiumUntil',
           'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
           'missionDay', 'missionClaims',
-          'lastAdminOrbGrant'
+          'lastAdminOrbGrant',
+          'chestInventory', 'lastChestReward', 'lastAdminChestGrant'
         ];
       }
 
@@ -523,6 +530,112 @@ service cloud.firestore {
           && getAfter(claimRef).data.redeemedAt == request.time;
       }
 
+
+      /* 6. zakup skrzyni: dokładnie jedna skrzynia i dokładnie jej cena */
+      function isChestPurchase() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0)
+          && newOrbs() == oldOrbs() - 25;
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0)
+          && newOrbs() == oldOrbs() - 50;
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0)
+          && newOrbs() == oldOrbs() - 100;
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1
+          && newOrbs() == oldOrbs() - 200;
+
+        return changedKeys().hasOnly(['orbs', 'chestInventory', 'email'])
+          && orbsValid()
+          && newInv is map
+          && normal || rare || epic || neofind;
+      }
+
+      /* 7. otwarcie skrzyni: można zużyć tylko jedną posiadaną skrzynię.
+         Nagrody są ograniczone do wartości z konfiguracji NeoFind. */
+      function isChestOpen() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) - 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) - 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) - 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) - 1;
+
+        let orbReward = newOrbs() - oldOrbs();
+        let premiumChanged = changedKeys().hasAny(['premiumUntil']);
+        let premiumBase = oldPremium = resource.data.get('premiumUntil', 0) > nowMs()
+          ? resource.data.get('premiumUntil', 0)
+          : nowMs();
+
+        let allowedOrbReward = orbReward in [25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 300, 325];
+        let allowedPremium = premiumChanged
+          && request.resource.data.premiumUntil is int
+          && (
+            request.resource.data.premiumUntil == premiumBase + 3 * 86400000
+            || request.resource.data.premiumUntil == premiumBase + 7 * 86400000
+          );
+
+        return changedKeys().hasOnly(['orbs', 'chestInventory', 'premiumUntil', 'lastChestReward', 'email'])
+          && orbsValid()
+          && newInv is map
+          && (normal || rare || epic || neofind)
+          && (
+            allowedOrbReward
+            || allowedPremium
+            || (allowedOrbReward && allowedPremium)
+          );
+      }
+
+      /* 8. OWNER może przyznać skrzynię konkretnemu użytkownikowi. */
+      function isOwnerChestGrant() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1;
+
+        return isOwnerAccount()
+          && changedKeys().hasOnly(['chestInventory', 'lastAdminChestGrant', 'email'])
+          && newInv is map
+          && (normal || rare || epic || neofind);
+      }
+
       /* 4. zakup Premium: dokładnie 1000 orbs za 30 dni */
       function isPremiumPurchase() {
         let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
@@ -562,6 +675,9 @@ service cloud.firestore {
             || isDailyChest()
             || isMissionReward()
             || isPremiumPurchase()
+            || isChestPurchase()
+            || isChestOpen()
+            || isOwnerChestGrant()
             || isRedeemReward()
           )
         );
