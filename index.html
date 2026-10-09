@@ -4400,12 +4400,13 @@ function neoBadgeSvg(type) {
     if (type === "developer") return base(`<circle cx="20" cy="20" r="18" fill="#2387ff"/><path d="M12 14h16l-2 3H14zM15 17h10v10H15z" fill="none" stroke="#fff" stroke-width="2.3" stroke-linejoin="round"/><path d="M17 27h6M18 11h4" fill="none" stroke="#bfe1ff" stroke-width="2.2" stroke-linecap="round"/>`);
     if (type === "orbs") return base(`<circle cx="20" cy="20" r="17" fill="url(#neoBadgeOrbGradient)"/><path d="M12 21c0-6 3-10 8-10s8 4 8 10-3 9-8 9-8-3-8-9z" fill="rgba(255,255,255,.16)" stroke="#fff" stroke-width="1.5"/><circle cx="17" cy="17" r="2.5" fill="#fff" opacity=".85"/>`, true);
     if (type === "premium") return base(`<circle cx="20" cy="20" r="18" fill="url(#neoBadgePremiumGradient)"/><path d="M10 16l4 13h12l4-13-6 5-4-8-4 8z" fill="#fff" opacity=".95"/><path d="M12 31h16" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>`, true);
+    if (type === "luckyBoy") return base(`<circle cx="20" cy="20" r="18" fill="#eaffb5" stroke="#8bc34a" stroke-width="1.5"/><path d="M20 18C13 5 4 12 10 20c-9 2-5 12 3 9 1 8 10 7 10 0 8 4 14-6 6-10 5-9-5-15-9-1z" fill="#38b44a" stroke="#176b2c" stroke-width="1.3" stroke-linejoin="round"/><path d="M20 20c-1 5-3 9-7 13" fill="none" stroke="#176b2c" stroke-width="1.7" stroke-linecap="round"/><circle cx="13" cy="17" r="1.5" fill="#b9f6ca"/><circle cx="26" cy="19" r="1.5" fill="#b9f6ca"/>`);
     return "";
 }
 
 function neoBadgeHtml(types) {
     const unique = [...new Set((Array.isArray(types) ? types : [types]).filter(Boolean))];
-    return unique.map(type => `<span class="neo-profile-badge" title="${type === "premium" ? "Premium" : type === "admin" ? "Admin" : type === "developer" ? "Developer" : type === "owner" ? "Owner" : "50,000 Orbs"}">${neoBadgeSvg(type)}</span>`).join("");
+    return unique.map(type => `<span class="neo-profile-badge" title="${type === "luckyBoy" ? "Lucky Boy" : type === "premium" ? "Premium" : type === "admin" ? "Admin" : type === "developer" ? "Developer" : type === "owner" ? "Owner" : "50,000 Orbs"}">${neoBadgeSvg(type)}</span>`).join("");
 }
 
 function getNeoUserBadgeTypes(user, orbs, economy = null) {
@@ -4424,6 +4425,7 @@ function getNeoUserBadgeTypes(user, orbs, economy = null) {
 
     if (premiumFromEconomy || isPremiumActive()) types.push("premium");
     if (Number(orbs || 0) >= 50000) types.push("orbs");
+    if (Array.isArray(economy?.badges) && economy.badges.includes("luckyBoy")) types.push("luckyBoy");
     return types;
 }
 
@@ -11287,11 +11289,12 @@ const ORB_CHEST_DEFINITIONS = {
         price: 200,
         icon: "🌌",
         rewards: [
-            { type: "orbs", amount: 250, weight: 45 },
+            { type: "orbs", amount: 250, weight: 44.9 },
             { type: "orbs", amount: 300, weight: 25 },
             { type: "orbs", amount: 325, weight: 15 },
             { type: "premium", days: 3, weight: 10 },
-            { type: "premium_orbs", days: 7, amount: 250, weight: 5 }
+            { type: "premium_orbs", days: 7, amount: 250, weight: 5 },
+            { type: "badge", badge: "luckyBoy", label: "Lucky Boy", weight: 0.1 }
         ]
     }
 };
@@ -11481,6 +11484,11 @@ async function openOwnedOrbChest() {
                 chestInventory: inv,
                 lastChestReward: { chest: type, reward, at: Date.now() }
             };
+            if (type === "neofind" && reward.type === "badge" && reward.badge === "luckyBoy") {
+                const badges = Array.isArray(data.badges) ? data.badges.slice() : [];
+                if (!badges.includes("luckyBoy")) badges.push("luckyBoy");
+                update.badges = badges;
+            }
 
             const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
 
@@ -11514,6 +11522,11 @@ async function openOwnedOrbChest() {
         if (reward.type === "orbs") rewardEl.textContent = "You won " + reward.amount + " Orbs!";
         if (reward.type === "premium") rewardEl.textContent = "You won " + reward.days + " days of Premium!";
         if (reward.type === "premium_orbs") rewardEl.textContent = "You won " + reward.days + " days of Premium + " + reward.amount + " Orbs!";
+        if (reward.type === "badge" && reward.badge === "luckyBoy") {
+            rewardEl.textContent = "LUCKY! You unlocked the exclusive Lucky Boy four-leaf clover badge!";
+            const badgeSnap = await db.collection("users").doc(user.uid).get();
+            if (badgeSnap.exists) renderNeoFindAccountBadges(user, badgeSnap.data());
+        }
 
         await loadOrbChestInventory();
     } catch (e) {
