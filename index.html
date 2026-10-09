@@ -1841,15 +1841,13 @@ body.ocean {
 
 
 
-    .orb-chest-card{position:relative;padding:10px;border-radius:18px;border:1px solid rgba(0,242,254,.2);background:rgba(255,255,255,.04);transition:.2s;}
+    .orb-chest-card{position:relative;padding:10px;border-radius:18px;border:1px solid rgba(0,242,254,.2);background:rgba(255,255,255,.04);transition:.2s;min-height:190px;}
     .orb-chest-card:hover{transform:translateY(-3px);border-color:rgba(0,242,254,.55);box-shadow:0 8px 30px rgba(0,242,254,.12);}
-    .orb-chest-buy{width:100%;border:0;background:transparent;cursor:pointer;color:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;}
-    .orb-chest-svg{width:125px;height:105px;fill:rgba(0,242,254,.18);stroke:currentColor;stroke-width:5;stroke-linejoin:round;}
-    .orb-chest-rare .orb-chest-svg{fill:rgba(80,120,255,.2);}
-    .orb-chest-epic .orb-chest-svg{fill:rgba(170,80,255,.2);}
-    .orb-chest-neofind .orb-chest-svg{fill:rgba(0,242,254,.22);}
-    .chest-info-btn{position:absolute;top:8px;right:8px;width:27px;height:27px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.3);cursor:pointer;z-index:2;}
-
+    .orb-chest-buy{width:100%;height:100%;border:0;background:transparent;cursor:pointer;color:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding-top:14px;}
+    .orb-chest-buy .neo-chest{margin:12px auto 0;}
+    .orb-chest-buy .neo-chest-glow{top:54px;}
+    .orb-chest-buy .neo-chest-label{margin-top:12px;}
+    .orb-chest-card .chest-info-btn{position:absolute;top:8px;right:8px;width:27px;height:27px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.3);cursor:pointer;z-index:3;color:inherit;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
 
@@ -2286,28 +2284,28 @@ NOTE! Do not share the key with anyone.
         <div class="orb-chest-card orb-chest-normal">
             <button class="chest-info-btn" onclick="showOrbChestChances('normal')" aria-label="Normal Chest chances">ⓘ</button>
             <button class="orb-chest-buy" onclick="buyOrbChest('normal')">
-                <svg class="orb-chest-svg" viewBox="0 0 180 150" aria-hidden="true"><path d="M35 52h110l-10 78H45z"/><path d="M30 52h120L136 24H44z"/><path d="M30 52h120v20H30z"/><path d="M85 52v20"/><circle cx="85" cy="62" r="5"/></svg>
+                <div class="neo-chest-glow"></div><div class="neo-chest"><div class="neo-chest-lid"><div class="neo-chest-lock"></div></div><div class="neo-chest-body"><div class="neo-chest-band"></div></div></div>
                 <b>Normal Chest</b><small>25 Orbs</small>
             </button>
         </div>
         <div class="orb-chest-card orb-chest-rare">
             <button class="chest-info-btn" onclick="showOrbChestChances('rare')" aria-label="Rare Chest chances">ⓘ</button>
             <button class="orb-chest-buy" onclick="buyOrbChest('rare')">
-                <svg class="orb-chest-svg" viewBox="0 0 180 150" aria-hidden="true"><path d="M35 52h110l-10 78H45z"/><path d="M30 52h120L136 24H44z"/><path d="M30 52h120v20H30z"/><path d="M85 52v20"/><circle cx="85" cy="62" r="5"/></svg>
+                <div class="neo-chest-glow"></div><div class="neo-chest"><div class="neo-chest-lid"><div class="neo-chest-lock"></div></div><div class="neo-chest-body"><div class="neo-chest-band"></div></div></div>
                 <b>Rare Chest</b><small>50 Orbs</small>
             </button>
         </div>
         <div class="orb-chest-card orb-chest-epic">
             <button class="chest-info-btn" onclick="showOrbChestChances('epic')" aria-label="Epic Chest chances">ⓘ</button>
             <button class="orb-chest-buy" onclick="buyOrbChest('epic')">
-                <svg class="orb-chest-svg" viewBox="0 0 180 150" aria-hidden="true"><path d="M35 52h110l-10 78H45z"/><path d="M30 52h120L136 24H44z"/><path d="M30 52h120v20H30z"/><path d="M85 52v20"/><circle cx="85" cy="62" r="5"/></svg>
+                <div class="neo-chest-glow"></div><div class="neo-chest"><div class="neo-chest-lid"><div class="neo-chest-lock"></div></div><div class="neo-chest-body"><div class="neo-chest-band"></div></div></div>
                 <b>Epic Chest</b><small>100 Orbs</small>
             </button>
         </div>
         <div class="orb-chest-card orb-chest-neofind">
             <button class="chest-info-btn" onclick="showOrbChestChances('neofind')" aria-label="NeoFind Chest chances">ⓘ</button>
             <button class="orb-chest-buy" onclick="buyOrbChest('neofind')">
-                <svg class="orb-chest-svg" viewBox="0 0 180 150" aria-hidden="true"><path d="M35 52h110l-10 78H45z"/><path d="M30 52h120L136 24H44z"/><path d="M30 52h120v20H30z"/><path d="M85 52v20"/><circle cx="85" cy="62" r="5"/></svg>
+                <div class="neo-chest-glow"></div><div class="neo-chest"><div class="neo-chest-lid"><div class="neo-chest-lock"></div></div><div class="neo-chest-body"><div class="neo-chest-band"></div></div></div>
                 <b>NeoFind Chest</b><small>200 Orbs</small>
             </button>
         </div>
