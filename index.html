@@ -11313,23 +11313,35 @@ function weightedOrbChestReward(rewards) {
 function renderOrbChestInventory() {
     const el = document.getElementById("orbChestInventory");
     if (!el) return;
+
     const chestItem = (type, emoji, label) => {
         const count = Math.max(0, Number(orbChestInventory[type] || 0));
-        return '<button type="button" onclick="openOwnedChestFromInventory(\'' + type + '\')" title="Open ' + label + '" aria-label="Open ' + label + ', ' + count + ' available" style="display:inline-flex;align-items:center;gap:3px;border:0;background:transparent;color:inherit;font:inherit;padding:2px 4px;border-radius:6px;cursor:' + (count > 0 ? 'pointer' : 'default') + ';opacity:' + (count > 0 ? '1' : '.55') + ';" ' + (count > 0 ? '' : 'disabled') + '><span>' + emoji + '</span><span>' + count + '</span></button>';
+        return '<button type="button" data-open-owned-chest="' + type + '" title="' + (count > 0 ? 'Open ' + label : 'No ' + label + ' available') + '" aria-label="' + label + ': ' + count + '" ' +
+            (count > 0 ? '' : 'disabled') +
+            ' style="position:relative;z-index:1;pointer-events:auto;display:inline-flex;align-items:center;gap:3px;border:1px solid ' + (count > 0 ? 'rgba(0,242,254,.3)' : 'transparent') + ';background:' + (count > 0 ? 'rgba(0,242,254,.09)' : 'transparent') + ';color:inherit;font:inherit;padding:4px 6px;border-radius:7px;cursor:' + (count > 0 ? 'pointer' : 'default') + ';opacity:' + (count > 0 ? '1' : '.5') + ';">' +
+            '<span>' + emoji + '</span><span>' + count + '</span></button>';
     };
-    el.innerHTML =
-        'Your chests: ' +
+
+    el.innerHTML = 'Your chests: ' +
         chestItem("normal", "📦", "Normal Chest") +
         chestItem("rare", "🎁", "Rare Chest") +
         chestItem("epic", "💎", "Epic Chest") +
         chestItem("neofind", "🌌", "NeoFind Chest");
-}
 
-function openOwnedChestFromInventory(type) {
-    if (!ORB_CHEST_DEFINITIONS[type] || Number(orbChestInventory[type] || 0) < 1) return;
-    openOrbChestModal(type);
+    // Use delegated clicks so inventory buttons keep working after every re-render.
+    if (!el.dataset.chestClickBound) {
+        el.addEventListener("click", function(event) {
+            const button = event.target.closest("button[data-open-owned-chest]");
+            if (!button || button.disabled) return;
+            event.preventDefault();
+            event.stopPropagation();
+            const type = button.getAttribute("data-open-owned-chest");
+            if (!type || !ORB_CHEST_DEFINITIONS[type]) return;
+            openOrbChestModal(type);
+        });
+        el.dataset.chestClickBound = "true";
+    }
 }
-
 async function loadOrbChestInventory() {
     const user = auth.currentUser;
     if (!user) return;
