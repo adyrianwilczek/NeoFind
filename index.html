@@ -1870,6 +1870,16 @@ body.ocean {
 #orbChestShop .orb-chest-card:nth-child(4) .neo-chest-lock{background:linear-gradient(135deg,#00eaff,#b44dff);border-color:#1c174a;box-shadow:0 0 12px #00eaff}
 #orbChestShop .orb-chest-card:nth-child(4) .neo-chest-glow{background:radial-gradient(circle,rgba(0,242,254,.6),rgba(155,81,226,.38),rgba(0,0,0,.25),transparent 72%)}
 
+
+#orbChestInventory{
+ position:fixed;left:14px;bottom:calc(var(--bottomnav-h,70px) + 12px);z-index:8998;
+ max-width:calc(100vw - 28px);padding:9px 13px;border-radius:12px;
+ color:#fff;font-size:12px!important;font-weight:700;
+ background:rgba(8,14,30,.9);border:1px solid rgba(0,242,254,.35);
+ box-shadow:0 4px 22px rgba(0,0,0,.35);backdrop-filter:blur(10px);
+}
+@media(max-width:600px){#orbChestInventory{left:8px;bottom:calc(var(--bottomnav-h,70px) + 8px);font-size:11px!important;padding:7px 9px;}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
 
@@ -2332,7 +2342,7 @@ NOTE! Do not share the key with anyone.
             </button>
         </div>
     </div>
-    <div id="orbChestInventory" style="margin-top:14px;font-size:14px;"></div>
+    <div id="orbChestInventory" aria-live="polite" title="Your chest inventory">Your chests: 📦 0 · 🎁 0 · 💎 0 · 🌌 0</div>
 
     <div id="orbChestChancesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:100001;align-items:center;justify-content:center;padding:20px;">
         <div style="width:min(430px,95vw);padding:26px;border-radius:22px;text-align:center;background:linear-gradient(145deg,rgba(15,25,45,.98),rgba(35,15,60,.98));border:1px solid rgba(0,242,254,.35);">
@@ -2342,19 +2352,7 @@ NOTE! Do not share the key with anyone.
         </div>
     </div>
 
-    <div id="ownerChestGrantSection" style="display:none;margin-top:20px;padding:16px;border:1px solid rgba(255,215,0,.25);border-radius:14px;background:rgba(255,215,0,.04);">
-        <h3 style="margin-top:0;">OWNER • Give Chest</h3>
-        <input id="ownerChestEmail" type="email" placeholder="User email">
-        <select id="ownerChestType" style="margin:8px 0;">
-            <option value="normal">Normal Chest</option>
-            <option value="rare">Rare Chest</option>
-            <option value="epic">Epic Chest</option>
-            <option value="neofind">NeoFind Chest</option>
-        </select>
-        <input id="ownerChestAmount" type="number" min="1" max="100" value="1" placeholder="Amount">
-        <button onclick="ownerGrantChest()">Give Chest</button>
-        <p id="ownerChestGrantStatus" style="font-size:13px;min-height:18px;"></p>
-    </div>
+
 
     <div id="orbChestModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:100000;align-items:center;justify-content:center;padding:20px;">
         <div style="width:min(460px,95vw);padding:28px;border-radius:24px;text-align:center;background:linear-gradient(145deg,rgba(15,25,45,.98),rgba(35,15,60,.98));border:1px solid rgba(0,242,254,.35);box-shadow:0 0 70px rgba(0,242,254,.18);">
@@ -2722,6 +2720,21 @@ Search. Connect. Discover.
 <textarea id="announcementAdminBody" placeholder="Announcement text" style="width:90%;min-height:90px;"></textarea><br>
 <button onclick="adminCreateAnnouncement()">Send to everyone</button>
 <p id="announcementAdminStatus" style="font-size:12px;opacity:.7;"></p>
+
+    <div id="ownerChestGrantSection" style="display:none;margin-top:20px;padding:16px;border:1px solid rgba(255,215,0,.25);border-radius:14px;background:rgba(255,215,0,.04);">
+        <h3 style="margin-top:0;">OWNER • Give Chest</h3>
+        <input id="ownerChestEmail" type="email" placeholder="User email">
+        <select id="ownerChestType" style="margin:8px 0;">
+            <option value="normal">Normal Chest</option>
+            <option value="rare">Rare Chest</option>
+            <option value="epic">Epic Chest</option>
+            <option value="neofind">NeoFind Chest</option>
+        </select>
+        <input id="ownerChestAmount" type="number" min="1" max="100" value="1" placeholder="Amount">
+        <button onclick="ownerGrantChest()">Give Chest</button>
+        <p id="ownerChestGrantStatus" style="font-size:13px;min-height:18px;"></p>
+    </div>
+<hr style="border:0;border-top:1px solid rgba(255,215,0,.25);margin:20px 0;">
 
 <h3 id="ratingsTitleEl">Ratings</h3>
 <div id="ratingsList"></div>
