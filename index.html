@@ -11313,12 +11313,21 @@ function weightedOrbChestReward(rewards) {
 function renderOrbChestInventory() {
     const el = document.getElementById("orbChestInventory");
     if (!el) return;
+    const chestItem = (type, emoji, label) => {
+        const count = Math.max(0, Number(orbChestInventory[type] || 0));
+        return '<button type="button" onclick="openOwnedChestFromInventory(\'' + type + '\')" title="Open ' + label + '" aria-label="Open ' + label + ', ' + count + ' available" style="display:inline-flex;align-items:center;gap:3px;border:0;background:transparent;color:inherit;font:inherit;padding:2px 4px;border-radius:6px;cursor:' + (count > 0 ? 'pointer' : 'default') + ';opacity:' + (count > 0 ? '1' : '.55') + ';" ' + (count > 0 ? '' : 'disabled') + '><span>' + emoji + '</span><span>' + count + '</span></button>';
+    };
     el.innerHTML =
-        "Your chests: " +
-        "📦 " + (orbChestInventory.normal || 0) +
-        " &nbsp; 🎁 " + (orbChestInventory.rare || 0) +
-        " &nbsp; 💎 " + (orbChestInventory.epic || 0) +
-        " &nbsp; 🌌 " + (orbChestInventory.neofind || 0);
+        'Your chests: ' +
+        chestItem("normal", "📦", "Normal Chest") +
+        chestItem("rare", "🎁", "Rare Chest") +
+        chestItem("epic", "💎", "Epic Chest") +
+        chestItem("neofind", "🌌", "NeoFind Chest");
+}
+
+function openOwnedChestFromInventory(type) {
+    if (!ORB_CHEST_DEFINITIONS[type] || Number(orbChestInventory[type] || 0) < 1) return;
+    openOrbChestModal(type);
 }
 
 async function loadOrbChestInventory() {
