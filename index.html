@@ -6214,12 +6214,12 @@ if (localStorage.getItem("autumn") === "on") {
     }
 }
 
-async function switchLang(lang){
+function switchLang(lang){
+    if (!["en", "pl", "es", "fr"].includes(lang)) return;
     const previousLanguage = localStorage.getItem("lang") || "en";
-    if (previousLanguage !== lang && typeof trackNeoAdvancementUnique === "function") {
-        await trackNeoAdvancementUnique("languages", previousLanguage);
-        await trackNeoAdvancementUnique("languages", lang);
-    }
+    if (previousLanguage === lang) return;
+
+    // Zapisz wybór natychmiast. Nie czekaj na sieć ani Firebase przed zmianą języka.
     localStorage.setItem("lang", lang);
     location.reload();
 }
