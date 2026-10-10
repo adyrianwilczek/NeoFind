@@ -12837,62 +12837,104 @@ window.sendOrbsToUser = async function () {
     }) || null;
   }
 
-  async function updateRenderNotice() {
+  function updateRemoveDuplicateNotices() {
+    const notices = Array.from(document.querySelectorAll("#neoUpdateNotice"));
+    notices.slice(1).forEach(item => item.remove());
+    return notices[0] || null;
+  }
+
+  let updateNoticeRenderPromise = null;
+  let updateNoticeRenderQueued = false;
+
+  async function updateRenderNoticeOnce() {
     const user = updateAuth && updateAuth.currentUser;
-    let notice = document.getElementById("neoUpdateNotice");
+    let notice = updateRemoveDuplicateNotices();
+
     if (!user || !updateEnabled || !updateReleaseId) {
-      if (notice) notice.remove();
+      document.querySelectorAll("#neoUpdateNotice").forEach(item => item.remove());
       return;
     }
 
+    const requestedReleaseId = updateReleaseId;
+
     try {
       const snap = await updateDb.collection("users").doc(user.uid).get();
-      if (!snap.exists) return;
-      const userData = snap.data() || {};
-      if (userData.completedUpdateVersion === updateReleaseId) {
-        if (notice) notice.remove();
+
+      // Auth or release may have changed while Firestore was loading.
+      if (!updateAuth.currentUser || updateAuth.currentUser.uid !== user.uid ||
+          !updateEnabled || updateReleaseId !== requestedReleaseId) {
+        if (!updateEnabled) {
+          document.querySelectorAll("#neoUpdateNotice").forEach(item => item.remove());
+        }
         return;
       }
 
-      if (!notice) {
-        notice = document.createElement("div");
-        notice.id = "neoUpdateNotice";
-        notice.innerHTML = '<span class="neo-update-title">Update available</span><span>A new NeoFind update is ready.</span><button type="button" id="neoUpdateResetButton">Reset &amp; update</button>';
-        const anchor = updateFindNeoSocial();
-        if (anchor && anchor.parentElement) {
-          anchor.insertAdjacentElement("afterend", notice);
-        } else {
-          const host = document.querySelector("#topbar,.topbar,header,nav,#bottomNav,.bottom-nav") || document.body;
-          host.appendChild(notice);
-        }
+      if (!snap.exists) return;
+      const userData = snap.data() || {};
 
-        notice.querySelector("#neoUpdateResetButton").addEventListener("click", async function () {
-          const button = this;
-          button.disabled = true;
-          button.textContent = "Updating…";
-          try {
-            await updateDb.collection("users").doc(user.uid).set({
-              completedUpdateVersion: updateReleaseId,
-              completedUpdateAt: Date.now()
-            }, { merge: true });
-            window.location.reload();
-          } catch (error) {
-            console.error("NeoFind update confirmation failed:", error);
-            button.disabled = false;
-            button.textContent = "Retry update";
-            let errorMessage = notice.querySelector(".neo-update-error");
-            if (!errorMessage) {
-              errorMessage = document.createElement("span");
-              errorMessage.className = "neo-update-error";
-              notice.appendChild(errorMessage);
-            }
-            errorMessage.textContent = "Could not save update status. Please try again.";
-          }
-        });
+      if (userData.completedUpdateVersion === requestedReleaseId) {
+        document.querySelectorAll("#neoUpdateNotice").forEach(item => item.remove());
+        return;
       }
+
+      // Re-check immediately before creating anything. There must only ever be one banner.
+      notice = updateRemoveDuplicateNotices();
+      if (notice) return;
+
+      notice = document.createElement("div");
+      notice.id = "neoUpdateNotice";
+      notice.innerHTML = '<span class="neo-update-title">Update available</span><span>A new NeoFind update is ready.</span><button type="button" id="neoUpdateResetButton">Reset &amp; update</button>';
+
+      const anchor = updateFindNeoSocial();
+      if (anchor && anchor.parentElement) {
+        anchor.insertAdjacentElement("afterend", notice);
+      } else {
+        const host = document.querySelector("#topbar,.topbar,header,nav,#bottomNav,.bottom-nav") || document.body;
+        host.appendChild(notice);
+      }
+
+      notice.querySelector("#neoUpdateResetButton").addEventListener("click", async function () {
+        const button = this;
+        button.disabled = true;
+        button.textContent = "Updating…";
+        try {
+          await updateDb.collection("users").doc(user.uid).set({
+            completedUpdateVersion: requestedReleaseId,
+            completedUpdateAt: Date.now()
+          }, { merge: true });
+          window.location.reload();
+        } catch (error) {
+          console.error("NeoFind update confirmation failed:", error);
+          button.disabled = false;
+          button.textContent = "Retry update";
+          let errorMessage = notice.querySelector(".neo-update-error");
+          if (!errorMessage) {
+            errorMessage = document.createElement("span");
+            errorMessage.className = "neo-update-error";
+            notice.appendChild(errorMessage);
+          }
+          errorMessage.textContent = "Could not save update status. Please try again.";
+        }
+      });
     } catch (error) {
       console.warn("NeoFind update: could not load account update status", error);
     }
+  }
+
+  function updateRenderNotice() {
+    if (updateNoticeRenderPromise) {
+      updateNoticeRenderQueued = true;
+      return updateNoticeRenderPromise;
+    }
+
+    updateNoticeRenderPromise = updateRenderNoticeOnce().finally(function () {
+      updateNoticeRenderPromise = null;
+      if (updateNoticeRenderQueued) {
+        updateNoticeRenderQueued = false;
+        Promise.resolve().then(updateRenderNotice);
+      }
+    });
+    return updateNoticeRenderPromise;
   }
 
   function updateFindAdminHost() {
@@ -12904,43 +12946,46 @@ window.sendOrbsToUser = async function () {
   function updateRenderAdminPanel(user) {
     const host = updateFindAdminHost();
     let panel = document.getElementById("neoUpdateAdminPanel");
+
     if (!host || !updateIsAdmin(user)) {
       if (panel) panel.remove();
       return;
     }
 
-    if (!panel) {
-      panel = document.createElement("section");
-      panel.id = "neoUpdateAdminPanel";
-      panel.innerHTML = '<strong>Global update announcement</strong><p>Enable this checkbox to show an “Update available” notice to every account that has not completed this release.</p><label><input id="neoUpdateAnnouncementCheckbox" type="checkbox"><span>Show update available to everyone</span></label><span id="neoUpdateAdminStatus">Loading settings…</span>';
-      host.appendChild(panel);
+    // MutationObserver can run for every DOM change. Do not re-fetch settings
+    // or rewrite this panel each time, otherwise it creates a mutation loop.
+    if (panel) return;
 
-      panel.querySelector("#neoUpdateAnnouncementCheckbox").addEventListener("change", async function () {
-        const checkbox = this;
-        const status = panel.querySelector("#neoUpdateAdminStatus");
-        checkbox.disabled = true;
-        try {
-          const enabled = checkbox.checked;
-          const releaseId = enabled ? String(Date.now()) : (updateReleaseId || String(Date.now()));
-          await updateDb.collection("system").doc(UPDATE_DOC).set({
-            enabled: enabled,
-            releaseId: releaseId,
-            updatedAt: Date.now(),
-            updatedBy: String((updateAuth.currentUser && updateAuth.currentUser.email) || "")
-          }, { merge: true });
-          updateEnabled = enabled;
-          updateReleaseId = releaseId;
-          status.textContent = enabled ? "Enabled for all accounts." : "Announcement turned off.";
-          await updateRenderNotice();
-        } catch (error) {
-          console.error("NeoFind update: could not save announcement setting", error);
-          status.textContent = "Could not save settings. Check Firestore rules.";
-          checkbox.checked = updateEnabled;
-        } finally {
-          checkbox.disabled = false;
-        }
-      });
-    }
+    panel = document.createElement("section");
+    panel.id = "neoUpdateAdminPanel";
+    panel.innerHTML = '<strong>Global update announcement</strong><p>Enable this checkbox to show an “Update available” notice to every account that has not completed this release.</p><label><input id="neoUpdateAnnouncementCheckbox" type="checkbox"><span>Show update available to everyone</span></label><span id="neoUpdateAdminStatus">Loading settings…</span>';
+    host.appendChild(panel);
+
+    panel.querySelector("#neoUpdateAnnouncementCheckbox").addEventListener("change", async function () {
+      const checkbox = this;
+      const status = panel.querySelector("#neoUpdateAdminStatus");
+      checkbox.disabled = true;
+      try {
+        const enabled = checkbox.checked;
+        const releaseId = enabled ? String(Date.now()) : (updateReleaseId || String(Date.now()));
+        await updateDb.collection("system").doc(UPDATE_DOC).set({
+          enabled: enabled,
+          releaseId: releaseId,
+          updatedAt: Date.now(),
+          updatedBy: String((updateAuth.currentUser && updateAuth.currentUser.email) || "")
+        }, { merge: true });
+        updateEnabled = enabled;
+        updateReleaseId = releaseId;
+        status.textContent = enabled ? "Enabled for all accounts." : "Announcement turned off.";
+        await updateRenderNotice();
+      } catch (error) {
+        console.error("NeoFind update: could not save announcement setting", error);
+        status.textContent = "Could not save settings. Check Firestore rules.";
+        checkbox.checked = updateEnabled;
+      } finally {
+        checkbox.disabled = false;
+      }
+    });
 
     updateDb.collection("system").doc(UPDATE_DOC).get().then(snap => {
       const data = snap.exists ? snap.data() || {} : {};
