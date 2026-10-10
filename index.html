@@ -4700,7 +4700,19 @@ function renderGreeting(){
     const t = translations[currentLang] || translations.en;
     const tpl = (greetTemp !== null) ? (t.greetW || translations.en.greetW)
                                      : (t.greet  || translations.en.greet);
-    el.textContent = tpl.replace('{name}', name).replace('{temp}', greetTemp);
+
+    let personalGreeting = "";
+    try {
+        const personal = JSON.parse(localStorage.getItem("neoFindPersonalization") || "{}");
+        if (typeof personal.welcomeMessage === "string") {
+            personalGreeting = personal.welcomeMessage.trim().slice(0, 100);
+        }
+    } catch (error) {}
+
+    const greetingText = personalGreeting || tpl;
+    el.textContent = greetingText
+        .replace(/\\{name\\}/gi, name)
+        .replace(/\\{temp\\}/gi, greetTemp === null ? "" : String(greetTemp));
 }
 
 async function recordNeoVisitStreak(user) {
@@ -13377,6 +13389,12 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
 .neo-own-theme-field input[type=color]{width:100%;height:44px;padding:4px;border-radius:10px;border:1px solid rgba(148,163,184,.28);background:#111d30;cursor:pointer}
 .neo-own-theme-field select{width:100%;min-height:42px;border-radius:10px;border:1px solid rgba(148,163,184,.28);padding:0 10px;background:#111d30;color:#edf5ff}
 .neo-own-theme-field input[type=range]{width:100%;accent-color:#5eead4}
+.neo-own-theme-field input[type=text]{width:100%;box-sizing:border-box;min-height:42px;border:1px solid rgba(148,163,184,.28);border-radius:10px;padding:0 11px;background:#111d30;color:#edf5ff;font:inherit}
+.neo-own-theme-field input[type=text]::placeholder{color:#8498b3}
+.neo-own-theme-section-title{grid-column:1/-1;margin-top:4px;padding-top:15px;border-top:1px solid rgba(148,163,184,.16);font-size:13px;font-weight:800;color:#5eead4;letter-spacing:.4px}
+.neo-own-theme-help{font-size:11px;line-height:1.5;color:#91a4bd}
+.neo-own-theme-toggle{display:flex!important;flex-direction:row!important;align-items:center;gap:9px!important;min-height:29px;font-size:12px!important;font-weight:500!important;color:#dbe8f9!important;letter-spacing:0!important;cursor:pointer}
+.neo-own-theme-toggle input{flex:0 0 auto;width:16px;height:16px;accent-color:#5eead4}
 .neo-own-theme-range-row{display:flex;align-items:center;justify-content:space-between;gap:10px;color:#9aacc3;font-size:12px}
 .neo-own-theme-preview-wrap{min-width:0}
 .neo-own-theme-preview-label{font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#9aacc3;margin-bottom:10px}
@@ -13408,6 +13426,40 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
   .neo-own-theme-footer{padding:14px 15px 18px}
 }
 @media(max-width:420px){.neo-own-theme-controls{grid-template-columns:1fr}.neo-own-theme-field.wide{grid-column:auto}.neo-own-theme-footer-group{width:100%}.neo-own-theme-footer-group .neo-own-theme-btn{flex:1}}
+</style>
+
+<style id="neo-find-personalization-style">
+body.nf-custom-layout #greeting,
+body.nf-custom-layout #didYouKnowTitle,
+body.nf-custom-layout #didYouKnow,
+body.nf-custom-layout #newsBtn,
+body.nf-custom-layout #neoAiFloatBtn { transition:opacity .18s ease; }
+body.nf-custom-layout.nf-hide-greeting #greeting {display:none!important}
+body.nf-custom-layout.nf-hide-facts #didYouKnowTitle,
+body.nf-custom-layout.nf-hide-facts #didYouKnow {display:none!important}
+body.nf-custom-layout.nf-hide-news #newsBtn {display:none!important}
+body.nf-custom-layout.nf-hide-neoai #neoAiFloatBtn {display:none!important}
+body.nf-custom-layout.nf-home-left #homeWrapper {align-items:flex-start!important}
+body.nf-custom-layout.nf-home-left #logo,
+body.nf-custom-layout.nf-home-left #greeting,
+body.nf-custom-layout.nf-home-left #didYouKnowTitle,
+body.nf-custom-layout.nf-home-left #didYouKnow {text-align:left!important}
+body.nf-custom-layout .searchBox {
+  width:min(var(--nf-search-width,80%),100%)!important;
+  max-width:900px!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+body.nf-custom-layout.nf-home-left .searchBox {margin-left:0!important;margin-right:auto!important}
+body.nf-custom-layout #search {
+  height:var(--nf-search-height,46px)!important;
+  min-height:var(--nf-search-height,46px)!important;
+  border-radius:var(--nf-search-radius,12px)!important;
+  box-sizing:border-box!important;
+}
+body.nf-custom-layout.nf-compact-ui #results {gap:6px!important}
+body.nf-custom-layout.nf-compact-ui .result {padding:9px 12px!important;margin-bottom:4px!important}
+body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
 </style>
 
 <div id="neoOwnThemeStudio" class="neo-own-theme-overlay" aria-hidden="true">
@@ -13447,6 +13499,41 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
             <option value="arial">Arial</option>
             <option value="georgia">Georgia</option>
           </select>
+        </div>
+
+        <div class="neo-own-theme-section-title">Home &amp; Interface</div>
+        <div class="neo-own-theme-field wide"><label for="ownWelcomeMessage">Custom welcome message</label>
+          <input id="ownWelcomeMessage" type="text" maxlength="100" placeholder="Welcome back, {name}!" autocomplete="off">
+          <div class="neo-own-theme-help">Use {name} to insert the account name and {temp} to insert the current temperature.</div>
+        </div>
+        <div class="neo-own-theme-field wide">
+          <span class="field-label">Home page elements</span>
+          <label class="neo-own-theme-toggle"><input id="ownShowGreeting" type="checkbox" checked><span>Show welcome message</span></label>
+          <label class="neo-own-theme-toggle"><input id="ownShowFacts" type="checkbox" checked><span>Show “Did you know?”</span></label>
+          <label class="neo-own-theme-toggle"><input id="ownShowNews" type="checkbox" checked><span>Show NeoNews button</span></label>
+          <label class="neo-own-theme-toggle"><input id="ownShowNeoAI" type="checkbox" checked><span>Show Neo AI button</span></label>
+          <label class="neo-own-theme-toggle"><input id="ownCompactUI" type="checkbox"><span>Compact interface</span></label>
+        </div>
+        <div class="neo-own-theme-field wide"><label for="ownHomeAlignment">Home layout alignment</label>
+          <select id="ownHomeAlignment">
+            <option value="center">Centered</option>
+            <option value="left">Left aligned</option>
+          </select>
+        </div>
+        <div class="neo-own-theme-field wide">
+          <label for="ownSearchWidth">Search area width</label>
+          <div class="neo-own-theme-range-row"><span>Focused</span><strong id="ownSearchWidthValue">80%</strong><span>Wide</span></div>
+          <input id="ownSearchWidth" type="range" min="50" max="100" value="80">
+        </div>
+        <div class="neo-own-theme-field">
+          <label for="ownSearchHeight">Search field height</label>
+          <div class="neo-own-theme-range-row"><strong id="ownSearchHeightValue">46 px</strong></div>
+          <input id="ownSearchHeight" type="range" min="40" max="64" value="46">
+        </div>
+        <div class="neo-own-theme-field">
+          <label for="ownSearchRadius">Search field corners</label>
+          <div class="neo-own-theme-range-row"><strong id="ownSearchRadiusValue">12 px</strong></div>
+          <input id="ownSearchRadius" type="range" min="0" max="32" value="12">
         </div>
       </div>
       <div class="neo-own-theme-preview-wrap">
@@ -13488,6 +13575,19 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     font: "oxanium"
   };
 
+  const DEFAULT_NEO_PERSONALIZATION = {
+    welcomeMessage: "",
+    showGreeting: true,
+    showFacts: true,
+    showNews: true,
+    showNeoAI: true,
+    compactUI: false,
+    homeAlignment: "center",
+    searchWidth: 80,
+    searchHeight: 46,
+    searchRadius: 12
+  };
+
   let ownThemePrevious = "classic";
   let ownThemeStudioOpen = false;
 
@@ -13518,6 +13618,54 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
       radius: Math.min(28, Math.max(0, Number(c.radius) || 0)),
       font: ["oxanium","system","arial","georgia"].includes(c.font) ? c.font : DEFAULT_OWN_THEME.font
     };
+  }
+
+  function normalizeNeoPersonalization(raw) {
+    const c = raw && typeof raw === "object" ? raw : {};
+    const numberInRange = (value, min, max, fallback) => {
+      const n = Number(value);
+      return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+    };
+    return {
+      welcomeMessage: typeof c.welcomeMessage === "string" ? c.welcomeMessage.slice(0,100) : "",
+      showGreeting: c.showGreeting !== false,
+      showFacts: c.showFacts !== false,
+      showNews: c.showNews !== false,
+      showNeoAI: c.showNeoAI !== false,
+      compactUI: c.compactUI === true,
+      homeAlignment: ["center","left"].includes(c.homeAlignment) ? c.homeAlignment : "center",
+      searchWidth: numberInRange(c.searchWidth,50,100,DEFAULT_NEO_PERSONALIZATION.searchWidth),
+      searchHeight: numberInRange(c.searchHeight,40,64,DEFAULT_NEO_PERSONALIZATION.searchHeight),
+      searchRadius: numberInRange(c.searchRadius,0,32,DEFAULT_NEO_PERSONALIZATION.searchRadius)
+    };
+  }
+
+  function getNeoFindPersonalization() {
+    try {
+      return normalizeNeoPersonalization(JSON.parse(localStorage.getItem("neoFindPersonalization") || "null") || DEFAULT_NEO_PERSONALIZATION);
+    } catch (error) {
+      return { ...DEFAULT_NEO_PERSONALIZATION };
+    }
+  }
+
+  function applyNeoFindPersonalization(raw) {
+    const c = normalizeNeoPersonalization(raw);
+    const body = document.body;
+    if (!body) return c;
+
+    body.classList.add("nf-custom-layout");
+    body.classList.toggle("nf-hide-greeting", !c.showGreeting);
+    body.classList.toggle("nf-hide-facts", !c.showFacts);
+    body.classList.toggle("nf-hide-news", !c.showNews);
+    body.classList.toggle("nf-hide-neoai", !c.showNeoAI);
+    body.classList.toggle("nf-compact-ui", c.compactUI);
+    body.classList.toggle("nf-home-left", c.homeAlignment === "left");
+    body.style.setProperty("--nf-search-width", c.searchWidth + "%");
+    body.style.setProperty("--nf-search-height", c.searchHeight + "px");
+    body.style.setProperty("--nf-search-radius", c.searchRadius + "px");
+
+    if (typeof renderGreeting === "function") renderGreeting();
+    return c;
   }
 
   function ownHexRgb(hex) {
@@ -13588,6 +13736,38 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     });
   }
 
+  function collectNeoPersonalizationForm() {
+    return normalizeNeoPersonalization({
+      welcomeMessage: document.getElementById("ownWelcomeMessage").value,
+      showGreeting: document.getElementById("ownShowGreeting").checked,
+      showFacts: document.getElementById("ownShowFacts").checked,
+      showNews: document.getElementById("ownShowNews").checked,
+      showNeoAI: document.getElementById("ownShowNeoAI").checked,
+      compactUI: document.getElementById("ownCompactUI").checked,
+      homeAlignment: document.getElementById("ownHomeAlignment").value,
+      searchWidth: document.getElementById("ownSearchWidth").value,
+      searchHeight: document.getElementById("ownSearchHeight").value,
+      searchRadius: document.getElementById("ownSearchRadius").value
+    });
+  }
+
+  function writeNeoPersonalizationForm(raw) {
+    const c = normalizeNeoPersonalization(raw);
+    document.getElementById("ownWelcomeMessage").value = c.welcomeMessage;
+    document.getElementById("ownShowGreeting").checked = c.showGreeting;
+    document.getElementById("ownShowFacts").checked = c.showFacts;
+    document.getElementById("ownShowNews").checked = c.showNews;
+    document.getElementById("ownShowNeoAI").checked = c.showNeoAI;
+    document.getElementById("ownCompactUI").checked = c.compactUI;
+    document.getElementById("ownHomeAlignment").value = c.homeAlignment;
+    document.getElementById("ownSearchWidth").value = String(c.searchWidth);
+    document.getElementById("ownSearchHeight").value = String(c.searchHeight);
+    document.getElementById("ownSearchRadius").value = String(c.searchRadius);
+    document.getElementById("ownSearchWidthValue").textContent = c.searchWidth + "%";
+    document.getElementById("ownSearchHeightValue").textContent = c.searchHeight + " px";
+    document.getElementById("ownSearchRadiusValue").textContent = c.searchRadius + " px";
+  }
+
   function writeOwnThemeForm(config) {
     const c = normalizeOwnThemeConfig(config);
     const fields = {
@@ -13640,6 +13820,12 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     preview.style.color = c.text;
     document.getElementById("ownThemePanelOpacityValue").textContent = c.panelOpacity + "%";
     document.getElementById("ownThemeRadiusValue").textContent = c.radius + " px";
+
+    const personalization = collectNeoPersonalizationForm();
+    applyNeoFindPersonalization(personalization);
+    document.getElementById("ownSearchWidthValue").textContent = personalization.searchWidth + "%";
+    document.getElementById("ownSearchHeightValue").textContent = personalization.searchHeight + " px";
+    document.getElementById("ownSearchRadiusValue").textContent = personalization.searchRadius + " px";
   }
 
   function closeOwnThemeStudio(shouldRestore) {
@@ -13650,6 +13836,7 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     ownThemeStudioOpen = false;
     if (shouldRestore) {
       if (typeof applyTheme === "function") applyTheme(ownThemePrevious);
+      applyNeoFindPersonalization(getNeoFindPersonalization());
     }
     const openButton = document.getElementById("openOwnThemeStudioBtn");
     if (openButton) openButton.focus();
@@ -13666,6 +13853,7 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     }
 
     writeOwnThemeForm(getNeoOwnThemeConfig());
+    writeNeoPersonalizationForm(getNeoFindPersonalization());
     ownThemeStudioOpen = true;
     overlay.style.display = "flex";
     overlay.setAttribute("aria-hidden","false");
@@ -13678,11 +13866,14 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     const c = collectOwnThemeForm();
     try {
       localStorage.setItem("neoFindOwnThemeConfig", JSON.stringify(c));
+      const personalization = collectNeoPersonalizationForm();
+      localStorage.setItem("neoFindPersonalization", JSON.stringify(personalization));
       const select = document.getElementById("themeSelect");
       if (select && NEOFIND_AVAILABLE_THEMES.includes(select.value) && ownThemePrevious !== "own") {
         localStorage.setItem("neoFindOwnThemeBasePreset", select.value);
       }
       if (typeof applyTheme === "function") applyTheme("own");
+      applyNeoFindPersonalization(personalization);
       document.getElementById("neoOwnThemeStatus").textContent = "Your custom theme has been saved.";
       const overlay = document.getElementById("neoOwnThemeStudio");
       overlay.style.display = "none";
@@ -13710,6 +13901,7 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     document.getElementById("neoOwnThemeSaveBtn").addEventListener("click", saveOwnTheme);
     document.getElementById("neoOwnThemeResetBtn").addEventListener("click", function () {
       writeOwnThemeForm(DEFAULT_OWN_THEME);
+      writeNeoPersonalizationForm(DEFAULT_NEO_PERSONALIZATION);
       document.getElementById("neoOwnThemeStatus").textContent = "Default values loaded. Save theme to apply them.";
       updateOwnThemeLive();
     });
@@ -13719,10 +13911,20 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     const ids = [
       "ownThemeAccent","ownThemeAccent2","ownThemeBackground1","ownThemeBackground2",
       "ownThemePanel","ownThemeText","ownThemeBackgroundStyle","ownThemePanelOpacity",
-      "ownThemeRadius","ownThemeFont"
+      "ownThemeRadius","ownThemeFont","ownWelcomeMessage","ownShowGreeting",
+      "ownShowFacts","ownShowNews","ownShowNeoAI","ownCompactUI","ownHomeAlignment",
+      "ownSearchWidth","ownSearchHeight","ownSearchRadius"
     ];
-    ids.forEach(id => document.getElementById(id).addEventListener("input", updateOwnThemeLive));
-    ids.forEach(id => document.getElementById(id).addEventListener("change", updateOwnThemeLive));
+    ids.forEach(id => {
+      const control = document.getElementById(id);
+      if (!control) return;
+      control.addEventListener("input", updateOwnThemeLive);
+      control.addEventListener("change", updateOwnThemeLive);
+    });
+
+    // Restore saved layout settings after the page structure is ready.
+    applyNeoFindPersonalization(getNeoFindPersonalization());
+
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && ownThemeStudioOpen) closeOwnThemeStudio(true);
     });
