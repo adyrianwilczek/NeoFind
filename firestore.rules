@@ -407,7 +407,7 @@ service cloud.firestore {
           'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
           'missionDay', 'missionClaims',
           'lastAdminOrbGrant',
-          'chestInventory', 'lastChestReward', 'lastAdminChestGrant', 'lastRedeemCode', 'lastRedeemAt', 'lastOrbTransferIn', 'lastOrbTransferOut'
+          'chestInventory', 'lastChestReward', 'lastAdminChestGrant', 'lastRedeemCode', 'lastRedeemAt', 'lastOrbTransferIn', 'lastOrbTransferOut', 'advancements', 'advancementStats', 'badges', 'advancementNotices', 'serverEvents'
         ];
       }
 
