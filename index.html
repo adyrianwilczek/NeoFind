@@ -4819,30 +4819,10 @@ function renderGreeting(){
 }
 
 async function recordNeoVisitStreak(user) {
-    if (!user || typeof db === "undefined") return { streak: 0, eligible: false };
-    const date = new Date();
-    const todayKey = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
-    const yesterdayDate = new Date(date);
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterdayKey = yesterdayDate.getFullYear() + "-" + String(yesterdayDate.getMonth() + 1).padStart(2, "0") + "-" + String(yesterdayDate.getDate()).padStart(2, "0");
-    const ref = db.collection("users").doc(user.uid);
-    try {
-        return await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            if (data.neoVisitDate === todayKey) {
-                return { streak: Number(data.neoVisitStreak || 1), eligible: Number(data.neoVisitStreak || 1) >= 3 };
-            }
-            const streak = data.neoVisitDate === yesterdayKey ? Number(data.neoVisitStreak || 0) + 1 : 1;
-            transaction.set(ref, { neoVisitDate: todayKey, neoVisitStreak: streak }, { merge: true });
-            return { streak, eligible: streak >= 3 };
-        });
-    } catch (error) {
-        console.error("NeoFind visit streak update failed:", error);
-        return { streak: 0, eligible: false };
-    }
+    if (!user || !window.NeoEconomy) return { streak: 0, eligible: false };
+    try { return await window.NeoEconomy.call("recordVisit"); }
+    catch (error) { console.error("NeoFind visit streak update failed:", error); return { streak: 0, eligible: false }; }
 }
-
 auth.onAuthStateChanged(async user => {
     authResolved = true;
     const loginScreen = document.getElementById("loginScreen");
@@ -5220,27 +5200,25 @@ function openReport(){ openPanel("reportBox"); }
 function closeReport(){ closeAllPanels(); }
 
 function sendReport(){
-    const text = document.getElementById("reportText").value.trim();
-
-    if(!text){
-        showPopup("Write something!", "red");
-        return;
-    }
-
-    db.collection("reports").add({
-        text: text,
-        user: auth.currentUser ? auth.currentUser.email : "guest",
-        date: new Date()
-    })
-    .then(()=>{
+    const input = document.getElementById("reportText");
+    const text = input ? input.value.trim() : "";
+    if(!text){ showPopup("Write something!", "red"); return; }
+    try {
+        if (auth.currentUser && window.NeoEconomy) {
+            await window.NeoEconomy.call("report", { targetId: "site-feedback", reason: "other", details: text });
+            if (typeof trackNeoAdvancementProgress === "function") await trackNeoAdvancementProgress("reportsSent");
+        } else {
+            await db.collection("reports").add({
+                text,
+                user: auth.currentUser ? auth.currentUser.email : "guest",
+                date: new Date()
+            });
+        }
         showPopup("Report sent!", "#00cc66");
-        unlockNeoAdvancement("bugOrHug");
-        document.getElementById("reportText").value = "";
+        if (auth.currentUser && typeof unlockNeoAdvancement === "function") await unlockNeoAdvancement("bugOrHug");
+        if (input) input.value = "";
         closeReport();
-    })
-    .catch(err=>{
-        showPopup(err.message, "red");
-    });
+    } catch(err) { showPopup(err.message || "Could not send report.", "red"); }
 }
 
 // OCENY
@@ -10841,13 +10819,8 @@ async function validateAndTrackApiKey(apiKey) {
 
 
     function today() {
-
-        const d = new Date();
-
-        return d.getFullYear() + "-" +
-            String(d.getMonth() + 1).padStart(2, "0") + "-" +
-            String(d.getDate()).padStart(2, "0");
-
+        // Daily chest dates use UTC, matching the trusted Cloud Function.
+        return new Date().toISOString().slice(0, 10);
     }
 
 
@@ -11042,145 +11015,43 @@ async function validateAndTrackApiKey(apiKey) {
     // Reguły Firestore sprawdzają odstęp od poprzedniego otwarcia i wysokość nagrody,
     // więc nie da się dopisać sobie orbs z konsoli przeglądarki.
     async function claimChestInCloud(user, reward) {
-
-        const ref = db.collection("users").doc(user.uid);
-
+        if (!window.NeoEconomy) return { status: "error" };
         try {
-            const saved = await db.runTransaction(async transaction => {
-                const snap = await transaction.get(ref);
-                const data = snap.exists ? snap.data() : {};
-                if (data.dailyChestDate === today()) {
-                    throw new Error("ALREADY_OPENED");
-                }
-                if (Number(data.neoVisitStreak || 0) < 3 || !data.neoVisitDate || data.neoVisitDate !== today()) {
-                    throw new Error("STREAK_REQUIRED");
-                }
-
-                const update = {
-                    dailyChestDate: today(),
-                    lastChestAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-                const result = {};
-
-                if (reward.type === "orbs") {
-                    const amount = Math.floor(reward.amount);
-                    update.orbs = Math.max(0, Math.floor(Number(data.orbs || 0))) + amount;
-                    update.lastDailyChestReward = { amount, at: Date.now() };
-                    result.orbs = update.orbs;
-                }
-
-                if (reward.type === "premium") {
-                    const oldUntil = Number(data.premiumUntil || 0);
-                    update.premiumUntil = Math.max(Date.now(), oldUntil) + reward.days * 86400000;
-                    result.premiumUntil = update.premiumUntil;
-                }
-
-                transaction.set(ref, update, { merge: true });
-                return result;
-            });
-            return { status: "ok", saved };
+            const result = await window.NeoEconomy.secureDailyChest();
+            return { status: "ok", saved: result.saved, rarity: result.rarity, reward: result.reward };
         } catch (error) {
-            if (error.message === "ALREADY_OPENED") return { status: "already" };
-            if (error.message === "STREAK_REQUIRED") return { status: "streak" };
+            const message = String(error.message || "");
+            if (message.includes("ALREADY_OPENED")) return { status: "already" };
+            if (message.includes("STREAK_REQUIRED")) return { status: "streak" };
             console.error("Daily chest claim failed:", error);
             return { status: "error" };
         }
-
     }
 
 
     let chestBusy = false;
 
     window.openNeoDailyChest = async function () {
-
-        const chest =
-            document.getElementById(
-                "neoDailyChest"
-            );
-
+        const chest = document.getElementById("neoDailyChest");
         if (!chest || chestBusy) return;
-
-        if (openedToday()) {
-            chest.style.display = "none";
-            return;
-        }
-
+        if (openedToday()) { chest.style.display = "none"; return; }
         const user = (typeof auth !== "undefined") ? auth.currentUser : null;
-        if (!user) {
-            alert("Zaloguj się, żeby otworzyć skrzynię dnia.");
-            return;
-        }
-
-        const rarity =
-            weightedRandom(
-                Object.entries(
-                    CHEST_WEIGHTS
-                ).map(
-                    ([name, weight]) => ({
-                        name,
-                        weight
-                    })
-                )
-            ).name;
-
-        const reward =
-            weightedRandom(
-                REWARDS[rarity]
-            );
-
+        if (!user) { alert("Zaloguj się, żeby otworzyć skrzynię dnia."); return; }
         chestBusy = true;
-        const claim = await claimChestInCloud(user, reward);
+        const claim = await claimChestInCloud(user, null);
         chestBusy = false;
-
-        if (claim.status === "already") {
+        if (claim.status === "already") { localStorage.setItem(CHEST_DATE_KEY, today()); chest.style.display = "none"; return; }
+        if (claim.status === "streak") { alert("Daily Chest odblokowuje się po 3 dniach z rzędu odwiedzania NeoFind."); return; }
+        if (claim.status === "error") { alert("Nie udało się otworzyć skrzyni. Spróbuj później."); return; }
+        const rarity = claim.rarity, reward = claim.reward;
+        applyChestRewardLocally(claim.saved);
+        chest.classList.add("shake");
+        setTimeout(() => { chest.classList.remove("shake"); chest.classList.add("opening"); }, 450);
+        setTimeout(() => {
             localStorage.setItem(CHEST_DATE_KEY, today());
             chest.style.display = "none";
-            return;
-        }
-
-        if (claim.status === "streak") {
-            alert("Daily Chest odblokowuje się po 3 dniach z rzędu odwiedzania NeoFind. Opuścisz jeden dzień, a seria zacznie się od nowa.");
-            return;
-        }
-
-        if (claim.status === "error") {
-            alert("Nie udało się otworzyć skrzyni. Spróbuj trochę później.");
-            return;
-        }
-
-        applyChestRewardLocally(claim.saved);
-
-
-        chest.classList.add("shake");
-
-
-        setTimeout(() => {
-
-            chest.classList.remove("shake");
-
-            chest.classList.add("opening");
-
-        }, 450);
-
-
-        setTimeout(() => {
-
-            localStorage.setItem(
-                CHEST_DATE_KEY,
-                today()
-            );
-
-
-            chest.style.display = "none";
-
-
-            showReward(
-                rarity,
-                reward
-            );
-
+            showReward(rarity, reward);
         }, 1050);
-
     };
 
 
@@ -11376,81 +11247,45 @@ function initDailyMissions() {
 }
 
 function updateMissionProgress(type) {
-    let data = initDailyMissions();
-    let updated = false;
-
+    let data = initDailyMissions(), updated = false;
     data.missions.forEach(m => {
-        if (m.type === type && m.progress < m.target) {
-            m.progress++;
-            updated = true;
-        }
+        if (m.type === type && m.progress < m.target) { m.progress++; updated = true; }
     });
-
     if (updated) {
-        localStorage.setItem('dailyMissionsData', JSON.stringify(data));
+        localStorage.setItem("dailyMissionsData", JSON.stringify(data));
         renderMissions();
-        if (data.missions.length >= 3 && data.missions.every(m => m.progress >= m.target)) {
-            unlockNeoAdvancement("missionLegend");
+        if (window.NeoEconomy && ["search","open_ai","settings","autumn"].includes(type)) {
+            window.NeoEconomy.secureProgress(type).catch(e => console.warn("Mission progress sync failed:", e));
         }
+        if (data.missions.length >= 3 && data.missions.every(m => m.progress >= m.target)) unlockNeoAdvancement("missionLegend");
     }
 }
 
 async function claimReward(id) {
     const data = initDailyMissions();
     const m = data.missions.find(x => x.id === id);
-
-    if (!m || m.progress < m.target || m.claimed) return;
-
-    const ok = await addOrbsToCloud(m.reward);
-    if (!ok) {
-        alert("Could not save your Orbs. Please try again.");
-        return;
+    if (!m || m.progress < m.target || m.claimed || !window.NeoEconomy) return;
+    try {
+        const result = await window.NeoEconomy.secureMission(id);
+        m.claimed = true;
+        localStorage.setItem("dailyMissionsData", JSON.stringify(data));
+        userOrbs = Number(result.orbs || 0);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        if (typeof window.updateUI === "function") window.updateUI();
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("missionClaims");
+        if (typeof confetti === "function") confetti();
+        renderMissions();
+    } catch (e) {
+        console.error("Mission reward claim failed:", e);
+        alert("Could not claim mission reward. Check your progress and try again.");
     }
-
-    m.claimed = true;
-    localStorage.setItem('dailyMissionsData', JSON.stringify(data));
-    if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("missionClaims");
-
-    if (typeof confetti === 'function') confetti();
-    renderMissions();
 }
 
 async function addOrbsToCloud(amount) {
-    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
-    if (!user || typeof db === "undefined") return false;
-
-    amount = Number(amount);
-    if (!Number.isFinite(amount) || amount <= 0) return false;
-
-    try {
-        const ref = db.collection("users").doc(user.uid);
-        const next = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const current = Number(data.orbs || 0);
-            const value = Math.max(0, Math.floor(current)) + Math.floor(amount);
-
-            // licznik nagród z misji w danym dniu (UTC), reguły Firestore pilnują limitu
-            const day = Math.floor(Date.now() / 86400000);
-            const claims = (data.missionDay === day ? Number(data.missionClaims || 0) : 0) + 1;
-
-            transaction.set(ref, {
-                orbs: value,
-                missionDay: day,
-                missionClaims: claims
-            }, { merge: true });
-
-            return value;
-        });
-
-        userOrbs = next;
-        localStorage.setItem("userOrbs", String(userOrbs));
-        renderMissions();
-        return true;
-    } catch (error) {
-        console.error("Orbs transaction failed:", error);
-        return false;
-    }
+    // Orb rewards are issued by the trusted backend through claimReward().
+    // Deliberately refuse legacy arbitrary-amount client grants.
+    console.warn("Direct client-side Orb grants are disabled.");
+    return false;
 }
 
 function renderMissions() {
@@ -11521,11 +11356,11 @@ const ORB_CHEST_DEFINITIONS = {
         price: 200,
         icon: "🌌",
         rewards: [
-            { type: "orbs", amount: 250, weight: 44 },
-            { type: "orbs", amount: 300, weight: 25 },
-            { type: "orbs", amount: 325, weight: 15 },
-            { type: "premium", days: 3, weight: 10 },
-            { type: "premium_orbs", days: 7, amount: 250, weight: 5 },
+            { type: "orbs", amount: 250, weight: 444 },
+            { type: "orbs", amount: 300, weight: 252 },
+            { type: "orbs", amount: 325, weight: 151 },
+            { type: "premium", days: 3, weight: 101 },
+            { type: "premium_orbs", days: 7, amount: 250, weight: 51 },
             { type: "badge", badge: "luckyBoy", label: "Lucky Boy", weight: 1 }
         ]
     }
@@ -11599,42 +11434,20 @@ async function loadOrbChestInventory() {
 async function buyOrbChest(type) {
     const user = auth.currentUser;
     const def = ORB_CHEST_DEFINITIONS[type];
-    if (!user || !def) {
-        alert("You must be logged in.");
-        return;
-    }
-
+    if (!user || !def || !window.NeoEconomy) { alert("You must be logged in."); return; }
     try {
-        await db.runTransaction(async transaction => {
-            const ref = db.collection("users").doc(user.uid);
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            if (current < def.price) throw new Error("NOT_ENOUGH_ORBS");
-
-            const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
-            inv[type] = Math.max(0, Number(inv[type] || 0)) + 1;
-
-            transaction.set(ref, {
-                orbs: current - def.price,
-                chestInventory: inv
-            }, { merge: true });
-        });
-
-        userOrbs = Math.max(0, userOrbs - def.price);
-        localStorage.setItem("userOrbs", userOrbs);
-        const orbCountEl = document.getElementById("userOrbsCount");
-        if (orbCountEl) orbCountEl.textContent = userOrbs;
+        const result = await window.NeoEconomy.secureBuyChest(type);
+        userOrbs = Number(result.orbs || 0);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        const counter = document.getElementById("userOrbsCount");
+        if (counter) counter.textContent = String(userOrbs);
         if (type === "neofind") unlockNeoAdvancement("neoFindChest");
         if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsBought");
         await loadOrbChestInventory();
         openOrbChestModal(type);
     } catch (e) {
-        if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + def.price + ".");
-        else {
-            console.error("Chest purchase failed:", e);
-            alert("Could not buy this chest.");
-        }
+        if (String(e.message).includes("NOT_ENOUGH_ORBS")) alert("Not enough Orbs! Required: " + def.price + ".");
+        else { console.error("Chest purchase failed:", e); alert("Could not buy this chest."); }
     }
 }
 
@@ -11646,11 +11459,12 @@ function showOrbChestChances(type) {
     if (!def || !modal || !list) return;
     title.textContent = def.label + " Chances";
     list.innerHTML = def.rewards.map(r => {
-        const label = r.type === "orbs" ? r.amount + " Orbs"
+        const label = r.type === "badge" ? (r.label || r.badge || "Badge")
+            : r.type === "orbs" ? r.amount + " Orbs"
             : r.type === "premium" ? r.days + " days of Premium"
             : r.days + " days of Premium + " + r.amount + " Orbs";
         const total = def.rewards.reduce((a,x) => a + x.weight, 0);
-        const chance = (r.weight / total * 100).toFixed(0);
+        const chance = (r.weight / total * 100).toFixed(1);
         return '<div style="display:flex;justify-content:space-between;padding:10px 12px;margin:7px 0;border-radius:10px;background:rgba(255,255,255,.05);"><span>' + label + '</span><b>' + chance + '%</b></div>';
     }).join("");
     modal.style.display = "flex";
@@ -11785,96 +11599,46 @@ function showLuckyBoyRevealAnimation() {
 }
 
 async function openOwnedOrbChest() {
-    const user = auth.currentUser;
-    const type = selectedOrbChestType;
-    if (!user || !type || orbChestOpening) return;
-
-    if ((orbChestInventory[type] || 0) < 1) {
-        alert("You don't have this chest.");
-        closeOrbChestModal();
-        return;
-    }
-
+    const user = auth.currentUser, type = selectedOrbChestType;
+    if (!user || !type || orbChestOpening || !window.NeoEconomy) return;
+    if ((orbChestInventory[type] || 0) < 1) { alert("You don't have this chest."); closeOrbChestModal(); return; }
     orbChestOpening = true;
     const button = document.getElementById("orbChestOpenButton");
     const icon = document.getElementById("orbChestModalIcon");
     const rewardEl = document.getElementById("orbChestReward");
     if (button) button.disabled = true;
     if (rewardEl) rewardEl.textContent = "Opening...";
-
     try {
-        const def = ORB_CHEST_DEFINITIONS[type];
-        const reward = weightedOrbChestReward(def.rewards);
-        const ref = db.collection("users").doc(user.uid);
-
-        await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
-            if (Number(inv[type] || 0) < 1) throw new Error("NO_CHEST");
-
-            inv[type]--;
-            const update = {
-                chestInventory: inv,
-                lastChestReward: { chest: type, reward, at: Date.now() }
-            };
-            if (type === "neofind" && reward.type === "badge" && reward.badge === "luckyBoy") {
-                const badges = Array.isArray(data.badges) ? data.badges.slice() : [];
-                if (!badges.includes("luckyBoy")) badges.push("luckyBoy");
-                update.badges = badges;
-            }
-
-            const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
-
-            if (reward.type === "orbs") {
-                update.orbs = currentOrbs + reward.amount;
-            } else if (reward.type === "premium") {
-                update.premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + reward.days * 86400000;
-            } else if (reward.type === "premium_orbs") {
-                update.orbs = currentOrbs + reward.amount;
-                update.premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + reward.days * 86400000;
-            }
-
-            transaction.set(ref, update, { merge: true });
-        });
-        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsOpened");
-
-        if (reward.type === "orbs" || reward.type === "premium_orbs") {
-            userOrbs = Math.max(0, userOrbs) + reward.amount;
-            localStorage.setItem("userOrbs", userOrbs);
-            const orbCountEl = document.getElementById("userOrbsCount");
-            if (orbCountEl) orbCountEl.textContent = userOrbs;
-        }
-        if (reward.type === "premium" || reward.type === "premium_orbs") {
-            const until = Math.max(Date.now(), Number(localStorage.getItem("neoPremiumUntil") || 0)) + reward.days * 86400000;
-            localStorage.setItem("neoPremiumUntil", String(until));
+        const result = await window.NeoEconomy.secureOpenChest(type);
+        const reward = result.reward || {};
+        userOrbs = Number(result.orbs || 0);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        const count = document.getElementById("userOrbsCount");
+        if (count) count.textContent = String(userOrbs);
+        if (result.premiumUntil) {
+            localStorage.setItem("neoPremiumUntil", String(result.premiumUntil));
             localStorage.setItem("userPremium", "true");
+            const badge = document.getElementById("premiumBadge");
+            if (badge) badge.style.display = "block";
         }
-
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsOpened");
         if (icon) icon.style.transform = "scale(1.2) rotate(8deg)";
         setTimeout(() => { if (icon) icon.style.transform = ""; }, 220);
-
         if (reward.type === "orbs") rewardEl.textContent = "You won " + reward.amount + " Orbs!";
-        if (reward.type === "premium") rewardEl.textContent = "You won " + reward.days + " days of Premium!";
-        if (reward.type === "premium_orbs") rewardEl.textContent = "You won " + reward.days + " days of Premium + " + reward.amount + " Orbs!";
-        if (reward.type === "badge" && reward.badge === "luckyBoy") {
+        else if (reward.type === "premium") rewardEl.textContent = "You won " + reward.days + " days of Premium!";
+        else if (reward.type === "premium_orbs") rewardEl.textContent = "You won " + reward.days + " days of Premium + " + reward.amount + " Orbs!";
+        else if (reward.type === "badge" && reward.badge === "luckyBoy") {
             rewardEl.textContent = "LUCKY! You unlocked the exclusive Lucky Boy four-leaf clover badge!";
             const badgeSnap = await db.collection("users").doc(user.uid).get();
-            if (badgeSnap.exists) renderNeoFindAccountBadges(user, badgeSnap.data());
-
-            // A cinematic reveal appears only when Lucky Boy is actually rolled as the chest reward.
+            if (badgeSnap.exists && typeof renderNeoFindAccountBadges === "function") renderNeoFindAccountBadges(user, badgeSnap.data());
             showLuckyBoyRevealAnimation();
-        }
-
+        } else rewardEl.textContent = "Chest opened!";
         await loadOrbChestInventory();
     } catch (e) {
         console.error("Chest opening failed:", e);
-        if (rewardEl) rewardEl.textContent = e.message === "NO_CHEST" ? "You don't have this chest." : "Could not open the chest.";
+        if (rewardEl) rewardEl.textContent = String(e.message).includes("NO_CHEST") ? "You don't have this chest." : "Could not open the chest.";
         await loadOrbChestInventory();
-    } finally {
-        orbChestOpening = false;
-        if (button) button.disabled = false;
-    }
+    } finally { orbChestOpening = false; if (button) button.disabled = false; }
 }
 
 function updateOwnerChestSection() {
@@ -11932,55 +11696,23 @@ async function ownerGrantChest() {
 
 async function buyPremiumWithOrbs() {
     const user = (typeof auth !== "undefined") ? auth.currentUser : null;
-    if (!user || typeof db === "undefined") {
-        alert("You must be logged in.");
-        return;
-    }
-
-    if (isPremiumActive()) {
-        alert("You already have an active Premium status!");
-        return;
-    }
-
+    if (!user || !window.NeoEconomy) { alert("You must be logged in."); return; }
+    if (isPremiumActive()) { alert("You already have an active Premium status!"); return; }
     try {
-        const ref = db.collection("users").doc(user.uid);
-
-        // Premium na 30 dni (dokładane do Premium ze skrzyni, jeśli jeszcze trwa)
-        const until = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-
-            if (current < 1000) throw new Error("NOT_ENOUGH_ORBS");
-
-            const premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + 30 * 86400000;
-
-            transaction.set(ref, {
-                orbs: current - 1000,
-                premiumUntil
-            }, { merge: true });
-
-            return premiumUntil;
-        });
-
-        userOrbs = Math.max(0, userOrbs - 1000);
-        await addAnnouncementToUser(user, "Premium activated", "Your Premium is active until " + new Date(until).toLocaleDateString() + ".", "premium_purchase");
-        localStorage.setItem('userOrbs', userOrbs);
-        localStorage.setItem('userPremium', 'true');
-        localStorage.setItem('neoPremiumUntil', String(until));
-
+        const result = await window.NeoEconomy.securePremium();
+        userOrbs = Number(result.orbs || 0);
+        localStorage.setItem("userOrbs", String(userOrbs));
+        localStorage.setItem("userPremium", "true");
+        localStorage.setItem("neoPremiumUntil", String(result.premiumUntil));
         const badge = document.getElementById("premiumBadge");
         if (badge) badge.style.display = "block";
-
-        alert("🎉 Congratulations! Premium Unlocked!");
+        if (typeof window.updateUI === "function") window.updateUI();
+        await addAnnouncementToUser(user, "Premium activated", "Your Premium is active until " + new Date(result.premiumUntil).toLocaleDateString() + ".", "premium_purchase");
+        alert("Congratulations! Premium Unlocked!");
         renderMissions();
     } catch (error) {
-        if (error.message === "NOT_ENOUGH_ORBS") {
-            alert("Not enough Orbs! Required: 1000.");
-        } else {
-            console.error("Premium purchase failed:", error);
-            alert("Could not complete the Premium purchase. Please try again.");
-        }
+        if (String(error.message).includes("NOT_ENOUGH_ORBS")) alert("Not enough Orbs! Required: 1000.");
+        else { console.error("Premium purchase failed:", error); alert("Could not complete the Premium purchase. Please try again."); }
     }
 }
 
@@ -12138,86 +11870,22 @@ async function syncRedeemCodeConfigs() {
 
 async function redeemCode(code) {
     const user = auth.currentUser;
-    if (!user) return { status: "not_logged" };
-
+    if (!user || !window.NeoEconomy) return { status: "not_logged" };
     const normalized = String(code || "").trim().toUpperCase();
     if (!normalized) return { status: "invalid" };
-
     try {
-        const codeRef = db.collection("redeemCodes").doc(normalized);
-        const userRef = db.collection("users").doc(user.uid);
-
-        const result = await db.runTransaction(async transaction => {
-            const codeSnap = await transaction.get(codeRef);
-
-            // The built-in NeoAI easter egg is always available even before
-            // an admin has opened NeoFind and synced the redeem-code config.
-            let config = codeSnap.exists ? codeSnap.data() : null;
-            if (!config && normalized === "NEO_I_WANT_ORBS_PLS") {
-                config = { orbs: 10, premiumDays: 0, scope: "global", active: true };
-            }
-
-            if (!config || config.active === false) {
-                return { status: "invalid" };
-            }
-
-            const scope = config.scope === "global" ? "global" : "user";
-            const claimId = scope === "global"
-                ? normalized
-                : normalized + "_" + user.uid;
-            const claimRef = db.collection("redeemClaims").doc(claimId);
-
-            const claimSnap = await transaction.get(claimRef);
-            if (claimSnap.exists) {
-                return { status: "already" };
-            }
-
-            const userSnap = await transaction.get(userRef);
-            const data = userSnap.exists ? userSnap.data() : {};
-            const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            const orbReward = Math.max(0, Math.floor(Number(config.orbs || 0)));
-            const premiumDays = Math.max(0, Math.floor(Number(config.premiumDays || 0)));
-            const currentPremiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0));
-            const newPremiumUntil = premiumDays > 0
-                ? currentPremiumUntil + premiumDays * 86400000
-                : Number(data.premiumUntil || 0);
-
-            transaction.set(claimRef, {
-                codeId: normalized,
-                uid: user.uid,
-                scope,
-                redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            transaction.set(userRef, {
-                orbs: currentOrbs + orbReward,
-                ...(premiumDays > 0 ? { premiumUntil: newPremiumUntil } : {}),
-                lastRedeemCode: normalized,
-                lastRedeemAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
-            return {
-                status: "redeemed",
-                orbs: orbReward,
-                premiumDays,
-                premiumUntil: newPremiumUntil
-            };
-        });
-
+        const result = await window.NeoEconomy.call("redeemCode", { code: normalized });
         if (result.status === "redeemed") {
-            userOrbs = Number(userOrbs || 0) + Number(result.orbs || 0);
+            userOrbs = Number(result.orbs || 0);
             localStorage.setItem("userOrbs", String(userOrbs));
-
-            if (result.premiumDays > 0) {
+            if (Number(result.premiumDays || 0) > 0) {
                 localStorage.setItem("userPremium", "true");
                 localStorage.setItem("neoPremiumUntil", String(result.premiumUntil));
                 const badge = document.getElementById("premiumBadge");
                 if (badge) badge.style.display = "block";
             }
-
             renderMissions();
         }
-
         return result;
     } catch (e) {
         console.error("Redeem code failed:", e);
@@ -12863,117 +12531,31 @@ updateUI();
    PREMIUM ORB TRANSFER
    ========================================================= */
 window.sendOrbsToUser = async function () {
-    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    const user = auth.currentUser;
     const status = document.getElementById("orbTransferStatus");
     const emailInput = document.getElementById("orbTransferEmail");
     const amountInput = document.getElementById("orbTransferAmount");
-
     const showStatus = (message, ok = false) => {
         if (!status) return;
         status.textContent = message;
         status.style.color = ok ? "#00ffc8" : "#ff8080";
     };
-
-    if (!user || typeof db === "undefined") {
-        showStatus("You must be logged in.");
-        return;
-    }
-
-    if (typeof isPremiumActive !== "function" || !isPremiumActive()) {
-        showStatus("Premium is required to send Orbs.");
-        return;
-    }
-
-    const targetEmail = String(emailInput?.value || "").trim().toLowerCase();
-    const amount = Math.floor(Number(amountInput?.value));
-    const senderEmail = String(user.email || "").trim().toLowerCase();
-
-    if (!targetEmail || !Number.isFinite(amount) || amount <= 0) {
-        showStatus("Enter a recipient email and a valid amount.");
-        return;
-    }
-
-    if (!senderEmail || targetEmail === senderEmail) {
-        showStatus("You cannot send Orbs to yourself.");
-        return;
-    }
-
+    if (!user || !window.NeoEconomy) { showStatus("You must be logged in."); return; }
+    const targetEmail = String(emailInput && emailInput.value || "").trim().toLowerCase();
+    const amount = Math.floor(Number(amountInput && amountInput.value));
+    if (!targetEmail || !Number.isFinite(amount) || amount <= 0) { showStatus("Enter a recipient email and a valid amount."); return; }
     try {
-        const targetSnap = await db.collection("users")
-            .where("email", "==", targetEmail)
-            .limit(1)
-            .get();
-
-        if (targetSnap.empty) {
-            showStatus("Recipient was not found.");
-            return;
-        }
-
-        const senderRef = db.collection("users").doc(user.uid);
-        const recipientRef = targetSnap.docs[0].ref;
-        const amountAtStart = amount;
-
-        await db.runTransaction(async transaction => {
-            const senderSnap = await transaction.get(senderRef);
-            const recipientSnap = await transaction.get(recipientRef);
-
-            if (!senderSnap.exists || !recipientSnap.exists) {
-                throw new Error("User account not found.");
-            }
-
-            const senderData = senderSnap.data();
-            const recipientData = recipientSnap.data();
-            const senderOrbs = Math.max(0, Math.floor(Number(senderData.orbs || 0)));
-            const recipientOrbs = Math.max(0, Math.floor(Number(recipientData.orbs || 0)));
-
-            if (senderOrbs < amountAtStart) {
-                throw new Error("You do not have enough Orbs.");
-            }
-
-            transaction.update(senderRef, {
-                orbs: senderOrbs - amountAtStart,
-                lastOrbTransferOut: {
-                    toUid: recipientRef.id,
-                    toEmail: targetEmail,
-                    amount: amountAtStart,
-                    at: Date.now()
-                }
-            });
-
-            transaction.update(recipientRef, {
-                orbs: recipientOrbs + amountAtStart,
-                lastOrbTransferIn: {
-                    fromUid: user.uid,
-                    fromEmail: senderEmail,
-                    amount: amountAtStart,
-                    at: Date.now()
-                }
-            });
-        });
-
-        userOrbs = Math.max(0, userOrbs - amountAtStart);
+        const result = await window.NeoEconomy.call("transferOrbs", { targetEmail, amount });
+        userOrbs = Number(result.orbs || 0);
+        if (amount >= 20 && typeof trackNeoAdvancementProgress === "function") await trackNeoAdvancementProgress("orbTransfersOut");
         localStorage.setItem("userOrbs", String(userOrbs));
         if (typeof window.updateUI === "function") window.updateUI();
-        if (typeof window.renderMissions === "function") window.renderMissions();
-
-        if (typeof createUserAnnouncement === "function") {
-            await createUserAnnouncement(
-                recipientRef.id,
-                "You received Orbs",
-                senderEmail + " sent you " + amountAtStart + " Orbs.",
-                "orb_transfer",
-                { from: senderEmail, amount: amountAtStart }
-            ).catch(e => console.error("Orb transfer announcement failed:", e));
-        }
-
         if (emailInput) emailInput.value = "";
         if (amountInput) amountInput.value = "";
-        if (amountAtStart >= 20) unlockNeoAdvancement("orbsGiver");
-        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("orbsSent", amountAtStart);
-        showStatus("Sent " + amountAtStart + " Orbs to " + targetEmail + ".", true);
+        showStatus("Sent " + amount + " Orbs to " + targetEmail + ".", true);
     } catch (error) {
         console.error("Orb transfer failed:", error);
-        showStatus(error.message || "Could not send Orbs.");
+        showStatus(error.message === "RECIPIENT_NOT_FOUND" ? "Recipient was not found." : error.message === "PREMIUM_REQUIRED" ? "Premium is required to send Orbs." : error.message === "NOT_ENOUGH_ORBS" ? "You do not have enough Orbs." : "Could not send Orbs.");
     }
 };
 
@@ -14891,21 +14473,37 @@ function showNeoAdvancementToast(advancement) {
 
 async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
     const advancement = NEOFIND_ADVANCEMENTS.find(a => a.id === id);
-    if (!advancement || !uid || typeof db === "undefined" || !["orbs", "badge"].includes(advancement.rewardType)) return false;
-    const ref = db.collection("users").doc(uid);
+    if (!advancement || !uid || typeof db === "undefined") return false;
     const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
     try {
-        const result = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const balance = Math.max(0, Math.floor(Number(data.orbs || 0)));
+        if (currentUserId === uid && window.NeoEconomy) {
+            const result = await window.NeoEconomy.call("claimAdvancement", { advancementId: id });
+            userOrbs = Number(result.orbs || 0);
+            localStorage.setItem("userOrbs", String(userOrbs));
+            const count = document.getElementById("userOrbsCount");
+            if (count) count.textContent = String(userOrbs);
+            if (typeof updateUI === "function") updateUI();
+            if (typeof renderMissions === "function") renderMissions();
+            if (result.badge && typeof renderNeoFindAccountBadges === "function") {
+                const fresh = await db.collection("users").doc(uid).get();
+                if (fresh.exists) renderNeoFindAccountBadges(auth.currentUser, fresh.data());
+            }
+            if (result.already) return false;
+            showNeoAdvancementToast(advancement);
+            const overlay = document.getElementById("neoAdvancementsOverlay");
+            if (overlay && overlay.style.display === "flex") renderNeoAdvancements();
+            return true;
+        }
+        // Cross-account rewards remain available only to existing admin flows.
+        if (!auth.currentUser || !ADMIN_EMAILS.includes(String(auth.currentUser.email || "").toLowerCase())) return false;
+        const ref = db.collection("users").doc(uid);
+        return await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref), data = snap.exists ? snap.data() : {};
             const completed = data.advancements && typeof data.advancements === "object" ? Object.assign({}, data.advancements) : {};
-            if (completed[id]) return { unlocked: false, orbs: balance };
+            if (completed[id]) return false;
             completed[id] = { unlockedAt: Date.now(), rewardType: advancement.rewardType, reward: advancement.rewardType === "badge" ? advancement.badge : Number(advancement.reward || 0) };
-
-            const orbReward = advancement.rewardType === "orbs" ? Math.max(0, Math.floor(Number(advancement.reward || 0))) : 0;
-            const nextBalance = balance + orbReward;
-            const update = { advancements: completed, orbs: nextBalance };
+            const amount = advancement.rewardType === "orbs" ? Math.max(0, Math.floor(Number(advancement.reward || 0))) : 0;
+            const update = { advancements: completed, orbs: Math.max(0, Math.floor(Number(data.orbs || 0))) + amount };
             if (advancement.rewardType === "badge" && advancement.badge) {
                 const badges = Array.isArray(data.badges) ? data.badges.slice() : [];
                 if (!badges.includes(advancement.badge)) badges.push(advancement.badge);
@@ -14917,80 +14515,44 @@ async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
                 update.advancementNotices = notices;
             }
             transaction.set(ref, update, { merge: true });
-            return { unlocked: true, orbs: nextBalance, badge: advancement.badge || null };
+            return true;
         });
-        if (!result.unlocked) return false;
-        if (auth.currentUser && auth.currentUser.uid === uid) {
-            userOrbs = result.orbs;
-            localStorage.setItem("userOrbs", String(userOrbs));
-            const count = document.getElementById("userOrbsCount");
-            if (count) count.textContent = String(userOrbs);
-            if (typeof updateUI === "function") updateUI();
-            if (typeof renderMissions === "function") renderMissions();
-            if (result.badge && typeof renderNeoFindAccountBadges === "function") {
-                try {
-                    const fresh = await ref.get();
-                    if (fresh.exists) renderNeoFindAccountBadges(auth.currentUser, fresh.data());
-                } catch (e) { console.warn("Could not refresh advancement badges:", e); }
-            }
-            showNeoAdvancementToast(advancement);
-            const overlay = document.getElementById("neoAdvancementsOverlay");
-            if (overlay && overlay.style.display === "flex") renderNeoAdvancements();
-        }
-        return true;
-    } catch (error) {
-        console.error("Could not save advancement:", id, error);
-        return false;
-    }
+    } catch (error) { console.error("Could not save advancement:", id, error); return false; }
 }
 
 async function trackNeoAdvancementProgress(stat, amount = 1) {
     const user = auth.currentUser;
-    if (!user || !stat || typeof db === "undefined") return 0;
-    const n = Math.max(0, Number(amount) || 0);
-    if (!n) return 0;
-    const ref = db.collection("users").doc(user.uid);
-    try {
-        const count = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
+    if (!user || !stat || !window.NeoEconomy) return 0;
+    const serverOwned = ["chestsBought","chestsOpened","codesRedeemed","missionClaims","reportsSent","orbTransfersOut"];
+    let count = 0;
+    if (serverOwned.includes(stat)) {
+        try {
+            const snap = await db.collection("users").doc(user.uid).get();
             const data = snap.exists ? snap.data() : {};
-            const stats = data.advancementStats && typeof data.advancementStats === "object" ? Object.assign({}, data.advancementStats) : {};
-            stats[stat] = Math.max(0, Number(stats[stat] || 0)) + n;
-            transaction.set(ref, { advancementStats: stats }, { merge: true });
-            return stats[stat];
-        });
-        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count)
-            .sort((a, b) => Number(a.target || 0) - Number(b.target || 0));
-        for (const a of reached) await unlockNeoAdvancement(a.id);
-        return count;
-    } catch (e) { console.error("Advancement progress update failed:", stat, e); return 0; }
+            count = Number((data.advancementStats || {})[stat] || 0);
+        } catch (e) { console.warn("Could not read server advancement counter:", stat, e); return 0; }
+    } else {
+        const n = Math.max(0, Math.floor(Number(amount) || 0));
+        for (let i = 0; i < Math.min(n, 10); i++) {
+            try { const result = await window.NeoEconomy.call("trackAdvancement", { stat }); count = Number(result.count || 0); }
+            catch (e) { console.warn("Advancement progress update failed:", stat, e); return count; }
+        }
+    }
+    const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count).sort((a,b)=>Number(a.target||0)-Number(b.target||0));
+    for (const a of reached) await unlockNeoAdvancement(a.id);
+    return count;
 }
 
 async function trackNeoAdvancementUnique(stat, key) {
-    const user = auth.currentUser;
-    const value = String(key ?? "").trim();
-    if (!user || !stat || !value || typeof db === "undefined") return 0;
-    const ref = db.collection("users").doc(user.uid);
+    const user = auth.currentUser, value = String(key ?? "").trim();
+    if (!user || !stat || !value || !window.NeoEconomy) return 0;
     try {
-        const count = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const stats = data.advancementStats && typeof data.advancementStats === "object" ? Object.assign({}, data.advancementStats) : {};
-            const storageKey = "unique_" + stat;
-            const values = Array.isArray(stats[storageKey]) ? stats[storageKey].slice() : [];
-            if (!values.includes(value)) {
-                values.push(value);
-                stats[storageKey] = values;
-                stats[stat] = values.length;
-                transaction.set(ref, { advancementStats: stats }, { merge: true });
-            }
-            return Array.isArray(stats[storageKey]) ? stats[storageKey].length : Number(stats[stat] || 0);
-        });
-        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count)
-            .sort((a, b) => Number(a.target || 0) - Number(b.target || 0));
+        const result = await window.NeoEconomy.call("trackAdvancement", { stat, uniqueKey: value });
+        const count = Number(result.count || 0);
+        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count).sort((a,b)=>Number(a.target||0)-Number(b.target||0));
         for (const a of reached) await unlockNeoAdvancement(a.id);
         return count;
-    } catch (e) { console.error("Unique advancement progress update failed:", stat, e); return 0; }
+    } catch (e) { console.warn("Unique advancement progress update failed:", stat, e); return 0; }
 }
 
 function unlockNeoAdvancement(id) {
@@ -15017,7 +14579,7 @@ async function loadNeoAdvancementNotices(user) {
         for (let i = 0; i < valid.length; i++) {
             window.setTimeout(() => showNeoAdvancementToast(valid[i].advancement), i * 650);
         }
-        await ref.update({ advancementNotices: firebase.firestore.FieldValue.arrayRemove(...notices) });
+        if (window.NeoEconomy) await window.NeoEconomy.call("clearAdvancementNotices", { noticeIds: notices.map(n => n.id) });
     } catch (error) {
         console.error("Could not process advancement notices:", error);
     }
@@ -15037,6 +14599,35 @@ document.addEventListener("click", event => {
 });
 
 </script>
+<script>
+(function(){
+"use strict";
+const FN="https://us-central1-neofind-f8213.cloudfunctions.net/neoEconomy",$=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const op=()=>crypto.randomUUID?crypto.randomUUID():"op-"+Date.now()+"-"+Math.random();
+const items=[["theme_sunset","Sunset Theme","Theme",250,"linear-gradient(135deg,#ff8a5b,#c850c0)"],["theme_forest","Forest Theme","Theme",350,"linear-gradient(135deg,#134e4a,#84cc16)"],["theme_violet","Violet Theme","Theme",400,"linear-gradient(135deg,#4c1d95,#c084fc)"],["profile_glow_cyan","Cyan Profile Glow","Profile",300,"linear-gradient(135deg,#00f2fe,#4facfe)"],["profile_glow_gold","Golden Profile Glow","Profile",650,"linear-gradient(135deg,#facc15,#f97316)"],["profile_sparkles","Profile Sparkles","Effect",500,"radial-gradient(circle,#fff 1px,#7c3aed 2px,#111827 70%)"]];
+async function call(action,data={}){const u=auth&&auth.currentUser;if(!u)throw Error("LOGIN_REQUIRED");const token=await u.getIdToken(),r=await fetch(FN,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({data:{action,operationId:op(),...data}})});let b={};try{b=await r.json()}catch(e){}if(!r.ok||b.error||!b.result)throw Error(b.error&&b.error.message||"REQUEST_FAILED");return b.result}
+function toast(s,bad){let n=$("neoEconomyToast");if(!n){n=document.createElement("div");n.id="neoEconomyToast";n.style.cssText="position:fixed;right:16px;bottom:76px;z-index:100102;background:#101820;color:#fff;border:1px solid #00f2fe;border-radius:12px;padding:12px 16px;font:14px system-ui";document.body.appendChild(n)}n.style.borderColor=bad?"#ff6262":"#00f2fe";n.textContent=s;clearTimeout(n.t);n.t=setTimeout(()=>n.remove(),3000)}
+function mount(){if($("neoEconomyLauncher"))return;const s=document.createElement("style");s.textContent="#neoEconomyLauncher{position:fixed;right:18px;bottom:18px;z-index:100000;background:#102344;color:#fff;border:1px solid #00f2fe;border-radius:999px;padding:11px 16px;font:600 13px system-ui}#neoEconomyPanel{position:fixed;inset:0;z-index:100001;display:none;align-items:center;justify-content:center;padding:12px;background:#020711df;color:#e8f4ff;font:14px/1.5 system-ui}#neoEconomyPanel .card{width:min(850px,100%);max-height:92vh;overflow:auto;background:#0b1423;border:1px solid #29425d;border-radius:18px}#neoEconomyPanel header{position:sticky;top:0;background:#0b1423;display:flex;justify-content:space-between;padding:15px;border-bottom:1px solid #20334b}#neoEconomyPanel nav{display:flex;gap:6px;flex-wrap:wrap;padding:12px}#neoEconomyPanel button{cursor:pointer;border:1px solid #2d4561;background:#102238;color:#e8f4ff;border-radius:9px;padding:8px 11px}#neoEconomyPanel .active{border-color:#00f2fe;background:#063d50}#neoEconomyPanel main{padding:14px}#neoEconomyPanel .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}#neoEconomyPanel article{background:#101d30;border:1px solid #263b54;border-radius:12px;padding:13px}#neoEconomyPanel .preview{height:50px;border-radius:9px;margin-bottom:9px}#neoEconomyPanel .muted{color:#9eb4ca;font-size:12px}#neoEconomyPanel input,#neoEconomyPanel select,#neoEconomyPanel textarea{box-sizing:border-box;width:100%;display:block;margin:6px 0 12px;padding:10px;background:#07111f;color:#fff;border:1px solid #2d4561;border-radius:8px;font:inherit}#neoEconomyPanel .row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #1e3045}#neoEconomyPanel .empty{padding:24px;text-align:center;color:#9eb4ca;border:1px dashed #2d4561;border-radius:12px}.neo-ai-feedback{display:flex;gap:6px;margin:5px 0 12px}.neo-ai-feedback button{font-size:12px;padding:4px 9px}html[data-neo-shop-theme=theme_sunset] #neoEconomyPanel .card{border-color:#c850c0}html[data-neo-shop-theme=theme_forest] #neoEconomyPanel .card{border-color:#84cc16}html[data-neo-shop-theme=theme_violet] #neoEconomyPanel .card{border-color:#c084fc}";
+document.head.appendChild(s);const l=document.createElement("button");l.id="neoEconomyLauncher";l.textContent="✦ Neo Economy";l.onclick=()=>open("shop");document.body.appendChild(l);const p=document.createElement("div");p.id="neoEconomyPanel";p.innerHTML='<section class="card" role="dialog" aria-modal="true"><header><div><b>Neo Economy</b><div class="muted">Orbs · chests · cosmetics · safety</div></div><button id="neClose">Close</button></header><nav id="neTabs"></nav><main id="neBody"></main></section>';p.onclick=e=>{if(e.target===p)close()};document.body.appendChild(p);$("neClose").onclick=close;$("neTabs").onclick=e=>{const b=e.target.closest("[data-tab]");if(b)open(b.dataset.tab)};document.addEventListener("keydown",e=>{if(e.key==="Escape")close()})}
+function close(){if($("neoEconomyPanel"))$("neoEconomyPanel").style.display="none"}
+async function open(tab){mount();$("neoEconomyPanel").style.display="flex";$("neTabs").innerHTML=[["shop","Orb Shop"],["chests","Chest History"],["history","Orb History"],["report","Report"],["blocked","Blocked users"]].map(x=>'<button data-tab="'+x[0]+'" class="'+(tab===x[0]?"active":"")+'">'+x[1]+"</button>").join("");const b=$("neBody");b.innerHTML='<div class="empty">Loading…</div>';try{if(!auth.currentUser)throw Error("LOGIN_REQUIRED");if(tab==="shop")await shop(b);else if(tab==="chests"||tab==="history")await history(b,tab==="chests"?"chestHistory":"orbTransactions");else if(tab==="report")report(b);else await blocked(b)}catch(e){b.innerHTML='<div class="empty">'+(e.message==="LOGIN_REQUIRED"?"Sign in to use Neo Economy.":"Could not load this section.")+"</div>"}}
+async function shop(b){const r=db.collection("users").doc(auth.currentUser.uid),v=await Promise.all([r.get(),r.collection("inventory").get()]),d=v[0].exists?v[0].data():{},owned=new Set(v[1].docs.map(x=>x.id));applyCosmetics(owned);const theme=localStorage.getItem("neoActiveTheme")||"default",glow=localStorage.getItem("neoActiveGlow")||"none",sparkles=localStorage.getItem("neoActiveSparkles")==="true";b.innerHTML="<p>Your balance: <b>"+Number(d.orbs||0)+" Orbs</b></p><div class=grid>"+items.map(x=>{const active=x[0].startsWith("theme_")?theme===x[0]:x[0].startsWith("profile_glow_")?glow===(x[0]==="profile_glow_gold"?"gold":"cyan"):sparkles;return '<article><div class=preview style="background:'+x[4]+'"></div><b>'+x[1]+'</b><p class=muted>'+x[2]+'</p><p>'+x[3]+' Orbs</p>'+(owned.has(x[0])?'<button data-use="'+x[0]+'">'+(active?"Active":"Use")+'</button>':'<button data-buy="'+x[0]+'">Buy</button>')+"</article>"}).join("")+"</div>";b.querySelectorAll("[data-buy]").forEach(x=>x.onclick=async()=>{x.disabled=true;try{const out=await call("buyCosmetic",{itemId:x.dataset.buy});toast("Purchased. Balance: "+out.orbs+" Orbs.");await open("shop")}catch(e){toast(e.message==="NOT_ENOUGH_ORBS"?"Not enough Orbs.":"Purchase failed. Check your connection.",true);x.disabled=false}});b.querySelectorAll("[data-use]").forEach(x=>x.onclick=async()=>{const id=x.dataset.use;if(id.startsWith("theme_"))localStorage.setItem("neoActiveTheme",id);else if(id.startsWith("profile_glow_"))localStorage.setItem("neoActiveGlow",id==="profile_glow_gold"?"gold":"cyan");else localStorage.setItem("neoActiveSparkles",String(localStorage.getItem("neoActiveSparkles")!=="true"));applyCosmetics(owned);await open("shop")})}
+function applyCosmetics(owned){const root=document.documentElement,theme=localStorage.getItem("neoActiveTheme")||"default",glow=localStorage.getItem("neoActiveGlow")||"none",sparkles=localStorage.getItem("neoActiveSparkles")==="true",activeTheme=owned&&owned.has(theme)?theme:"default";root.dataset.neoShopTheme=activeTheme;const gradients={theme_sunset:"linear-gradient(135deg,rgba(255,138,91,.08),rgba(200,80,192,.07))",theme_forest:"linear-gradient(135deg,rgba(19,78,74,.13),rgba(132,204,22,.06))",theme_violet:"linear-gradient(135deg,rgba(76,29,149,.12),rgba(192,132,252,.08))"};document.body.style.backgroundImage=gradients[activeTheme]||"";document.body.style.backgroundAttachment=activeTheme==="default"?"":"fixed";const glowOwned=owned&&owned.has("profile_glow_"+glow),sparklesOwned=owned&&owned.has("profile_sparkles")&&sparkles;document.querySelectorAll(".ns-avatar").forEach(el=>{el.style.boxShadow=glowOwned?(glow==="gold"?"0 0 12px #facc1588":"0 0 12px #00f2fe88"):"";el.style.filter=sparklesOwned?"drop-shadow(0 0 5px #c084fc)":""});const launcher=$("neoEconomyLauncher");if(launcher)launcher.style.background=activeTheme==="theme_sunset"?"linear-gradient(135deg,#ff8a5b,#c850c0)":activeTheme==="theme_forest"?"linear-gradient(135deg,#134e4a,#84cc16)":activeTheme==="theme_violet"?"linear-gradient(135deg,#4c1d95,#c084fc)":""}
+async function history(b,col){const s=await db.collection("users").doc(auth.currentUser.uid).collection(col).orderBy("createdAt","desc").limit(50).get();if(s.empty){b.innerHTML='<div class=empty>No history yet.</div>';return}b.innerHTML=s.docs.map(d=>{const x=d.data(),date=x.createdAt&&x.createdAt.toDate?x.createdAt.toDate().toLocaleString():"Timestamp pending";return col==="chestHistory"?'<div class=row><span><b>'+esc(x.chestLabel||x.chestType)+'</b><div class=muted>'+esc(date)+'</div></span><b>'+esc(x.rewardLabel||"Reward")+"</b></div>":'<div class=row><span><b>'+esc(x.reason||x.type)+'</b><div class=muted>'+esc(date)+'</div></span><b>'+(Number(x.delta)>0?"+":"")+Number(x.delta||0)+"</b></div>"}).join("")}
+function report(b){b.innerHTML='<h3>Report a user or content</h3><label>Target user UID (optional)<input id=neReportUid maxlength=128></label><label>Content ID (optional)<input id=neReportTarget maxlength=160></label><label>Reason<select id=neReason><option value=spam>Spam</option><option value=impersonation>Impersonation</option><option value=harassment>Harassment</option><option value=inappropriate>Inappropriate content</option><option value=other>Other</option></select></label><label>Details<textarea id=neDetails maxlength=1200 rows=4></textarea></label><button id=neSendReport>Send report</button>';$("neSendReport").onclick=async()=>{try{await call("report",{targetUid:$("neReportUid").value.trim(),targetId:$("neReportTarget").value.trim(),reason:$("neReason").value,details:$("neDetails").value.trim()});toast("Report sent to moderation.");$("neDetails").value=""}catch(e){toast("Report failed.",true)}}}
+async function blocked(b){const r=db.collection("users").doc(auth.currentUser.uid).collection("blockedUsers"),s=await r.get();b.innerHTML='<p class=muted>Block a user by Firebase UID.</p><label>User UID<input id=neBlockUid maxlength=128></label><button id=neBlock>Block user</button><h3>Your block list</h3>'+(s.empty?'<div class=empty>No blocked users.</div>':s.docs.map(d=>'<div class=row><code>'+esc(d.id)+'</code><button data-unblock="'+esc(d.id)+'">Unblock</button></div>').join(""));$("neBlock").onclick=async()=>{try{await call("blockUser",{targetUid:$("neBlockUid").value.trim(),blocked:true});toast("User blocked.");await open("blocked")}catch(e){toast("Could not block user.",true)}};b.querySelectorAll("[data-unblock]").forEach(x=>x.onclick=async()=>{try{await call("blockUser",{targetUid:x.dataset.unblock,blocked:false});await open("blocked")}catch(e){toast("Could not unblock user.",true)}})}
+let blockedIds=new Set();
+async function refreshBlocked(){if(!auth||!auth.currentUser)return;try{const snap=await db.collection("users").doc(auth.currentUser.uid).collection("blockedUsers").get();blockedIds=new Set(snap.docs.map(d=>d.id));applyBlocked()}catch(e){console.warn("Could not load blocked users",e)}}
+function applyBlocked(){document.querySelectorAll("[data-author-uid]").forEach(el=>{const id=el.getAttribute("data-author-uid");el.style.display=id&&blockedIds.has(id)?"none":""})}
+async function refreshCosmetics(){if(!auth||!auth.currentUser){applyCosmetics(new Set());return}try{const snap=await db.collection("users").doc(auth.currentUser.uid).collection("inventory").get();applyCosmetics(new Set(snap.docs.map(d=>d.id)))}catch(e){console.warn("Could not load equipped cosmetics",e)}}
+function feedback(){const root=$("neoAiMessages");if(!root||root.dataset.neFeedbackBound)return;root.dataset.neFeedbackBound="1";function add(row){if(!row.classList||!row.classList.contains("chat-row-them")||row.querySelector(".neo-ai-feedback"))return;const answer=row.querySelector(".chat-msg-them");if(!answer)return;const id=row.dataset.neResponseId||(row.dataset.neResponseId=op()),bar=document.createElement("div");bar.className="neo-ai-feedback";[["up","Helpful"],["down","Not helpful"]].forEach(v=>{const x=document.createElement("button");x.textContent=v[1];x.onclick=async()=>{x.disabled=true;try{await call("feedback",{responseId:id,vote:v[0],model:window.neoAiSelectedModel||"unknown"});x.textContent="Saved"}catch(e){x.disabled=false;toast("Feedback could not be saved.",true)}};bar.appendChild(x)});answer.insertAdjacentElement("afterend",bar)}root.querySelectorAll(".chat-row-them").forEach(add);new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;add(n);n.querySelectorAll&&n.querySelectorAll(".chat-row-them").forEach(add)}))).observe(root,{childList:true,subtree:true})}
+new MutationObserver(()=>applyBlocked()).observe(document.body,{childList:true,subtree:true});
+window.NeoEconomy={call,open,close,refreshBlocked,secureBuyChest:t=>call("buyChest",{chestType:t}),secureOpenChest:t=>call("openChest",{chestType:t}),securePremium:()=>call("buyPremium"),secureMission:id=>call("claimMission",{missionId:id}),secureDailyChest:()=>call("claimDailyChest"),secureProgress:t=>call("recordMissionProgress",{missionType:t})};
+document.addEventListener("DOMContentLoaded",()=>{mount();if(typeof auth!=="undefined"&&auth&&typeof auth.onAuthStateChanged==="function")auth.onAuthStateChanged(u=>{if(u){feedback();refreshBlocked();refreshCosmetics()}else{blockedIds.clear();applyBlocked();applyCosmetics(new Set())}})});if(document.readyState!=="loading")mount();
+})();
+</script>
+
 
 </body>
 </html>
