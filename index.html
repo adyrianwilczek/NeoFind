@@ -12825,8 +12825,38 @@ window.sendOrbsToUser = async function () {
       #neoUpdateAdminPanel label{display:flex;align-items:center;gap:10px;cursor:pointer}
       #neoUpdateAdminPanel input[type=checkbox]{width:17px;height:17px;accent-color:#00f2fe}
       #neoUpdateAdminStatus{display:block;margin-top:8px;color:#9ccbd2}
+      #neoUpdateSuccessPopup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2147483647;display:flex;align-items:center;gap:12px;padding:20px 28px;max-width:calc(100vw - 40px);box-sizing:border-box;border:1px solid rgba(0,242,254,.65);border-radius:16px;background:rgba(5,18,30,.97);color:#fff;font:700 18px/1.4 'Oxanium',sans-serif;box-shadow:0 0 40px rgba(0,242,254,.28);animation:neoUpdatePopupIn .18s ease-out}
+      #neoUpdateSuccessPopup .neo-update-success-icon{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:rgba(0,242,254,.16);color:#00f2fe;font-size:22px}
+      @keyframes neoUpdatePopupIn{from{opacity:0;transform:translate(-50%,-46%) scale(.96)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
     `;
     document.head.appendChild(style);
+  }
+
+  function updateShowSuccessPopup() {
+    document.getElementById("neoUpdateSuccessPopup")?.remove();
+    const popup = document.createElement("div");
+    popup.id = "neoUpdateSuccessPopup";
+    popup.setAttribute("role", "status");
+    popup.setAttribute("aria-live", "polite");
+    popup.innerHTML = '<span class="neo-update-success-icon" aria-hidden="true">✓</span><span>NeoFind updated</span>';
+    document.body.appendChild(popup);
+    window.setTimeout(function () {
+      popup.remove();
+    }, 3000);
+  }
+
+  function updateConsumeSuccessPopup(user) {
+    try {
+      const raw = sessionStorage.getItem("neoFindUpdateSuccessPending");
+      if (!raw) return;
+      sessionStorage.removeItem("neoFindUpdateSuccessPending");
+      const pending = JSON.parse(raw);
+      if (pending && pending.uid === user.uid) {
+        updateShowSuccessPopup();
+      }
+    } catch (error) {
+      console.warn("NeoFind update success popup could not be shown:", error);
+    }
   }
 
   function updateFindNeoSocial() {
@@ -12902,6 +12932,14 @@ window.sendOrbsToUser = async function () {
             completedUpdateVersion: requestedReleaseId,
             completedUpdateAt: Date.now()
           }, { merge: true });
+          try {
+            sessionStorage.setItem("neoFindUpdateSuccessPending", JSON.stringify({
+              uid: user.uid,
+              releaseId: requestedReleaseId
+            }));
+          } catch (storageError) {
+            console.warn("NeoFind update popup marker could not be saved:", storageError);
+          }
           window.location.reload();
         } catch (error) {
           console.error("NeoFind update confirmation failed:", error);
@@ -13015,8 +13053,10 @@ window.sendOrbsToUser = async function () {
       updateRenderAdminPanel(user);
       if (!user) {
         document.getElementById("neoUpdateNotice")?.remove();
+        try { sessionStorage.removeItem("neoFindUpdateSuccessPending"); } catch (error) {}
         return;
       }
+      updateConsumeSuccessPopup(user);
       try {
         const snap = await updateDb.collection("system").doc(UPDATE_DOC).get();
         const data = snap.exists ? snap.data() || {} : {};
