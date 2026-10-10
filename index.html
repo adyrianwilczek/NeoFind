@@ -4351,8 +4351,10 @@ function applyTheme(theme){
         document.body.classList.add("neo-theme-" + theme);
     }
 
-    if (theme === "own" && typeof applyNeoOwnThemeVariables === "function") {
-        applyNeoOwnThemeVariables(getNeoOwnThemeConfig());
+    if (theme === "own" &&
+        typeof window.applyNeoOwnThemeVariables === "function" &&
+        typeof window.getNeoOwnThemeConfig === "function") {
+        window.applyNeoOwnThemeVariables(window.getNeoOwnThemeConfig());
     }
 
     // Preserve the existing Space and Matrix effects while giving them new, usable palettes.
@@ -13694,6 +13696,9 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
     }
   }
 
+  // Expose the minimal hooks used by the existing global applyTheme() function.
+  window.getNeoOwnThemeConfig = getNeoOwnThemeConfig;
+  window.applyNeoOwnThemeVariables = applyNeoOwnThemeVariables;
   window.openOwnThemeStudio = openOwnThemeStudio;
   window.closeOwnThemeStudio = function(){ closeOwnThemeStudio(true); };
 
