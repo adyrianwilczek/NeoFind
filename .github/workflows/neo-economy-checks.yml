@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [feature/neo-economy-suite]
+    branches: [main, feature/neo-economy-suite]
 jobs:
   syntax-and-tests:
     runs-on: ubuntu-latest
