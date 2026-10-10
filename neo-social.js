@@ -1894,7 +1894,8 @@
     ) {
         return `
             <article
-                class="ns-card">
+                class="ns-card"
+                data-author-uid="${esc(post.uid || "")}">
 
                 <div class="ns-row">
 
@@ -2980,6 +2981,7 @@
         return `
             <article
                 class="ns-reel"
+                data-author-uid="${esc(reel.uid || "")}"
                 data-reel="${esc(
                     reel.id
                 )}">
