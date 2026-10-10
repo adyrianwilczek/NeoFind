@@ -4819,30 +4819,10 @@ function renderGreeting(){
 }
 
 async function recordNeoVisitStreak(user) {
-    if (!user || typeof db === "undefined") return { streak: 0, eligible: false };
-    const date = new Date();
-    const todayKey = date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
-    const yesterdayDate = new Date(date);
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterdayKey = yesterdayDate.getFullYear() + "-" + String(yesterdayDate.getMonth() + 1).padStart(2, "0") + "-" + String(yesterdayDate.getDate()).padStart(2, "0");
-    const ref = db.collection("users").doc(user.uid);
-    try {
-        return await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            if (data.neoVisitDate === todayKey) {
-                return { streak: Number(data.neoVisitStreak || 1), eligible: Number(data.neoVisitStreak || 1) >= 3 };
-            }
-            const streak = data.neoVisitDate === yesterdayKey ? Number(data.neoVisitStreak || 0) + 1 : 1;
-            transaction.set(ref, { neoVisitDate: todayKey, neoVisitStreak: streak }, { merge: true });
-            return { streak, eligible: streak >= 3 };
-        });
-    } catch (error) {
-        console.error("NeoFind visit streak update failed:", error);
-        return { streak: 0, eligible: false };
-    }
+    if (!user || !window.NeoEconomy) return { streak: 0, eligible: false };
+    try { return await window.NeoEconomy.call("recordVisit"); }
+    catch (error) { console.error("NeoFind visit streak update failed:", error); return { streak: 0, eligible: false }; }
 }
-
 auth.onAuthStateChanged(async user => {
     authResolved = true;
     const loginScreen = document.getElementById("loginScreen");
