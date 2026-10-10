@@ -1869,6 +1869,8 @@
                 }
             );
 
+        bindModerationEvents(container);
+
         container
             .querySelectorAll(
                 "[data-delete-post]"
@@ -1889,12 +1891,44 @@
             );
     }
 
+    function bindModerationEvents(container) {
+        container.querySelectorAll("[data-report-content]").forEach(button => {
+            button.addEventListener("click", async event => {
+                event.preventDefault(); event.stopPropagation();
+                const input = prompt("Report reason: spam, harassment, impersonation, inappropriate, or other", "other");
+                if (!input) return;
+                const reason = ["spam","harassment","impersonation","inappropriate","other"].includes(input.trim().toLowerCase()) ? input.trim().toLowerCase() : "other";
+                const card = button.closest("[data-author-uid]");
+                try {
+                    if (!window.NeoEconomy) throw new Error("Neo Economy unavailable");
+                    await window.NeoEconomy.call("report", {targetUid: card && card.dataset.authorUid || "", targetId: button.dataset.reportContent, reason, details: ""});
+                    if (typeof window.trackNeoAdvancementProgress === "function") await window.trackNeoAdvancementProgress("reportsSent");
+                    toast("Report submitted.");
+                } catch (error) { console.error("Social report failed:", error); toast("Could not submit report."); }
+            });
+        });
+        container.querySelectorAll("[data-block-author]").forEach(button => {
+            button.addEventListener("click", async event => {
+                event.preventDefault(); event.stopPropagation();
+                const uid = button.dataset.blockAuthor;
+                if (!uid || !confirm("Block this user? Their posts and reels will be hidden from your NeoSocial view.")) return;
+                try {
+                    if (!window.NeoEconomy) throw new Error("Neo Economy unavailable");
+                    await window.NeoEconomy.call("blockUser", {targetUid: uid, blocked: true});
+                    if (window.NeoEconomy.refreshBlocked) await window.NeoEconomy.refreshBlocked();
+                    toast("User blocked.");
+                } catch (error) { console.error("Social block failed:", error); toast("Could not block this user."); }
+            });
+        });
+    }
+
     function renderPost(
         post
     ) {
         return `
             <article
-                class="ns-card">
+                class="ns-card"
+                data-author-uid="${esc(post.uid || "")}">
 
                 <div class="ns-row">
 
@@ -2057,6 +2091,11 @@
                         ""
                     }
 
+                </div>
+
+                <div class="ns-actions ns-moderation-actions" style="margin-top:8px;gap:8px">
+                    <button class="ns-action-icon" data-report-content="${esc(post.id)}" title="Report post">Report</button>
+                    ${post.uid && currentUser() && post.uid !== currentUser().uid ? `<button class="ns-action-icon" data-block-author="${esc(post.uid)}" title="Block author">Block</button>` : ""}
                 </div>
 
                 <div
@@ -2965,6 +3004,8 @@
                 }
             );
 
+        bindModerationEvents(main);
+
         setupReelVideos(
             main
         );
@@ -2980,6 +3021,7 @@
         return `
             <article
                 class="ns-reel"
+                data-author-uid="${esc(reel.uid || "")}"
                 data-reel="${esc(
                     reel.id
                 )}">
@@ -3166,6 +3208,11 @@
 
                     </button>
 
+                </div>
+
+                <div class="ns-reel-actions ns-moderation-actions" style="margin-top:8px">
+                    <button class="ns-reel-action" data-report-content="${esc(reel.id)}" title="Report reel">Report</button>
+                    ${reel.uid && currentUser() && reel.uid !== currentUser().uid ? `<button class="ns-reel-action" data-block-author="${esc(reel.uid)}" title="Block author">Block</button>` : ""}
                 </div>
 
             </article>
