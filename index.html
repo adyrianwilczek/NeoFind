@@ -4703,7 +4703,10 @@ function renderGreeting(){
 
     let personalGreeting = "";
     try {
-        const personal = JSON.parse(localStorage.getItem("neoFindPersonalization") || "{}");
+        const draft = window.neoFindPersonalizationDraft;
+        const personal = draft && typeof draft === "object"
+            ? draft
+            : JSON.parse(localStorage.getItem("neoFindPersonalization") || "{}");
         if (typeof personal.welcomeMessage === "string") {
             personalGreeting = personal.welcomeMessage.trim().slice(0, 100);
         }
@@ -13822,6 +13825,7 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     document.getElementById("ownThemeRadiusValue").textContent = c.radius + " px";
 
     const personalization = collectNeoPersonalizationForm();
+    window.neoFindPersonalizationDraft = personalization;
     applyNeoFindPersonalization(personalization);
     document.getElementById("ownSearchWidthValue").textContent = personalization.searchWidth + "%";
     document.getElementById("ownSearchHeightValue").textContent = personalization.searchHeight + " px";
@@ -13834,6 +13838,7 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     overlay.style.display = "none";
     overlay.setAttribute("aria-hidden","true");
     ownThemeStudioOpen = false;
+    window.neoFindPersonalizationDraft = null;
     if (shouldRestore) {
       if (typeof applyTheme === "function") applyTheme(ownThemePrevious);
       applyNeoFindPersonalization(getNeoFindPersonalization());
@@ -13868,6 +13873,7 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
       localStorage.setItem("neoFindOwnThemeConfig", JSON.stringify(c));
       const personalization = collectNeoPersonalizationForm();
       localStorage.setItem("neoFindPersonalization", JSON.stringify(personalization));
+      window.neoFindPersonalizationDraft = null;
       const select = document.getElementById("themeSelect");
       if (select && NEOFIND_AVAILABLE_THEMES.includes(select.value) && ownThemePrevious !== "own") {
         localStorage.setItem("neoFindOwnThemeBasePreset", select.value);
