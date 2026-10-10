@@ -4711,8 +4711,8 @@ function renderGreeting(){
 
     const greetingText = personalGreeting || tpl;
     el.textContent = greetingText
-        .replace(/\\{name\\}/gi, name)
-        .replace(/\\{temp\\}/gi, greetTemp === null ? "" : String(greetTemp));
+        .replace(/\{name\}/gi, name)
+        .replace(/\{temp\}/gi, greetTemp === null ? "" : String(greetTemp));
 }
 
 async function recordNeoVisitStreak(user) {
