@@ -901,6 +901,16 @@ service cloud.firestore {
 
 
     /* =========================================================
+       GLOBAL UPDATE ANNOUNCEMENT
+       ========================================================= */
+
+    match /system/{doc} {
+      allow read: if isLoggedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    /* =========================================================
        DEFAULT DENY
        ========================================================= */
 
