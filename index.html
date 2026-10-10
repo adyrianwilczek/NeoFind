@@ -14082,11 +14082,12 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
 
   function resetNeoInterfaceToOriginal() {
     try {
-      // Clear every saved Interface Personalization choice, not the selected theme.
+      // Delete only Interface Personalization. Leave the selected theme/colors and theme settings untouched.
       localStorage.removeItem("neoFindPersonalization");
       window.neoFindPersonalizationDraft = null;
 
-      // Remove classes/variables that could have been set by an older personalization version.
+      // Clear any layout overrides immediately, then reload so the page is rebuilt
+      // from its original HTML/CSS with no stale inline styles or classes.
       const body = document.body;
       body.classList.remove(
         "nf-custom-layout","nf-hide-greeting","nf-hide-facts","nf-hide-news","nf-hide-neoai",
@@ -14094,10 +14095,7 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
         "nf-font-oxanium","nf-font-system","nf-font-arial","nf-font-georgia","nf-home-left"
       );
       body.style.removeProperty("--nf-nav-scale");
-      body.style.removeProperty("--nf-search-width");
-      body.style.removeProperty("--nf-search-height");
-      body.style.removeProperty("--nf-search-radius");
-
+      body.style.removeProperty("--nf-result-radius");
       const results = document.getElementById("results");
       if (results) {
         results.classList.remove(
@@ -14107,35 +14105,13 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
         results.style.removeProperty("--nf-result-radius");
       }
 
-      writeNeoPersonalizationForm(DEFAULT_NEO_PERSONALIZATION);
-      applyNeoFindPersonalization(DEFAULT_NEO_PERSONALIZATION);
-      closeNeoInterfaceStudio(false);
+      try {
+        sessionStorage.setItem("neoFindOriginalUiResetPending", "1");
+      } catch (storageError) {
+        console.warn("Could not store original UI confirmation:", storageError);
+      }
 
-      document.getElementById("neoInterfaceResetToast")?.remove();
-      const toast = document.createElement("div");
-      toast.id = "neoInterfaceResetToast";
-      toast.setAttribute("role", "status");
-      toast.setAttribute("aria-live", "polite");
-      toast.textContent = "Original NeoFind UI restored. Interface personalization has been reset.";
-      Object.assign(toast.style, {
-        position: "fixed",
-        left: "50%",
-        bottom: "28px",
-        transform: "translateX(-50%)",
-        zIndex: "2147483647",
-        maxWidth: "calc(100vw - 32px)",
-        boxSizing: "border-box",
-        padding: "13px 18px",
-        border: "1px solid rgba(94,234,212,.45)",
-        borderRadius: "12px",
-        background: "rgba(10,24,38,.97)",
-        color: "#e8fff8",
-        boxShadow: "0 12px 36px rgba(0,0,0,.38)",
-        font: "600 13px/1.5 system-ui,sans-serif",
-        textAlign: "center"
-      });
-      document.body.appendChild(toast);
-      window.setTimeout(() => toast.remove(), 3200);
+      window.location.reload();
     } catch (error) {
       console.error("Could not restore the original NeoFind UI:", error);
       const status = document.getElementById("neoInterfaceStatus");
@@ -14153,6 +14129,29 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
   window.closeOwnThemeStudio = function(){ closeOwnThemeStudio(true); };
 
   document.addEventListener("DOMContentLoaded", function () {
+    try {
+      if (sessionStorage.getItem("neoFindOriginalUiResetPending") === "1") {
+        sessionStorage.removeItem("neoFindOriginalUiResetPending");
+        const toast = document.createElement("div");
+        toast.id = "neoInterfaceResetToast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        toast.textContent = "Original NeoFind UI restored.";
+        Object.assign(toast.style, {
+          position: "fixed", left: "50%", bottom: "28px", transform: "translateX(-50%)",
+          zIndex: "2147483647", maxWidth: "calc(100vw - 32px)", boxSizing: "border-box",
+          padding: "13px 18px", border: "1px solid rgba(94,234,212,.45)", borderRadius: "12px",
+          background: "rgba(10,24,38,.97)", color: "#e8fff8",
+          boxShadow: "0 12px 36px rgba(0,0,0,.38)", font: "600 13px/1.5 system-ui,sans-serif",
+          textAlign: "center"
+        });
+        document.body.appendChild(toast);
+        window.setTimeout(() => toast.remove(), 3000);
+      }
+    } catch (error) {
+      console.warn("Could not display original UI reset confirmation:", error);
+    }
+
     const themeOverlay = document.getElementById("neoOwnThemeStudio");
     if (themeOverlay) {
       document.getElementById("neoOwnThemeCloseBtn").addEventListener("click", () => closeOwnThemeStudio(true));
