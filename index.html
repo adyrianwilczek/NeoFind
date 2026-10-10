@@ -14649,21 +14649,37 @@ function showNeoAdvancementToast(advancement) {
 
 async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
     const advancement = NEOFIND_ADVANCEMENTS.find(a => a.id === id);
-    if (!advancement || !uid || typeof db === "undefined" || !["orbs", "badge"].includes(advancement.rewardType)) return false;
-    const ref = db.collection("users").doc(uid);
+    if (!advancement || !uid || typeof db === "undefined") return false;
     const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
     try {
-        const result = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const balance = Math.max(0, Math.floor(Number(data.orbs || 0)));
+        if (currentUserId === uid && window.NeoEconomy) {
+            const result = await window.NeoEconomy.call("claimAdvancement", { advancementId: id });
+            userOrbs = Number(result.orbs || 0);
+            localStorage.setItem("userOrbs", String(userOrbs));
+            const count = document.getElementById("userOrbsCount");
+            if (count) count.textContent = String(userOrbs);
+            if (typeof updateUI === "function") updateUI();
+            if (typeof renderMissions === "function") renderMissions();
+            if (result.badge && typeof renderNeoFindAccountBadges === "function") {
+                const fresh = await db.collection("users").doc(uid).get();
+                if (fresh.exists) renderNeoFindAccountBadges(auth.currentUser, fresh.data());
+            }
+            if (result.already) return false;
+            showNeoAdvancementToast(advancement);
+            const overlay = document.getElementById("neoAdvancementsOverlay");
+            if (overlay && overlay.style.display === "flex") renderNeoAdvancements();
+            return true;
+        }
+        // Cross-account rewards remain available only to existing admin flows.
+        if (!auth.currentUser || !ADMIN_EMAILS.includes(String(auth.currentUser.email || "").toLowerCase())) return false;
+        const ref = db.collection("users").doc(uid);
+        return await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref), data = snap.exists ? snap.data() : {};
             const completed = data.advancements && typeof data.advancements === "object" ? Object.assign({}, data.advancements) : {};
-            if (completed[id]) return { unlocked: false, orbs: balance };
+            if (completed[id]) return false;
             completed[id] = { unlockedAt: Date.now(), rewardType: advancement.rewardType, reward: advancement.rewardType === "badge" ? advancement.badge : Number(advancement.reward || 0) };
-
-            const orbReward = advancement.rewardType === "orbs" ? Math.max(0, Math.floor(Number(advancement.reward || 0))) : 0;
-            const nextBalance = balance + orbReward;
-            const update = { advancements: completed, orbs: nextBalance };
+            const amount = advancement.rewardType === "orbs" ? Math.max(0, Math.floor(Number(advancement.reward || 0))) : 0;
+            const update = { advancements: completed, orbs: Math.max(0, Math.floor(Number(data.orbs || 0))) + amount };
             if (advancement.rewardType === "badge" && advancement.badge) {
                 const badges = Array.isArray(data.badges) ? data.badges.slice() : [];
                 if (!badges.includes(advancement.badge)) badges.push(advancement.badge);
@@ -14675,31 +14691,9 @@ async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
                 update.advancementNotices = notices;
             }
             transaction.set(ref, update, { merge: true });
-            return { unlocked: true, orbs: nextBalance, badge: advancement.badge || null };
+            return true;
         });
-        if (!result.unlocked) return false;
-        if (auth.currentUser && auth.currentUser.uid === uid) {
-            userOrbs = result.orbs;
-            localStorage.setItem("userOrbs", String(userOrbs));
-            const count = document.getElementById("userOrbsCount");
-            if (count) count.textContent = String(userOrbs);
-            if (typeof updateUI === "function") updateUI();
-            if (typeof renderMissions === "function") renderMissions();
-            if (result.badge && typeof renderNeoFindAccountBadges === "function") {
-                try {
-                    const fresh = await ref.get();
-                    if (fresh.exists) renderNeoFindAccountBadges(auth.currentUser, fresh.data());
-                } catch (e) { console.warn("Could not refresh advancement badges:", e); }
-            }
-            showNeoAdvancementToast(advancement);
-            const overlay = document.getElementById("neoAdvancementsOverlay");
-            if (overlay && overlay.style.display === "flex") renderNeoAdvancements();
-        }
-        return true;
-    } catch (error) {
-        console.error("Could not save advancement:", id, error);
-        return false;
-    }
+    } catch (error) { console.error("Could not save advancement:", id, error); return false; }
 }
 
 async function trackNeoAdvancementProgress(stat, amount = 1) {
