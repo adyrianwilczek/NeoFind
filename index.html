@@ -12899,6 +12899,7 @@ window.sendOrbsToUser = async function () {
   let updateAuth = null;
   let updateEnabled = false;
   let updateReleaseId = null;
+  let updateAnnouncementMessage = "";
   let updateInitialized = false;
   let updateObserver = null;
 
@@ -12935,7 +12936,15 @@ window.sendOrbsToUser = async function () {
       #neoUpdateAdminPanel{margin:16px 0;padding:14px;border:1px solid rgba(0,242,254,.28);border-radius:12px;background:rgba(0,20,30,.65);color:#fff;font:13px/1.5 'Oxanium',sans-serif}
       #neoUpdateAdminPanel label{display:flex;align-items:center;gap:10px;cursor:pointer}
       #neoUpdateAdminPanel input[type=checkbox]{width:17px;height:17px;accent-color:#00f2fe}
+      #neoUpdateAdminPanel textarea{display:block;width:100%;min-height:110px;box-sizing:border-box;margin:12px 0 8px;padding:10px 12px;border:1px solid rgba(0,242,254,.28);border-radius:9px;background:rgba(1,10,20,.8);color:#eafcff;font:500 13px/1.5 'Oxanium',sans-serif;resize:vertical}
+      #neoUpdateAdminPanel textarea:focus{outline:1px solid rgba(0,242,254,.55)}
       #neoUpdateAdminStatus{display:block;margin-top:8px;color:#9ccbd2}
+      #neoUpdateMessageModal{position:fixed;inset:0;z-index:2147483646;display:none;align-items:center;justify-content:center;box-sizing:border-box;padding:18px;background:rgba(1,7,15,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+      #neoUpdateMessageCard{width:min(560px,100%);max-height:min(80vh,680px);overflow:auto;box-sizing:border-box;border:1px solid rgba(0,242,254,.4);border-radius:16px;padding:20px;background:linear-gradient(145deg,rgba(8,27,41,.99),rgba(5,12,25,.99));color:#eafcff;box-shadow:0 24px 70px rgba(0,0,0,.45);font:500 14px/1.65 'Oxanium',sans-serif}
+      #neoUpdateMessageHeader{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+      #neoUpdateMessageHeader strong{font-size:18px;color:#00f2fe}
+      #neoUpdateMessageContent{white-space:pre-wrap;overflow-wrap:anywhere;color:#eafcff;min-height:42px}
+      #neoUpdateMessageClose{border:1px solid rgba(0,242,254,.4);border-radius:8px;padding:6px 11px;background:rgba(0,242,254,.1);color:#fff;cursor:pointer;font:600 12px 'Oxanium',sans-serif}
       #neoUpdateSuccessPopup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2147483647;display:flex;align-items:center;gap:12px;padding:20px 28px;max-width:calc(100vw - 40px);box-sizing:border-box;border:1px solid rgba(0,242,254,.65);border-radius:16px;background:rgba(5,18,30,.97);color:#fff;font:700 18px/1.4 'Oxanium',sans-serif;box-shadow:0 0 40px rgba(0,242,254,.28);animation:neoUpdatePopupIn .18s ease-out}
       #neoUpdateSuccessPopup .neo-update-success-icon{display:grid;place-items:center;width:34px;height:34px;flex:0 0 34px;border-radius:50%;background:rgba(0,242,254,.16);color:#00f2fe;font-size:22px}
       @keyframes neoUpdatePopupIn{from{opacity:0;transform:translate(-50%,-46%) scale(.96)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
@@ -12943,7 +12952,32 @@ window.sendOrbsToUser = async function () {
     document.head.appendChild(style);
   }
 
-  function updateShowSuccessPopup() {
+  function updateCloseAnnouncementDetails() {
+    const modal = document.getElementById("neoUpdateMessageModal");
+    if (modal) modal.style.display = "none";
+  }
+
+  function updateShowAnnouncementDetails() {
+    let modal = document.getElementById("neoUpdateMessageModal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "neoUpdateMessageModal";
+      modal.setAttribute("role", "presentation");
+      modal.innerHTML = '<section id="neoUpdateMessageCard" role="dialog" aria-modal="true" aria-labelledby="neoUpdateMessageTitle"><div id="neoUpdateMessageHeader"><strong id="neoUpdateMessageTitle">NeoFind update</strong><button type="button" id="neoUpdateMessageClose">Close</button></div><div id="neoUpdateMessageContent"></div></section>';
+      document.body.appendChild(modal);
+      modal.querySelector("#neoUpdateMessageClose").addEventListener("click", updateCloseAnnouncementDetails);
+      modal.addEventListener("click", function (event) {
+        if (event.target === modal) updateCloseAnnouncementDetails();
+      });
+    }
+
+    const contentNode = modal.querySelector("#neoUpdateMessageContent");
+    contentNode.textContent = updateAnnouncementMessage.trim() || "A new NeoFind update is ready. The administrator has not added more details yet.";
+    modal.style.display = "flex";
+    modal.querySelector("#neoUpdateMessageClose").focus();
+  }
+
+    function updateShowSuccessPopup() {
     document.getElementById("neoUpdateSuccessPopup")?.remove();
     const popup = document.createElement("div");
     popup.id = "neoUpdateSuccessPopup";
@@ -13024,7 +13058,7 @@ window.sendOrbsToUser = async function () {
 
       notice = document.createElement("div");
       notice.id = "neoUpdateNotice";
-      notice.innerHTML = '<span class="neo-update-title">Update available</span><span>A new NeoFind update is ready.</span><button type="button" id="neoUpdateResetButton">Reset &amp; update</button>';
+      notice.innerHTML = '<span class="neo-update-title">Update available</span><button type="button" id="neoUpdateSeeButton">See update</button><button type="button" id="neoUpdateResetButton">Reset &amp; update</button>';
 
       const anchor = updateFindNeoSocial();
       if (anchor && anchor.parentElement) {
@@ -13033,6 +13067,8 @@ window.sendOrbsToUser = async function () {
         const host = document.querySelector("#topbar,.topbar,header,nav,#bottomNav,.bottom-nav") || document.body;
         host.appendChild(notice);
       }
+
+      notice.querySelector("#neoUpdateSeeButton").addEventListener("click", updateShowAnnouncementDetails);
 
       notice.querySelector("#neoUpdateResetButton").addEventListener("click", async function () {
         const button = this;
@@ -13107,7 +13143,7 @@ window.sendOrbsToUser = async function () {
 
     panel = document.createElement("section");
     panel.id = "neoUpdateAdminPanel";
-    panel.innerHTML = '<strong>Global update announcement</strong><p>Enable this checkbox to show an “Update available” notice to every account that has not completed this release.</p><label><input id="neoUpdateAnnouncementCheckbox" type="checkbox"><span>Show update available to everyone</span></label><span id="neoUpdateAdminStatus">Loading settings…</span>';
+    panel.innerHTML = '<strong>Global update announcement</strong><p>Enable this checkbox to show an “Update available” notice to every account that has not completed this release.</p><label><input id="neoUpdateAnnouncementCheckbox" type="checkbox"><span>Show update available to everyone</span></label><label for="neoUpdateAnnouncementMessage" style="display:block;margin-top:14px;">Update message shown by “See update”</label><textarea id="neoUpdateAnnouncementMessage" maxlength="4000" placeholder="Write what changed in this update..."></textarea><button type="button" id="neoUpdateSaveMessageButton">Save update message</button><span id="neoUpdateAdminStatus">Loading settings…</span>';
     host.appendChild(panel);
 
     panel.querySelector("#neoUpdateAnnouncementCheckbox").addEventListener("change", async function () {
@@ -13136,13 +13172,38 @@ window.sendOrbsToUser = async function () {
       }
     });
 
+    panel.querySelector("#neoUpdateSaveMessageButton").addEventListener("click", async function () {
+      const button = this;
+      const textarea = panel.querySelector("#neoUpdateAnnouncementMessage");
+      const status = panel.querySelector("#neoUpdateAdminStatus");
+      const message = String(textarea.value || "").trim().slice(0, 4000);
+      button.disabled = true;
+      try {
+        await updateDb.collection("system").doc(UPDATE_DOC).set({
+          message: message,
+          messageUpdatedAt: Date.now(),
+          messageUpdatedBy: String((updateAuth.currentUser && updateAuth.currentUser.email) || "")
+        }, { merge: true });
+        updateAnnouncementMessage = message;
+        status.textContent = "Update message saved. Users can open it with “See update”.";
+      } catch (error) {
+        console.error("NeoFind update message save failed:", error);
+        status.textContent = "Could not save the update message. Check Firestore rules.";
+      } finally {
+        button.disabled = false;
+      }
+    });
+
     updateDb.collection("system").doc(UPDATE_DOC).get().then(snap => {
       const data = snap.exists ? snap.data() || {} : {};
       updateEnabled = data.enabled === true;
       updateReleaseId = data.releaseId || null;
+      updateAnnouncementMessage = typeof data.message === "string" ? data.message : "";
       const checkbox = panel.querySelector("#neoUpdateAnnouncementCheckbox");
+      const messageInput = panel.querySelector("#neoUpdateAnnouncementMessage");
       const status = panel.querySelector("#neoUpdateAdminStatus");
       if (checkbox) checkbox.checked = updateEnabled;
+      if (messageInput) messageInput.value = updateAnnouncementMessage;
       if (status) status.textContent = updateEnabled ? "Enabled for all accounts." : "Currently off.";
       updateRenderNotice();
     }).catch(error => {
@@ -13173,6 +13234,7 @@ window.sendOrbsToUser = async function () {
         const data = snap.exists ? snap.data() || {} : {};
         updateEnabled = data.enabled === true;
         updateReleaseId = data.releaseId || null;
+        updateAnnouncementMessage = typeof data.message === "string" ? data.message : "";
         await updateRenderNotice();
       } catch (error) {
         console.warn("NeoFind update settings could not be read", error);
