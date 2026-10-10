@@ -2260,9 +2260,20 @@ NOTE! Do not share the key with anyone.
                 <h4 id="themeLabel" style="margin-top:16px;">Theme</h4>
                 <select id="themeSelect">
                     <option value="classic">Classic</option>
+                    <option value="aurora">Aurora</option>
+                    <option value="midnight">Midnight</option>
+                    <option value="nord">Nord</option>
+                    <option value="lavender">Lavender</option>
+                    <option value="rose">Rose</option>
+                    <option value="sunset">Sunset</option>
+                    <option value="ember">Ember</option>
+                    <option value="forest">Forest</option>
+                    <option value="sakura">Sakura</option>
+                    <option value="paper">Paper</option>
+                    <option value="cyber">Cyber</option>
+                    <option value="ocean">Ocean</option>
                     <option value="space">Space</option>
                     <option value="matrix">Matrix</option>
-                    <option value="ocean">Ocean</option>
                 </select>
             </div>
 
@@ -4307,23 +4318,63 @@ function startMatrix(){
     }, 50);
     intervals.push(interval);
 }
+const NEOFIND_AVAILABLE_THEMES = [
+    "classic", "aurora", "midnight", "nord", "lavender", "rose",
+    "sunset", "ember", "forest", "sakura", "paper", "cyber",
+    "ocean", "space", "matrix"
+];
+
 function applyTheme(theme){
+    theme = String(theme || "classic").toLowerCase();
+    if (!NEOFIND_AVAILABLE_THEMES.includes(theme)) theme = "classic";
+
     console.log("THEME:", theme);
-    document.body.classList.remove("space","matrix","ocean");
+
+    const allThemeClasses = [
+        "space", "matrix", "ocean",
+        "neo-theme-aurora", "neo-theme-midnight", "neo-theme-nord",
+        "neo-theme-lavender", "neo-theme-rose", "neo-theme-sunset",
+        "neo-theme-ember", "neo-theme-forest", "neo-theme-sakura",
+        "neo-theme-paper", "neo-theme-cyber", "neo-theme-ocean",
+        "neo-theme-space", "neo-theme-matrix"
+    ];
+
+    document.body.classList.remove(...allThemeClasses);
     stopEffects();
-    if(theme === "space"){
+
+    if (theme !== "classic") {
+        document.body.classList.add("neo-theme-" + theme);
+    }
+
+    // Preserve the existing Space and Matrix effects while giving them new, usable palettes.
+    if (theme === "space") {
         document.body.classList.add("space");
         startSpace();
-    }
-    if(theme === "matrix"){
+    } else if (theme === "matrix") {
         document.body.classList.add("matrix");
         startMatrix();
-    }
-    if(theme === "ocean"){
+    } else if (theme === "ocean") {
         document.body.classList.add("ocean");
     }
+
+    document.documentElement.style.colorScheme = theme === "paper" ? "light" : "dark";
     localStorage.setItem("theme", theme);
+
+    const select = document.getElementById("themeSelect");
+    if (select && select.value !== theme) select.value = theme;
+
+    return theme;
 }
+
+// Restore the user's last saved theme on every load.
+(function restoreNeoFindTheme() {
+    const restore = () => applyTheme(localStorage.getItem("theme") || "classic");
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", restore, { once: true });
+    } else {
+        restore();
+    }
+})();
 
 /* =========================
    FIREBASE INIT (TYLKO RAZ)
@@ -6047,6 +6098,17 @@ const NEOFIND_UI_I18N_FR = {
     "Language":"Langue",
     "Theme":"Thème",
     "Classic":"Classique",
+    "Aurora":"Aurore",
+    "Midnight":"Minuit",
+    "Nord":"Nord",
+    "Lavender":"Lavande",
+    "Rose":"Rose",
+    "Sunset":"Coucher de soleil",
+    "Ember":"Braise",
+    "Forest":"Forêt",
+    "Sakura":"Sakura",
+    "Paper":"Papier",
+    "Cyber":"Cyber",
     "Space":"Espace",
     "Matrix":"Matrix",
     "Ocean":"Océan",
@@ -6128,6 +6190,17 @@ const NEOFIND_UI_I18N = {
     "Language": ["Language","Język","Idioma"],
     "Theme": ["Theme","Motyw","Tema"],
     "Classic": ["Classic","Klasyczny","Clásico"],
+    "Aurora": ["Aurora","Zorza","Aurora"],
+    "Midnight": ["Midnight","Północ","Medianoche"],
+    "Nord": ["Nord","Nord","Nórdico"],
+    "Lavender": ["Lavender","Lawenda","Lavanda"],
+    "Rose": ["Rose","Różany","Rosa"],
+    "Sunset": ["Sunset","Zachód słońca","Atardecer"],
+    "Ember": ["Ember","Żar","Brasa"],
+    "Forest": ["Forest","Las","Bosque"],
+    "Sakura": ["Sakura","Sakura","Sakura"],
+    "Paper": ["Paper","Papier","Papel"],
+    "Cyber": ["Cyber","Cyber","Ciber"],
     "Space": ["Space","Kosmos","Espacio"],
     "Matrix": ["Matrix","Matrix","Matrix"],
     "Ocean": ["Ocean","Ocean","Océano"],
@@ -13090,5 +13163,173 @@ window.sendOrbsToUser = async function () {
 })();
 </script>
 
+<style id="neo-theme-palette">
+/* NeoFind theme system: Classic is the untouched original look. */
+body.neo-theme-aurora {
+  --nf-bg: radial-gradient(circle at 15% 16%,rgba(20,184,166,.20),transparent 34%),radial-gradient(circle at 82% 18%,rgba(59,130,246,.17),transparent 35%),linear-gradient(135deg,#071b24,#0b2630 55%,#101b38);
+  --nf-panel:rgba(9,27,39,.84);--nf-panel-solid:rgba(7,22,32,.97);--nf-border:rgba(110,231,208,.27);--nf-accent:#6ee7c8;--nf-accent2:#60a5fa;--nf-text:#e8fffb;--nf-muted:#a9c6c6;--nf-input:rgba(2,14,23,.83);--nf-btntext:#071b24;--nf-shadow:rgba(20,184,166,.12);
+}
+body.neo-theme-midnight {
+  --nf-bg:radial-gradient(circle at 78% 10%,rgba(124,58,237,.22),transparent 34%),linear-gradient(135deg,#080b18,#17152b 55%,#10182e);
+  --nf-panel:rgba(20,20,43,.86);--nf-panel-solid:rgba(13,13,31,.97);--nf-border:rgba(167,139,250,.29);--nf-accent:#b7a1ff;--nf-accent2:#738aff;--nf-text:#f4f0ff;--nf-muted:#b7b3d0;--nf-input:rgba(9,10,24,.85);--nf-btntext:#120c2b;--nf-shadow:rgba(124,58,237,.17);
+}
+body.neo-theme-nord {
+  --nf-bg:radial-gradient(circle at 20% 12%,rgba(136,192,208,.10),transparent 35%),linear-gradient(135deg,#2e3440,#3b4252 55%,#242a34);
+  --nf-panel:rgba(46,52,64,.86);--nf-panel-solid:rgba(36,42,52,.98);--nf-border:rgba(136,192,208,.30);--nf-accent:#88c0d0;--nf-accent2:#81a1c1;--nf-text:#eceff4;--nf-muted:#c0c8d5;--nf-input:rgba(28,33,42,.85);--nf-btntext:#202833;--nf-shadow:rgba(129,161,193,.13);
+}
+body.neo-theme-lavender {
+  --nf-bg:radial-gradient(circle at 15% 15%,rgba(196,181,253,.16),transparent 32%),linear-gradient(135deg,#171326,#2b2140 58%,#1b263d);
+  --nf-panel:rgba(35,27,52,.87);--nf-panel-solid:rgba(23,18,37,.97);--nf-border:rgba(196,181,253,.28);--nf-accent:#c4b5fd;--nf-accent2:#a78bfa;--nf-text:#f4f0ff;--nf-muted:#c7bddc;--nf-input:rgba(17,13,30,.84);--nf-btntext:#211733;--nf-shadow:rgba(167,139,250,.14);
+}
+body.neo-theme-rose {
+  --nf-bg:radial-gradient(circle at 84% 12%,rgba(251,113,133,.14),transparent 32%),linear-gradient(135deg,#170f19,#341c2c 56%,#201a30);
+  --nf-panel:rgba(44,25,39,.87);--nf-panel-solid:rgba(26,15,25,.97);--nf-border:rgba(249,168,212,.27);--nf-accent:#f9a8d4;--nf-accent2:#fb7185;--nf-text:#fff0f6;--nf-muted:#d8b7c9;--nf-input:rgba(20,10,18,.85);--nf-btntext:#351429;--nf-shadow:rgba(251,113,133,.13);
+}
+body.neo-theme-sunset {
+  --nf-bg:radial-gradient(circle at 82% 12%,rgba(255,126,103,.19),transparent 32%),radial-gradient(circle at 18% 80%,rgba(255,184,107,.10),transparent 38%),linear-gradient(135deg,#171729,#3a2942 55%,#37252b);
+  --nf-panel:rgba(47,34,50,.87);--nf-panel-solid:rgba(27,21,33,.97);--nf-border:rgba(255,184,107,.27);--nf-accent:#ffb86b;--nf-accent2:#ff7e67;--nf-text:#fff3e8;--nf-muted:#d6bdba;--nf-input:rgba(20,15,26,.85);--nf-btntext:#392025;--nf-shadow:rgba(255,126,103,.13);
+}
+body.neo-theme-ember {
+  --nf-bg:radial-gradient(circle at 75% 12%,rgba(249,115,22,.16),transparent 30%),linear-gradient(135deg,#111315,#262321 58%,#351e17);
+  --nf-panel:rgba(39,34,31,.89);--nf-panel-solid:rgba(22,21,21,.98);--nf-border:rgba(251,146,60,.28);--nf-accent:#fb923c;--nf-accent2:#fbbf24;--nf-text:#fff6ed;--nf-muted:#c9b8a9;--nf-input:rgba(16,15,14,.87);--nf-btntext:#301809;--nf-shadow:rgba(249,115,22,.14);
+}
+body.neo-theme-forest {
+  --nf-bg:radial-gradient(circle at 18% 12%,rgba(52,211,153,.13),transparent 36%),linear-gradient(135deg,#071b17,#10342b 56%,#142a27);
+  --nf-panel:rgba(13,43,35,.87);--nf-panel-solid:rgba(6,26,21,.97);--nf-border:rgba(110,231,183,.26);--nf-accent:#6ee7b7;--nf-accent2:#34d399;--nf-text:#eafff5;--nf-muted:#adcec1;--nf-input:rgba(4,18,15,.86);--nf-btntext:#062b20;--nf-shadow:rgba(52,211,153,.12);
+}
+body.neo-theme-sakura {
+  --nf-bg:radial-gradient(circle at 80% 12%,rgba(244,114,182,.15),transparent 33%),linear-gradient(135deg,#151222,#2e2437 55%,#26233f);
+  --nf-panel:rgba(42,32,50,.88);--nf-panel-solid:rgba(23,18,31,.97);--nf-border:rgba(244,114,182,.28);--nf-accent:#f9a8d4;--nf-accent2:#c4b5fd;--nf-text:#fff2fa;--nf-muted:#d6bfd3;--nf-input:rgba(17,13,25,.86);--nf-btntext:#351b30;--nf-shadow:rgba(244,114,182,.13);
+}
+body.neo-theme-paper {
+  --nf-bg:radial-gradient(circle at 10% 8%,rgba(198,171,126,.18),transparent 35%),linear-gradient(135deg,#f5f0e6,#e9edf0 58%,#e5e8ef);
+  --nf-panel:rgba(255,255,255,.83);--nf-panel-solid:rgba(252,250,245,.98);--nf-border:rgba(88,75,57,.20);--nf-accent:#6558bd;--nf-accent2:#347f83;--nf-text:#252a32;--nf-muted:#626974;--nf-input:rgba(255,255,255,.95);--nf-btntext:#ffffff;--nf-shadow:rgba(39,46,58,.10);
+}
+body.neo-theme-cyber {
+  --nf-bg:radial-gradient(circle at 12% 12%,rgba(0,242,254,.12),transparent 32%),radial-gradient(circle at 88% 15%,rgba(155,81,224,.15),transparent 35%),linear-gradient(135deg,#060d17,#101827 58%,#121126);
+  --nf-panel:rgba(12,22,35,.88);--nf-panel-solid:rgba(5,12,23,.98);--nf-border:rgba(0,242,254,.25);--nf-accent:#00e5ff;--nf-accent2:#a78bfa;--nf-text:#eafaff;--nf-muted:#a9c2d2;--nf-input:rgba(3,9,17,.87);--nf-btntext:#06141b;--nf-shadow:rgba(0,229,255,.14);
+}
+body.neo-theme-ocean {
+  --nf-bg:radial-gradient(circle at 14% 14%,rgba(34,211,238,.17),transparent 34%),linear-gradient(135deg,#061b35,#0b3553 54%,#082c39);
+  --nf-panel:rgba(6,39,62,.87);--nf-panel-solid:rgba(4,24,42,.98);--nf-border:rgba(103,232,249,.25);--nf-accent:#67e8f9;--nf-accent2:#38bdf8;--nf-text:#ecfeff;--nf-muted:#afd5df;--nf-input:rgba(2,19,34,.87);--nf-btntext:#062433;--nf-shadow:rgba(34,211,238,.14);
+}
+body.neo-theme-space {
+  --nf-bg:radial-gradient(circle at 52% 0%,rgba(91,75,170,.2),transparent 39%),linear-gradient(135deg,#050816,#111631 60%,#090e1d);
+  --nf-panel:rgba(12,17,39,.87);--nf-panel-solid:rgba(5,8,24,.98);--nf-border:rgba(129,140,248,.28);--nf-accent:#a5b4fc;--nf-accent2:#818cf8;--nf-text:#f0f3ff;--nf-muted:#b4bfdc;--nf-input:rgba(5,8,23,.88);--nf-btntext:#111633;--nf-shadow:rgba(99,102,241,.15);
+}
+body.neo-theme-matrix {
+  --nf-bg:linear-gradient(135deg,#020804,#06150b 56%,#020804);
+  --nf-panel:rgba(3,19,8,.88);--nf-panel-solid:rgba(1,10,4,.98);--nf-border:rgba(34,197,94,.30);--nf-accent:#4ade80;--nf-accent2:#16a34a;--nf-text:#e7ffe9;--nf-muted:#9acaa4;--nf-input:rgba(0,9,2,.9);--nf-btntext:#031308;--nf-shadow:rgba(34,197,94,.15);
+}
+body[class*="neo-theme-"] {
+  background:var(--nf-bg) fixed !important;
+  background-size:cover !important;
+  color:var(--nf-text) !important;
+  color-scheme:dark;
+}
+body.neo-theme-paper { color-scheme:light; }
+body[class*="neo-theme-"] #topBar,
+body[class*="neo-theme-"] #bottomNav {
+  background:var(--nf-panel-solid) !important;
+  color:var(--nf-text) !important;
+  border-color:var(--nf-border) !important;
+  box-shadow:0 8px 30px var(--nf-shadow) !important;
+}
+body[class*="neo-theme-"] #topBar *,
+body[class*="neo-theme-"] #bottomNav * { border-color:var(--nf-border); }
+body[class*="neo-theme-"] #settingsBox,
+body[class*="neo-theme-"] #friendsBox,
+body[class*="neo-theme-"] #profileBox,
+body[class*="neo-theme-"] #reportBox,
+body[class*="neo-theme-"] #adminBox,
+body[class*="neo-theme-"] #privacyBox,
+body[class*="neo-theme-"] #newsBox,
+body[class*="neo-theme-"] #consoleBox,
+body[class*="neo-theme-"] #announcementsBox {
+  background:var(--nf-panel-solid) !important;
+  color:var(--nf-text) !important;
+  border-color:var(--nf-border) !important;
+  box-shadow:0 18px 50px rgba(0,0,0,.20) !important;
+}
+body[class*="neo-theme-"] .settings-col,
+body[class*="neo-theme-"] .result,
+body[class*="neo-theme-"] #suggestions {
+  background:var(--nf-panel) !important;
+  color:var(--nf-text) !important;
+  border:1px solid var(--nf-border) !important;
+  box-shadow:0 9px 28px var(--nf-shadow) !important;
+}
+body[class*="neo-theme-"] #settingsBox *,
+body[class*="neo-theme-"] #friendsBox *,
+body[class*="neo-theme-"] #profileBox *,
+body[class*="neo-theme-"] #reportBox *,
+body[class*="neo-theme-"] #adminBox *,
+body[class*="neo-theme-"] #privacyBox *,
+body[class*="neo-theme-"] #newsBox *,
+body[class*="neo-theme-"] #consoleBox *,
+body[class*="neo-theme-"] #announcementsBox * {
+  border-color:var(--nf-border);
+}
+body[class*="neo-theme-"] input,
+body[class*="neo-theme-"] select,
+body[class*="neo-theme-"] textarea {
+  background:var(--nf-input) !important;
+  color:var(--nf-text) !important;
+  border-color:var(--nf-border) !important;
+}
+body[class*="neo-theme-"] select option {
+  background:var(--nf-panel-solid);
+  color:var(--nf-text);
+}
+body[class*="neo-theme-"] input::placeholder,
+body[class*="neo-theme-"] textarea::placeholder {
+  color:var(--nf-muted) !important;
+  opacity:.82;
+}
+body[class*="neo-theme-"] button:not(.danger):not(.delete-btn):not(.logout-btn) {
+  border-color:var(--nf-border);
+}
+body[class*="neo-theme-"] #settingsBox button,
+body[class*="neo-theme-"] #friendsBox button,
+body[class*="neo-theme-"] #profileBox button,
+body[class*="neo-theme-"] #reportBox button,
+body[class*="neo-theme-"] #adminBox button,
+body[class*="neo-theme-"] #privacyBox button,
+body[class*="neo-theme-"] #newsBox button,
+body[class*="neo-theme-"] #consoleBox button,
+body[class*="neo-theme-"] #announcementsBox button,
+body[class*="neo-theme-"] #topBar button,
+body[class*="neo-theme-"] #bottomNav button,
+body[class*="neo-theme-"] #homeWrapper button {
+  background:linear-gradient(135deg,var(--nf-accent),var(--nf-accent2)) !important;
+  color:var(--nf-btntext) !important;
+  border-color:var(--nf-border) !important;
+}
+body[class*="neo-theme-"] #neoAiFloatBtn {
+  background:linear-gradient(135deg,var(--nf-accent),var(--nf-accent2)) !important;
+  color:var(--nf-btntext) !important;
+}
+body[class*="neo-theme-"] a { color:var(--nf-accent) !important; }
+body[class*="neo-theme-"] #settingsBox h3,
+body[class*="neo-theme-"] #settingsBox h4,
+body[class*="neo-theme-"] #friendsBox h3,
+body[class*="neo-theme-"] #profileBox h3,
+body[class*="neo-theme-"] #newsBox h3,
+body[class*="neo-theme-"] #adminBox h3 {
+  color:var(--nf-accent) !important;
+}
+body[class*="neo-theme-"] ::selection {
+  background:var(--nf-accent);
+  color:var(--nf-btntext);
+}
+body[class*="neo-theme-"] { scrollbar-color:var(--nf-accent) var(--nf-panel-solid); }
+body[class*="neo-theme-"] #search {
+  border-color:var(--nf-border) !important;
+  box-shadow:0 8px 28px var(--nf-shadow) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  body[class*="neo-theme-"] * { scroll-behavior:auto !important; transition-duration:.01ms !important; }
+}
+</style>
 </body>
 </html>
