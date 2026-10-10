@@ -3919,6 +3919,7 @@ if(badWord && badWord !== lastBadWord){
 
     const isAIQuery =aiKeywords.some(k => value === k || value.startsWith(k + " "));
     if(isAIQuery){
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("aiQueries");
     results.innerHTML = "<div class='result'>Thinking...</div>";
     getAIResponse(value).then(answer => {
         // ktoś pisze dalej, ta odpowiedź jest już nieaktualna
@@ -4204,14 +4205,25 @@ window.addEventListener("popstate", () => {
 });
 
 function saveSettings(){
+    const previousLanguage = localStorage.getItem("lang") || currentLang || "en";
     const lang = document.getElementById("settingsLang").value;
     currentLang = lang;
     localStorage.setItem("lang", lang);
+    if (lang !== previousLanguage && typeof trackNeoAdvancementUnique === "function") {
+        trackNeoAdvancementUnique("languages", previousLanguage);
+        trackNeoAdvancementUnique("languages", lang);
+    }
     const selectedPreset = document.getElementById("themeSelect").value;
     const activeTheme = localStorage.getItem("theme") || "classic";
     const ownBasePreset = localStorage.getItem("neoFindOwnThemeBasePreset") || "classic";
     const theme = activeTheme === "own" && selectedPreset === ownBasePreset ? "own" : selectedPreset;
-    if (theme !== activeTheme) unlockNeoAdvancement("iWantSoIDo");
+    if (theme !== activeTheme) {
+        unlockNeoAdvancement("iWantSoIDo");
+        if (typeof trackNeoAdvancementUnique === "function") {
+            trackNeoAdvancementUnique("themes", activeTheme);
+            trackNeoAdvancementUnique("themes", theme);
+        }
+    }
     applyTheme(theme);
     updateLanguage();
     log("saved settings (lang: " + currentLang + ")");
@@ -4255,6 +4267,7 @@ function saveToHistory(query){
     if(!query) return;
     let history = JSON.parse(localStorage.getItem("historyV2")) || [];
     if(history.find(h => h.q === query)) return;
+    if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("searches");
     history.unshift({ q: query, t: Date.now() });
     const historyLimit = isPremiumEmail(auth.currentUser?.email) ? 1500 : 500;
     if(history.length > historyLimit) history.pop();
@@ -4284,6 +4297,7 @@ function useHistory(text){
 }
 
 function clearHistory(){
+    if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("historyClears");
     localStorage.removeItem("historyV2");
     localStorage.removeItem("history");
     log("cleared history");
@@ -4329,6 +4343,7 @@ function toggleFavorite(index){
         favs = favs.filter(f => !(f.title === item.title && f.link === item.link));
     } else {
         favs.push(item);
+        if (typeof trackNeoAdvancementUnique === "function") trackNeoAdvancementUnique("favorites", item.link || item.title);
     }
     localStorage.setItem("favorites", JSON.stringify(favs));
     showFavorites();
@@ -4545,12 +4560,26 @@ function neoBadgeSvg(type) {
     if (type === "orbs") return base(`<circle cx="20" cy="20" r="17" fill="url(#neoBadgeOrbGradient)"/><path d="M12 21c0-6 3-10 8-10s8 4 8 10-3 9-8 9-8-3-8-9z" fill="rgba(255,255,255,.16)" stroke="#fff" stroke-width="1.5"/><circle cx="17" cy="17" r="2.5" fill="#fff" opacity=".85"/>`, true);
     if (type === "premium") return base(`<circle cx="20" cy="20" r="18" fill="url(#neoBadgePremiumGradient)"/><path d="M10 16l4 13h12l4-13-6 5-4-8-4 8z" fill="#fff" opacity=".95"/><path d="M12 31h16" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>`, true);
     if (type === "luckyBoy") return base(`<circle cx="20" cy="20" r="18" fill="#eaffb5" stroke="#8bc34a" stroke-width="1.5"/><path d="M20 18C13 5 4 12 10 20c-9 2-5 12 3 9 1 8 10 7 10 0 8 4 14-6 6-10 5-9-5-15-9-1z" fill="#38b44a" stroke="#176b2c" stroke-width="1.3" stroke-linejoin="round"/><path d="M20 20c-1 5-3 9-7 13" fill="none" stroke="#176b2c" stroke-width="1.7" stroke-linecap="round"/><circle cx="13" cy="17" r="1.5" fill="#b9f6ca"/><circle cx="26" cy="19" r="1.5" fill="#b9f6ca"/>`);
+    if (String(type).startsWith("adv_")) return base(`<circle cx="20" cy="20" r="18" fill="#182d55" stroke="#9df5ff" stroke-width="1.5"/><path d="M20 7l3.5 8 8.5 1-6.3 5.8 1.7 8.4L20 26l-7.4 4.2 1.7-8.4L8 16l8.5-1z" fill="#9df5ff" stroke="#d8fcff" stroke-width="1" stroke-linejoin="round"/><circle cx="20" cy="20" r="16" fill="none" stroke="#8b5cf6" stroke-width="1.3"/>`);
     return "";
 }
 
 function neoBadgeHtml(types) {
     const unique = [...new Set((Array.isArray(types) ? types : [types]).filter(Boolean))];
-    return unique.map(type => `<span class="neo-profile-badge" title="${type === "luckyBoy" ? "Lucky Boy" : type === "premium" ? "Premium" : type === "admin" ? "Admin" : type === "developer" ? "Developer" : type === "owner" ? "Owner" : "50,000 Orbs"}">${neoBadgeSvg(type)}</span>`).join("");
+    return unique.map(type => {
+        let title = type === "luckyBoy" ? "Lucky Boy"
+            : type === "premium" ? "Premium"
+            : type === "admin" ? "Admin"
+            : type === "developer" ? "Developer"
+            : type === "owner" ? "Owner"
+            : type === "orbs" ? "50,000 Orbs"
+            : String(type);
+        if (String(type).startsWith("adv_") && typeof NEOFIND_ADVANCEMENTS !== "undefined") {
+            const found = NEOFIND_ADVANCEMENTS.find(a => a.rewardType === "badge" && a.badge === type);
+            if (found) title = found.badgeName || found.name;
+        }
+        return `<span class="neo-profile-badge" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">${neoBadgeSvg(type)}</span>`;
+    }).join("");
 }
 
 function getNeoUserBadgeTypes(user, orbs, economy = null) {
@@ -4559,17 +4588,14 @@ function getNeoUserBadgeTypes(user, orbs, economy = null) {
     if (email === "adrian.wilczek@hotmail.com") types.push("owner");
     if (DEVELOPER_BADGE_EMAILS.includes(email)) types.push("developer");
     if (typeof ADMIN_EMAILS !== "undefined" && ADMIN_EMAILS.map(e => String(e).toLowerCase()).includes(email)) types.push("admin");
-
-    const premiumFromEconomy =
-        economy &&
-        (
-            economy.premium === true ||
-            Number(economy.premiumUntil || 0) > Date.now()
-        );
-
+    const premiumFromEconomy = economy && (economy.premium === true || Number(economy.premiumUntil || 0) > Date.now());
     if (premiumFromEconomy || isPremiumActive()) types.push("premium");
     if (Number(orbs || 0) >= 50000) types.push("orbs");
-    if (Array.isArray(economy?.badges) && economy.badges.includes("luckyBoy")) types.push("luckyBoy");
+    if (Array.isArray(economy?.badges)) {
+        economy.badges.forEach(badge => {
+            if (badge === "luckyBoy" || (typeof badge === "string" && badge.startsWith("adv_"))) types.push(badge);
+        });
+    }
     return types;
 }
 
@@ -4854,6 +4880,8 @@ if (!user.emailVerified) {
 }
 
 const visitStreak = await recordNeoVisitStreak(user);
+        if (visitStreak.streak >= 3) unlockNeoAdvancement("threeDayStreak");
+        if (visitStreak.streak >= 7) unlockNeoAdvancement("weekStreak");
 loginScreen.style.display = "none";
 app.style.display = "block";
 const name = user.displayName || user.email.split('@')[0];
@@ -5451,6 +5479,7 @@ async function sendFriendRequest(){
             status: "pending",
             date: new Date()
         });
+        if (typeof trackNeoAdvancementUnique === "function") trackNeoAdvancementUnique("friendRequests", targetEmail);
         status.innerText = "✅ Request sent to " + targetEmail;
         document.getElementById("friendEmailInput").value = "";
         // The recipient gets a persistent friend-request announcement.
@@ -5749,6 +5778,7 @@ async function changeDisplayName(){
     if(name.length > 20){ alert("Maksymalnie 20 znaków."); return; }
     try {
         await u.updateProfile({ displayName: name });
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("displayNames");
         const span = document.getElementById("accountName");
         if(span) span.innerText = name;
         const badgeBox = document.getElementById("accountBadges");
@@ -5806,6 +5836,7 @@ async function sendChatMessage(){
                 text: text,
                 date: new Date()
             });
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chatMessages");
         const recipientSnap = await db.collection("users").where("email","==",currentChatFriend).get();
         for(const d of recipientSnap.docs){
             await createUserAnnouncement(d.id, {
@@ -5846,6 +5877,7 @@ async function uploadChatImage(input) {
             imageUrl: url,
             date: new Date()
         });
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chatImages");
     } catch(e) {
         alert("Błąd wysyłania zdjęcia: " + e.message);
     } finally {
@@ -5857,6 +5889,7 @@ async function uploadChatImage(input) {
 // 🔄 UI Aktualizacje
 function toggleFullscreen(){
     if(!document.fullscreenElement){
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("fullscreens");
         document.documentElement.requestFullscreen();
     } else {
         document.exitFullscreen();
@@ -6149,6 +6182,7 @@ function toggleAutumnMode() {
     const turningOn =
         localStorage.getItem("autumn") !== "on";
 
+    if (turningOn && typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("autumnModes");
     setAutumnMode(turningOn, turningOn);
 
     if (typeof logAction === "function") {
@@ -6180,7 +6214,12 @@ if (localStorage.getItem("autumn") === "on") {
     }
 }
 
-function switchLang(lang){
+async function switchLang(lang){
+    const previousLanguage = localStorage.getItem("lang") || "en";
+    if (previousLanguage !== lang && typeof trackNeoAdvancementUnique === "function") {
+        await trackNeoAdvancementUnique("languages", previousLanguage);
+        await trackNeoAdvancementUnique("languages", lang);
+    }
     localStorage.setItem("lang", lang);
     location.reload();
 }
@@ -6793,6 +6832,7 @@ document.addEventListener("keydown", function(e){
 
 // kopiowanie linku
 function copyLink(url){
+    if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("linkCopies");
     navigator.clipboard.writeText(url).then(()=>{
         showPopup("Link copied!", "#00cc66");
     }).catch(()=>{
@@ -6842,6 +6882,7 @@ document.addEventListener("keydown", (e) => {
         pos++;
         if (pos === KONAMI.length) {
             pos = 0;
+            unlockNeoAdvancement("konamiCode");
             confetti({
     particleCount: 150,
     spread: 70,
@@ -6975,6 +7016,7 @@ async function sendVoiceMessage() {
             url: url,
             date: new Date()
         });
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("voiceMessages");
     } catch(e) {
         alert("Błąd wiadomości głosowej: " + e.message);
     }
@@ -11367,6 +11409,7 @@ async function claimReward(id) {
 
     m.claimed = true;
     localStorage.setItem('dailyMissionsData', JSON.stringify(data));
+    if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("missionClaims");
 
     if (typeof confetti === 'function') confetti();
     renderMissions();
@@ -11583,6 +11626,7 @@ async function buyOrbChest(type) {
         const orbCountEl = document.getElementById("userOrbsCount");
         if (orbCountEl) orbCountEl.textContent = userOrbs;
         if (type === "neofind") unlockNeoAdvancement("neoFindChest");
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsBought");
         await loadOrbChestInventory();
         openOrbChestModal(type);
     } catch (e) {
@@ -11793,6 +11837,7 @@ async function openOwnedOrbChest() {
 
             transaction.set(ref, update, { merge: true });
         });
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsOpened");
 
         if (reward.type === "orbs" || reward.type === "premium_orbs") {
             userOrbs = Math.max(0, userOrbs) + reward.amount;
@@ -12191,6 +12236,7 @@ async function redeemCodeFromPanel() {
     const result = await redeemCode(input.value);
 
     if (result.status === "redeemed") {
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("codesRedeemed");
         const rewards = [];
         if (result.orbs) rewards.push("+" + result.orbs + " Orbs");
         if (result.premiumDays) rewards.push("+" + result.premiumDays + " days Premium");
@@ -12923,6 +12969,7 @@ window.sendOrbsToUser = async function () {
         if (emailInput) emailInput.value = "";
         if (amountInput) amountInput.value = "";
         if (amountAtStart >= 20) unlockNeoAdvancement("orbsGiver");
+        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("orbsSent", amountAtStart);
         showStatus("Sent " + amountAtStart + " Orbs to " + targetEmail + ".", true);
     } catch (error) {
         console.error("Orb transfer failed:", error);
@@ -14510,14 +14557,500 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
 
 <script id="neo-advancements-system">
 const NEOFIND_ADVANCEMENTS = [
-    { id: "neoFindChest", name: "NeoFind or NeoFind chest?", description: "Obtain a NeoFind Chest", reward: 50, icon: "🌌" },
-    { id: "itsRaining1", name: "it's raining1", description: "Turn on Rain Mode", reward: 5, icon: "🌧️" },
-    { id: "iWantSoIDo", name: "i want so i do", description: "Change your theme", reward: 0, icon: "🎨" },
-    { id: "bugOrHug", name: "bug or hug?", description: "Report something", reward: 25, icon: "🐛" },
-    { id: "helloMyFriend", name: "hello my friend", description: "Get a friend", reward: 10, icon: "👋" },
-    { id: "missionLegend", name: "mission legend", description: "Complete all 3 daily missions", reward: 20, icon: "🏆" },
-    { id: "orbsGiver", name: "orbs giver", description: "Send someone 20 or more Orbs", reward: 20, icon: "🔮" },
-    { id: "rateMe", name: "1? 2? 3? 4? 5?", description: "Give a rating", reward: 30, icon: "⭐" }
+    {
+        "id": "neoFindChest",
+        "name": "NeoFind or NeoFind chest?",
+        "description": "Obtain a NeoFind Chest",
+        "icon": "🌌",
+        "rewardType": "orbs",
+        "reward": 50
+    },
+    {
+        "id": "itsRaining1",
+        "name": "it's raining1",
+        "description": "Turn on Rain Mode",
+        "icon": "🌧️",
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "iWantSoIDo",
+        "name": "i want so i do",
+        "description": "Change your theme",
+        "icon": "🎨",
+        "rewardType": "badge",
+        "badge": "adv_theme_changer",
+        "badgeName": "Theme Changer"
+    },
+    {
+        "id": "bugOrHug",
+        "name": "bug or hug?",
+        "description": "Report something",
+        "icon": "🐛",
+        "rewardType": "orbs",
+        "reward": 25
+    },
+    {
+        "id": "helloMyFriend",
+        "name": "hello my friend",
+        "description": "Get a friend",
+        "icon": "👋",
+        "rewardType": "orbs",
+        "reward": 10
+    },
+    {
+        "id": "missionLegend",
+        "name": "mission legend",
+        "description": "Do all 3 daily missions",
+        "icon": "🏆",
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "orbsGiver",
+        "name": "orbs giver",
+        "description": "Send someone 20 or more Orbs",
+        "icon": "🔮",
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "rateMe",
+        "name": "1? 2? 3? 4? 5?",
+        "description": "Give a rating",
+        "icon": "⭐",
+        "rewardType": "orbs",
+        "reward": 30
+    },
+    {
+        "id": "firstSearch",
+        "name": "Hello, search bar",
+        "description": "Perform your first unique search",
+        "icon": "🔎",
+        "stat": "searches",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "searchFan",
+        "name": "Search fan",
+        "description": "Perform 10 unique searches",
+        "icon": "🔍",
+        "stat": "searches",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 15
+    },
+    {
+        "id": "searchResearcher",
+        "name": "Curious researcher",
+        "description": "Perform 25 unique searches",
+        "icon": "🧭",
+        "stat": "searches",
+        "target": 25,
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "searchVeteran",
+        "name": "Search veteran",
+        "description": "Perform 50 unique searches",
+        "icon": "🛰️",
+        "stat": "searches",
+        "target": 50,
+        "rewardType": "orbs",
+        "reward": 30
+    },
+    {
+        "id": "searchLegend",
+        "name": "Search legend",
+        "description": "Perform 100 unique searches",
+        "icon": "🌟",
+        "stat": "searches",
+        "target": 100,
+        "rewardType": "badge",
+        "badge": "adv_search_legend",
+        "badgeName": "Search Legend"
+    },
+    {
+        "id": "firstFavorite",
+        "name": "Keep it close",
+        "description": "Save your first favorite",
+        "icon": "⭐",
+        "stat": "favorites",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "favoritesFive",
+        "name": "Favorite collector",
+        "description": "Save 5 different favorites",
+        "icon": "📚",
+        "stat": "favorites",
+        "target": 5,
+        "rewardType": "orbs",
+        "reward": 15
+    },
+    {
+        "id": "favoriteMaster",
+        "name": "Favorite vault",
+        "description": "Save 15 different favorites",
+        "icon": "💎",
+        "stat": "favorites",
+        "target": 15,
+        "rewardType": "badge",
+        "badge": "adv_favorite_master",
+        "badgeName": "Favorite Master"
+    },
+    {
+        "id": "firstLinkCopy",
+        "name": "Share the link",
+        "description": "Copy a result link",
+        "icon": "🔗",
+        "stat": "linkCopies",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "linkExplorer",
+        "name": "Link explorer",
+        "description": "Open 10 results",
+        "icon": "🧷",
+        "stat": "resultOpens",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 15
+    },
+    {
+        "id": "linkMaster",
+        "name": "Link master",
+        "description": "Copy links 25 times",
+        "icon": "🪄",
+        "stat": "linkCopies",
+        "target": 25,
+        "rewardType": "badge",
+        "badge": "adv_link_master",
+        "badgeName": "Link Master"
+    },
+    {
+        "id": "firstAI",
+        "name": "Knock, knock, NeoAI",
+        "description": "Ask NeoAI your first question",
+        "icon": "✨",
+        "stat": "aiQueries",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "aiExplorer",
+        "name": "AI explorer",
+        "description": "Ask NeoAI 10 questions",
+        "icon": "🧠",
+        "stat": "aiQueries",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "aiFriend",
+        "name": "NeoAI's friend",
+        "description": "Ask NeoAI 25 questions",
+        "icon": "🤖",
+        "stat": "aiQueries",
+        "target": 25,
+        "rewardType": "badge",
+        "badge": "adv_ai_friend",
+        "badgeName": "NeoAI's Friend"
+    },
+    {
+        "id": "firstMessage",
+        "name": "Say hello",
+        "description": "Send your first chat message",
+        "icon": "💬",
+        "stat": "chatMessages",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 10
+    },
+    {
+        "id": "chatterbox",
+        "name": "Chatterbox",
+        "description": "Send 10 chat messages",
+        "icon": "🗨️",
+        "stat": "chatMessages",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "chatExpert",
+        "name": "Chat expert",
+        "description": "Send 50 chat messages",
+        "icon": "📨",
+        "stat": "chatMessages",
+        "target": 50,
+        "rewardType": "badge",
+        "badge": "adv_chat_expert",
+        "badgeName": "Chat Expert"
+    },
+    {
+        "id": "firstVoice",
+        "name": "Voice from the void",
+        "description": "Send a voice message",
+        "icon": "🎙️",
+        "stat": "voiceMessages",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 10
+    },
+    {
+        "id": "firstImage",
+        "name": "Picture this",
+        "description": "Send an image in chat",
+        "icon": "🖼️",
+        "stat": "chatImages",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 10
+    },
+    {
+        "id": "friendRequester",
+        "name": "Friend request sent",
+        "description": "Send a friend request",
+        "icon": "🤝",
+        "stat": "friendRequests",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "friendNetwork",
+        "name": "Build your network",
+        "description": "Send requests to 5 different people",
+        "icon": "🕸️",
+        "stat": "friendRequests",
+        "target": 5,
+        "rewardType": "badge",
+        "badge": "adv_friend_network",
+        "badgeName": "Friend Network"
+    },
+    {
+        "id": "threeDayStreak",
+        "name": "Back for more",
+        "description": "Visit NeoFind 3 days in a row",
+        "icon": "📆",
+        "event": "streak3",
+        "rewardType": "orbs",
+        "reward": 15
+    },
+    {
+        "id": "weekStreak",
+        "name": "One whole week",
+        "description": "Visit NeoFind 7 days in a row",
+        "icon": "🗓️",
+        "event": "streak7",
+        "rewardType": "badge",
+        "badge": "adv_week_streak",
+        "badgeName": "Week Streak"
+    },
+    {
+        "id": "chestBuyer",
+        "name": "Chest shopper",
+        "description": "Buy your first chest",
+        "icon": "🛒",
+        "stat": "chestsBought",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "chestCollector",
+        "name": "Chest collector",
+        "description": "Buy 10 chests",
+        "icon": "📦",
+        "stat": "chestsBought",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 25
+    },
+    {
+        "id": "firstChestOpen",
+        "name": "What's inside?",
+        "description": "Open your first chest",
+        "icon": "🎁",
+        "stat": "chestsOpened",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "chestOpener",
+        "name": "Chest opener",
+        "description": "Open 10 chests",
+        "icon": "🗝️",
+        "stat": "chestsOpened",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "chestVeteran",
+        "name": "Chest veteran",
+        "description": "Open 50 chests",
+        "icon": "💎",
+        "stat": "chestsOpened",
+        "target": 50,
+        "rewardType": "badge",
+        "badge": "adv_chest_veteran",
+        "badgeName": "Chest Veteran"
+    },
+    {
+        "id": "firstRedeem",
+        "name": "Code accepted",
+        "description": "Redeem a code successfully",
+        "icon": "🎟️",
+        "stat": "codesRedeemed",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 10
+    },
+    {
+        "id": "codeCollector",
+        "name": "Code collector",
+        "description": "Redeem 5 different codes",
+        "icon": "🗃️",
+        "stat": "codesRedeemed",
+        "target": 5,
+        "rewardType": "badge",
+        "badge": "adv_code_collector",
+        "badgeName": "Code Collector"
+    },
+    {
+        "id": "languageSwitcher",
+        "name": "A new language",
+        "description": "Use a second interface language",
+        "icon": "🌐",
+        "stat": "languages",
+        "target": 2,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "polyglot",
+        "name": "Polyglot",
+        "description": "Use 3 different interface languages",
+        "icon": "🗣️",
+        "stat": "languages",
+        "target": 3,
+        "rewardType": "badge",
+        "badge": "adv_polyglot",
+        "badgeName": "Polyglot"
+    },
+    {
+        "id": "themeExplorer",
+        "name": "Palette explorer",
+        "description": "Try 5 different themes",
+        "icon": "🎨",
+        "stat": "themes",
+        "target": 5,
+        "rewardType": "badge",
+        "badge": "adv_theme_explorer",
+        "badgeName": "Palette Explorer"
+    },
+    {
+        "id": "identityMade",
+        "name": "Name yourself",
+        "description": "Set your display name",
+        "icon": "🪪",
+        "stat": "displayNames",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 10
+    },
+    {
+        "id": "fullscreenMode",
+        "name": "Big screen energy",
+        "description": "Enter fullscreen mode",
+        "icon": "⛶",
+        "stat": "fullscreens",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "autumnLeaves",
+        "name": "Autumn leaves",
+        "description": "Turn on Autumn Mode",
+        "icon": "🍂",
+        "stat": "autumnModes",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "historyCleaner",
+        "name": "Fresh start",
+        "description": "Clear your search history",
+        "icon": "🧹",
+        "stat": "historyClears",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "missionWorker",
+        "name": "Mission accepted",
+        "description": "Claim a daily mission reward",
+        "icon": "📋",
+        "stat": "missionClaims",
+        "target": 1,
+        "rewardType": "orbs",
+        "reward": 5
+    },
+    {
+        "id": "missionGrinder",
+        "name": "Mission grinder",
+        "description": "Claim 10 daily mission rewards",
+        "icon": "⚙️",
+        "stat": "missionClaims",
+        "target": 10,
+        "rewardType": "orbs",
+        "reward": 20
+    },
+    {
+        "id": "resultHunter",
+        "name": "Result hunter",
+        "description": "Open 25 search results",
+        "icon": "🎯",
+        "stat": "resultOpens",
+        "target": 25,
+        "rewardType": "orbs",
+        "reward": 25
+    },
+    {
+        "id": "konamiCode",
+        "name": "Up, up, down, down…",
+        "description": "Discover the Konami code",
+        "icon": "🎮",
+        "event": "konami",
+        "rewardType": "badge",
+        "badge": "adv_konami",
+        "badgeName": "Konami Master"
+    },
+    {
+        "id": "orbPhilanthropist",
+        "name": "Orb philanthropist",
+        "description": "Send a total of 100 Orbs to other users",
+        "icon": "💝",
+        "stat": "orbsSent",
+        "target": 100,
+        "rewardType": "orbs",
+        "reward": 40
+    }
 ];
 let neoAdvancementNoticeTimer = null;
 
@@ -14553,7 +15086,7 @@ async function renderNeoAdvancements() {
         progress.textContent = count + " / " + NEOFIND_ADVANCEMENTS.length + " completed";
         list.innerHTML = NEOFIND_ADVANCEMENTS.map(a => {
             const unlocked = !!completed[a.id];
-            const rewardText = a.reward > 0 ? "+" + a.reward + " Orbs" : "Nothing";
+            const rewardText = a.rewardType === "badge" ? "Badge: " + (a.badgeName || a.badge) : "+" + Number(a.reward || 0) + " Orbs";
             return '<article class="neo-adv-card ' + (unlocked ? "is-unlocked" : "is-locked") + '">' +
                 '<div class="neo-adv-icon" aria-hidden="true">' + (unlocked ? a.icon : "🔒") + '</div>' +
                 '<div><h3>' + escapeHtml(a.name) + '</h3><p>' + escapeHtml(a.description) + '</p></div>' +
@@ -14571,7 +15104,9 @@ function showNeoAdvancementToast(advancement) {
     toast.className = "neo-adv-toast";
     toast.setAttribute("role", "status");
     toast.setAttribute("aria-live", "polite");
-    const rewardText = advancement.reward > 0 ? "+" + advancement.reward + " Orbs added to your balance." : "No Orbs reward. Advancement unlocked!";
+    const rewardText = advancement.rewardType === "badge"
+        ? "Badge unlocked: " + (advancement.badgeName || advancement.badge)
+        : "+" + Number(advancement.reward || 0) + " Orbs added to your balance.";
     toast.innerHTML =
         '<div class="neo-adv-toast-eyebrow">✦ NEOFIND MILESTONE ✦</div>' +
         '<h3>Advancement made!</h3>' +
@@ -14582,9 +15117,7 @@ function showNeoAdvancementToast(advancement) {
         try {
             confetti({ particleCount: 135, spread: 78, startVelocity: 36, origin: { y: 0.55 } });
             window.setTimeout(() => confetti({ particleCount: 55, spread: 115, startVelocity: 24, origin: { y: 0.62 } }), 220);
-        } catch (e) {
-            console.warn("Advancement confetti could not start:", e);
-        }
+        } catch (e) { console.warn("Advancement confetti could not start:", e); }
     }
     window.setTimeout(() => {
         toast.classList.add("neo-adv-toast-out");
@@ -14592,9 +15125,10 @@ function showNeoAdvancementToast(advancement) {
     }, 4600);
     return toast;
 }
+
 async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
     const advancement = NEOFIND_ADVANCEMENTS.find(a => a.id === id);
-    if (!advancement || !uid || typeof db === "undefined") return false;
+    if (!advancement || !uid || typeof db === "undefined" || !["orbs", "badge"].includes(advancement.rewardType)) return false;
     const ref = db.collection("users").doc(uid);
     const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
     try {
@@ -14602,20 +15136,25 @@ async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
             const snap = await transaction.get(ref);
             const data = snap.exists ? snap.data() : {};
             const balance = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            const completed = data.advancements && typeof data.advancements === "object"
-                ? Object.assign({}, data.advancements)
-                : {};
+            const completed = data.advancements && typeof data.advancements === "object" ? Object.assign({}, data.advancements) : {};
             if (completed[id]) return { unlocked: false, orbs: balance };
-            completed[id] = { unlockedAt: Date.now() };
-            const nextBalance = balance + advancement.reward;
+            completed[id] = { unlockedAt: Date.now(), rewardType: advancement.rewardType, reward: advancement.rewardType === "badge" ? advancement.badge : Number(advancement.reward || 0) };
+
+            const orbReward = advancement.rewardType === "orbs" ? Math.max(0, Math.floor(Number(advancement.reward || 0))) : 0;
+            const nextBalance = balance + orbReward;
             const update = { advancements: completed, orbs: nextBalance };
+            if (advancement.rewardType === "badge" && advancement.badge) {
+                const badges = Array.isArray(data.badges) ? data.badges.slice() : [];
+                if (!badges.includes(advancement.badge)) badges.push(advancement.badge);
+                update.badges = badges;
+            }
             if (queueNotice && currentUserId !== uid) {
                 const notices = Array.isArray(data.advancementNotices) ? data.advancementNotices.slice() : [];
-                notices.push({ id: id, createdAt: Date.now() });
+                notices.push({ id, createdAt: Date.now() });
                 update.advancementNotices = notices;
             }
             transaction.set(ref, update, { merge: true });
-            return { unlocked: true, orbs: nextBalance };
+            return { unlocked: true, orbs: nextBalance, badge: advancement.badge || null };
         });
         if (!result.unlocked) return false;
         if (auth.currentUser && auth.currentUser.uid === uid) {
@@ -14625,6 +15164,12 @@ async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
             if (count) count.textContent = String(userOrbs);
             if (typeof updateUI === "function") updateUI();
             if (typeof renderMissions === "function") renderMissions();
+            if (result.badge && typeof renderNeoFindAccountBadges === "function") {
+                try {
+                    const fresh = await ref.get();
+                    if (fresh.exists) renderNeoFindAccountBadges(auth.currentUser, fresh.data());
+                } catch (e) { console.warn("Could not refresh advancement badges:", e); }
+            }
             showNeoAdvancementToast(advancement);
             const overlay = document.getElementById("neoAdvancementsOverlay");
             if (overlay && overlay.style.display === "flex") renderNeoAdvancements();
@@ -14635,6 +15180,56 @@ async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
         return false;
     }
 }
+
+async function trackNeoAdvancementProgress(stat, amount = 1) {
+    const user = auth.currentUser;
+    if (!user || !stat || typeof db === "undefined") return 0;
+    const n = Math.max(0, Number(amount) || 0);
+    if (!n) return 0;
+    const ref = db.collection("users").doc(user.uid);
+    try {
+        const count = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            const stats = data.advancementStats && typeof data.advancementStats === "object" ? Object.assign({}, data.advancementStats) : {};
+            stats[stat] = Math.max(0, Number(stats[stat] || 0)) + n;
+            transaction.set(ref, { advancementStats: stats }, { merge: true });
+            return stats[stat];
+        });
+        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count)
+            .sort((a, b) => Number(a.target || 0) - Number(b.target || 0));
+        for (const a of reached) await unlockNeoAdvancement(a.id);
+        return count;
+    } catch (e) { console.error("Advancement progress update failed:", stat, e); return 0; }
+}
+
+async function trackNeoAdvancementUnique(stat, key) {
+    const user = auth.currentUser;
+    const value = String(key ?? "").trim();
+    if (!user || !stat || !value || typeof db === "undefined") return 0;
+    const ref = db.collection("users").doc(user.uid);
+    try {
+        const count = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            const stats = data.advancementStats && typeof data.advancementStats === "object" ? Object.assign({}, data.advancementStats) : {};
+            const storageKey = "unique_" + stat;
+            const values = Array.isArray(stats[storageKey]) ? stats[storageKey].slice() : [];
+            if (!values.includes(value)) {
+                values.push(value);
+                stats[storageKey] = values;
+                stats[stat] = values.length;
+                transaction.set(ref, { advancementStats: stats }, { merge: true });
+            }
+            return Array.isArray(stats[storageKey]) ? stats[storageKey].length : Number(stats[stat] || 0);
+        });
+        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count)
+            .sort((a, b) => Number(a.target || 0) - Number(b.target || 0));
+        for (const a of reached) await unlockNeoAdvancement(a.id);
+        return count;
+    } catch (e) { console.error("Unique advancement progress update failed:", stat, e); return 0; }
+}
+
 function unlockNeoAdvancement(id) {
     const user = (typeof auth !== "undefined" && auth) ? auth.currentUser : null;
     if (!user) return Promise.resolve(false);
@@ -14673,6 +15268,11 @@ auth.onAuthStateChanged(user => {
     if (neoAdvancementNoticeTimer) window.clearTimeout(neoAdvancementNoticeTimer);
     neoAdvancementNoticeTimer = window.setTimeout(() => loadNeoAdvancementNotices(user), 1400);
 });
+document.addEventListener("click", event => {
+    const link = event.target && event.target.closest ? event.target.closest("#results .result a") : null;
+    if (link && typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("resultOpens");
+});
+
 </script>
 
 </body>
