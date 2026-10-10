@@ -15060,18 +15060,27 @@ document.addEventListener("click", event => {
   }
   function showTrainingPage() {
     document.title = "NeoFind | Szkolenie antyphishingowe";
-    document.body.innerHTML = '<main style="min-height:100vh;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#173a60,#080d18 65%);color:#f5f8ff;font-family:Arial,sans-serif"><section style="max-width:680px;padding:32px;border:1px solid #3d7ca8;border-radius:22px;background:#101b2b;box-shadow:0 20px 70px #0008"><div style="font-size:42px" aria-hidden="true">🛡️</div><h1 style="color:#65d7ff">You fell for phishing!</h1><p style="font-size:18px;line-height:1.7">Remember: <strong>NeoFind will NEVER ask you for your password.</strong> If you are not sure a link is official, <strong>DO NOT CLICK IT.</strong></p><h2>How to stay safe</h2><ul style="line-height:1.8"><li>Check the sender and website address carefully.</li><li>Never enter your password after following an unexpected link.</li><li>If you are unsure, open NeoFind by typing its address yourself.</li><li>Report suspicious messages to an administrator.</li></ul><p style="color:#a9bdd2;font-size:13px">This is a security-awareness exercise. This page will never ask for your password.</p><a href="/" style="display:inline-block;margin-top:10px;padding:12px 18px;border-radius:10px;background:#39bdf5;color:#07121d;font-weight:bold;text-decoration:none">Wróć do NeoFind</a><p id="neoPhishLogStatus" style="font-size:12px;color:#a9bdd2">Zapisywanie zdarzenia szkoleniowego…</p></section></main>';
+    document.body.innerHTML = '<main style="min-height:100vh;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#173a60,#080d18 65%);color:#f5f8ff;font-family:Arial,sans-serif"><section style="max-width:680px;padding:32px;border:1px solid #3d7ca8;border-radius:22px;background:#101b2b;box-shadow:0 20px 70px #0008"><div style="font-size:42px" aria-hidden="true">🛡️</div><h1 style="color:#65d7ff">You fell for phishing!</h1><p style="font-size:18px;line-height:1.7">Remember: <strong>NeoFind will NEVER ask you for your password.</strong> If you are not sure a link is official, <strong>DO NOT CLICK IT.</strong></p><h2>How to stay safe</h2><ul style="line-height:1.8"><li>Check the sender and website address carefully.</li><li>Never enter your password after following an unexpected link.</li><li>If you are unsure, open NeoFind by typing its address yourself.</li><li>Report suspicious messages to an administrator.</li></ul><p style="color:#a9bdd2;font-size:13px">This is a security-awareness exercise. If you are signed in, your NeoFind account email will be recorded so an administrator can follow up. This page will never ask for your password.</p><a href="/" style="display:inline-block;margin-top:10px;padding:12px 18px;border-radius:10px;background:#39bdf5;color:#07121d;font-weight:bold;text-decoration:none">Wróć do NeoFind</a><p id="neoPhishLogStatus" style="font-size:12px;color:#a9bdd2">Zapisywanie zdarzenia szkoleniowego…</p></section></main>';
     const status = document.getElementById("neoPhishLogStatus");
     if (!trainingDb) { status.textContent = "Nie udało się zapisać zdarzenia: baza danych jest niedostępna."; return; }
-    trainingDb.collection("phishingTrainingEvents").add({
-      event: "training_link_opened",
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      page: "phishing"
-    }).then(function () {
-      status.textContent = "Zdarzenie szkoleniowe zapisano. Nie zapisano haseł ani adresów IP.";
-    }).catch(function (error) {
-      console.warn("NeoFind training event could not be recorded:", error);
-      status.textContent = "Nie udało się zapisać zdarzenia. Administrator musi sprawdzić reguły Firestore.";
+    const trainingAuth = (typeof firebase !== "undefined" && firebase.auth) ? firebase.auth() : null;
+    if (!trainingAuth) { status.textContent = "Nie można sprawdzić konta NeoFind."; return; }
+    trainingAuth.onAuthStateChanged(function (user) {
+      if (!user || !user.email) {
+        status.textContent = "Zaloguj się do NeoFind, aby zdarzenie mogło zostać powiązane z adresem e-mail. Nie zapisano zdarzenia.";
+        return;
+      }
+      trainingDb.collection("phishingTrainingEvents").add({
+        event: "training_link_opened",
+        email: String(user.email).toLowerCase(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        page: "phishing"
+      }).then(function () {
+        status.textContent = "Zdarzenie szkoleniowe zapisano dla zalogowanego konta.";
+      }).catch(function (error) {
+        console.warn("NeoFind training event could not be recorded:", error);
+        status.textContent = "Nie udało się zapisać zdarzenia. Administrator musi sprawdzić reguły Firestore.";
+      });
     });
   }
   function mountTrainingAdmin(user) {
@@ -15098,7 +15107,7 @@ document.addEventListener("click", event => {
           const item = document.createElement("div");
           item.style.cssText = "padding:10px 0;border-top:1px solid #526477";
           const date = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : "Czas oczekuje na zapis";
-          item.innerHTML = "<strong>" + trainingEscape(date) + "</strong><div>" + trainingEscape(data.event || "training event") + "</div>";
+          item.innerHTML = "<strong>" + trainingEscape(date) + "</strong><div>Email: " + trainingEscape(data.email || "No signed-in email") + "</div><div>" + trainingEscape(data.event || "training event") + "</div>";
           list.appendChild(item);
         });
       } catch (error) {
