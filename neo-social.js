@@ -1902,6 +1902,7 @@
                 try {
                     if (!window.NeoEconomy) throw new Error("Neo Economy unavailable");
                     await window.NeoEconomy.call("report", {targetUid: card && card.dataset.authorUid || "", targetId: button.dataset.reportContent, reason, details: ""});
+                    if (typeof window.trackNeoAdvancementProgress === "function") await window.trackNeoAdvancementProgress("reportsSent");
                     toast("Report submitted.");
                 } catch (error) { console.error("Social report failed:", error); toast("Could not submit report."); }
             });
