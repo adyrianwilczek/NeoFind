@@ -14585,7 +14585,7 @@ async function loadNeoAdvancementNotices(user) {
         for (let i = 0; i < valid.length; i++) {
             window.setTimeout(() => showNeoAdvancementToast(valid[i].advancement), i * 650);
         }
-        await ref.update({ advancementNotices: firebase.firestore.FieldValue.arrayRemove(...notices) });
+        if (window.NeoEconomy) await window.NeoEconomy.call("clearAdvancementNotices", { noticeIds: notices.map(n => n.id) });
     } catch (error) {
         console.error("Could not process advancement notices:", error);
     }
