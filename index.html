@@ -5199,28 +5199,26 @@ function handleCommand(e){
 function openReport(){ openPanel("reportBox"); }
 function closeReport(){ closeAllPanels(); }
 
-function sendReport(){
-    const text = document.getElementById("reportText").value.trim();
-
-    if(!text){
-        showPopup("Write something!", "red");
-        return;
-    }
-
-    db.collection("reports").add({
-        text: text,
-        user: auth.currentUser ? auth.currentUser.email : "guest",
-        date: new Date()
-    })
-    .then(()=>{
+async function sendReport(){
+    const input = document.getElementById("reportText");
+    const text = input ? input.value.trim() : "";
+    if(!text){ showPopup("Write something!", "red"); return; }
+    try {
+        if (auth.currentUser && window.NeoEconomy) {
+            await window.NeoEconomy.call("report", { targetId: "site-feedback", reason: "other", details: text });
+            if (typeof trackNeoAdvancementProgress === "function") await trackNeoAdvancementProgress("reportsSent");
+        } else {
+            await db.collection("reports").add({
+                text,
+                user: auth.currentUser ? auth.currentUser.email : "guest",
+                date: new Date()
+            });
+        }
         showPopup("Report sent!", "#00cc66");
-        unlockNeoAdvancement("bugOrHug");
-        document.getElementById("reportText").value = "";
+        if (auth.currentUser && typeof unlockNeoAdvancement === "function") await unlockNeoAdvancement("bugOrHug");
+        if (input) input.value = "";
         closeReport();
-    })
-    .catch(err=>{
-        showPopup(err.message, "red");
-    });
+    } catch(err) { showPopup(err.message || "Could not send report.", "red"); }
 }
 
 // OCENY
