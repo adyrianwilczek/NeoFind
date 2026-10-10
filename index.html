@@ -11466,11 +11466,12 @@ function showOrbChestChances(type) {
     if (!def || !modal || !list) return;
     title.textContent = def.label + " Chances";
     list.innerHTML = def.rewards.map(r => {
-        const label = r.type === "orbs" ? r.amount + " Orbs"
+        const label = r.type === "badge" ? (r.label || r.badge || "Badge")
+            : r.type === "orbs" ? r.amount + " Orbs"
             : r.type === "premium" ? r.days + " days of Premium"
             : r.days + " days of Premium + " + r.amount + " Orbs";
         const total = def.rewards.reduce((a,x) => a + x.weight, 0);
-        const chance = (r.weight / total * 100).toFixed(0);
+        const chance = (r.weight / total * 100).toFixed(1);
         return '<div style="display:flex;justify-content:space-between;padding:10px 12px;margin:7px 0;border-radius:10px;background:rgba(255,255,255,.05);"><span>' + label + '</span><b>' + chance + '%</b></div>';
     }).join("");
     modal.style.display = "flex";
