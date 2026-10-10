@@ -13656,6 +13656,31 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     const body = document.body;
     if (!body) return c;
 
+    // Keep the original NeoFind UI untouched until the user explicitly saves
+    // personalization. While the studio is open, use the draft for live preview.
+    let hasSavedPersonalization = false;
+    try {
+      hasSavedPersonalization = localStorage.getItem("neoFindPersonalization") !== null;
+    } catch (error) {}
+
+    const hasLiveDraft = !!(
+      window.neoFindPersonalizationDraft &&
+      typeof window.neoFindPersonalizationDraft === "object"
+    );
+
+    if (!hasSavedPersonalization && !hasLiveDraft) {
+      body.classList.remove(
+        "nf-custom-layout", "nf-hide-greeting", "nf-hide-facts",
+        "nf-hide-news", "nf-hide-neoai", "nf-compact-ui", "nf-home-left"
+      );
+      body.style.removeProperty("--nf-search-width");
+      body.style.removeProperty("--nf-search-height");
+      body.style.removeProperty("--nf-search-radius");
+
+      if (typeof renderGreeting === "function") renderGreeting();
+      return c;
+    }
+
     body.classList.add("nf-custom-layout");
     body.classList.toggle("nf-hide-greeting", !c.showGreeting);
     body.classList.toggle("nf-hide-facts", !c.showFacts);
