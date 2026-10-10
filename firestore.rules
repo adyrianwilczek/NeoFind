@@ -559,7 +559,7 @@ service cloud.firestore {
         return changedKeys().hasOnly(['orbs', 'chestInventory', 'email'])
           && orbsValid()
           && newInv is map
-          && normal || rare || epic || neofind;
+          && (normal || rare || epic || neofind);
       }
 
       /* 7. otwarcie skrzyni: można zużyć tylko jedną posiadaną skrzynię.
@@ -909,6 +909,50 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+
+    /* =========================================================
+       NEO ECONOMY SUITE: server-owned records
+       ========================================================= */
+    match /users/{userId}/orbTransactions/{transactionId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+    match /users/{userId}/chestHistory/{historyId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+    match /users/{userId}/inventory/{itemId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+    match /users/{userId}/blockedUsers/{targetUid} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && targetUid != userId
+        && request.resource.data.keys().hasOnly(['targetUid','createdAt'])
+        && request.resource.data.targetUid == targetUid;
+      allow delete: if isOwner(userId);
+      allow update: if false;
+    }
+    match /users/{userId}/operationKeys/{operationId} {
+      allow read, write: if false;
+    }
+    match /users/{userId}/missionClaims/{claimId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+    match /users/{userId}/missionProgress/{dayId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+    match /neoAiFeedback/{feedbackId} {
+      allow read: if isAdmin();
+      allow create, update: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.responseId is string
+        && request.resource.data.vote in ['up','down']
+        && request.resource.data.model is string;
+      allow delete: if isAdmin();
+    }
 
     /* =========================================================
        DEFAULT DENY
