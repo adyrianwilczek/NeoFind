@@ -17,4 +17,5 @@ jobs:
           node-version: 20
       - run: node --check index.js
       - run: node --check ../neo-economy.js
+      - run: node --check ../neo-social.js
       - run: node --test
