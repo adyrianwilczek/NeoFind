@@ -14547,51 +14547,31 @@ async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
 
 async function trackNeoAdvancementProgress(stat, amount = 1) {
     const user = auth.currentUser;
-    if (!user || !stat || typeof db === "undefined") return 0;
-    const n = Math.max(0, Number(amount) || 0);
+    if (!user || !stat || !window.NeoEconomy) return 0;
+    const n = Math.max(0, Math.floor(Number(amount) || 0));
     if (!n) return 0;
-    const ref = db.collection("users").doc(user.uid);
-    try {
-        const count = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const stats = data.advancementStats && typeof data.advancementStats === "object" ? Object.assign({}, data.advancementStats) : {};
-            stats[stat] = Math.max(0, Number(stats[stat] || 0)) + n;
-            transaction.set(ref, { advancementStats: stats }, { merge: true });
-            return stats[stat];
-        });
-        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count)
-            .sort((a, b) => Number(a.target || 0) - Number(b.target || 0));
-        for (const a of reached) await unlockNeoAdvancement(a.id);
-        return count;
-    } catch (e) { console.error("Advancement progress update failed:", stat, e); return 0; }
+    let count = 0;
+    for (let i = 0; i < Math.min(n, 10); i++) {
+        try {
+            const result = await window.NeoEconomy.call("trackAdvancement", { stat });
+            count = Number(result.count || 0);
+        } catch (e) { console.warn("Advancement progress update failed:", stat, e); return count; }
+    }
+    const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count).sort((a,b)=>Number(a.target||0)-Number(b.target||0));
+    for (const a of reached) await unlockNeoAdvancement(a.id);
+    return count;
 }
 
 async function trackNeoAdvancementUnique(stat, key) {
-    const user = auth.currentUser;
-    const value = String(key ?? "").trim();
-    if (!user || !stat || !value || typeof db === "undefined") return 0;
-    const ref = db.collection("users").doc(user.uid);
+    const user = auth.currentUser, value = String(key ?? "").trim();
+    if (!user || !stat || !value || !window.NeoEconomy) return 0;
     try {
-        const count = await db.runTransaction(async transaction => {
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
-            const stats = data.advancementStats && typeof data.advancementStats === "object" ? Object.assign({}, data.advancementStats) : {};
-            const storageKey = "unique_" + stat;
-            const values = Array.isArray(stats[storageKey]) ? stats[storageKey].slice() : [];
-            if (!values.includes(value)) {
-                values.push(value);
-                stats[storageKey] = values;
-                stats[stat] = values.length;
-                transaction.set(ref, { advancementStats: stats }, { merge: true });
-            }
-            return Array.isArray(stats[storageKey]) ? stats[storageKey].length : Number(stats[stat] || 0);
-        });
-        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count)
-            .sort((a, b) => Number(a.target || 0) - Number(b.target || 0));
+        const result = await window.NeoEconomy.call("trackAdvancement", { stat, uniqueKey: value });
+        const count = Number(result.count || 0);
+        const reached = NEOFIND_ADVANCEMENTS.filter(a => a.stat === stat && Number(a.target || 0) <= count).sort((a,b)=>Number(a.target||0)-Number(b.target||0));
         for (const a of reached) await unlockNeoAdvancement(a.id);
         return count;
-    } catch (e) { console.error("Unique advancement progress update failed:", stat, e); return 0; }
+    } catch (e) { console.warn("Unique advancement progress update failed:", stat, e); return 0; }
 }
 
 function unlockNeoAdvancement(id) {
