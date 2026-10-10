@@ -11896,86 +11896,22 @@ async function syncRedeemCodeConfigs() {
 
 async function redeemCode(code) {
     const user = auth.currentUser;
-    if (!user) return { status: "not_logged" };
-
+    if (!user || !window.NeoEconomy) return { status: "not_logged" };
     const normalized = String(code || "").trim().toUpperCase();
     if (!normalized) return { status: "invalid" };
-
     try {
-        const codeRef = db.collection("redeemCodes").doc(normalized);
-        const userRef = db.collection("users").doc(user.uid);
-
-        const result = await db.runTransaction(async transaction => {
-            const codeSnap = await transaction.get(codeRef);
-
-            // The built-in NeoAI easter egg is always available even before
-            // an admin has opened NeoFind and synced the redeem-code config.
-            let config = codeSnap.exists ? codeSnap.data() : null;
-            if (!config && normalized === "NEO_I_WANT_ORBS_PLS") {
-                config = { orbs: 10, premiumDays: 0, scope: "global", active: true };
-            }
-
-            if (!config || config.active === false) {
-                return { status: "invalid" };
-            }
-
-            const scope = config.scope === "global" ? "global" : "user";
-            const claimId = scope === "global"
-                ? normalized
-                : normalized + "_" + user.uid;
-            const claimRef = db.collection("redeemClaims").doc(claimId);
-
-            const claimSnap = await transaction.get(claimRef);
-            if (claimSnap.exists) {
-                return { status: "already" };
-            }
-
-            const userSnap = await transaction.get(userRef);
-            const data = userSnap.exists ? userSnap.data() : {};
-            const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            const orbReward = Math.max(0, Math.floor(Number(config.orbs || 0)));
-            const premiumDays = Math.max(0, Math.floor(Number(config.premiumDays || 0)));
-            const currentPremiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0));
-            const newPremiumUntil = premiumDays > 0
-                ? currentPremiumUntil + premiumDays * 86400000
-                : Number(data.premiumUntil || 0);
-
-            transaction.set(claimRef, {
-                codeId: normalized,
-                uid: user.uid,
-                scope,
-                redeemedAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-            transaction.set(userRef, {
-                orbs: currentOrbs + orbReward,
-                ...(premiumDays > 0 ? { premiumUntil: newPremiumUntil } : {}),
-                lastRedeemCode: normalized,
-                lastRedeemAt: firebase.firestore.FieldValue.serverTimestamp()
-            }, { merge: true });
-
-            return {
-                status: "redeemed",
-                orbs: orbReward,
-                premiumDays,
-                premiumUntil: newPremiumUntil
-            };
-        });
-
+        const result = await window.NeoEconomy.call("redeemCode", { code: normalized });
         if (result.status === "redeemed") {
-            userOrbs = Number(userOrbs || 0) + Number(result.orbs || 0);
+            userOrbs = Number(result.orbs || 0);
             localStorage.setItem("userOrbs", String(userOrbs));
-
-            if (result.premiumDays > 0) {
+            if (Number(result.premiumDays || 0) > 0) {
                 localStorage.setItem("userPremium", "true");
                 localStorage.setItem("neoPremiumUntil", String(result.premiumUntil));
                 const badge = document.getElementById("premiumBadge");
                 if (badge) badge.style.display = "block";
             }
-
             renderMissions();
         }
-
         return result;
     } catch (e) {
         console.error("Redeem code failed:", e);
@@ -12621,117 +12557,30 @@ updateUI();
    PREMIUM ORB TRANSFER
    ========================================================= */
 window.sendOrbsToUser = async function () {
-    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    const user = auth.currentUser;
     const status = document.getElementById("orbTransferStatus");
     const emailInput = document.getElementById("orbTransferEmail");
     const amountInput = document.getElementById("orbTransferAmount");
-
     const showStatus = (message, ok = false) => {
         if (!status) return;
         status.textContent = message;
         status.style.color = ok ? "#00ffc8" : "#ff8080";
     };
-
-    if (!user || typeof db === "undefined") {
-        showStatus("You must be logged in.");
-        return;
-    }
-
-    if (typeof isPremiumActive !== "function" || !isPremiumActive()) {
-        showStatus("Premium is required to send Orbs.");
-        return;
-    }
-
-    const targetEmail = String(emailInput?.value || "").trim().toLowerCase();
-    const amount = Math.floor(Number(amountInput?.value));
-    const senderEmail = String(user.email || "").trim().toLowerCase();
-
-    if (!targetEmail || !Number.isFinite(amount) || amount <= 0) {
-        showStatus("Enter a recipient email and a valid amount.");
-        return;
-    }
-
-    if (!senderEmail || targetEmail === senderEmail) {
-        showStatus("You cannot send Orbs to yourself.");
-        return;
-    }
-
+    if (!user || !window.NeoEconomy) { showStatus("You must be logged in."); return; }
+    const targetEmail = String(emailInput && emailInput.value || "").trim().toLowerCase();
+    const amount = Math.floor(Number(amountInput && amountInput.value));
+    if (!targetEmail || !Number.isFinite(amount) || amount <= 0) { showStatus("Enter a recipient email and a valid amount."); return; }
     try {
-        const targetSnap = await db.collection("users")
-            .where("email", "==", targetEmail)
-            .limit(1)
-            .get();
-
-        if (targetSnap.empty) {
-            showStatus("Recipient was not found.");
-            return;
-        }
-
-        const senderRef = db.collection("users").doc(user.uid);
-        const recipientRef = targetSnap.docs[0].ref;
-        const amountAtStart = amount;
-
-        await db.runTransaction(async transaction => {
-            const senderSnap = await transaction.get(senderRef);
-            const recipientSnap = await transaction.get(recipientRef);
-
-            if (!senderSnap.exists || !recipientSnap.exists) {
-                throw new Error("User account not found.");
-            }
-
-            const senderData = senderSnap.data();
-            const recipientData = recipientSnap.data();
-            const senderOrbs = Math.max(0, Math.floor(Number(senderData.orbs || 0)));
-            const recipientOrbs = Math.max(0, Math.floor(Number(recipientData.orbs || 0)));
-
-            if (senderOrbs < amountAtStart) {
-                throw new Error("You do not have enough Orbs.");
-            }
-
-            transaction.update(senderRef, {
-                orbs: senderOrbs - amountAtStart,
-                lastOrbTransferOut: {
-                    toUid: recipientRef.id,
-                    toEmail: targetEmail,
-                    amount: amountAtStart,
-                    at: Date.now()
-                }
-            });
-
-            transaction.update(recipientRef, {
-                orbs: recipientOrbs + amountAtStart,
-                lastOrbTransferIn: {
-                    fromUid: user.uid,
-                    fromEmail: senderEmail,
-                    amount: amountAtStart,
-                    at: Date.now()
-                }
-            });
-        });
-
-        userOrbs = Math.max(0, userOrbs - amountAtStart);
+        const result = await window.NeoEconomy.call("transferOrbs", { targetEmail, amount });
+        userOrbs = Number(result.orbs || 0);
         localStorage.setItem("userOrbs", String(userOrbs));
         if (typeof window.updateUI === "function") window.updateUI();
-        if (typeof window.renderMissions === "function") window.renderMissions();
-
-        if (typeof createUserAnnouncement === "function") {
-            await createUserAnnouncement(
-                recipientRef.id,
-                "You received Orbs",
-                senderEmail + " sent you " + amountAtStart + " Orbs.",
-                "orb_transfer",
-                { from: senderEmail, amount: amountAtStart }
-            ).catch(e => console.error("Orb transfer announcement failed:", e));
-        }
-
         if (emailInput) emailInput.value = "";
         if (amountInput) amountInput.value = "";
-        if (amountAtStart >= 20) unlockNeoAdvancement("orbsGiver");
-        if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("orbsSent", amountAtStart);
-        showStatus("Sent " + amountAtStart + " Orbs to " + targetEmail + ".", true);
+        showStatus("Sent " + amount + " Orbs to " + targetEmail + ".", true);
     } catch (error) {
         console.error("Orb transfer failed:", error);
-        showStatus(error.message || "Could not send Orbs.");
+        showStatus(error.message === "RECIPIENT_NOT_FOUND" ? "Recipient was not found." : error.message === "PREMIUM_REQUIRED" ? "Premium is required to send Orbs." : error.message === "NOT_ENOUGH_ORBS" ? "You do not have enough Orbs." : "Could not send Orbs.");
     }
 };
 
