@@ -13420,6 +13420,8 @@ body.neo-theme-own #neoAiChatWindow,body.neo-theme-own .neo-social-modal{
 .neo-own-theme-footer-group{display:flex;gap:9px;flex-wrap:wrap}
 .neo-own-theme-btn{border:1px solid rgba(148,163,184,.25);border-radius:11px;min-height:40px;padding:0 15px;background:#182438;color:#eaf2ff;font-weight:700;cursor:pointer}
 .neo-own-theme-btn.primary{border-color:transparent;background:linear-gradient(135deg,#2dd4bf,#60a5fa);color:#071521}
+.neo-own-theme-btn.restore-original{border-color:rgba(248,113,113,.42);background:rgba(127,29,29,.22);color:#fecaca}
+.neo-own-theme-btn.restore-original:hover{background:rgba(127,29,29,.38)}
 .neo-own-theme-btn:hover,.neo-own-theme-close:hover{filter:brightness(1.12)}
 .neo-own-theme-status{flex-basis:100%;min-height:16px;color:#9fb0c6;font-size:12px}
 .neo-interface-personalization-overlay .neo-own-theme-dialog{width:min(1080px,100%)}
@@ -13629,6 +13631,7 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
     <footer class="neo-own-theme-footer">
       <div class="neo-own-theme-footer-group">
         <button type="button" class="neo-own-theme-btn" id="neoInterfaceResetBtn">Reset values</button>
+        <button type="button" class="neo-own-theme-btn restore-original" id="neoInterfaceOriginalResetBtn">Reset to original UI</button>
         <button type="button" class="neo-own-theme-btn" id="neoInterfaceCancelBtn">Cancel</button>
       </div>
       <div class="neo-own-theme-footer-group">
@@ -14077,6 +14080,69 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
     }
   }
 
+  function resetNeoInterfaceToOriginal() {
+    try {
+      // Clear every saved Interface Personalization choice, not the selected theme.
+      localStorage.removeItem("neoFindPersonalization");
+      window.neoFindPersonalizationDraft = null;
+
+      // Remove classes/variables that could have been set by an older personalization version.
+      const body = document.body;
+      body.classList.remove(
+        "nf-custom-layout","nf-hide-greeting","nf-hide-facts","nf-hide-news","nf-hide-neoai",
+        "nf-hide-history","nf-hide-favorites","nf-compact-ui","nf-reduce-motion",
+        "nf-font-oxanium","nf-font-system","nf-font-arial","nf-font-georgia","nf-home-left"
+      );
+      body.style.removeProperty("--nf-nav-scale");
+      body.style.removeProperty("--nf-search-width");
+      body.style.removeProperty("--nf-search-height");
+      body.style.removeProperty("--nf-search-radius");
+
+      const results = document.getElementById("results");
+      if (results) {
+        results.classList.remove(
+          "nf-results-columns-auto","nf-results-columns-1","nf-results-columns-2","nf-results-columns-3",
+          "nf-result-density-compact","nf-result-density-comfortable","nf-result-density-spacious"
+        );
+        results.style.removeProperty("--nf-result-radius");
+      }
+
+      writeNeoPersonalizationForm(DEFAULT_NEO_PERSONALIZATION);
+      applyNeoFindPersonalization(DEFAULT_NEO_PERSONALIZATION);
+      closeNeoInterfaceStudio(false);
+
+      document.getElementById("neoInterfaceResetToast")?.remove();
+      const toast = document.createElement("div");
+      toast.id = "neoInterfaceResetToast";
+      toast.setAttribute("role", "status");
+      toast.setAttribute("aria-live", "polite");
+      toast.textContent = "Original NeoFind UI restored. Interface personalization has been reset.";
+      Object.assign(toast.style, {
+        position: "fixed",
+        left: "50%",
+        bottom: "28px",
+        transform: "translateX(-50%)",
+        zIndex: "2147483647",
+        maxWidth: "calc(100vw - 32px)",
+        boxSizing: "border-box",
+        padding: "13px 18px",
+        border: "1px solid rgba(94,234,212,.45)",
+        borderRadius: "12px",
+        background: "rgba(10,24,38,.97)",
+        color: "#e8fff8",
+        boxShadow: "0 12px 36px rgba(0,0,0,.38)",
+        font: "600 13px/1.5 system-ui,sans-serif",
+        textAlign: "center"
+      });
+      document.body.appendChild(toast);
+      window.setTimeout(() => toast.remove(), 3200);
+    } catch (error) {
+      console.error("Could not restore the original NeoFind UI:", error);
+      const status = document.getElementById("neoInterfaceStatus");
+      if (status) status.textContent = "Could not reset Interface Personalization. Please try again.";
+    }
+  }
+
   window.openNeoInterfaceStudio = openNeoInterfaceStudio;
   window.closeNeoInterfaceStudio = function(){ closeNeoInterfaceStudio(true); };
 
@@ -14121,6 +14187,7 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
         updateNeoInterfacePreview();
         document.getElementById("neoInterfaceStatus").textContent = "Default interface values loaded. Save personalization to apply them.";
       });
+      document.getElementById("neoInterfaceOriginalResetBtn").addEventListener("click", resetNeoInterfaceToOriginal);
       interfaceOverlay.addEventListener("click", event => {
         if (event.target === interfaceOverlay) closeNeoInterfaceStudio(true);
       });
