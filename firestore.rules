@@ -407,7 +407,7 @@ service cloud.firestore {
           'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
           'missionDay', 'missionClaims',
           'lastAdminOrbGrant',
-          'chestInventory', 'lastChestReward', 'lastAdminChestGrant'
+          'chestInventory', 'lastChestReward', 'lastAdminChestGrant', 'lastRedeemCode', 'lastRedeemAt', 'lastOrbTransferIn', 'lastOrbTransferOut'
         ];
       }
 
@@ -672,13 +672,7 @@ service cloud.firestore {
           && (
             !changedKeys().hasAny(economyKeys())
             || isStartBalance()
-            || isDailyChest()
-            || isMissionReward()
-            || isPremiumPurchase()
-            || isChestPurchase()
-            || isChestOpen()
             || isOwnerChestGrant()
-            || isRedeemReward()
           )
         );
 
