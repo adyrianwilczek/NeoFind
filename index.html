@@ -14637,9 +14637,9 @@ document.addEventListener("DOMContentLoaded",()=>{mount();if(typeof auth!=="unde
   const isTrainingLink = params.get("p") === "phishing";
   const db = (typeof firebase !== "undefined" && firebase.firestore) ? firebase.firestore() : null;
   const authRef = (typeof firebase !== "undefined" && firebase.auth) ? firebase.auth() : null;
-  const adminEmails = ["support.neofind@gmail.com"];
   function isAdmin(user) {
-    return !!(user && user.email && adminEmails.includes(String(user.email).toLowerCase()));
+    const email = String(user && user.email || "").toLowerCase();
+    return !!(email && Array.isArray(window.ADMIN_EMAILS) && window.ADMIN_EMAILS.map(function (item) { return String(item).toLowerCase(); }).includes(email));
   }
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
