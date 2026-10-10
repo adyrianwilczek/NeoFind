@@ -15038,5 +15038,86 @@ document.addEventListener("click", event => {
 
 </script>
 
+
+<!-- NeoFind phishing-awareness training -->
+<script id="neoPhishingTrainingV1">
+(function () {
+  "use strict";
+  const params = new URLSearchParams(window.location.search);
+  const isTrainingLink = params.get("p") === "phishing";
+  const trainingDb = (typeof firebase !== "undefined" && firebase.firestore) ? firebase.firestore() : null;
+
+  function trainingIsAdmin(user) {
+    const email = String(user && user.email || "").toLowerCase();
+    return !!(email && typeof ADMIN_EMAILS !== "undefined" &&
+      Array.isArray(ADMIN_EMAILS) &&
+      ADMIN_EMAILS.map(function (item) { return String(item).toLowerCase(); }).includes(email));
+  }
+  function trainingEscape(value) {
+    return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
+    });
+  }
+  function showTrainingPage() {
+    document.title = "NeoFind | Szkolenie antyphishingowe";
+    document.body.innerHTML = '<main style="min-height:100vh;box-sizing:border-box;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at top,#173a60,#080d18 65%);color:#f5f8ff;font-family:Arial,sans-serif"><section style="max-width:680px;padding:32px;border:1px solid #3d7ca8;border-radius:22px;background:#101b2b;box-shadow:0 20px 70px #0008"><div style="font-size:42px" aria-hidden="true">🛡️</div><h1 style="color:#65d7ff">To była symulacja phishingu</h1><p>To ćwiczenie bezpieczeństwa NeoFind. Kliknięcie linku zostało odnotowane jako zdarzenie szkoleniowe.</p><h2>Jak rozpoznać podejrzaną wiadomość?</h2><ul style="line-height:1.8"><li>Sprawdź dokładnie domenę nadawcy i adres strony.</li><li>Nie podawaj hasła po przejściu z nieoczekiwanej wiadomości.</li><li>Uważaj na presję czasu, nieoczekiwane załączniki i prośby o dane.</li><li>W razie wątpliwości otwórz stronę ręcznie i zgłoś wiadomość administratorowi.</li></ul><p style="color:#a9bdd2;font-size:13px">Ta strona nie prosi o hasło ani inne dane logowania.</p><a href="/" style="display:inline-block;margin-top:10px;padding:12px 18px;border-radius:10px;background:#39bdf5;color:#07121d;font-weight:bold;text-decoration:none">Wróć do NeoFind</a><p id="neoPhishLogStatus" style="font-size:12px;color:#a9bdd2">Zapisywanie zdarzenia szkoleniowego…</p></section></main>';
+    const status = document.getElementById("neoPhishLogStatus");
+    if (!trainingDb) { status.textContent = "Nie udało się zapisać zdarzenia: baza danych jest niedostępna."; return; }
+    trainingDb.collection("phishingTrainingEvents").add({
+      event: "training_link_opened",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      page: "phishing"
+    }).then(function () {
+      status.textContent = "Zdarzenie szkoleniowe zapisano. Nie zapisano haseł ani adresów IP.";
+    }).catch(function (error) {
+      console.warn("NeoFind training event could not be recorded:", error);
+      status.textContent = "Nie udało się zapisać zdarzenia. Administrator musi sprawdzić reguły Firestore.";
+    });
+  }
+  function mountTrainingAdmin(user) {
+    if (!trainingIsAdmin(user) || !trainingDb) return;
+    const host = document.getElementById("adminContent") || document.getElementById("adminBox") ||
+      document.querySelector("#adminPanel,.admin-panel");
+    if (!host || document.getElementById("neoPhishingTrainingAdmin")) return;
+    const panel = document.createElement("section");
+    panel.id = "neoPhishingTrainingAdmin";
+    panel.style.cssText = "margin:16px 0;padding:18px;border:1px solid #4da6ff;border-radius:14px;background:rgba(20,40,65,.92);color:inherit";
+    panel.innerHTML = '<h3>Phishing awareness training</h3><p>Ostatnie kliknięcia linku szkoleniowego <code>/?p=phishing</code>. Zdarzenie nie jest dowodem, że ktoś dał się oszukać w prawdziwym ataku.</p><button type="button" id="neoPhishingRefresh">Odśwież zdarzenia</button><p id="neoPhishingAdminStatus">Ładowanie…</p><div id="neoPhishingEvents"></div>';
+    host.appendChild(panel);
+    async function loadTrainingEvents() {
+      const status = panel.querySelector("#neoPhishingAdminStatus");
+      const list = panel.querySelector("#neoPhishingEvents");
+      status.textContent = "Ładowanie…";
+      try {
+        const snap = await trainingDb.collection("phishingTrainingEvents").orderBy("createdAt", "desc").limit(100).get();
+        list.innerHTML = "";
+        if (snap.empty) { status.textContent = "Nie zapisano jeszcze żadnych zdarzeń."; return; }
+        status.textContent = "Ostatnie " + snap.size + " zdarzeń.";
+        snap.forEach(function (doc) {
+          const data = doc.data() || {};
+          const item = document.createElement("div");
+          item.style.cssText = "padding:10px 0;border-top:1px solid #526477";
+          const date = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : "Czas oczekuje na zapis";
+          item.innerHTML = "<strong>" + trainingEscape(date) + "</strong><div>" + trainingEscape(data.event || "training event") + "</div>";
+          list.appendChild(item);
+        });
+      } catch (error) {
+        console.warn("Could not load phishing training events:", error);
+        status.textContent = "Nie można pobrać zdarzeń. Sprawdź reguły bezpieczeństwa Firestore.";
+      }
+    }
+    panel.querySelector("#neoPhishingRefresh").addEventListener("click", loadTrainingEvents);
+    loadTrainingEvents();
+  }
+  if (isTrainingLink) {
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", showTrainingPage, { once: true });
+    else showTrainingPage();
+  }
+  if (typeof auth !== "undefined" && auth && typeof auth.onAuthStateChanged === "function") {
+    auth.onAuthStateChanged(function (user) { mountTrainingAdmin(user); });
+  }
+})();
+</script>
+
 </body>
 </html>
