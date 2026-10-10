@@ -2037,6 +2037,49 @@ body.ocean {
 .neo-account-badges .neo-profile-badge{width:28px;height:28px;margin-left:0;top:0}
 #premiumBadge .neo-profile-badge{width:34px;height:34px;margin-left:0}
 </style>
+
+<style id="neo-advancements-styles">
+.neo-adv-open-btn{display:block;width:min(340px,92%);margin:0 auto 9px;padding:12px 18px;border:1px solid rgba(0,242,254,.38);border-radius:12px;color:inherit;background:linear-gradient(110deg,rgba(0,242,254,.11),rgba(155,81,226,.12));font-weight:800;letter-spacing:.4px;cursor:pointer;box-shadow:0 0 22px rgba(0,242,254,.06);transition:transform .18s,border-color .18s,box-shadow .18s}
+.neo-adv-open-btn:hover{transform:translateY(-1px);border-color:rgba(0,242,254,.8);box-shadow:0 0 26px rgba(0,242,254,.15)}
+.neo-adv-overlay{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;background:rgba(3,7,18,.78);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);color:#edf8ff;font-family:'Oxanium',system-ui,sans-serif}
+.neo-adv-window{width:min(900px,100%);max-height:min(88dvh,900px);overflow:auto;box-sizing:border-box;padding:clamp(18px,3vw,30px);border:1px solid rgba(0,242,254,.28);border-radius:24px;background:radial-gradient(ellipse at 0 0,rgba(0,242,254,.10),transparent 44%),radial-gradient(ellipse at 100% 100%,rgba(155,81,226,.12),transparent 45%),linear-gradient(145deg,rgba(10,18,35,.98),rgba(7,10,22,.99));box-shadow:0 32px 110px rgba(0,0,0,.58),0 0 50px rgba(0,242,254,.08);animation:neoAdvWindowIn .35s cubic-bezier(.16,1,.3,1) both}
+@keyframes neoAdvWindowIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.neo-adv-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:18px}
+.neo-adv-eyebrow{font-size:10px;letter-spacing:3px;font-weight:900;color:#68eaff}
+.neo-adv-header h2{margin:5px 0 6px;font-size:clamp(25px,4vw,36px);letter-spacing:.5px}
+.neo-adv-header p{margin:0;color:rgba(225,239,255,.68);font:13px/1.55 system-ui,sans-serif}
+.neo-adv-close{flex:0 0 auto;width:38px;height:38px;border-radius:11px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.04);color:#fff;font-size:25px;cursor:pointer}
+.neo-adv-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035)}
+.neo-adv-summary span{font-size:10px;letter-spacing:2px;color:rgba(218,239,255,.6);font-weight:800}
+.neo-adv-summary strong{font-size:12px;color:#9df5ff}
+.neo-adv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.neo-adv-card{position:relative;min-width:0;display:grid;grid-template-columns:42px minmax(0,1fr);gap:12px;align-items:start;padding:15px;border:1px solid rgba(0,242,254,.20);border-radius:15px;background:linear-gradient(135deg,rgba(0,242,254,.065),rgba(255,255,255,.025));overflow:hidden}
+.neo-adv-card.is-locked{border-color:rgba(170,190,210,.13);background:linear-gradient(135deg,rgba(130,150,170,.055),rgba(255,255,255,.018))}
+.neo-adv-card.is-unlocked{border-color:rgba(80,255,181,.34);background:linear-gradient(135deg,rgba(20,180,116,.11),rgba(0,242,254,.045));box-shadow:inset 0 0 22px rgba(80,255,181,.025)}
+.neo-adv-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;background:rgba(0,242,254,.09);font-size:21px}
+.neo-adv-card.is-locked .neo-adv-icon{background:rgba(150,165,180,.09);filter:saturate(.25);opacity:.85}
+.neo-adv-card h3{margin:1px 0 5px;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.neo-adv-card p{margin:0;color:rgba(220,235,247,.70);font:12px/1.5 system-ui,sans-serif}
+.neo-adv-card-bottom{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:3px;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.neo-adv-reward{color:#9df5ff;font-size:11px;font-weight:800}
+.neo-adv-card.is-unlocked .neo-adv-reward{color:#8dffba}
+.neo-adv-status{font-size:9px;letter-spacing:1px;font-weight:900;color:rgba(220,232,245,.48)}
+.neo-adv-card.is-unlocked .neo-adv-status{color:#8dffba}
+.neo-adv-loading{grid-column:1/-1;padding:30px;text-align:center;color:rgba(225,239,255,.65);font-size:13px}
+.neo-adv-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:18px;color:rgba(220,235,247,.5);font:11px system-ui,sans-serif}
+.neo-adv-footer button{border:1px solid rgba(0,242,254,.25);border-radius:10px;background:rgba(0,242,254,.08);color:inherit;padding:9px 18px;cursor:pointer}
+.neo-adv-toast{position:fixed;top:20px;right:20px;z-index:2147483647;width:min(370px,calc(100vw - 32px));padding:17px 19px;border:1px solid rgba(105,255,190,.58);border-radius:17px;background:linear-gradient(145deg,rgba(8,38,34,.98),rgba(9,15,29,.98));color:#effff7;box-shadow:0 18px 60px rgba(0,0,0,.46),0 0 38px rgba(80,255,181,.13);font-family:'Oxanium',system-ui,sans-serif;animation:neoAdvToastIn .45s cubic-bezier(.16,1,.3,1) both}
+.neo-adv-toast::before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:3px;border-radius:5px;background:linear-gradient(#7dffbc,#00d9ff)}
+.neo-adv-toast-eyebrow{font-size:10px;letter-spacing:2.6px;color:#8affc4;font-weight:900}
+.neo-adv-toast h3{margin:7px 0 4px;font-size:18px}
+.neo-adv-toast p{margin:0;color:rgba(233,255,246,.72);font:12px/1.5 system-ui,sans-serif}
+.neo-adv-toast-reward{display:inline-block;margin-top:10px;color:#a8f7ff;font-size:11px;font-weight:900}
+.neo-adv-toast-out{animation:neoAdvToastOut .28s ease-in forwards}
+@keyframes neoAdvToastIn{from{opacity:0;transform:translateY(-15px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes neoAdvToastOut{to{opacity:0;transform:translateY(-8px) scale(.98)}}
+@media(max-width:640px){.neo-adv-overlay{padding:9px}.neo-adv-window{max-height:94dvh;padding:17px 13px;border-radius:18px}.neo-adv-grid{grid-template-columns:1fr;gap:9px}.neo-adv-card{padding:12px;grid-template-columns:38px minmax(0,1fr)}.neo-adv-icon{width:38px;height:38px}.neo-adv-footer{align-items:flex-start;flex-direction:column}.neo-adv-footer button{width:100%}.neo-adv-toast{top:10px;right:10px}}
+</style>
+
 </head>
 <body>
     <div id="neofind-loading">
@@ -2310,6 +2353,8 @@ NOTE! Do not share the key with anyone.
                 </div>
             </div>
         </div>
+        <!-- Advancements button above Missions and Orbs -->
+<button type="button" onclick="openAdvancementsPanel()" class="neo-adv-open-btn">🏆 Advancements</button>
         <!-- Przycisk do otwierania panelu -->
 <button onclick="openOrbsPanel()">Missions and Orbs</button>
 
@@ -2512,6 +2557,30 @@ Search. Connect. Discover.
         <h4 id="favTitle" style="margin-top:20px;">Favorites</h4>
         <div id="favoritesList"></div>
     </div>
+
+<div id="neoAdvancementsOverlay" class="neo-adv-overlay" style="display:none;" onclick="if(event.target===this)closeAdvancementsPanel()">
+    <section class="neo-adv-window" role="dialog" aria-modal="true" aria-labelledby="neoAdvancementsTitle" onclick="event.stopPropagation()">
+        <header class="neo-adv-header">
+            <div>
+                <div class="neo-adv-eyebrow">NEOFIND PROFILE</div>
+                <h2 id="neoAdvancementsTitle">Advancements</h2>
+                <p>Complete challenges, earn Orbs, and collect your milestones.</p>
+            </div>
+            <button type="button" class="neo-adv-close" onclick="closeAdvancementsPanel()" aria-label="Close advancements">×</button>
+        </header>
+        <div class="neo-adv-summary">
+            <span>YOUR PROGRESS</span>
+            <strong id="neoAdvancementProgress">0 / 8 completed</strong>
+        </div>
+        <div id="neoAdvancementsList" class="neo-adv-grid">
+            <div class="neo-adv-loading">Loading advancements…</div>
+        </div>
+        <footer class="neo-adv-footer">
+            <span>Locked advancements remain visible.</span>
+            <button type="button" onclick="closeAdvancementsPanel()">Close</button>
+        </footer>
+    </section>
+</div>
 
 <div id="rateBox" style="display:none;">
     <h4>Rate us</h4>
@@ -4142,6 +4211,7 @@ function saveSettings(){
     const activeTheme = localStorage.getItem("theme") || "classic";
     const ownBasePreset = localStorage.getItem("neoFindOwnThemeBasePreset") || "classic";
     const theme = activeTheme === "own" && selectedPreset === ownBasePreset ? "own" : selectedPreset;
+    if (theme !== activeTheme) unlockNeoAdvancement("iWantSoIDo");
     applyTheme(theme);
     updateLanguage();
     log("saved settings (lang: " + currentLang + ")");
@@ -5136,6 +5206,7 @@ function sendReport(){
     })
     .then(()=>{
         showPopup("Report sent!", "#00cc66");
+        unlockNeoAdvancement("bugOrHug");
         document.getElementById("reportText").value = "";
         closeReport();
     })
@@ -5161,6 +5232,7 @@ window.sendRating = function () {
     })
     .then(() => {
         alert("Thanks for rating!");
+        unlockNeoAdvancement("rateMe");
         document.getElementById("rateStars").value = "";
         document.getElementById("rateText").value = "";
     })
@@ -5450,8 +5522,10 @@ async function acceptFriend(docId, fromEmail){
     try {
         await db.collection("friendRequests").doc(docId).update({ status: "accepted" });
         const acceptedUser = auth.currentUser;
+        unlockNeoAdvancement("helloMyFriend");
         const fromSnap = await db.collection("users").where("email","==",fromEmail).get();
         for(const d of fromSnap.docs){
+            unlockNeoAdvancementForUser(d.id, "helloMyFriend", true);
             await createUserAnnouncement(d.id, {
                 title:"Friend request accepted",
                 body:(acceptedUser?.email || "Someone") + " accepted your friend request.",
@@ -7110,6 +7184,7 @@ function toggleRainMode() {
         localStorage.getItem("rain") !== "on";
 
     if (turningOn) {
+        unlockNeoAdvancement("itsRaining1");
         localStorage.setItem("rain", "on");
 
         document.body.classList.add("rain-mode");
@@ -11272,6 +11347,9 @@ function updateMissionProgress(type) {
     if (updated) {
         localStorage.setItem('dailyMissionsData', JSON.stringify(data));
         renderMissions();
+        if (data.missions.length >= 3 && data.missions.every(m => m.progress >= m.target)) {
+            unlockNeoAdvancement("missionLegend");
+        }
     }
 }
 
@@ -11504,6 +11582,7 @@ async function buyOrbChest(type) {
         localStorage.setItem("userOrbs", userOrbs);
         const orbCountEl = document.getElementById("userOrbsCount");
         if (orbCountEl) orbCountEl.textContent = userOrbs;
+        if (type === "neofind") unlockNeoAdvancement("neoFindChest");
         await loadOrbChestInventory();
         openOrbChestModal(type);
     } catch (e) {
@@ -12843,6 +12922,7 @@ window.sendOrbsToUser = async function () {
 
         if (emailInput) emailInput.value = "";
         if (amountInput) amountInput.value = "";
+        if (amountAtStart >= 20) unlockNeoAdvancement("orbsGiver");
         showStatus("Sent " + amountAtStart + " Orbs to " + targetEmail + ".", true);
     } catch (error) {
         console.error("Orb transfer failed:", error);
@@ -14426,6 +14506,174 @@ body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;
 @media(max-width:480px){#luckyBoyReveal{padding:10px}#luckyBoyReveal .lbr-card{border-radius:22px;padding:26px 18px 23px}#luckyBoyReveal .lbr-stage{width:min(245px,68vw)}#luckyBoyReveal .lbr-desc{font-size:13px}#luckyBoyReveal .lbr-title{letter-spacing:1.5px}}
 @media(prefers-reduced-motion:reduce){#luckyBoyReveal .lbr-aurora,#luckyBoyReveal .lbr-rays,#luckyBoyReveal .lbr-orbit,#luckyBoyReveal .lbr-orbit-two,#luckyBoyReveal .lbr-halo,#luckyBoyReveal .lbr-clover{animation:none!important}#luckyBoyReveal .lbr-particle,#luckyBoyReveal .lbr-spark{display:none!important}#luckyBoyReveal .lbr-medallion,#luckyBoyReveal .lbr-title,#luckyBoyReveal .lbr-desc,#luckyBoyReveal .lbr-pill,#luckyBoyReveal .lbr-button{animation:none!important;transform:none;opacity:1}}
 </style>
+
+
+<script id="neo-advancements-system">
+const NEOFIND_ADVANCEMENTS = [
+    { id: "neoFindChest", name: "NeoFind or NeoFind chest?", description: "Obtain a NeoFind Chest", reward: 50, icon: "🌌" },
+    { id: "itsRaining1", name: "it's raining1", description: "Turn on Rain Mode", reward: 5, icon: "🌧️" },
+    { id: "iWantSoIDo", name: "i want so i do", description: "Change your theme", reward: 0, icon: "🎨" },
+    { id: "bugOrHug", name: "bug or hug?", description: "Report something", reward: 25, icon: "🐛" },
+    { id: "helloMyFriend", name: "hello my friend", description: "Get a friend", reward: 10, icon: "👋" },
+    { id: "missionLegend", name: "mission legend", description: "Complete all 3 daily missions", reward: 20, icon: "🏆" },
+    { id: "orbsGiver", name: "orbs giver", description: "Send someone 20 or more Orbs", reward: 20, icon: "🔮" },
+    { id: "rateMe", name: "1? 2? 3? 4? 5?", description: "Give a rating", reward: 30, icon: "⭐" }
+];
+let neoAdvancementNoticeTimer = null;
+
+function openAdvancementsPanel() {
+    const overlay = document.getElementById("neoAdvancementsOverlay");
+    if (!auth.currentUser) {
+        alert("Please log in to view your advancements.");
+        return;
+    }
+    if (overlay) overlay.style.display = "flex";
+    renderNeoAdvancements();
+}
+function closeAdvancementsPanel() {
+    const overlay = document.getElementById("neoAdvancementsOverlay");
+    if (overlay) overlay.style.display = "none";
+}
+async function renderNeoAdvancements() {
+    const list = document.getElementById("neoAdvancementsList");
+    const progress = document.getElementById("neoAdvancementProgress");
+    const user = auth.currentUser;
+    if (!list || !progress) return;
+    if (!user) {
+        list.innerHTML = '<div class="neo-adv-loading">Log in to view your progress.</div>';
+        progress.textContent = "0 / " + NEOFIND_ADVANCEMENTS.length + " completed";
+        return;
+    }
+    list.innerHTML = '<div class="neo-adv-loading">Loading advancements…</div>';
+    try {
+        const snap = await db.collection("users").doc(user.uid).get();
+        const data = snap.exists ? snap.data() : {};
+        const completed = data.advancements && typeof data.advancements === "object" ? data.advancements : {};
+        const count = NEOFIND_ADVANCEMENTS.filter(a => !!completed[a.id]).length;
+        progress.textContent = count + " / " + NEOFIND_ADVANCEMENTS.length + " completed";
+        list.innerHTML = NEOFIND_ADVANCEMENTS.map(a => {
+            const unlocked = !!completed[a.id];
+            const rewardText = a.reward > 0 ? "+" + a.reward + " Orbs" : "Nothing";
+            return '<article class="neo-adv-card ' + (unlocked ? "is-unlocked" : "is-locked") + '">' +
+                '<div class="neo-adv-icon" aria-hidden="true">' + (unlocked ? a.icon : "🔒") + '</div>' +
+                '<div><h3>' + escapeHtml(a.name) + '</h3><p>' + escapeHtml(a.description) + '</p></div>' +
+                '<div class="neo-adv-card-bottom"><span class="neo-adv-reward">Reward: ' + rewardText + '</span>' +
+                '<span class="neo-adv-status">' + (unlocked ? "✓ UNLOCKED" : "🔒 LOCKED") + '</span></div>' +
+                '</article>';
+        }).join("");
+    } catch (error) {
+        console.error("Could not load NeoFind advancements:", error);
+        list.innerHTML = '<div class="neo-adv-loading">Could not load advancements. Please try again.</div>';
+    }
+}
+function showNeoAdvancementToast(advancement) {
+    const toast = document.createElement("div");
+    toast.className = "neo-adv-toast";
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
+    const rewardText = advancement.reward > 0 ? "+" + advancement.reward + " Orbs added to your balance." : "No Orbs reward. Advancement unlocked!";
+    toast.innerHTML =
+        '<div class="neo-adv-toast-eyebrow">✦ NEOFIND MILESTONE ✦</div>' +
+        '<h3>Advancement made!</h3>' +
+        '<p>' + escapeHtml(advancement.name) + '</p>' +
+        '<span class="neo-adv-toast-reward">' + escapeHtml(rewardText) + '</span>';
+    document.body.appendChild(toast);
+    if (typeof confetti === "function") {
+        try {
+            confetti({ particleCount: 135, spread: 78, startVelocity: 36, origin: { y: 0.55 } });
+            window.setTimeout(() => confetti({ particleCount: 55, spread: 115, startVelocity: 24, origin: { y: 0.62 } }), 220);
+        } catch (e) {
+            console.warn("Advancement confetti could not start:", e);
+        }
+    }
+    window.setTimeout(() => {
+        toast.classList.add("neo-adv-toast-out");
+        window.setTimeout(() => toast.remove(), 320);
+    }, 4600);
+    return toast;
+}
+async function grantNeoAdvancementForUser(uid, id, queueNotice = false) {
+    const advancement = NEOFIND_ADVANCEMENTS.find(a => a.id === id);
+    if (!advancement || !uid || typeof db === "undefined") return false;
+    const ref = db.collection("users").doc(uid);
+    const currentUserId = auth.currentUser ? auth.currentUser.uid : null;
+    try {
+        const result = await db.runTransaction(async transaction => {
+            const snap = await transaction.get(ref);
+            const data = snap.exists ? snap.data() : {};
+            const balance = Math.max(0, Math.floor(Number(data.orbs || 0)));
+            const completed = data.advancements && typeof data.advancements === "object"
+                ? Object.assign({}, data.advancements)
+                : {};
+            if (completed[id]) return { unlocked: false, orbs: balance };
+            completed[id] = { unlockedAt: Date.now() };
+            const nextBalance = balance + advancement.reward;
+            const update = { advancements: completed, orbs: nextBalance };
+            if (queueNotice && currentUserId !== uid) {
+                const notices = Array.isArray(data.advancementNotices) ? data.advancementNotices.slice() : [];
+                notices.push({ id: id, createdAt: Date.now() });
+                update.advancementNotices = notices;
+            }
+            transaction.set(ref, update, { merge: true });
+            return { unlocked: true, orbs: nextBalance };
+        });
+        if (!result.unlocked) return false;
+        if (auth.currentUser && auth.currentUser.uid === uid) {
+            userOrbs = result.orbs;
+            localStorage.setItem("userOrbs", String(userOrbs));
+            const count = document.getElementById("userOrbsCount");
+            if (count) count.textContent = String(userOrbs);
+            if (typeof updateUI === "function") updateUI();
+            if (typeof renderMissions === "function") renderMissions();
+            showNeoAdvancementToast(advancement);
+            const overlay = document.getElementById("neoAdvancementsOverlay");
+            if (overlay && overlay.style.display === "flex") renderNeoAdvancements();
+        }
+        return true;
+    } catch (error) {
+        console.error("Could not save advancement:", id, error);
+        return false;
+    }
+}
+function unlockNeoAdvancement(id) {
+    const user = (typeof auth !== "undefined" && auth) ? auth.currentUser : null;
+    if (!user) return Promise.resolve(false);
+    return grantNeoAdvancementForUser(user.uid, id, false);
+}
+function unlockNeoAdvancementForUser(uid, id, queueNotice = true) {
+    return grantNeoAdvancementForUser(uid, id, queueNotice);
+}
+async function loadNeoAdvancementNotices(user) {
+    if (!user || !user.uid) return;
+    try {
+        const ref = db.collection("users").doc(user.uid);
+        const snap = await ref.get();
+        if (!snap.exists) return;
+        const data = snap.data();
+        const notices = Array.isArray(data.advancementNotices) ? data.advancementNotices : [];
+        if (!notices.length) return;
+        const valid = notices.map(n => ({
+            notice: n,
+            advancement: NEOFIND_ADVANCEMENTS.find(a => a.id === n.id)
+        })).filter(x => x.advancement);
+        for (let i = 0; i < valid.length; i++) {
+            window.setTimeout(() => showNeoAdvancementToast(valid[i].advancement), i * 650);
+        }
+        await ref.update({ advancementNotices: firebase.firestore.FieldValue.arrayRemove(...notices) });
+    } catch (error) {
+        console.error("Could not process advancement notices:", error);
+    }
+}
+auth.onAuthStateChanged(user => {
+    if (!user) {
+        if (neoAdvancementNoticeTimer) window.clearTimeout(neoAdvancementNoticeTimer);
+        neoAdvancementNoticeTimer = null;
+        return;
+    }
+    if (neoAdvancementNoticeTimer) window.clearTimeout(neoAdvancementNoticeTimer);
+    neoAdvancementNoticeTimer = window.setTimeout(() => loadNeoAdvancementNotices(user), 1400);
+});
+</script>
 
 </body>
 </html>
