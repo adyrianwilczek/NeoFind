@@ -2276,7 +2276,11 @@ NOTE! Do not share the key with anyone.
                     <option value="matrix">Matrix</option>
                 </select>
                 <button type="button" id="openOwnThemeStudioBtn" onclick="openOwnThemeStudio()" style="margin-top:10px;width:100%;">Own Theme</button>
-                <p style="font-size:12px;opacity:.7;margin:7px 0 0;">Create and save your own look.</p>
+                <p style="font-size:12px;opacity:.7;margin:7px 0 0;">Customize theme colors and panel appearance.</p>
+                <div style="border-top:1px solid rgba(255,255,255,.12);margin:18px 0 14px;"></div>
+                <h4 style="margin:0 0 8px;">Interface Personalization</h4>
+                <button type="button" id="openNeoInterfaceStudioBtn" onclick="openNeoInterfaceStudio()" style="width:100%;">Personalize Interface</button>
+                <p style="font-size:12px;opacity:.7;margin:7px 0 0;">Customize content and layout. The search field and logo stay unchanged.</p>
             </div>
 
             <div class="settings-col">
@@ -13377,7 +13381,6 @@ body.neo-theme-own #newsBox,body.neo-theme-own #consoleBox,body.neo-theme-own #a
 body.neo-theme-own #neoAiChatWindow,body.neo-theme-own .neo-social-modal{
   border-radius:var(--nf-radius,15px)!important;
 }
-body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!important}
 .neo-own-theme-overlay{display:none;position:fixed;inset:0;z-index:2147483000;align-items:center;justify-content:center;padding:18px;box-sizing:border-box;background:rgba(1,7,15,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#edf5ff}
 .neo-own-theme-dialog{width:min(1000px,100%);max-height:min(92dvh,900px);overflow:auto;border:1px solid rgba(118,159,196,.26);border-radius:22px;background:linear-gradient(145deg,#101a2b,#0c1422 75%);box-shadow:0 28px 90px rgba(0,0,0,.55)}
 .neo-own-theme-header{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 24px;border-bottom:1px solid rgba(148,163,184,.16);background:rgba(12,20,34,.96);backdrop-filter:blur(14px)}
@@ -13419,6 +13422,10 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
 .neo-own-theme-btn.primary{border-color:transparent;background:linear-gradient(135deg,#2dd4bf,#60a5fa);color:#071521}
 .neo-own-theme-btn:hover,.neo-own-theme-close:hover{filter:brightness(1.12)}
 .neo-own-theme-status{flex-basis:100%;min-height:16px;color:#9fb0c6;font-size:12px}
+.neo-interface-personalization-overlay .neo-own-theme-dialog{width:min(1080px,100%)}
+.neo-interface-personalization-overlay .neo-own-theme-section-title:first-child{margin-top:0}
+.neo-interface-personalization-overlay #neoInterfacePreviewWelcome{margin-top:0}
+
 @media(max-width:720px){
   .neo-own-theme-overlay{padding:8px}
   .neo-own-theme-dialog{max-height:96dvh;border-radius:16px}
@@ -13432,6 +13439,7 @@ body.neo-theme-own #search{font-family:var(--nf-font,'Oxanium',sans-serif)!impor
 </style>
 
 <style id="neo-find-personalization-style">
+/* These controls never resize, recolor, reshape or restyle #search or #logo. */
 body.nf-custom-layout #greeting,
 body.nf-custom-layout #didYouKnowTitle,
 body.nf-custom-layout #didYouKnow,
@@ -13442,27 +13450,47 @@ body.nf-custom-layout.nf-hide-facts #didYouKnowTitle,
 body.nf-custom-layout.nf-hide-facts #didYouKnow {display:none!important}
 body.nf-custom-layout.nf-hide-news #newsBtn {display:none!important}
 body.nf-custom-layout.nf-hide-neoai #neoAiFloatBtn {display:none!important}
-body.nf-custom-layout.nf-home-left #homeWrapper {align-items:flex-start!important}
-body.nf-custom-layout.nf-home-left #logo,
-body.nf-custom-layout.nf-home-left #greeting,
-body.nf-custom-layout.nf-home-left #didYouKnowTitle,
-body.nf-custom-layout.nf-home-left #didYouKnow {text-align:left!important}
-body.nf-custom-layout .searchBox {
-  width:min(var(--nf-search-width,80%),100%)!important;
-  max-width:900px!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
+body.nf-custom-layout.nf-hide-history #historyTitle,
+body.nf-custom-layout.nf-hide-history #historyList,
+body.nf-custom-layout.nf-hide-history #clearHistoryBtn {display:none!important}
+body.nf-custom-layout.nf-hide-favorites #favTitle,
+body.nf-custom-layout.nf-hide-favorites #favoritesList {display:none!important}
+
+body.nf-custom-layout #results > .result {
+  border-radius:var(--nf-result-radius,15px)!important;
+  transition:padding .18s ease, margin .18s ease, box-shadow .18s ease;
 }
-body.nf-custom-layout.nf-home-left .searchBox {margin-left:0!important;margin-right:auto!important}
-body.nf-custom-layout #search {
-  height:var(--nf-search-height,46px)!important;
-  min-height:var(--nf-search-height,46px)!important;
-  border-radius:var(--nf-search-radius,12px)!important;
-  box-sizing:border-box!important;
+body.nf-custom-layout.nf-result-density-compact #results > .result {padding:9px 12px!important;margin-bottom:4px!important}
+body.nf-custom-layout.nf-result-density-comfortable #results > .result {padding:15px!important;margin-bottom:8px!important}
+body.nf-custom-layout.nf-result-density-spacious #results > .result {padding:22px!important;margin-bottom:12px!important}
+body.nf-custom-layout #results.nf-results-columns-1 {grid-template-columns:minmax(0,1fr)!important}
+body.nf-custom-layout #results.nf-results-columns-2 {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.nf-custom-layout #results.nf-results-columns-3 {grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media(max-width:760px){
+  body.nf-custom-layout #results.nf-results-columns-2,
+  body.nf-custom-layout #results.nf-results-columns-3 {grid-template-columns:minmax(0,1fr)!important}
 }
 body.nf-custom-layout.nf-compact-ui #results {gap:6px!important}
-body.nf-custom-layout.nf-compact-ui .result {padding:9px 12px!important;margin-bottom:4px!important}
 body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
+
+/* Font selector excludes the search input and logo, both of which keep their normal styling. */
+body.nf-custom-layout.nf-font-system *:not(#search):not(#logo):not(#logo *) {font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important}
+body.nf-custom-layout.nf-font-arial *:not(#search):not(#logo):not(#logo *) {font-family:Arial,Helvetica,sans-serif!important}
+body.nf-custom-layout.nf-font-georgia *:not(#search):not(#logo):not(#logo *) {font-family:Georgia,"Times New Roman",serif!important}
+body.nf-custom-layout.nf-font-oxanium *:not(#search):not(#logo):not(#logo *) {font-family:"Oxanium",sans-serif!important}
+body.nf-custom-layout.nf-font-system #search,
+body.nf-custom-layout.nf-font-arial #search,
+body.nf-custom-layout.nf-font-georgia #search,
+body.nf-custom-layout.nf-font-oxanium #search {font-family:"Oxanium",sans-serif!important}
+
+body.nf-custom-layout #topBar button,
+body.nf-custom-layout #bottomNav button {font-size:calc(1em * var(--nf-nav-scale,1))!important}
+
+body.nf-custom-layout.nf-reduce-motion #results > .result,
+body.nf-custom-layout.nf-reduce-motion #greeting,
+body.nf-custom-layout.nf-reduce-motion #didYouKnow,
+body.nf-custom-layout.nf-reduce-motion #newsBtn,
+body.nf-custom-layout.nf-reduce-motion #neoAiFloatBtn {animation:none!important;transition:none!important}
 </style>
 
 <div id="neoOwnThemeStudio" class="neo-own-theme-overlay" aria-hidden="true">
@@ -13495,49 +13523,6 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
           <div class="neo-own-theme-range-row"><span>Sharp</span><strong id="ownThemeRadiusValue">14 px</strong><span>Rounded</span></div>
           <input id="ownThemeRadius" type="range" min="0" max="28" value="14">
         </div>
-        <div class="neo-own-theme-field wide"><label for="ownThemeFont">Interface font</label>
-          <select id="ownThemeFont">
-            <option value="oxanium">Oxanium (NeoFind)</option>
-            <option value="system">System default</option>
-            <option value="arial">Arial</option>
-            <option value="georgia">Georgia</option>
-          </select>
-        </div>
-
-        <div class="neo-own-theme-section-title">Home &amp; Interface</div>
-        <div class="neo-own-theme-field wide"><label for="ownWelcomeMessage">Custom welcome message</label>
-          <input id="ownWelcomeMessage" type="text" maxlength="100" placeholder="Welcome back, {name}!" autocomplete="off">
-          <div class="neo-own-theme-help">Use {name} to insert the account name and {temp} to insert the current temperature.</div>
-        </div>
-        <div class="neo-own-theme-field wide">
-          <span class="field-label">Home page elements</span>
-          <label class="neo-own-theme-toggle"><input id="ownShowGreeting" type="checkbox" checked><span>Show welcome message</span></label>
-          <label class="neo-own-theme-toggle"><input id="ownShowFacts" type="checkbox" checked><span>Show “Did you know?”</span></label>
-          <label class="neo-own-theme-toggle"><input id="ownShowNews" type="checkbox" checked><span>Show NeoNews button</span></label>
-          <label class="neo-own-theme-toggle"><input id="ownShowNeoAI" type="checkbox" checked><span>Show Neo AI button</span></label>
-          <label class="neo-own-theme-toggle"><input id="ownCompactUI" type="checkbox"><span>Compact interface</span></label>
-        </div>
-        <div class="neo-own-theme-field wide"><label for="ownHomeAlignment">Home layout alignment</label>
-          <select id="ownHomeAlignment">
-            <option value="center">Centered</option>
-            <option value="left">Left aligned</option>
-          </select>
-        </div>
-        <div class="neo-own-theme-field wide">
-          <label for="ownSearchWidth">Search area width</label>
-          <div class="neo-own-theme-range-row"><span>Focused</span><strong id="ownSearchWidthValue">80%</strong><span>Wide</span></div>
-          <input id="ownSearchWidth" type="range" min="50" max="100" value="80">
-        </div>
-        <div class="neo-own-theme-field">
-          <label for="ownSearchHeight">Search field height</label>
-          <div class="neo-own-theme-range-row"><strong id="ownSearchHeightValue">46 px</strong></div>
-          <input id="ownSearchHeight" type="range" min="40" max="64" value="46">
-        </div>
-        <div class="neo-own-theme-field">
-          <label for="ownSearchRadius">Search field corners</label>
-          <div class="neo-own-theme-range-row"><strong id="ownSearchRadiusValue">12 px</strong></div>
-          <input id="ownSearchRadius" type="range" min="0" max="32" value="12">
-        </div>
       </div>
       <div class="neo-own-theme-preview-wrap">
         <div class="neo-own-theme-preview-label">Live preview</div>
@@ -13557,6 +13542,99 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
         <button type="button" class="neo-own-theme-btn primary" id="neoOwnThemeSaveBtn">Save theme</button>
       </div>
       <div class="neo-own-theme-status" id="neoOwnThemeStatus" role="status" aria-live="polite"></div>
+    </footer>
+  </section>
+</div>
+
+<div id="neoInterfaceStudio" class="neo-own-theme-overlay neo-interface-personalization-overlay" aria-hidden="true">
+  <section class="neo-own-theme-dialog" role="dialog" aria-modal="true" aria-labelledby="neoInterfaceTitle">
+    <header class="neo-own-theme-header">
+      <div>
+        <div id="neoInterfaceTitle" class="neo-own-theme-heading">Interface Personalization</div>
+        <div class="neo-own-theme-subtitle">Customize the rest of NeoFind independently from the theme. The search field and logo keep their original styling.</div>
+      </div>
+      <button type="button" class="neo-own-theme-close" id="neoInterfaceCloseBtn" aria-label="Close interface personalization">&times;</button>
+    </header>
+    <div class="neo-own-theme-body">
+      <div class="neo-own-theme-controls">
+        <div class="neo-own-theme-section-title">Home Page</div>
+        <div class="neo-own-theme-field wide"><label for="interfaceWelcomeMessage">Custom welcome message</label>
+          <input id="interfaceWelcomeMessage" type="text" maxlength="100" placeholder="Welcome back, {name}!" autocomplete="off">
+          <div class="neo-own-theme-help">Use {name} for your account name and {temp} for the current temperature.</div>
+        </div>
+        <div class="neo-own-theme-field wide">
+          <span class="field-label">Visible home elements</span>
+          <label class="neo-own-theme-toggle"><input id="interfaceShowGreeting" type="checkbox" checked><span>Show welcome message</span></label>
+          <label class="neo-own-theme-toggle"><input id="interfaceShowFacts" type="checkbox" checked><span>Show “Did you know?”</span></label>
+          <label class="neo-own-theme-toggle"><input id="interfaceShowNews" type="checkbox" checked><span>Show NeoNews button</span></label>
+          <label class="neo-own-theme-toggle"><input id="interfaceShowNeoAI" type="checkbox" checked><span>Show Neo AI button</span></label>
+        </div>
+
+        <div class="neo-own-theme-section-title">Content &amp; Results</div>
+        <div class="neo-own-theme-field wide">
+          <span class="field-label">Settings content</span>
+          <label class="neo-own-theme-toggle"><input id="interfaceShowHistory" type="checkbox" checked><span>Show search history</span></label>
+          <label class="neo-own-theme-toggle"><input id="interfaceShowFavorites" type="checkbox" checked><span>Show saved favorites</span></label>
+          <label class="neo-own-theme-toggle"><input id="interfaceCompactUI" type="checkbox"><span>Compact interface panels</span></label>
+        </div>
+        <div class="neo-own-theme-field"><label for="interfaceResultDensity">Result card spacing</label>
+          <select id="interfaceResultDensity">
+            <option value="compact">Compact</option>
+            <option value="comfortable" selected>Comfortable</option>
+            <option value="spacious">Spacious</option>
+          </select>
+        </div>
+        <div class="neo-own-theme-field"><label for="interfaceResultColumns">Result layout</label>
+          <select id="interfaceResultColumns">
+            <option value="auto" selected>Automatic</option>
+            <option value="1">Single column</option>
+            <option value="2">Two columns</option>
+            <option value="3">Three columns</option>
+          </select>
+        </div>
+        <div class="neo-own-theme-field wide">
+          <label for="interfaceResultRadius">Result card corner roundness</label>
+          <div class="neo-own-theme-range-row"><span>Square</span><strong id="interfaceResultRadiusValue">15 px</strong><span>Rounded</span></div>
+          <input id="interfaceResultRadius" type="range" min="0" max="28" value="15">
+        </div>
+
+        <div class="neo-own-theme-section-title">Interface Details</div>
+        <div class="neo-own-theme-field"><label for="interfaceUiFont">Interface font</label>
+          <select id="interfaceUiFont">
+            <option value="oxanium">Oxanium (NeoFind)</option>
+            <option value="system">System default</option>
+            <option value="arial">Arial</option>
+            <option value="georgia">Georgia</option>
+          </select>
+        </div>
+        <div class="neo-own-theme-field"><label for="interfaceNavScale">Navigation button size</label>
+          <div class="neo-own-theme-range-row"><span>Small</span><strong id="interfaceNavScaleValue">100%</strong><span>Large</span></div>
+          <input id="interfaceNavScale" type="range" min="85" max="120" value="100">
+        </div>
+        <div class="neo-own-theme-field wide">
+          <label class="neo-own-theme-toggle"><input id="interfaceReduceMotion" type="checkbox"><span>Reduce interface animations</span></label>
+        </div>
+      </div>
+
+      <div class="neo-own-theme-preview-wrap">
+        <div class="neo-own-theme-preview-label">Interface preview</div>
+        <div class="neo-own-theme-preview" id="neoInterfacePreview">
+          <div class="neo-own-theme-preview-top"><span class="neo-own-theme-preview-mark"><span class="neo-own-theme-preview-dot"></span>NeoFind</span><span class="neo-own-theme-preview-mini">INTERFACE</span></div>
+          <div class="neo-own-theme-preview-card" id="neoInterfacePreviewWelcome"><strong id="neoInterfacePreviewWelcomeTitle">Welcome back!</strong><p id="neoInterfacePreviewWelcomeText">Your personal settings shape the surrounding interface.</p></div>
+          <div class="neo-own-theme-preview-card" id="neoInterfacePreviewResult"><strong>Example result card</strong><p>Result cards, content density and navigation can be adjusted independently of the theme.</p></div>
+          <div class="neo-own-theme-preview-swatches"><span style="--swatch:#6ee7c8"></span><span style="--swatch:#60a5fa"></span><span style="--swatch:#27374d"></span></div>
+        </div>
+      </div>
+    </div>
+    <footer class="neo-own-theme-footer">
+      <div class="neo-own-theme-footer-group">
+        <button type="button" class="neo-own-theme-btn" id="neoInterfaceResetBtn">Reset values</button>
+        <button type="button" class="neo-own-theme-btn" id="neoInterfaceCancelBtn">Cancel</button>
+      </div>
+      <div class="neo-own-theme-footer-group">
+        <button type="button" class="neo-own-theme-btn primary" id="neoInterfaceSaveBtn">Save personalization</button>
+      </div>
+      <div class="neo-own-theme-status" id="neoInterfaceStatus" role="status" aria-live="polite"></div>
     </footer>
   </section>
 </div>
@@ -13584,11 +13662,15 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     showFacts: true,
     showNews: true,
     showNeoAI: true,
+    showHistory: true,
+    showFavorites: true,
     compactUI: false,
-    homeAlignment: "center",
-    searchWidth: 80,
-    searchHeight: 46,
-    searchRadius: 12
+    resultDensity: "comfortable",
+    resultColumns: "auto",
+    resultRadius: 15,
+    uiFont: "oxanium",
+    navScale: 100,
+    reduceMotion: false
   };
 
   let ownThemePrevious = "classic";
@@ -13619,7 +13701,7 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
       backgroundStyle: ["gradient","solid","aurora"].includes(c.backgroundStyle) ? c.backgroundStyle : DEFAULT_OWN_THEME.backgroundStyle,
       panelOpacity: Math.min(100, Math.max(35, Number(c.panelOpacity) || DEFAULT_OWN_THEME.panelOpacity)),
       radius: Math.min(28, Math.max(0, Number(c.radius) || 0)),
-      font: ["oxanium","system","arial","georgia"].includes(c.font) ? c.font : DEFAULT_OWN_THEME.font
+      font: "oxanium"
     };
   }
 
@@ -13635,11 +13717,15 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
       showFacts: c.showFacts !== false,
       showNews: c.showNews !== false,
       showNeoAI: c.showNeoAI !== false,
+      showHistory: c.showHistory !== false,
+      showFavorites: c.showFavorites !== false,
       compactUI: c.compactUI === true,
-      homeAlignment: ["center","left"].includes(c.homeAlignment) ? c.homeAlignment : "center",
-      searchWidth: numberInRange(c.searchWidth,50,100,DEFAULT_NEO_PERSONALIZATION.searchWidth),
-      searchHeight: numberInRange(c.searchHeight,40,64,DEFAULT_NEO_PERSONALIZATION.searchHeight),
-      searchRadius: numberInRange(c.searchRadius,0,32,DEFAULT_NEO_PERSONALIZATION.searchRadius)
+      resultDensity: ["compact","comfortable","spacious"].includes(c.resultDensity) ? c.resultDensity : "comfortable",
+      resultColumns: ["auto","1","2","3"].includes(String(c.resultColumns)) ? String(c.resultColumns) : "auto",
+      resultRadius: numberInRange(c.resultRadius,0,28,DEFAULT_NEO_PERSONALIZATION.resultRadius),
+      uiFont: ["oxanium","system","arial","georgia"].includes(c.uiFont) ? c.uiFont : "oxanium",
+      navScale: numberInRange(c.navScale,85,120,DEFAULT_NEO_PERSONALIZATION.navScale),
+      reduceMotion: c.reduceMotion === true
     };
   }
 
@@ -13656,27 +13742,25 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     const body = document.body;
     if (!body) return c;
 
-    // Keep the original NeoFind UI untouched until the user explicitly saves
-    // personalization. While the studio is open, use the draft for live preview.
     let hasSavedPersonalization = false;
-    try {
-      hasSavedPersonalization = localStorage.getItem("neoFindPersonalization") !== null;
-    } catch (error) {}
+    try { hasSavedPersonalization = localStorage.getItem("neoFindPersonalization") !== null; } catch (error) {}
+    const hasLiveDraft = !!(window.neoFindPersonalizationDraft && typeof window.neoFindPersonalizationDraft === "object");
+    const results = document.getElementById("results");
 
-    const hasLiveDraft = !!(
-      window.neoFindPersonalizationDraft &&
-      typeof window.neoFindPersonalizationDraft === "object"
-    );
+    const layoutClasses = [
+      "nf-custom-layout","nf-hide-greeting","nf-hide-facts","nf-hide-news","nf-hide-neoai",
+      "nf-hide-history","nf-hide-favorites","nf-compact-ui","nf-reduce-motion",
+      "nf-font-oxanium","nf-font-system","nf-font-arial","nf-font-georgia"
+    ];
 
     if (!hasSavedPersonalization && !hasLiveDraft) {
-      body.classList.remove(
-        "nf-custom-layout", "nf-hide-greeting", "nf-hide-facts",
-        "nf-hide-news", "nf-hide-neoai", "nf-compact-ui", "nf-home-left"
-      );
-      body.style.removeProperty("--nf-search-width");
-      body.style.removeProperty("--nf-search-height");
-      body.style.removeProperty("--nf-search-radius");
-
+      body.classList.remove(...layoutClasses);
+      body.style.removeProperty("--nf-nav-scale");
+      if (results) {
+        results.classList.remove("nf-results-columns-auto","nf-results-columns-1","nf-results-columns-2","nf-results-columns-3",
+          "nf-result-density-compact","nf-result-density-comfortable","nf-result-density-spacious");
+        results.style.removeProperty("--nf-result-radius");
+      }
       if (typeof renderGreeting === "function") renderGreeting();
       return c;
     }
@@ -13686,11 +13770,21 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     body.classList.toggle("nf-hide-facts", !c.showFacts);
     body.classList.toggle("nf-hide-news", !c.showNews);
     body.classList.toggle("nf-hide-neoai", !c.showNeoAI);
+    body.classList.toggle("nf-hide-history", !c.showHistory);
+    body.classList.toggle("nf-hide-favorites", !c.showFavorites);
     body.classList.toggle("nf-compact-ui", c.compactUI);
-    body.classList.toggle("nf-home-left", c.homeAlignment === "left");
-    body.style.setProperty("--nf-search-width", c.searchWidth + "%");
-    body.style.setProperty("--nf-search-height", c.searchHeight + "px");
-    body.style.setProperty("--nf-search-radius", c.searchRadius + "px");
+    body.classList.toggle("nf-reduce-motion", c.reduceMotion);
+
+    ["oxanium","system","arial","georgia"].forEach(font => body.classList.toggle("nf-font-"+font, c.uiFont === font));
+    body.style.setProperty("--nf-nav-scale", String(c.navScale / 100));
+
+    if (results) {
+      results.classList.remove("nf-results-columns-auto","nf-results-columns-1","nf-results-columns-2","nf-results-columns-3",
+        "nf-result-density-compact","nf-result-density-comfortable","nf-result-density-spacious");
+      results.classList.add("nf-results-columns-" + c.resultColumns);
+      results.classList.add("nf-result-density-" + c.resultDensity);
+      results.style.setProperty("--nf-result-radius", c.resultRadius + "px");
+    }
 
     if (typeof renderGreeting === "function") renderGreeting();
     return c;
@@ -13760,40 +13854,47 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
       backgroundStyle: document.getElementById("ownThemeBackgroundStyle").value,
       panelOpacity: document.getElementById("ownThemePanelOpacity").value,
       radius: document.getElementById("ownThemeRadius").value,
-      font: document.getElementById("ownThemeFont").value
+      font: "oxanium"
     });
   }
 
   function collectNeoPersonalizationForm() {
     return normalizeNeoPersonalization({
-      welcomeMessage: document.getElementById("ownWelcomeMessage").value,
-      showGreeting: document.getElementById("ownShowGreeting").checked,
-      showFacts: document.getElementById("ownShowFacts").checked,
-      showNews: document.getElementById("ownShowNews").checked,
-      showNeoAI: document.getElementById("ownShowNeoAI").checked,
-      compactUI: document.getElementById("ownCompactUI").checked,
-      homeAlignment: document.getElementById("ownHomeAlignment").value,
-      searchWidth: document.getElementById("ownSearchWidth").value,
-      searchHeight: document.getElementById("ownSearchHeight").value,
-      searchRadius: document.getElementById("ownSearchRadius").value
+      welcomeMessage: document.getElementById("interfaceWelcomeMessage").value,
+      showGreeting: document.getElementById("interfaceShowGreeting").checked,
+      showFacts: document.getElementById("interfaceShowFacts").checked,
+      showNews: document.getElementById("interfaceShowNews").checked,
+      showNeoAI: document.getElementById("interfaceShowNeoAI").checked,
+      showHistory: document.getElementById("interfaceShowHistory").checked,
+      showFavorites: document.getElementById("interfaceShowFavorites").checked,
+      compactUI: document.getElementById("interfaceCompactUI").checked,
+      resultDensity: document.getElementById("interfaceResultDensity").value,
+      resultColumns: document.getElementById("interfaceResultColumns").value,
+      resultRadius: document.getElementById("interfaceResultRadius").value,
+      uiFont: document.getElementById("interfaceUiFont").value,
+      navScale: document.getElementById("interfaceNavScale").value,
+      reduceMotion: document.getElementById("interfaceReduceMotion").checked
     });
   }
 
   function writeNeoPersonalizationForm(raw) {
     const c = normalizeNeoPersonalization(raw);
-    document.getElementById("ownWelcomeMessage").value = c.welcomeMessage;
-    document.getElementById("ownShowGreeting").checked = c.showGreeting;
-    document.getElementById("ownShowFacts").checked = c.showFacts;
-    document.getElementById("ownShowNews").checked = c.showNews;
-    document.getElementById("ownShowNeoAI").checked = c.showNeoAI;
-    document.getElementById("ownCompactUI").checked = c.compactUI;
-    document.getElementById("ownHomeAlignment").value = c.homeAlignment;
-    document.getElementById("ownSearchWidth").value = String(c.searchWidth);
-    document.getElementById("ownSearchHeight").value = String(c.searchHeight);
-    document.getElementById("ownSearchRadius").value = String(c.searchRadius);
-    document.getElementById("ownSearchWidthValue").textContent = c.searchWidth + "%";
-    document.getElementById("ownSearchHeightValue").textContent = c.searchHeight + " px";
-    document.getElementById("ownSearchRadiusValue").textContent = c.searchRadius + " px";
+    document.getElementById("interfaceWelcomeMessage").value = c.welcomeMessage;
+    document.getElementById("interfaceShowGreeting").checked = c.showGreeting;
+    document.getElementById("interfaceShowFacts").checked = c.showFacts;
+    document.getElementById("interfaceShowNews").checked = c.showNews;
+    document.getElementById("interfaceShowNeoAI").checked = c.showNeoAI;
+    document.getElementById("interfaceShowHistory").checked = c.showHistory;
+    document.getElementById("interfaceShowFavorites").checked = c.showFavorites;
+    document.getElementById("interfaceCompactUI").checked = c.compactUI;
+    document.getElementById("interfaceResultDensity").value = c.resultDensity;
+    document.getElementById("interfaceResultColumns").value = c.resultColumns;
+    document.getElementById("interfaceResultRadius").value = String(c.resultRadius);
+    document.getElementById("interfaceUiFont").value = c.uiFont;
+    document.getElementById("interfaceNavScale").value = String(c.navScale);
+    document.getElementById("interfaceReduceMotion").checked = c.reduceMotion;
+    document.getElementById("interfaceResultRadiusValue").textContent = c.resultRadius + " px";
+    document.getElementById("interfaceNavScaleValue").textContent = c.navScale + "%";
   }
 
   function writeOwnThemeForm(config) {
@@ -13807,8 +13908,7 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
       ownThemeText: c.text,
       ownThemeBackgroundStyle: c.backgroundStyle,
       ownThemePanelOpacity: String(c.panelOpacity),
-      ownThemeRadius: String(c.radius),
-      ownThemeFont: c.font
+      ownThemeRadius: String(c.radius)
     };
     Object.entries(fields).forEach(([id,value]) => {
       const element = document.getElementById(id);
@@ -13849,12 +13949,6 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     document.getElementById("ownThemePanelOpacityValue").textContent = c.panelOpacity + "%";
     document.getElementById("ownThemeRadiusValue").textContent = c.radius + " px";
 
-    const personalization = collectNeoPersonalizationForm();
-    window.neoFindPersonalizationDraft = personalization;
-    applyNeoFindPersonalization(personalization);
-    document.getElementById("ownSearchWidthValue").textContent = personalization.searchWidth + "%";
-    document.getElementById("ownSearchHeightValue").textContent = personalization.searchHeight + " px";
-    document.getElementById("ownSearchRadiusValue").textContent = personalization.searchRadius + " px";
   }
 
   function closeOwnThemeStudio(shouldRestore) {
@@ -13863,10 +13957,8 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     overlay.style.display = "none";
     overlay.setAttribute("aria-hidden","true");
     ownThemeStudioOpen = false;
-    window.neoFindPersonalizationDraft = null;
     if (shouldRestore) {
       if (typeof applyTheme === "function") applyTheme(ownThemePrevious);
-      applyNeoFindPersonalization(getNeoFindPersonalization());
     }
     const openButton = document.getElementById("openOwnThemeStudioBtn");
     if (openButton) openButton.focus();
@@ -13883,7 +13975,6 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     }
 
     writeOwnThemeForm(getNeoOwnThemeConfig());
-    writeNeoPersonalizationForm(getNeoFindPersonalization());
     ownThemeStudioOpen = true;
     overlay.style.display = "flex";
     overlay.setAttribute("aria-hidden","false");
@@ -13896,15 +13987,11 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     const c = collectOwnThemeForm();
     try {
       localStorage.setItem("neoFindOwnThemeConfig", JSON.stringify(c));
-      const personalization = collectNeoPersonalizationForm();
-      localStorage.setItem("neoFindPersonalization", JSON.stringify(personalization));
-      window.neoFindPersonalizationDraft = null;
       const select = document.getElementById("themeSelect");
       if (select && NEOFIND_AVAILABLE_THEMES.includes(select.value) && ownThemePrevious !== "own") {
         localStorage.setItem("neoFindOwnThemeBasePreset", select.value);
       }
       if (typeof applyTheme === "function") applyTheme("own");
-      applyNeoFindPersonalization(personalization);
       document.getElementById("neoOwnThemeStatus").textContent = "Your custom theme has been saved.";
       const overlay = document.getElementById("neoOwnThemeStudio");
       overlay.style.display = "none";
@@ -13918,6 +14005,81 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
     }
   }
 
+  let neoInterfaceStudioOpen = false;
+
+  function updateNeoInterfacePreview() {
+    if (!neoInterfaceStudioOpen) return;
+    const c = collectNeoPersonalizationForm();
+    window.neoFindPersonalizationDraft = c;
+    applyNeoFindPersonalization(c);
+
+    const preview = document.getElementById("neoInterfacePreview");
+    const welcomeTitle = document.getElementById("neoInterfacePreviewWelcomeTitle");
+    const welcomeText = document.getElementById("neoInterfacePreviewWelcomeText");
+    const resultCard = document.getElementById("neoInterfacePreviewResult");
+    const user = (typeof auth !== "undefined" && auth.currentUser) ? auth.currentUser : null;
+    const name = user ? (user.displayName || String(user.email || "").split("@")[0]) : "there";
+    const rawWelcome = c.welcomeMessage || "Welcome back, {name}!";
+    if (welcomeTitle) welcomeTitle.textContent = rawWelcome.replace(/\{name\}/gi,name).replace(/\{temp\}/gi,"");
+    if (welcomeText) {
+      const visible = [];
+      if (c.showGreeting) visible.push("Welcome message");
+      if (c.showFacts) visible.push("Daily facts");
+      if (c.showNews) visible.push("NeoNews");
+      if (c.showNeoAI) visible.push("Neo AI");
+      welcomeText.textContent = visible.length ? "Visible home elements: " + visible.join(" · ") : "All optional home elements are hidden.";
+    }
+    if (resultCard) {
+      resultCard.style.borderRadius = c.resultRadius + "px";
+      resultCard.style.padding = c.resultDensity === "compact" ? "9px 12px" : c.resultDensity === "spacious" ? "22px" : "15px";
+      resultCard.style.fontFamily = c.uiFont === "system" ? "system-ui,sans-serif" : c.uiFont === "arial" ? "Arial,sans-serif" : c.uiFont === "georgia" ? "Georgia,serif" : "'Oxanium',sans-serif";
+    }
+    if (preview) preview.style.fontFamily = resultCard ? resultCard.style.fontFamily : "'Oxanium',sans-serif";
+    document.getElementById("interfaceResultRadiusValue").textContent = c.resultRadius + " px";
+    document.getElementById("interfaceNavScaleValue").textContent = c.navScale + "%";
+    document.getElementById("neoInterfaceStatus").textContent = "Live preview. Save personalization to keep these changes.";
+  }
+
+  function closeNeoInterfaceStudio(restore) {
+    const overlay = document.getElementById("neoInterfaceStudio");
+    if (!overlay) return;
+    overlay.style.display = "none";
+    overlay.setAttribute("aria-hidden","true");
+    neoInterfaceStudioOpen = false;
+    window.neoFindPersonalizationDraft = null;
+    if (restore) applyNeoFindPersonalization(getNeoFindPersonalization());
+    const button = document.getElementById("openNeoInterfaceStudioBtn");
+    if (button) button.focus();
+  }
+
+  function openNeoInterfaceStudio() {
+    const overlay = document.getElementById("neoInterfaceStudio");
+    if (!overlay) return;
+    writeNeoPersonalizationForm(getNeoFindPersonalization());
+    neoInterfaceStudioOpen = true;
+    overlay.style.display = "flex";
+    overlay.setAttribute("aria-hidden","false");
+    updateNeoInterfacePreview();
+    document.getElementById("interfaceWelcomeMessage").focus();
+  }
+
+  function saveNeoInterfacePersonalization() {
+    try {
+      const config = collectNeoPersonalizationForm();
+      localStorage.setItem("neoFindPersonalization", JSON.stringify(config));
+      window.neoFindPersonalizationDraft = null;
+      applyNeoFindPersonalization(config);
+      document.getElementById("neoInterfaceStatus").textContent = "Interface personalization saved.";
+      closeNeoInterfaceStudio(false);
+    } catch (error) {
+      console.error("Could not save interface personalization:", error);
+      document.getElementById("neoInterfaceStatus").textContent = "Could not save settings in local storage.";
+    }
+  }
+
+  window.openNeoInterfaceStudio = openNeoInterfaceStudio;
+  window.closeNeoInterfaceStudio = function(){ closeNeoInterfaceStudio(true); };
+
   // Expose the minimal hooks used by the existing global applyTheme() function.
   window.getNeoOwnThemeConfig = getNeoOwnThemeConfig;
   window.applyNeoOwnThemeVariables = applyNeoOwnThemeVariables;
@@ -13925,39 +14087,60 @@ body.nf-custom-layout.nf-compact-ui .settings-col {padding:11px!important}
   window.closeOwnThemeStudio = function(){ closeOwnThemeStudio(true); };
 
   document.addEventListener("DOMContentLoaded", function () {
-    const overlay = document.getElementById("neoOwnThemeStudio");
-    if (!overlay) return;
-    document.getElementById("neoOwnThemeCloseBtn").addEventListener("click", () => closeOwnThemeStudio(true));
-    document.getElementById("neoOwnThemeCancelBtn").addEventListener("click", () => closeOwnThemeStudio(true));
-    document.getElementById("neoOwnThemeSaveBtn").addEventListener("click", saveOwnTheme);
-    document.getElementById("neoOwnThemeResetBtn").addEventListener("click", function () {
-      writeOwnThemeForm(DEFAULT_OWN_THEME);
-      writeNeoPersonalizationForm(DEFAULT_NEO_PERSONALIZATION);
-      document.getElementById("neoOwnThemeStatus").textContent = "Default values loaded. Save theme to apply them.";
-      updateOwnThemeLive();
-    });
-    overlay.addEventListener("click", event => {
-      if (event.target === overlay) closeOwnThemeStudio(true);
-    });
-    const ids = [
-      "ownThemeAccent","ownThemeAccent2","ownThemeBackground1","ownThemeBackground2",
-      "ownThemePanel","ownThemeText","ownThemeBackgroundStyle","ownThemePanelOpacity",
-      "ownThemeRadius","ownThemeFont","ownWelcomeMessage","ownShowGreeting",
-      "ownShowFacts","ownShowNews","ownShowNeoAI","ownCompactUI","ownHomeAlignment",
-      "ownSearchWidth","ownSearchHeight","ownSearchRadius"
-    ];
-    ids.forEach(id => {
-      const control = document.getElementById(id);
-      if (!control) return;
-      control.addEventListener("input", updateOwnThemeLive);
-      control.addEventListener("change", updateOwnThemeLive);
-    });
+    const themeOverlay = document.getElementById("neoOwnThemeStudio");
+    if (themeOverlay) {
+      document.getElementById("neoOwnThemeCloseBtn").addEventListener("click", () => closeOwnThemeStudio(true));
+      document.getElementById("neoOwnThemeCancelBtn").addEventListener("click", () => closeOwnThemeStudio(true));
+      document.getElementById("neoOwnThemeSaveBtn").addEventListener("click", saveOwnTheme);
+      document.getElementById("neoOwnThemeResetBtn").addEventListener("click", function () {
+        writeOwnThemeForm(DEFAULT_OWN_THEME);
+        document.getElementById("neoOwnThemeStatus").textContent = "Default theme values loaded. Save theme to apply them.";
+        updateOwnThemeLive();
+      });
+      themeOverlay.addEventListener("click", event => {
+        if (event.target === themeOverlay) closeOwnThemeStudio(true);
+      });
+      [
+        "ownThemeAccent","ownThemeAccent2","ownThemeBackground1","ownThemeBackground2",
+        "ownThemePanel","ownThemeText","ownThemeBackgroundStyle","ownThemePanelOpacity","ownThemeRadius"
+      ].forEach(id => {
+        const control = document.getElementById(id);
+        if (!control) return;
+        control.addEventListener("input", updateOwnThemeLive);
+        control.addEventListener("change", updateOwnThemeLive);
+      });
+    }
 
-    // Restore saved layout settings after the page structure is ready.
-    applyNeoFindPersonalization(getNeoFindPersonalization());
+    const interfaceOverlay = document.getElementById("neoInterfaceStudio");
+    if (interfaceOverlay) {
+      document.getElementById("neoInterfaceCloseBtn").addEventListener("click", () => closeNeoInterfaceStudio(true));
+      document.getElementById("neoInterfaceCancelBtn").addEventListener("click", () => closeNeoInterfaceStudio(true));
+      document.getElementById("neoInterfaceSaveBtn").addEventListener("click", saveNeoInterfacePersonalization);
+      document.getElementById("neoInterfaceResetBtn").addEventListener("click", function () {
+        writeNeoPersonalizationForm(DEFAULT_NEO_PERSONALIZATION);
+        updateNeoInterfacePreview();
+        document.getElementById("neoInterfaceStatus").textContent = "Default interface values loaded. Save personalization to apply them.";
+      });
+      interfaceOverlay.addEventListener("click", event => {
+        if (event.target === interfaceOverlay) closeNeoInterfaceStudio(true);
+      });
+      [
+        "interfaceWelcomeMessage","interfaceShowGreeting","interfaceShowFacts","interfaceShowNews",
+        "interfaceShowNeoAI","interfaceShowHistory","interfaceShowFavorites","interfaceCompactUI",
+        "interfaceResultDensity","interfaceResultColumns","interfaceResultRadius","interfaceUiFont",
+        "interfaceNavScale","interfaceReduceMotion"
+      ].forEach(id => {
+        const control = document.getElementById(id);
+        if (!control) return;
+        control.addEventListener("input", updateNeoInterfacePreview);
+        control.addEventListener("change", updateNeoInterfacePreview);
+      });
+      applyNeoFindPersonalization(getNeoFindPersonalization());
+    }
 
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && ownThemeStudioOpen) closeOwnThemeStudio(true);
+      if (event.key === "Escape" && neoInterfaceStudioOpen) closeNeoInterfaceStudio(true);
     });
   });
 })();
