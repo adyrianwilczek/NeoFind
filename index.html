@@ -14639,7 +14639,7 @@ document.addEventListener("DOMContentLoaded",()=>{mount();if(typeof auth!=="unde
   const authRef = (typeof firebase !== "undefined" && firebase.auth) ? firebase.auth() : null;
   function isAdmin(user) {
     const email = String(user && user.email || "").toLowerCase();
-    return !!(email && Array.isArray(window.ADMIN_EMAILS) && window.ADMIN_EMAILS.map(function (item) { return String(item).toLowerCase(); }).includes(email));
+    return !!(email && typeof ADMIN_EMAILS !== "undefined" && Array.isArray(ADMIN_EMAILS) && ADMIN_EMAILS.map(function (item) { return String(item).toLowerCase(); }).includes(email));
   }
   function escapeHtml(value) {
     return String(value == null ? "" : value).replace(/[&<>"']/g, function (c) {
