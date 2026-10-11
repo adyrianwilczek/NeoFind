@@ -2434,6 +2434,7 @@ NOTE! Do not share the key with anyone.
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
         <button onclick="openPremiumTrial()">Try out for free</button>
+        <button type="button" onclick="openNeoPremiumBenefits()" id="neoPremiumBenefitsButton">See benefits</button>
     </div>
 
     <div id="premiumTrialBox" style="display:none;margin:16px auto 0;max-width:760px;padding:16px;border:1px solid rgba(0,255,200,.22);border-radius:14px;background:rgba(0,0,0,.2);text-align:left;">
@@ -15142,6 +15143,50 @@ document.addEventListener("click", event => {
   if (typeof auth !== "undefined" && auth && typeof auth.onAuthStateChanged === "function") {
     auth.onAuthStateChanged(function (user) { mountTrainingAdmin(user); });
   }
+})();
+</script>
+
+
+<style id="neo-premium-benefits-styles">
+#neoPremiumBenefitsOverlay{display:none;position:fixed;inset:0;z-index:100100;background:rgba(2,6,18,.82);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+#neoPremiumBenefitsDialog{width:min(900px,100%);max-height:min(88vh,850px);overflow:auto;position:relative;box-sizing:border-box;padding:clamp(16px,3vw,28px);border:1px solid rgba(0,242,254,.35);border-radius:20px;background:linear-gradient(145deg,rgba(9,22,39,.98),rgba(24,18,48,.98));color:#f4f8ff;box-shadow:0 24px 90px rgba(0,0,0,.6),0 0 35px rgba(0,242,254,.08);font-family:inherit}
+#neoPremiumBenefitsDialog .npb-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:8px}
+#neoPremiumBenefitsDialog h2{margin:0;font-size:clamp(22px,4vw,30px);background:linear-gradient(90deg,#00f2fe,#4facfe,#b879ff);background-clip:text;-webkit-background-clip:text;color:transparent}
+#neoPremiumBenefitsDialog .npb-subtitle{opacity:.72;margin:8px 0 18px;line-height:1.5;font-size:13px}
+#neoPremiumBenefitsDialog .npb-table-wrap{overflow-x:auto;border:1px solid rgba(255,255,255,.12);border-radius:13px}
+#neoPremiumBenefitsDialog table{border-collapse:collapse;width:100%;min-width:510px;text-align:left;font-size:14px}
+#neoPremiumBenefitsDialog th,#neoPremiumBenefitsDialog td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.09)}
+#neoPremiumBenefitsDialog th{background:rgba(255,255,255,.055);font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+#neoPremiumBenefitsDialog th:last-child{color:#8bdcff}
+#neoPremiumBenefitsDialog tbody tr:last-child td{border-bottom:0}
+#neoPremiumBenefitsDialog td:first-child{font-weight:600}
+#neoPremiumBenefitsDialog .npb-yes{color:#7ef0b0;font-weight:800}
+#neoPremiumBenefitsDialog .npb-no{color:#ff9b9b;font-weight:800}
+#neoPremiumBenefitsDialog .npb-note{font-size:12px;line-height:1.6;opacity:.68;margin:14px 0 0}
+#neoPremiumBenefitsDialog .npb-close{font-size:22px;line-height:1;padding:7px 11px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#fff;flex-shrink:0}
+@media(max-width:520px){#neoPremiumBenefitsDialog{padding:15px;border-radius:16px}#neoPremiumBenefitsDialog th,#neoPremiumBenefitsDialog td{padding:10px;font-size:12px}}
+</style>
+<div id="neoPremiumBenefitsOverlay" role="presentation" onclick="if(event.target===this)closeNeoPremiumBenefits()">
+  <section id="neoPremiumBenefitsDialog" role="dialog" aria-modal="true" aria-labelledby="neoPremiumBenefitsTitle">
+    <div class="npb-head"><div><h2 id="neoPremiumBenefitsTitle"></h2><p class="npb-subtitle" id="neoPremiumBenefitsSubtitle"></p></div><button type="button" class="npb-close" onclick="closeNeoPremiumBenefits()" aria-label="Close">×</button></div>
+    <div class="npb-table-wrap"><table><thead><tr><th id="npbFeatureHead"></th><th id="npbFreeHead"></th><th id="npbPremiumHead"></th></tr></thead><tbody id="neoPremiumBenefitsRows"></tbody></table></div>
+    <p class="npb-note" id="neoPremiumBenefitsNote"></p>
+  </section>
+</div>
+<script id="neo-premium-benefits-script">
+(function(){
+ const copy={
+ en:{button:"See benefits",title:"NeoFind Premium benefits",subtitle:"Compare the Free plan with Premium.",feature:"Feature",free:"Free plan",premium:"Premium",rows:[["NeoAI messages per chat","75","250"],["Saved search history","500 entries","1,500 entries"],["API key requests per day","250","1,000"],["Premium badge","✕ Not included","✓ Included"],["Send Orbs","✕ Not included","✓ Included"],["F9 panic button","✓ Included","✓ Included"],["Ads","No ads","No ads"],["Interface personalization","✓ Included","✓ Included"],["Theme Studio","✓ Included","✓ Included"],["NeoAI response speed","Standard","Faster response start"],["Premium-only benefits","✕ Not included","✓ Included"]],note:"API limits shown here are the daily limits assigned when creating a NeoFind API key. Faster response start does not mean better answer quality."},
+ pl:{button:"Zobacz korzyści",title:"Korzyści NeoFind Premium",subtitle:"Porównaj plan Free z Premium.",feature:"Funkcja",free:"Plan Free",premium:"Premium",rows:[["Wiadomości NeoAI na czat","75","250"],["Zapisana historia wyszukiwania","500 wpisów","1500 wpisów"],["Zapytania klucza API dziennie","250","1000"],["Plakietka Premium","✕ Niedostępna","✓ Dostępna"],["Wysyłanie orbów","✕ Niedostępne","✓ Dostępne"],["Przycisk awaryjny F9","✓ Dostępny","✓ Dostępny"],["Reklamy","Brak reklam","Brak reklam"],["Personalizacja interfejsu","✓ Dostępna","✓ Dostępna"],["Theme Studio","✓ Dostępne","✓ Dostępne"],["Szybkość odpowiedzi NeoAI","Standardowa","Szybsze rozpoczęcie odpowiedzi"],["Korzyści tylko dla Premium","✕ Niedostępne","✓ Dostępne"]],note:"Limity API to dzienne limity przypisywane podczas tworzenia klucza API NeoFind. Szybsze rozpoczęcie odpowiedzi nie oznacza lepszej jakości odpowiedzi."},
+ fr:{button:"Voir les avantages",title:"Avantages de NeoFind Premium",subtitle:"Comparez le forfait Free à Premium.",feature:"Fonctionnalité",free:"Forfait Free",premium:"Premium",rows:[["Messages NeoAI par chat","75","250"],["Historique de recherche enregistré","500 entrées","1 500 entrées"],["Requêtes de clé API par jour","250","1 000"],["Badge Premium","✕ Non inclus","✓ Inclus"],["Envoyer des Orbs","✕ Non inclus","✓ Inclus"],["Bouton d’urgence F9","✓ Inclus","✓ Inclus"],["Publicités","Aucune publicité","Aucune publicité"],["Personnalisation de l’interface","✓ Incluse","✓ Incluse"],["Theme Studio","✓ Inclus","✓ Inclus"],["Vitesse de réponse NeoAI","Standard","Démarrage plus rapide"],["Avantages réservés à Premium","✕ Non inclus","✓ Inclus"]],note:"Les limites API indiquées sont les quotas quotidiens attribués lors de la création d’une clé API NeoFind. Un démarrage plus rapide ne signifie pas une meilleure qualité de réponse."},
+ es:{button:"Ver ventajas",title:"Ventajas de NeoFind Premium",subtitle:"Compara el plan Free con Premium.",feature:"Función",free:"Plan Free",premium:"Premium",rows:[["Mensajes de NeoAI por chat","75","250"],["Historial de búsqueda guardado","500 entradas","1.500 entradas"],["Consultas de clave API al día","250","1.000"],["Insignia Premium","✕ No incluida","✓ Incluida"],["Enviar Orbs","✕ No incluido","✓ Incluido"],["Botón de emergencia F9","✓ Incluido","✓ Incluido"],["Anuncios","Sin anuncios","Sin anuncios"],["Personalización de la interfaz","✓ Incluida","✓ Incluida"],["Theme Studio","✓ Incluido","✓ Incluido"],["Velocidad de respuesta de NeoAI","Estándar","Inicio más rápido"],["Ventajas exclusivas de Premium","✕ No incluidas","✓ Incluidas"]],note:"Los límites API mostrados son las cuotas diarias asignadas al crear una clave API de NeoFind. Empezar a responder más rápido no significa una mejor calidad de respuesta."}
+ };
+ function lang(){let l="";try{if(typeof currentLang!=="undefined")l=String(currentLang||"");}catch(e){}if(!l){try{l=localStorage.getItem("language")||localStorage.getItem("lang")||"";}catch(e){}}l=String(l).toLowerCase().slice(0,2);return copy[l]?l:"en";}
+ function render(){const t=copy[lang()];const put=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};put("neoPremiumBenefitsTitle",t.title);put("neoPremiumBenefitsSubtitle",t.subtitle);put("npbFeatureHead",t.feature);put("npbFreeHead",t.free);put("npbPremiumHead",t.premium);put("neoPremiumBenefitsNote",t.note);put("neoPremiumBenefitsButton",t.button);const body=document.getElementById("neoPremiumBenefitsRows");if(body)body.innerHTML=t.rows.map((r,i)=>'<tr><td>'+r[0]+'</td><td class="'+([3,4,10].includes(i)?'npb-no':'')+'">'+r[1]+'</td><td class="'+([3,4,10].includes(i)?'npb-yes':'')+'">'+r[2]+'</td></tr>').join("");}
+ window.openNeoPremiumBenefits=function(){render();const e=document.getElementById("neoPremiumBenefitsOverlay");if(e){e.style.display="flex";document.body.style.overflow="hidden";const c=e.querySelector(".npb-close");if(c)c.focus();}};
+ window.closeNeoPremiumBenefits=function(){const e=document.getElementById("neoPremiumBenefitsOverlay");if(e)e.style.display="none";document.body.style.overflow="";const b=document.getElementById("neoPremiumBenefitsButton");if(b)b.focus();};
+ document.addEventListener("keydown",e=>{const o=document.getElementById("neoPremiumBenefitsOverlay");if(e.key==="Escape"&&o&&o.style.display==="flex")window.closeNeoPremiumBenefits();});
+ document.addEventListener("DOMContentLoaded",render);render();
 })();
 </script>
 
