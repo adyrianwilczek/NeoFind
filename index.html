@@ -7849,7 +7849,7 @@ window.sendNeoAiMessage=async function(){
     const u=neoAiRequireLogin();if(!u)return;
     if(typeof updateMissionProgress==="function")updateMissionProgress("open_ai");
 
-    if(/^\\/remember(?:\\s|$)/i.test(msgText)){
+    if(/^\/remember(?:\s|$)/i.test(msgText)){
         input.value="";
         messages.innerHTML+='<div class="chat-row chat-row-me"><span class="chat-sender">'+neoT().you+'</span><div class="chat-msg-me">'+escapeHtml(msgText)+'</div></div>';
         messages.scrollTop=messages.scrollHeight;
