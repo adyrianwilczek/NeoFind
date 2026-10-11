@@ -7653,11 +7653,12 @@ logAction("CORE_SEC", "Sandbox isolation: ACTIVE. Local security protocols armed
 // ========================================================
 
 const NEO_TEXT = {
-    en: { greet: "Hi! I'm Neo. How can I help you today? ✨", placeholder: "Type to Neo...", you: "You", typing: "Neo is typing", error: "Connection Error. Try again. ⚡", langName: "English" },
-    pl: { greet: "Cześć! Jestem Neo. W czym mogę Ci dziś pomóc? ✨", placeholder: "Napisz do Neo...", you: "Ty", typing: "Neo pisze", error: "Błąd połączenia. Spróbuj ponownie. ⚡", langName: "Polish" },
-    es: { greet: "¡Hola! Soy Neo. ¿En qué puedo ayudarte hoy? ✨", placeholder: "Escribe a Neo...", you: "Tú", typing: "Neo está escribiendo", error: "Error de conexión. Inténtalo de nuevo. ⚡", langName: "Spanish" }
+    en: { greet: "Hi! I'm Neo. How can I help you today? ✨", placeholder: "Type to Neo...", you: "You", typing: "Neo is typing", error: "Connection Error. Try again. ⚡", limitReached: "Maximum chat length reached. Upgrade to Premium to continue.", langName: "English" },
+    fr: { greet: "Bonjour ! Je suis Neo. Comment puis-je vous aider aujourd'hui ? ✨", placeholder: "Écrivez à Neo...", you: "Vous", typing: "Neo écrit", error: "Erreur de connexion. Réessayez. ⚡", limitReached: "La longueur maximale du chat a été atteinte. Passez à Premium pour continuer.", langName: "French" },
+    pl: { greet: "Cześć! Jestem Neo. W czym mogę Ci dziś pomóc? ✨", placeholder: "Napisz do Neo...", you: "Ty", typing: "Neo pisze", error: "Błąd połączenia. Spróbuj ponownie. ⚡", limitReached: "Osiągnięto maksymalną długość czatu zmień plan na Premium aby kontynuować.", langName: "Polish" },
+    es: { greet: "¡Hola! Soy Neo. ¿En qué puedo ayudarte hoy? ✨", placeholder: "Escribe a Neo...", you: "Tú", typing: "Neo está escribiendo", error: "Error de conexión. Inténtalo de nuevo. ⚡", limitReached: "Se alcanzó la longitud máxima del chat. Cambia a Premium para continuar.", langName: "Spanish" }
 };
-function neoLang(){ const l=(typeof currentLang!=='undefined')?currentLang:'en'; return (l==='pl'||l==='es')?l:'en'; }
+function neoLang(){ const l=(typeof currentLang!=='undefined')?currentLang:'en'; return (l==='pl'||l==='fr'||l==='es')?l:'en'; }
 function neoT(){ return NEO_TEXT[neoLang()]||NEO_TEXT.en; }
 
 const NEO_AI_MODELS = {
@@ -7847,17 +7848,28 @@ window.sendNeoAiMessage=async function(){
     const msgText=input.value.trim();if(!msgText)return;
     const u=neoAiRequireLogin();if(!u)return;
     if(typeof updateMissionProgress==="function")updateMissionProgress("open_ai");
-    input.value="";
-    messages.innerHTML+='<div class="chat-row chat-row-me"><span class="chat-sender">'+neoT().you+'</span><div class="chat-msg-me">'+escapeHtml(msgText)+'</div></div>';
-    messages.scrollTop=messages.scrollHeight;
 
-    if(/^\/remember(?:\s|$)/i.test(msgText)){
+    if(/^\\/remember(?:\\s|$)/i.test(msgText)){
+        input.value="";
+        messages.innerHTML+='<div class="chat-row chat-row-me"><span class="chat-sender">'+neoT().you+'</span><div class="chat-msg-me">'+escapeHtml(msgText)+'</div></div>';
+        messages.scrollTop=messages.scrollHeight;
         await handleNeoAiRememberCommand(msgText);
         messages.innerHTML+='<div class="chat-row chat-row-them"><span class="chat-sender">Neo</span><div class="chat-msg-them">Zapamiętam to na Twoim koncie.</div></div>';
         messages.scrollTop=messages.scrollHeight;return;
     }
 
     const chatId=await ensureNeoAiChat(msgText);if(!chatId)return;
+    const premium=isPremiumEmail(u.email);
+    const chatLimit=premium?250:75;
+    const sentMessages=await db.collection("neoAiChats").doc(chatId).collection("messages").where("role","==","user").get();
+    if(sentMessages.size>=chatLimit){
+        messages.innerHTML+='<div class="chat-row chat-row-them"><span class="chat-sender">Neo</span><div class="chat-msg-them">'+escapeHtml(neoT().limitReached)+'</div></div>';
+        messages.scrollTop=messages.scrollHeight;
+        return;
+    }
+    input.value="";
+    messages.innerHTML+='<div class="chat-row chat-row-me"><span class="chat-sender">'+neoT().you+'</span><div class="chat-msg-me">'+escapeHtml(msgText)+'</div></div>';
+    messages.scrollTop=messages.scrollHeight;
     await saveNeoAiMessage(chatId,"user",msgText);
     await touchNeoAiChat(chatId,msgText);
     await loadNeoAiChats();
@@ -7872,6 +7884,7 @@ window.sendNeoAiMessage=async function(){
     const typing=document.createElement("div");typing.className="chat-row chat-row-them";typing.innerHTML='<span class="chat-sender">Neo</span><div class="chat-msg-them">'+neoT().typing+'<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></div>';messages.appendChild(typing);messages.scrollTop=messages.scrollHeight;
 
     neoHistory.push({role:"user",content:msgText});
+    const requestStartedAt=Date.now();
     const wiki=await neoWiki(msgText);
     let aiReply="",gotReply=false;
     try{
@@ -7896,6 +7909,10 @@ window.sendNeoAiMessage=async function(){
             else{aiReply=resData.reply||resData.text||resData.response||JSON.stringify(resData);gotReply=true;}
         }else{aiReply=await response.text();gotReply=true;}
     }catch(e){aiReply=neoT().error;}
+    if(!premium){
+        const remainingDelay=1800-(Date.now()-requestStartedAt);
+        if(remainingDelay>0) await new Promise(resolve=>setTimeout(resolve,remainingDelay));
+    }
     typing.remove();
     if(gotReply){neoHistory.push({role:"assistant",content:aiReply});if(neoHistory.length>20)neoHistory=neoHistory.slice(-20);await saveNeoAiMessage(chatId,"assistant",aiReply);await touchNeoAiChat(chatId);}
     else neoHistory.pop();
