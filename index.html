@@ -4681,6 +4681,229 @@ function isPremiumActive() {
 
 
 
+
+/* =========================
+   NEOFIND NEW-DEVICE APPROVAL
+   ========================= */
+let neoDeviceApprovalUnsubscribe = null;
+let neoDeviceApprovalPromptUnsubscribe = null;
+let neoDeviceApprovalPendingResolve = null;
+
+function neoGetDeviceId() {
+    let id = localStorage.getItem("neoFindTrustedDeviceId");
+    if (!id) {
+        id = (typeof crypto !== "undefined" && crypto.randomUUID)
+            ? crypto.randomUUID()
+            : "nd-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+        localStorage.setItem("neoFindTrustedDeviceId", id);
+    }
+    return id;
+}
+
+function neoDeviceLabel() {
+    const ua = navigator.userAgent || "";
+    const platform = /Windows/i.test(ua) ? "Windows" :
+        /Android/i.test(ua) ? "Android" :
+        /iPhone|iPad|iPod/i.test(ua) ? "iPhone/iPad" :
+        /Macintosh|Mac OS/i.test(ua) ? "Mac" :
+        /Linux/i.test(ua) ? "Linux" : "Unknown device";
+    const browser = /Edg\//i.test(ua) ? "Edge" :
+        /OPR\//i.test(ua) ? "Opera" :
+        /Firefox\//i.test(ua) ? "Firefox" :
+        /Chrome\//i.test(ua) ? "Chrome" :
+        /Safari\//i.test(ua) ? "Safari" : "Browser";
+    return platform + " · " + browser;
+}
+
+function neoEnsureDeviceApprovalUI() {
+    if (document.getElementById("neoDeviceApprovalOverlay")) return;
+    const style = document.createElement("style");
+    style.id = "neo-device-approval-style";
+    style.textContent = `
+      #neoDeviceApprovalOverlay{position:fixed;inset:0;z-index:1000000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.82);backdrop-filter:blur(10px);font-family:inherit}
+      #neoDeviceApprovalCard{width:min(560px,100%);max-height:85vh;overflow:auto;background:#0b1220;color:#e5f3ff;border:1px solid rgba(0,242,254,.45);border-radius:20px;padding:24px;box-shadow:0 0 45px rgba(0,180,255,.18)}
+      #neoDeviceApprovalCard h2{margin:0 0 8px;font-size:23px;color:#67e8f9}
+      #neoDeviceApprovalCard p{line-height:1.5;color:#cbd5e1}
+      .nda-request{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px;margin:12px 0;border:1px solid #334155;border-radius:12px;background:#111c2e}
+      .nda-request-name{font-weight:700}.nda-request-meta{font-size:12px;color:#94a3b8;margin-top:4px}
+      .nda-actions{display:flex;gap:8px;flex-wrap:wrap}
+      .nda-btn{border:0;border-radius:9px;padding:10px 13px;font-weight:700;cursor:pointer}
+      .nda-approve{background:#06b6d4;color:#04111b}.nda-deny{background:#334155;color:#e2e8f0}.nda-cancel{background:#1e293b;color:#e2e8f0;margin-top:10px}
+      #neoDeviceApprovalWaiting{display:none;position:fixed;inset:0;z-index:999999;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.88);backdrop-filter:blur(10px);font-family:inherit}
+      #neoDeviceApprovalWaiting .nda-wait-card{width:min(470px,100%);text-align:center;background:#0b1220;color:#e5f3ff;border:1px solid rgba(0,242,254,.45);border-radius:20px;padding:28px;box-shadow:0 0 45px rgba(0,180,255,.18)}
+      #neoDeviceApprovalWaiting h2{color:#67e8f9;margin-top:0}
+    `;
+    document.head.appendChild(style);
+    const overlay = document.createElement("div");
+    overlay.id = "neoDeviceApprovalOverlay";
+    overlay.innerHTML = '<section id="neoDeviceApprovalCard" role="dialog" aria-modal="true" aria-labelledby="neoDeviceApprovalTitle"><h2 id="neoDeviceApprovalTitle">New device sign-in</h2><p>A new device wants to access your NeoFind account. Approve only if you started this sign-in.</p><div id="neoDeviceApprovalRequests"></div><button class="nda-btn nda-cancel" type="button" onclick="neoCloseDeviceApprovalPrompt()">Close</button></section>';
+    document.body.appendChild(overlay);
+    const waiting = document.createElement("div");
+    waiting.id = "neoDeviceApprovalWaiting";
+    waiting.innerHTML = '<section class="nda-wait-card" role="dialog" aria-modal="true"><h2>Confirm this sign-in</h2><p>NeoFind is waiting for approval from a device already trusted for this account.</p><p id="neoDeviceApprovalWaitingDevice"></p><p>Keep this page open. It will continue automatically after approval.</p><button class="nda-btn nda-cancel" type="button" onclick="neoCancelDeviceApproval()">Cancel sign-in</button></section>';
+    document.body.appendChild(waiting);
+}
+
+function neoCloseDeviceApprovalPrompt() {
+    const el = document.getElementById("neoDeviceApprovalOverlay");
+    if (el) el.style.display = "none";
+}
+
+function neoRenderDeviceApprovalRequests(snapshot, user) {
+    neoEnsureDeviceApprovalUI();
+    const container = document.getElementById("neoDeviceApprovalRequests");
+    if (!container) return;
+    container.replaceChildren();
+    const pending = snapshot.docs.filter(doc => doc.data().status === "pending");
+    if (!pending.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "There are no pending sign-in requests.";
+        container.appendChild(empty);
+        return;
+    }
+    document.getElementById("neoDeviceApprovalOverlay").style.display = "flex";
+    pending.forEach(doc => {
+        const data = doc.data();
+        const card = document.createElement("div");
+        card.className = "nda-request";
+        const info = document.createElement("div");
+        const name = document.createElement("div");
+        name.className = "nda-request-name";
+        name.textContent = String(data.deviceLabel || "Unknown device");
+        const meta = document.createElement("div");
+        meta.className = "nda-request-meta";
+        meta.textContent = "Requested sign-in · " + (data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().toLocaleString() : "just now");
+        info.append(name, meta);
+        const actions = document.createElement("div");
+        actions.className = "nda-actions";
+        const approve = document.createElement("button");
+        approve.className = "nda-btn nda-approve";
+        approve.textContent = "Approve";
+        approve.onclick = () => neoSetDeviceApproval(user, doc.id, "approved");
+        const deny = document.createElement("button");
+        deny.className = "nda-btn nda-deny";
+        deny.textContent = "Deny";
+        deny.onclick = () => neoSetDeviceApproval(user, doc.id, "denied");
+        actions.append(approve, deny);
+        card.append(info, actions);
+        container.appendChild(card);
+    });
+}
+
+async function neoSetDeviceApproval(user, deviceId, status) {
+    try {
+        const userRef = db.collection("users").doc(user.uid);
+        const requestRef = userRef.collection("loginApprovals").doc(deviceId);
+        await db.runTransaction(async transaction => {
+            const requestSnap = await transaction.get(requestRef);
+            if (!requestSnap.exists || requestSnap.data().status !== "pending") throw new Error("This request is no longer pending.");
+            const data = requestSnap.data();
+            const updates = { status, reviewedAt: firebase.firestore.FieldValue.serverTimestamp() };
+            if (status === "approved") {
+                const userSnap = await transaction.get(userRef);
+                const current = userSnap.exists ? (userSnap.data().trustedDeviceIds || []) : [];
+                updates.trustedDeviceAdded = true;
+                transaction.set(userRef, { trustedDeviceIds: Array.from(new Set([...current, deviceId])).slice(-20) }, { merge: true });
+            }
+            transaction.update(requestRef, updates);
+        });
+        if (status === "approved") logAction("SEC_AUTH", "New device sign-in approved.", "tag-sec");
+        else logAction("SEC_AUTH", "New device sign-in denied.", "tag-sec");
+    } catch (error) {
+        console.error("NeoFind device approval failed:", error);
+        alert("Could not update this sign-in request. Please try again.");
+    }
+}
+
+function neoStartDeviceApprovalWatcher(user) {
+    if (neoDeviceApprovalUnsubscribe) neoDeviceApprovalUnsubscribe();
+    const requests = db.collection("users").doc(user.uid).collection("loginApprovals");
+    neoDeviceApprovalUnsubscribe = requests.where("status", "==", "pending").onSnapshot(snapshot => {
+        neoEnsureDeviceApprovalUI();
+        neoRenderDeviceApprovalRequests(snapshot, user);
+        if (!snapshot.docs.some(doc => doc.data().status === "pending")) neoCloseDeviceApprovalPrompt();
+    }, error => console.error("NeoFind approval watcher failed:", error));
+}
+
+function neoCancelDeviceApproval() {
+    const waiting = document.getElementById("neoDeviceApprovalWaiting");
+    if (waiting) waiting.style.display = "none";
+    if (neoDeviceApprovalPendingResolve) {
+        const resolve = neoDeviceApprovalPendingResolve;
+        neoDeviceApprovalPendingResolve = null;
+        resolve(false);
+    }
+    if (auth.currentUser) auth.signOut();
+}
+
+async function neoCheckDeviceApproval(user) {
+    neoEnsureDeviceApprovalUI();
+    const deviceId = neoGetDeviceId();
+    const userRef = db.collection("users").doc(user.uid);
+    const userSnap = await userRef.get();
+    const data = userSnap.exists ? userSnap.data() : {};
+    const trusted = Array.isArray(data.trustedDeviceIds) ? data.trustedDeviceIds : [];
+
+    // First device seen for an account becomes its initial trusted device.
+    if (trusted.length === 0) {
+        await userRef.set({ trustedDeviceIds: [deviceId] }, { merge: true });
+        neoStartDeviceApprovalWatcher(user);
+        return true;
+    }
+
+    if (trusted.includes(deviceId)) {
+        neoStartDeviceApprovalWatcher(user);
+        return true;
+    }
+
+    const requestRef = userRef.collection("loginApprovals").doc(deviceId);
+    const existing = await requestRef.get();
+    if (!existing.exists || !["pending", "approved"].includes(existing.data().status)) {
+        await requestRef.set({
+            deviceId,
+            deviceLabel: neoDeviceLabel(),
+            status: "pending",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } else if (existing.data().status === "approved") {
+        neoStartDeviceApprovalWatcher(user);
+        return true;
+    }
+
+    const waiting = document.getElementById("neoDeviceApprovalWaiting");
+    const label = document.getElementById("neoDeviceApprovalWaitingDevice");
+    if (label) label.textContent = "Device: " + neoDeviceLabel();
+    if (waiting) waiting.style.display = "flex";
+
+    return await new Promise(resolve => {
+        neoDeviceApprovalPendingResolve = resolve;
+        if (neoDeviceApprovalUnsubscribe) neoDeviceApprovalUnsubscribe();
+        neoDeviceApprovalUnsubscribe = requestRef.onSnapshot(snapshot => {
+            if (!snapshot.exists) return;
+            const status = snapshot.data().status;
+            if (status === "approved") {
+                if (waiting) waiting.style.display = "none";
+                neoDeviceApprovalPendingResolve = null;
+                neoStartDeviceApprovalWatcher(user);
+                resolve(true);
+            } else if (status === "denied") {
+                if (waiting) waiting.style.display = "none";
+                neoDeviceApprovalPendingResolve = null;
+                alert("This sign-in was denied on your trusted device.");
+                resolve(false);
+                auth.signOut();
+            }
+        }, error => {
+            console.error("NeoFind sign-in approval listener failed:", error);
+            if (waiting) waiting.style.display = "none";
+            neoDeviceApprovalPendingResolve = null;
+            alert("Could not check device approval. Please try again.");
+            resolve(false);
+            auth.signOut();
+        });
+    });
+}
+
 /* =========================
    REGISTER
 ========================= */
@@ -4879,7 +5102,10 @@ if (!user.emailVerified) {
     return;
 }
 
-const visitStreak = await recordNeoVisitStreak(user);
+const deviceApproved = await neoCheckDeviceApproval(user);
+        if (!deviceApproved) return;
+
+        const visitStreak = await recordNeoVisitStreak(user);
         if (visitStreak.streak >= 3) unlockNeoAdvancement("threeDayStreak");
         if (visitStreak.streak >= 7) unlockNeoAdvancement("weekStreak");
 loginScreen.style.display = "none";
@@ -7981,7 +8207,12 @@ function triggerCustomLockScreen(userEmail, blockReason) {
             <p>Target ID: <span class="email-badge">${userEmail}</span></p>
             <a href="${mailtoLink}" class="support-btn">📩 Contact with support</a>
         </div>
-    </body>`;
+    
+<script id="neo-device-approval-bootstrap">
+/* New-device approval UI is created by neoCheckDeviceApproval() and the trusted-device watcher. */
+</script>
+
+</body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
     setTimeout(() => {
