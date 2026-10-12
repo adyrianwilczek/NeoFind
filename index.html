@@ -1989,7 +1989,7 @@ body.ocean {
             <button id="neoCustomPopupOk">OK</button>
         </div>
     `;
-    document.body.appendChild(popup);
+    (document.body || document.documentElement).appendChild(popup);
 
     const title = popup.querySelector("#neoCustomPopupTitle");
     const message = popup.querySelector("#neoCustomPopupMessage");
