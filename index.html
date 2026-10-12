@@ -12057,43 +12057,160 @@ function formatNeoReceiptDate(value) {
         + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
 }
 
-function showNeoPurchaseReceipt(receipt, onClose) {
-    const overlay = document.getElementById("neoPurchaseReceiptOverlay");
-    const body = document.getElementById("neoPurchaseReceiptBody");
-    const close = document.getElementById("neoPurchaseReceiptClose");
-    if (!overlay || !body || !close) {
-        alert("NeoFind\nPurchase receipt\nPurchase ID: " + receipt.purchaseId);
-        if (typeof onClose === "function") onClose();
-        return;
+function ensureNeoReceiptGUI() {
+    let overlay = document.getElementById("neoPurchaseReceiptOverlay");
+    if (!overlay) {
+        overlay = document.createElement("div");
+        overlay.id = "neoPurchaseReceiptOverlay";
+        overlay.style.display = "none";
+        document.body.appendChild(overlay);
     }
-    const row = (label, value) => {
-        const line = document.createElement("div");
-        line.className = "neo-receipt-row";
-        const left = document.createElement("span");
-        left.className = "neo-receipt-label";
-        left.textContent = label;
-        const right = document.createElement("strong");
-        right.className = "neo-receipt-value";
-        right.textContent = String(value ?? "");
-        line.append(left, right);
-        return line;
+
+    let panel = overlay.querySelector(".neo-receipt-panel");
+    if (!panel) {
+        panel = document.createElement("section");
+        panel.className = "neo-receipt-panel";
+        panel.setAttribute("role", "dialog");
+        panel.setAttribute("aria-modal", "true");
+        panel.setAttribute("aria-labelledby", "neoPurchaseReceiptTitle");
+        overlay.replaceChildren(panel);
+    }
+
+    let body = document.getElementById("neoPurchaseReceiptBody");
+    if (!body || !panel.contains(body)) {
+        body = document.createElement("div");
+        body.id = "neoPurchaseReceiptBody";
+        panel.prepend(body);
+    }
+
+    let actions = panel.querySelector(".neo-receipt-actions");
+    if (!actions) {
+        actions = document.createElement("div");
+        actions.className = "neo-receipt-actions";
+        actions.innerHTML = '<button type="button" id="neoReceiptSave">Save receipt</button><button type="button" id="neoReceiptCopy">Copy ID</button>';
+        panel.appendChild(actions);
+    }
+
+    let close = document.getElementById("neoPurchaseReceiptClose");
+    if (!close || !panel.contains(close)) {
+        close = document.createElement("button");
+        close.id = "neoPurchaseReceiptClose";
+        close.type = "button";
+        close.textContent = "Close receipt";
+        panel.appendChild(close);
+    }
+
+    if (!document.getElementById("neoReceiptGuiStyles")) {
+        const style = document.createElement("style");
+        style.id = "neoReceiptGuiStyles";
+        style.textContent = `
+#neoPurchaseReceiptOverlay{display:none;position:fixed;inset:0;z-index:1000000;background:rgba(3,8,25,.78);backdrop-filter:blur(9px);align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+#neoPurchaseReceiptOverlay .neo-receipt-panel{position:relative;width:min(100%,470px);max-height:90vh;overflow:auto;box-sizing:border-box;background:linear-gradient(145deg,#101b35,#080d1c);border:1px solid rgba(0,242,254,.55);border-radius:20px;padding:24px;color:#f5f8ff;box-shadow:0 22px 80px rgba(0,0,0,.48),0 0 38px rgba(0,242,254,.16);font-family:inherit}
+#neoPurchaseReceiptBody .neo-receipt-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+#neoPurchaseReceiptBody .neo-receipt-icon{width:50px;height:50px;flex:0 0 50px;display:grid;place-items:center;border-radius:15px;background:linear-gradient(145deg,#122b43,#172046);border:1px solid rgba(66,217,255,.25);font-size:25px}
+#neoPurchaseReceiptBody .neo-receipt-brand{font-size:27px;line-height:1.15;font-weight:900;letter-spacing:.2px;background:linear-gradient(90deg,#00f2fe,#4facfe,#9b51e0);-webkit-background-clip:text;background-clip:text;color:transparent}
+#neoPurchaseReceiptBody .neo-receipt-heading{font-size:11px;letter-spacing:2.8px;color:#a8bddc;margin-top:5px}
+#neoPurchaseReceiptBody .neo-receipt-status{margin-left:auto;white-space:nowrap;padding:6px 9px;border:1px solid rgba(74,222,128,.3);border-radius:999px;color:#86efac;background:rgba(34,197,94,.09);font-size:10px;font-weight:800;letter-spacing:.6px}
+#neoPurchaseReceiptBody .neo-receipt-divider{height:1px;background:linear-gradient(90deg,transparent,rgba(66,217,255,.4),transparent);margin:14px 0}
+#neoPurchaseReceiptBody .neo-receipt-card{background:rgba(17,27,45,.92);border:1px solid #293e56;border-radius:14px;padding:5px 14px}
+#neoPurchaseReceiptBody .neo-receipt-row{display:flex;flex-direction:column;gap:5px;padding:12px 0;border-bottom:1px solid rgba(150,180,220,.16);overflow-wrap:anywhere;min-width:0}
+#neoPurchaseReceiptBody .neo-receipt-row:last-child{border-bottom:0}
+#neoPurchaseReceiptBody .neo-receipt-label{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:#94a9c3}
+#neoPurchaseReceiptBody .neo-receipt-value{font-size:13px;line-height:1.5;color:#eaf2ff;font-weight:650;overflow-wrap:anywhere}
+#neoPurchaseReceiptBody .neo-receipt-price{font-size:17px;color:#42d9ff;font-weight:850}
+#neoPurchaseReceiptOverlay .neo-receipt-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:17px}
+#neoPurchaseReceiptOverlay .neo-receipt-actions button,#neoPurchaseReceiptClose{min-height:42px;border-radius:11px;padding:10px 12px;font:inherit;font-size:12px;font-weight:800;cursor:pointer;transition:transform .15s,filter .15s}
+#neoPurchaseReceiptOverlay .neo-receipt-actions button{background:#142c42;border:1px solid rgba(66,217,255,.24);color:#e8f7ff}
+#neoPurchaseReceiptOverlay #neoPurchaseReceiptClose{display:block;width:100%;margin-top:9px;border:0;background:linear-gradient(90deg,#00c8ff,#7865ff);color:#06101d}
+#neoPurchaseReceiptOverlay button:hover{filter:brightness(1.12);transform:translateY(-1px)}
+#neoPurchaseReceiptOverlay button:focus-visible{outline:2px solid #42d9ff;outline-offset:3px}
+@media(max-width:420px){#neoPurchaseReceiptOverlay{padding:10px}#neoPurchaseReceiptOverlay .neo-receipt-panel{padding:17px;border-radius:16px}#neoPurchaseReceiptBody .neo-receipt-brand{font-size:23px}}
+`;
+        document.head.appendChild(style);
+    }
+    return { overlay, panel, body, actions, close };
+}
+
+function showNeoPurchaseReceipt(receipt, onClose) {
+    const gui = ensureNeoReceiptGUI();
+    const { overlay, panel, body, actions, close } = gui;
+    const make = (tag, className, text) => {
+        const el = document.createElement(tag);
+        if (className) el.className = className;
+        if (text !== undefined) el.textContent = String(text ?? "");
+        return el;
     };
     body.replaceChildren();
-    const brand = document.createElement("div");
-    brand.className = "neo-receipt-brand";
-    brand.textContent = "NeoFind";
-    body.appendChild(brand);
-    const heading = document.createElement("div");
-    heading.className = "neo-receipt-heading";
-    heading.textContent = "PURCHASE RECEIPT";
-    body.appendChild(heading);
-    body.append(
-        row("Purchase ID", receipt.purchaseId),
-        row("Purchased on (YY-MM-DD HH:MM:SS)", formatNeoReceiptDate(receipt.purchasedAtMs)),
-        row("Item purchased", receipt.item),
-        row("Price", receipt.costOrbs + " Orbs"),
-        row("Buyer email", receipt.email)
+
+    const top = make("div", "neo-receipt-top");
+    top.appendChild(make("div", "neo-receipt-icon", "▤"));
+    const brandBlock = make("div", "");
+    brandBlock.append(
+        make("div", "neo-receipt-brand", "NeoFind"),
+        make("div", "neo-receipt-heading", "PURCHASE RECEIPT")
     );
+    top.append(brandBlock, make("div", "neo-receipt-status", "✓ PURCHASED"));
+    body.append(top, make("div", "neo-receipt-divider"));
+
+    const card = make("div", "neo-receipt-card");
+    const addRow = (label, value, special) => {
+        const line = make("div", "neo-receipt-row");
+        line.appendChild(make("span", "neo-receipt-label", label));
+        line.appendChild(make("strong", "neo-receipt-value" + (special ? " neo-receipt-price" : ""), value));
+        card.appendChild(line);
+    };
+    addRow("Item", receipt.item);
+    addRow("Price", Number(receipt.costOrbs).toLocaleString() + " Orbs", true);
+    addRow("Purchase ID", receipt.purchaseId);
+    addRow("Date · YY-MM-DD HH:MM:SS", formatNeoReceiptDate(receipt.purchasedAtMs));
+    addRow("Account", receipt.email);
+    body.appendChild(card);
+    body.appendChild(make("p", "", "This receipt confirms the transaction recorded by NeoFind."));
+    body.lastChild.style.cssText = "font-size:11px;line-height:1.5;color:#8196ad;text-align:center;margin:13px 0 0";
+
+    const saveButton = actions.querySelector("#neoReceiptSave");
+    const copyButton = actions.querySelector("#neoReceiptCopy");
+    const receiptText = [
+        "NeoFind — PURCHASE RECEIPT",
+        "Status: PURCHASED",
+        "Item: " + receipt.item,
+        "Price: " + receipt.costOrbs + " Orbs",
+        "Purchase ID: " + receipt.purchaseId,
+        "Date: " + formatNeoReceiptDate(receipt.purchasedAtMs),
+        "Account: " + receipt.email
+    ].join("\n");
+
+    saveButton.onclick = () => {
+        const blob = new Blob([receiptText], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "NeoFind-receipt-" + String(receipt.purchaseId).replace(/[^a-zA-Z0-9_-]/g, "") + ".txt";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        saveButton.textContent = "Receipt saved ✓";
+        setTimeout(() => { if (saveButton.isConnected) saveButton.textContent = "Save receipt"; }, 1800);
+    };
+    copyButton.onclick = async () => {
+        try {
+            await navigator.clipboard.writeText(String(receipt.purchaseId));
+            copyButton.textContent = "Copied ✓";
+        } catch (_) {
+            const temp = document.createElement("textarea");
+            temp.value = String(receipt.purchaseId);
+            temp.style.position = "fixed";
+            temp.style.opacity = "0";
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            temp.remove();
+            copyButton.textContent = "Copied ✓";
+        }
+        setTimeout(() => { if (copyButton.isConnected) copyButton.textContent = "Copy ID"; }, 1800);
+    };
+
     overlay.style.display = "flex";
     document.body.style.overflow = "hidden";
     close.onclick = () => {
@@ -12104,6 +12221,8 @@ function showNeoPurchaseReceipt(receipt, onClose) {
     overlay.onclick = event => {
         if (event.target === overlay) close.click();
     };
+    panel.onclick = event => event.stopPropagation();
+    close.textContent = "Close receipt";
 }
 
 async function buyOrbChest(type) {
