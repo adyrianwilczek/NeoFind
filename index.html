@@ -2354,7 +2354,7 @@ NOTE! Do not share the key with anyone.
             </div>
         </div>
 
-        <section id="neoConnectedDevicesSection" style="margin:22px auto 16px;max-width:900px;padding:18px;text-align:left;border:1px solid rgba(0,242,254,.25);border-radius:16px;background:rgba(8,18,32,.55);">
+        <section id="neoConnectedDevicesSection" style="display:none;margin:22px auto 16px;max-width:900px;padding:18px;text-align:left;border:1px solid rgba(0,242,254,.25);border-radius:16px;background:rgba(8,18,32,.55);">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
                 <div>
                     <h4 style="margin:0 0 5px;font-size:17px;">Connected devices</h4>
@@ -4759,6 +4759,20 @@ async function renderConnectedDevices() {
         const ids = Array.isArray(data.trustedDeviceIds) ? data.trustedDeviceIds : [];
         const names = neoConnectedDeviceNameMap(data);
         const currentId = neoGetDeviceId();
+        const section = document.getElementById("neoConnectedDevicesSection");
+
+        // The first trusted device is the main device for older accounts.
+        let mainDeviceId = data.mainTrustedDeviceId || ids[0] || "";
+        if (!data.mainTrustedDeviceId && mainDeviceId) {
+            await userRef.set({ mainTrustedDeviceId: mainDeviceId }, { merge: true });
+        }
+
+        // Only the main device can see and manage the Connected Devices panel.
+        if (section) section.style.display = currentId === mainDeviceId ? "" : "none";
+        if (currentId !== mainDeviceId) {
+            neoRenderConnectedDevicesMessage("Connected Devices is available only on the main trusted device.");
+            return;
+        }
 
         if (ids.includes(currentId) && !names[currentId]) {
             names[currentId] = neoDeviceLabel();
@@ -5002,9 +5016,18 @@ async function neoCheckDeviceApproval(user) {
 
     // First device seen for an account becomes its initial trusted device.
     if (trusted.length === 0) {
-        await userRef.set({ trustedDeviceIds: [deviceId] }, { merge: true });
+        await userRef.set({
+            trustedDeviceIds: [deviceId],
+            mainTrustedDeviceId: deviceId,
+            trustedDeviceNames: { [deviceId]: neoDeviceLabel() }
+        }, { merge: true });
         neoStartDeviceApprovalWatcher(user);
         return true;
+    }
+
+    // Preserve the first trusted device as the main device on older accounts.
+    if (!data.mainTrustedDeviceId) {
+        await userRef.set({ mainTrustedDeviceId: trusted[0] }, { merge: true });
     }
 
     if (trusted.includes(deviceId)) {
@@ -5076,9 +5099,11 @@ window.register = function () {
         .then(async (userCredential) => {
             try {
                 // Mark the device used to create the account as the first trusted device.
+                const initialDeviceId = neoGetDeviceId();
                 await db.collection("users").doc(userCredential.user.uid).set({
-                    trustedDeviceIds: [neoGetDeviceId()],
-                    trustedDeviceNames: { [neoGetDeviceId()]: neoDeviceLabel() }
+                    trustedDeviceIds: [initialDeviceId],
+                    mainTrustedDeviceId: initialDeviceId,
+                    trustedDeviceNames: { [initialDeviceId]: neoDeviceLabel() }
                 }, { merge: true });
                 await userCredential.user.sendEmailVerification();
                 alert("Account created! Check your email and click the verification link before logging in.");
