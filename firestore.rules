@@ -678,6 +678,43 @@ service cloud.firestore {
 
       /* usunięcie dokumentu kasowałoby też kontrolę rodzicielską */
       allow delete: if isAdmin();
+
+      /*
+       * Prośby o zatwierdzenie nowego urządzenia.
+       * Status i znaczniki czasu są walidowane; pola identyfikujące
+       * urządzenie nie mogą być podmieniane podczas rozpatrywania.
+       */
+      match /loginApprovals/{deviceId} {
+        allow read: if isAdmin() || isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'deviceId', 'deviceLabel', 'status', 'createdAt'
+          ])
+          && request.resource.data.deviceId == deviceId
+          && request.resource.data.deviceLabel is string
+          && request.resource.data.deviceLabel.size() > 0
+          && request.resource.data.deviceLabel.size() <= 100
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time;
+
+        allow update: if isOwner(userId)
+          && resource.data.status == 'pending'
+          && request.resource.data.deviceId == resource.data.deviceId
+          && request.resource.data.deviceLabel == resource.data.deviceLabel
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.status in ['approved', 'denied']
+          && request.resource.data.reviewedAt == request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'reviewedAt', 'trustedDeviceAdded'
+          ])
+          && (
+            !('trustedDeviceAdded' in request.resource.data)
+            || request.resource.data.trustedDeviceAdded == true
+          );
+
+        allow delete: if isAdmin();
+      }
     }
 
 
