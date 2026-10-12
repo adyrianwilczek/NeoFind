@@ -2353,6 +2353,19 @@ NOTE! Do not share the key with anyone.
                 </div>
             </div>
         </div>
+
+        <section id="neoConnectedDevicesSection" style="margin:22px auto 16px;max-width:900px;padding:18px;text-align:left;border:1px solid rgba(0,242,254,.25);border-radius:16px;background:rgba(8,18,32,.55);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+                <div>
+                    <h4 style="margin:0 0 5px;font-size:17px;">Connected devices</h4>
+                    <p style="margin:0;font-size:12px;opacity:.72;">Devices trusted to access your NeoFind account. You can rename or disconnect them.</p>
+                </div>
+                <button type="button" onclick="renderConnectedDevices()" style="white-space:nowrap;">Refresh</button>
+            </div>
+            <div id="neoConnectedDevicesStatus" role="status" style="margin:12px 0 4px;font-size:13px;opacity:.8;">Sign in to view connected devices.</div>
+            <div id="neoConnectedDevicesList" style="display:grid;gap:10px;"></div>
+        </section>
+
         <!-- Advancements button above Missions and Orbs -->
 <button type="button" onclick="openAdvancementsPanel()" class="neo-adv-open-btn">🏆 Advancements</button>
         <!-- Przycisk do otwierania panelu -->
@@ -4194,6 +4207,7 @@ function openSettings(pushUrl = true){
         document.getElementById("settingsLang").value = currentLang;
         showHistory();
         showFavorites();
+        renderConnectedDevices();
     });
 }
 
@@ -4715,6 +4729,143 @@ function neoDeviceLabel() {
     return platform + " · " + browser;
 }
 
+function neoConnectedDeviceNameMap(data) {
+    return data && data.trustedDeviceNames && typeof data.trustedDeviceNames === "object"
+        ? { ...data.trustedDeviceNames }
+        : {};
+}
+
+function neoRenderConnectedDevicesMessage(message, isError = false) {
+    const status = document.getElementById("neoConnectedDevicesStatus");
+    if (!status) return;
+    status.textContent = message;
+    status.style.color = isError ? "#fca5a5" : "";
+}
+
+async function renderConnectedDevices() {
+    const list = document.getElementById("neoConnectedDevicesList");
+    if (!list) return;
+    list.replaceChildren();
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user) {
+        neoRenderConnectedDevicesMessage("Sign in to manage connected devices.", true);
+        return;
+    }
+    neoRenderConnectedDevicesMessage("Loading connected devices…");
+    try {
+        const userRef = db.collection("users").doc(user.uid);
+        const snap = await userRef.get();
+        const data = snap.exists ? snap.data() : {};
+        const ids = Array.isArray(data.trustedDeviceIds) ? data.trustedDeviceIds : [];
+        const names = neoConnectedDeviceNameMap(data);
+        const currentId = neoGetDeviceId();
+
+        if (ids.includes(currentId) && !names[currentId]) {
+            names[currentId] = neoDeviceLabel();
+            await userRef.set({ trustedDeviceNames: names }, { merge: true });
+        }
+
+        if (!ids.length) {
+            neoRenderConnectedDevicesMessage("No trusted devices are connected to this account.");
+            return;
+        }
+
+        neoRenderConnectedDevicesMessage(ids.length + (ids.length === 1 ? " trusted device" : " trusted devices"));
+        ids.forEach((deviceId) => {
+            const isCurrent = deviceId === currentId;
+            const card = document.createElement("div");
+            card.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px;border:1px solid rgba(148,163,184,.22);border-radius:12px;background:rgba(15,23,42,.55);";
+
+            const info = document.createElement("div");
+            info.style.cssText = "min-width:0;flex:1;";
+            const title = document.createElement("div");
+            title.style.cssText = "font-weight:700;overflow-wrap:anywhere;";
+            title.textContent = String(names[deviceId] || (isCurrent ? neoDeviceLabel() : "Trusted device · " + deviceId.slice(-6)));
+            const meta = document.createElement("div");
+            meta.style.cssText = "font-size:11px;opacity:.65;margin-top:4px;";
+            meta.textContent = (isCurrent ? "This device · " : "Trusted device · ") + "ID ending " + deviceId.slice(-6);
+            info.append(title, meta);
+
+            const actions = document.createElement("div");
+            actions.style.cssText = "display:flex;gap:7px;flex-wrap:wrap;";
+            const rename = document.createElement("button");
+            rename.type = "button";
+            rename.textContent = "Rename";
+            rename.onclick = () => renameConnectedDevice(deviceId, title.textContent);
+            const disconnect = document.createElement("button");
+            disconnect.type = "button";
+            disconnect.textContent = isCurrent ? "Disconnect this device" : "Disconnect";
+            disconnect.style.borderColor = "rgba(248,113,113,.45)";
+            disconnect.onclick = () => disconnectConnectedDevice(deviceId, title.textContent);
+            actions.append(rename, disconnect);
+            card.append(info, actions);
+            list.appendChild(card);
+        });
+    } catch (error) {
+        console.error("NeoFind connected devices load failed:", error);
+        neoRenderConnectedDevicesMessage("Could not load connected devices. Check Firestore permissions and try again.", true);
+    }
+}
+
+async function renameConnectedDevice(deviceId, oldName) {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user) return alert("Please sign in first.");
+    let name = prompt("Display name for this device (1–40 characters):", oldName || "");
+    if (name === null) return;
+    name = name.trim();
+    if (!name || name.length > 40) return alert("The device name must contain 1–40 characters.");
+    try {
+        const ref = db.collection("users").doc(user.uid);
+        const snap = await ref.get();
+        const data = snap.exists ? snap.data() : {};
+        const ids = Array.isArray(data.trustedDeviceIds) ? data.trustedDeviceIds : [];
+        if (!ids.includes(deviceId)) throw new Error("This device is no longer trusted.");
+        const names = neoConnectedDeviceNameMap(data);
+        names[deviceId] = name;
+        await ref.set({ trustedDeviceNames: names }, { merge: true });
+        await renderConnectedDevices();
+    } catch (error) {
+        console.error("NeoFind device rename failed:", error);
+        alert("Could not rename this device. Please try again.");
+    }
+}
+
+async function disconnectConnectedDevice(deviceId, deviceName) {
+    const user = (typeof auth !== "undefined") ? auth.currentUser : null;
+    if (!user) return alert("Please sign in first.");
+    if (!confirm('Disconnect "' + String(deviceName || "this device") + '" from your NeoFind account? It will need approval again to sign in.')) return;
+    try {
+        const ref = db.collection("users").doc(user.uid);
+        const snap = await ref.get();
+        const data = snap.exists ? snap.data() : {};
+        const ids = Array.isArray(data.trustedDeviceIds) ? data.trustedDeviceIds : [];
+        if (!ids.includes(deviceId)) {
+            await renderConnectedDevices();
+            return;
+        }
+        if (ids.length <= 1) {
+            alert("You cannot disconnect the last trusted device. Trust another device first so you do not get locked out.");
+            return;
+        }
+        const names = neoConnectedDeviceNameMap(data);
+        delete names[deviceId];
+        await ref.set({
+            trustedDeviceIds: ids.filter(id => id !== deviceId),
+            trustedDeviceNames: names
+        }, { merge: true });
+        const isCurrent = deviceId === neoGetDeviceId();
+        if (isCurrent) {
+            alert("This device has been disconnected. NeoFind will sign you out now.");
+            await auth.signOut();
+        } else {
+            await renderConnectedDevices();
+        }
+    } catch (error) {
+        console.error("NeoFind device disconnect failed:", error);
+        alert("Could not disconnect this device. Please try again.");
+    }
+}
+
 function neoEnsureDeviceApprovalUI() {
     if (document.getElementById("neoDeviceApprovalOverlay")) return;
     const style = document.createElement("style");
@@ -4803,7 +4954,12 @@ async function neoSetDeviceApproval(user, deviceId, status) {
                 const userSnap = await transaction.get(userRef);
                 const current = userSnap.exists ? (userSnap.data().trustedDeviceIds || []) : [];
                 updates.trustedDeviceAdded = true;
-                transaction.set(userRef, { trustedDeviceIds: Array.from(new Set([...current, deviceId])).slice(-20) }, { merge: true });
+                const names = neoConnectedDeviceNameMap(userSnap.data() || {});
+                names[deviceId] = String(data.deviceLabel || "Trusted device");
+                transaction.set(userRef, {
+                    trustedDeviceIds: Array.from(new Set([...current, deviceId])).slice(-20),
+                    trustedDeviceNames: names
+                }, { merge: true });
             }
             transaction.update(requestRef, updates);
         });
@@ -4921,7 +5077,8 @@ window.register = function () {
             try {
                 // Mark the device used to create the account as the first trusted device.
                 await db.collection("users").doc(userCredential.user.uid).set({
-                    trustedDeviceIds: [neoGetDeviceId()]
+                    trustedDeviceIds: [neoGetDeviceId()],
+                    trustedDeviceNames: { [neoGetDeviceId()]: neoDeviceLabel() }
                 }, { merge: true });
                 await userCredential.user.sendEmailVerification();
                 alert("Account created! Check your email and click the verification link before logging in.");
