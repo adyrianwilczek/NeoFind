@@ -4917,15 +4917,22 @@ window.register = function () {
     logAction("SEC_AUTH", `New account registry pipeline open for sequence candidate: ${email}`, "tag-sec");
 
     auth.createUserWithEmailAndPassword(email, pass)
-        .then((userCredential) => {
-            userCredential.user.sendEmailVerification()
-                .then(() => {
-                    alert("Account created! Check your email and click the verification link before logging in.");
-                    // Wywołanie wysyłki maila powitalnego przez EmailJS
-                    sendWelcomeEmail(email); 
-                    auth.signOut();
-                })
-                .catch(err => alert("Error sending verification email: " + err.message));
+        .then(async (userCredential) => {
+            try {
+                // Mark the device used to create the account as the first trusted device.
+                await db.collection("users").doc(userCredential.user.uid).set({
+                    trustedDeviceIds: [neoGetDeviceId()]
+                }, { merge: true });
+                await userCredential.user.sendEmailVerification();
+                alert("Account created! Check your email and click the verification link before logging in.");
+                // Wywołanie wysyłki maila powitalnego przez EmailJS
+                sendWelcomeEmail(email);
+                await auth.signOut();
+            } catch (err) {
+                console.error("NeoFind initial trusted-device setup failed:", err);
+                alert("Account created, but NeoFind could not finish setting up device security. Please contact support before signing in on another device.");
+                await auth.signOut();
+            }
         })
         .catch(err => alert(err.message));
 };
