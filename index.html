@@ -2447,8 +2447,13 @@ NOTE! Do not share the key with anyone.
 
     <h3>Orbs Shop</h3>
     <p>Buy premium for 1 month</p>
+    <div id="neoBlackFridayBanner" style="display:none;max-width:680px;margin:12px auto 16px;padding:14px 16px;border:1px solid rgba(0,242,254,.55);border-radius:14px;background:linear-gradient(120deg,rgba(0,242,254,.12),rgba(155,81,224,.18),rgba(0,0,0,.2));text-align:center;box-shadow:0 0 24px rgba(0,180,255,.10);">
+        <div style="font-size:12px;letter-spacing:2px;font-weight:800;opacity:.8;">NEOFIND BLACK FRIDAY</div>
+        <div style="font-size:22px;font-weight:900;margin:5px 0;background:linear-gradient(90deg,#00f2fe,#4facfe,#b879ff);background-clip:text;-webkit-background-clip:text;color:transparent;">Premium: <span style="text-decoration:line-through;opacity:.65;color:#aaa;-webkit-text-fill-color:#aaa;">1000</span> <span style="-webkit-text-fill-color:#fff;">→</span> <span style="-webkit-text-fill-color:#7ef0b0;">500 Orbs</span></div>
+        <div style="font-size:13px;opacity:.8;">23–30 November 2026 · 50% off · Premium for 30 days</div>
+    </div>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        <button onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
+        <button id="neoBuyPremiumButton" onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
         <button onclick="openPremiumTrial()">Try out for free</button>
         <button type="button" onclick="openNeoPremiumBenefits()" id="neoPremiumBenefitsButton">See benefits</button>
     </div>
@@ -12583,7 +12588,32 @@ async function ownerGrantChest() {
 }
 
 
+// Black Friday runs for the full local calendar days from 23 through 30 November 2026.
+function getNeoFindPremiumOrbPrice(now = Date.now()) {
+    const start = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
+    const endExclusive = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
+    return now >= start && now < endExclusive ? 500 : 1000;
+}
+
+function updateNeoFindBlackFridayPromo() {
+    const now = Date.now();
+    const start = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
+    const endExclusive = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
+    const active = now >= start && now < endExclusive;
+    const banner = document.getElementById("neoBlackFridayBanner");
+    const button = document.getElementById("neoBuyPremiumButton");
+    if (banner) banner.style.display = active ? "block" : "none";
+    if (button) button.textContent = active ? "Buy Premium (500 Orbs)" : "Buy Premium (1000 Orbs)";
+}
+window.updateNeoFindBlackFridayPromo = updateNeoFindBlackFridayPromo;
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", updateNeoFindBlackFridayPromo, { once: true });
+} else {
+    updateNeoFindBlackFridayPromo();
+}
+
 async function buyPremiumWithOrbs() {
+    const price = getNeoFindPremiumOrbPrice();
     const user = (typeof auth !== "undefined") ? auth.currentUser : null;
     if (!user || typeof db === "undefined") {
         alert("You must be logged in.");
@@ -12606,12 +12636,12 @@ async function buyPremiumWithOrbs() {
             const data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
 
-            if (current < 1000) throw new Error("NOT_ENOUGH_ORBS");
+            if (current < price) throw new Error("NOT_ENOUGH_ORBS");
 
             const premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + 30 * 86400000;
 
             transaction.set(ref, {
-                orbs: current - 1000,
+                orbs: current - price,
                 premiumUntil
             }, { merge: true });
             transaction.set(purchaseRef, {
@@ -12620,7 +12650,7 @@ async function buyPremiumWithOrbs() {
                 email: String(user.email || "").trim().toLowerCase(),
                 item: "Premium (30 days)",
                 itemType: "premium",
-                costOrbs: 1000,
+                costOrbs: price,
                 purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 purchasedAtMs
             });
@@ -12629,7 +12659,7 @@ async function buyPremiumWithOrbs() {
         });
 
         const until = purchaseResult.until;
-        userOrbs = Math.max(0, userOrbs - 1000);
+        userOrbs = Math.max(0, userOrbs - price);
         await addAnnouncementToUser(user, "Premium activated", "Your Premium is active until " + new Date(until).toLocaleDateString() + ".", "premium_purchase");
         localStorage.setItem('userOrbs', userOrbs);
         localStorage.setItem('userPremium', 'true');
@@ -12643,12 +12673,12 @@ async function buyPremiumWithOrbs() {
             purchaseId: purchaseRef.id,
             purchasedAtMs,
             item: "Premium (30 days)",
-            costOrbs: 1000,
+            costOrbs: price,
             email: String(user.email || "").trim().toLowerCase()
         });
     } catch (error) {
         if (error.message === "NOT_ENOUGH_ORBS") {
-            alert("Not enough Orbs! Required: 1000.");
+            alert("Not enough Orbs! Required: " + price + ".");
         } else {
             console.error("Premium purchase failed:", error);
             alert("Could not complete the Premium purchase. Please try again.");
