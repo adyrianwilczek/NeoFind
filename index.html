@@ -8399,6 +8399,21 @@ function triggerCustomLockScreen(userEmail, blockReason) {
     
 
 
+
+<div id="neoPurchaseReceiptOverlay" style="display:none;position:fixed;inset:0;z-index:1000000;background:rgba(3,8,25,.78);backdrop-filter:blur(7px);align-items:center;justify-content:center;padding:18px;">
+  <section role="dialog" aria-modal="true" aria-labelledby="neoPurchaseReceiptTitle" style="width:min(100%,470px);max-height:90vh;overflow:auto;background:linear-gradient(145deg,#101b35,#080d1c);border:1px solid rgba(0,242,254,.55);border-radius:18px;padding:24px;color:#f5f8ff;box-shadow:0 0 38px rgba(0,242,254,.16);font-family:inherit;">
+    <div id="neoPurchaseReceiptBody"></div>
+    <button id="neoPurchaseReceiptClose" type="button" style="display:block;width:100%;margin-top:20px;border:0;border-radius:10px;padding:12px;background:linear-gradient(90deg,#00c8ff,#7865ff);color:#06101d;font-weight:800;cursor:pointer;">Close receipt</button>
+  </section>
+</div>
+<style>
+#neoPurchaseReceiptBody .neo-receipt-brand{font-size:28px;font-weight:900;letter-spacing:.5px;text-align:center;background:linear-gradient(90deg,#00f2fe,#4facfe,#9b51e0);-webkit-background-clip:text;background-clip:text;color:transparent}
+#neoPurchaseReceiptBody .neo-receipt-heading{text-align:center;font-size:12px;letter-spacing:3px;color:#a8bddc;margin:5px 0 20px}
+#neoPurchaseReceiptBody .neo-receipt-row{display:flex;flex-direction:column;gap:5px;padding:11px 0;border-bottom:1px solid rgba(150,180,220,.16);overflow-wrap:anywhere}
+#neoPurchaseReceiptBody .neo-receipt-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#9eb1d0}
+#neoPurchaseReceiptBody .neo-receipt-value{font-size:14px;color:#fff;font-weight:650}
+</style>
+
 </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
@@ -12031,6 +12046,66 @@ async function loadOrbChestInventory() {
     }
 }
 
+
+/* =========================
+   NEOFIND PURCHASE RECEIPTS
+========================= */
+function formatNeoReceiptDate(value) {
+    const d = new Date(value);
+    const pad = n => String(n).padStart(2, "0");
+    return String(d.getFullYear()).slice(-2) + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate())
+        + " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+}
+
+function showNeoPurchaseReceipt(receipt, onClose) {
+    const overlay = document.getElementById("neoPurchaseReceiptOverlay");
+    const body = document.getElementById("neoPurchaseReceiptBody");
+    const close = document.getElementById("neoPurchaseReceiptClose");
+    if (!overlay || !body || !close) {
+        alert("NeoFind\nPurchase receipt\nPurchase ID: " + receipt.purchaseId);
+        if (typeof onClose === "function") onClose();
+        return;
+    }
+    const row = (label, value) => {
+        const line = document.createElement("div");
+        line.className = "neo-receipt-row";
+        const left = document.createElement("span");
+        left.className = "neo-receipt-label";
+        left.textContent = label;
+        const right = document.createElement("strong");
+        right.className = "neo-receipt-value";
+        right.textContent = String(value ?? "");
+        line.append(left, right);
+        return line;
+    };
+    body.replaceChildren();
+    const brand = document.createElement("div");
+    brand.className = "neo-receipt-brand";
+    brand.textContent = "NeoFind";
+    body.appendChild(brand);
+    const heading = document.createElement("div");
+    heading.className = "neo-receipt-heading";
+    heading.textContent = "PURCHASE RECEIPT";
+    body.appendChild(heading);
+    body.append(
+        row("Purchase ID", receipt.purchaseId),
+        row("Purchased on (YY-MM-DD HH:MM:SS)", formatNeoReceiptDate(receipt.purchasedAtMs)),
+        row("Item purchased", receipt.item),
+        row("Price", receipt.costOrbs + " Orbs"),
+        row("Buyer email", receipt.email)
+    );
+    overlay.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    close.onclick = () => {
+        overlay.style.display = "none";
+        document.body.style.overflow = "";
+        if (typeof onClose === "function") onClose();
+    };
+    overlay.onclick = event => {
+        if (event.target === overlay) close.click();
+    };
+}
+
 async function buyOrbChest(type) {
     const user = auth.currentUser;
     const def = ORB_CHEST_DEFINITIONS[type];
@@ -12040,6 +12115,8 @@ async function buyOrbChest(type) {
     }
 
     try {
+        const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
+        const purchasedAtMs = Date.now();
         await db.runTransaction(async transaction => {
             const ref = db.collection("users").doc(user.uid);
             const snap = await transaction.get(ref);
@@ -12054,6 +12131,16 @@ async function buyOrbChest(type) {
                 orbs: current - def.price,
                 chestInventory: inv
             }, { merge: true });
+            transaction.set(purchaseRef, {
+                purchaseId: purchaseRef.id,
+                uid: user.uid,
+                email: String(user.email || "").trim().toLowerCase(),
+                item: def.label,
+                itemType: "chest",
+                costOrbs: def.price,
+                purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                purchasedAtMs
+            });
         });
 
         userOrbs = Math.max(0, userOrbs - def.price);
@@ -12063,7 +12150,13 @@ async function buyOrbChest(type) {
         if (type === "neofind") unlockNeoAdvancement("neoFindChest");
         if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsBought");
         await loadOrbChestInventory();
-        openOrbChestModal(type);
+        showNeoPurchaseReceipt({
+            purchaseId: purchaseRef.id,
+            purchasedAtMs,
+            item: def.label,
+            costOrbs: def.price,
+            email: String(user.email || "").trim().toLowerCase()
+        }, () => openOrbChestModal(type));
     } catch (e) {
         if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + def.price + ".");
         else {
@@ -12379,9 +12472,11 @@ async function buyPremiumWithOrbs() {
 
     try {
         const ref = db.collection("users").doc(user.uid);
+        const purchaseRef = ref.collection("purchaseReceipts").doc();
+        const purchasedAtMs = Date.now();
 
         // Premium na 30 dni (dokładane do Premium ze skrzyni, jeśli jeszcze trwa)
-        const until = await db.runTransaction(async transaction => {
+        const purchaseResult = await db.runTransaction(async transaction => {
             const snap = await transaction.get(ref);
             const data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
@@ -12394,10 +12489,21 @@ async function buyPremiumWithOrbs() {
                 orbs: current - 1000,
                 premiumUntil
             }, { merge: true });
+            transaction.set(purchaseRef, {
+                purchaseId: purchaseRef.id,
+                uid: user.uid,
+                email: String(user.email || "").trim().toLowerCase(),
+                item: "Premium (30 days)",
+                itemType: "premium",
+                costOrbs: 1000,
+                purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                purchasedAtMs
+            });
 
-            return premiumUntil;
+            return { until: premiumUntil, purchasedAtMs };
         });
 
+        const until = purchaseResult.until;
         userOrbs = Math.max(0, userOrbs - 1000);
         await addAnnouncementToUser(user, "Premium activated", "Your Premium is active until " + new Date(until).toLocaleDateString() + ".", "premium_purchase");
         localStorage.setItem('userOrbs', userOrbs);
@@ -12407,8 +12513,14 @@ async function buyPremiumWithOrbs() {
         const badge = document.getElementById("premiumBadge");
         if (badge) badge.style.display = "block";
 
-        alert("🎉 Congratulations! Premium Unlocked!");
         renderMissions();
+        showNeoPurchaseReceipt({
+            purchaseId: purchaseRef.id,
+            purchasedAtMs,
+            item: "Premium (30 days)",
+            costOrbs: 1000,
+            email: String(user.email || "").trim().toLowerCase()
+        });
     } catch (error) {
         if (error.message === "NOT_ENOUGH_ORBS") {
             alert("Not enough Orbs! Required: 1000.");
