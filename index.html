@@ -2011,7 +2011,7 @@ body.ocean {
         if(popup.classList.contains("show") && e.key === "Escape") closePopup();
     });
 
-    window.neoPopup = function(text, options = {}){
+    window.showNeoFindPopup = function(text, options = {}){
         title.textContent = options.title || "NeoFind";
         message.textContent = String(text ?? "");
         popup.querySelector("#neoCustomPopupIcon").textContent = options.icon || "✦";
@@ -2024,7 +2024,7 @@ body.ocean {
 
     // All existing alert() calls now use the same NeoFind popup.
     window.alert = function(text){
-        window.neoPopup(text, { title: "NeoFind", icon: "✦", button: "OK" });
+        window.showNeoFindPopup(text, { title: "NeoFind", icon: "✦", button: "OK" });
     };
 })();
 </script>
@@ -5638,7 +5638,7 @@ function sendReport(){
     const text = document.getElementById("reportText").value.trim();
 
     if(!text){
-        neoPopup("Please describe the issue before sending your report.", { title: "Report not sent", icon: "⚠️", button: "OK" });
+        window.showNeoFindPopup("Please describe the issue before sending your report.", { title: "Report not sent", icon: "⚠️", button: "OK" });
         return;
     }
 
@@ -5648,13 +5648,13 @@ function sendReport(){
         date: new Date()
     })
     .then(()=>{
-        neoPopup("Your bug report has been sent successfully. Thank you for helping improve NeoFind!", { title: "Report sent successfully", icon: "✅", button: "Great!" });
+        window.showNeoFindPopup("Your bug report has been sent successfully. Thank you for helping improve NeoFind!", { title: "Report sent successfully", icon: "✅", button: "Great!" });
         unlockNeoAdvancement("bugOrHug");
         document.getElementById("reportText").value = "";
         closeReport();
     })
     .catch(err=>{
-        neoPopup("We could not send your report. Please try again.\n\n" + (err && err.message ? err.message : "Unknown error"), { title: "Report failed", icon: "❌", button: "OK" });
+        window.showNeoFindPopup("We could not send your report. Please try again.\n\n" + (err && err.message ? err.message : "Unknown error"), { title: "Report failed", icon: "❌", button: "OK" });
     });
 }
 
@@ -7249,7 +7249,7 @@ document.addEventListener("keydown", function(e){
 function copyLink(url){
     if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("linkCopies");
     navigator.clipboard.writeText(url).then(()=>{
-        neoPopup("Link copied to clipboard!", { title: "Copied", icon: "✅", button: "OK" });
+        window.showNeoFindPopup("Link copied to clipboard!", { title: "Copied", icon: "✅", button: "OK" });
     }).catch(()=>{
         alert("Copied: " + url);
     });
