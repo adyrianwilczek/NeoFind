@@ -1881,8 +1881,8 @@ body.ocean {
 @media(max-width:600px){#orbChestInventory{left:8px;bottom:calc(var(--bottomnav-h,70px) + 8px);font-size:11px!important;padding:7px 9px;}}
 
 </style>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js">
-
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
 /* === NEOFIND CUSTOM POPUP SYSTEM === */
 (function initNeoFindPopups(){
     if (document.getElementById("neoCustomPopup")) return;
@@ -5638,7 +5638,7 @@ function sendReport(){
     const text = document.getElementById("reportText").value.trim();
 
     if(!text){
-        showPopup("Write something!", "red");
+        neoPopup("Please describe the issue before sending your report.", { title: "Report not sent", icon: "⚠️", button: "OK" });
         return;
     }
 
@@ -5648,13 +5648,13 @@ function sendReport(){
         date: new Date()
     })
     .then(()=>{
-        showPopup("Report sent!", "#00cc66");
+        neoPopup("Your bug report has been sent successfully. Thank you for helping improve NeoFind!", { title: "Report sent successfully", icon: "✅", button: "Great!" });
         unlockNeoAdvancement("bugOrHug");
         document.getElementById("reportText").value = "";
         closeReport();
     })
     .catch(err=>{
-        showPopup(err.message, "red");
+        neoPopup("We could not send your report. Please try again.\n\n" + (err && err.message ? err.message : "Unknown error"), { title: "Report failed", icon: "❌", button: "OK" });
     });
 }
 
@@ -7249,7 +7249,7 @@ document.addEventListener("keydown", function(e){
 function copyLink(url){
     if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("linkCopies");
     navigator.clipboard.writeText(url).then(()=>{
-        showPopup("Link copied!", "#00cc66");
+        neoPopup("Link copied to clipboard!", { title: "Copied", icon: "✅", button: "OK" });
     }).catch(()=>{
         alert("Copied: " + url);
     });
