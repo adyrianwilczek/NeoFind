@@ -2448,9 +2448,9 @@ NOTE! Do not share the key with anyone.
     <h3>Orbs Shop</h3>
     <p>Buy premium for 1 month</p>
     <div id="neoBlackFridayBanner" style="display:none;max-width:680px;margin:12px auto 16px;padding:14px 16px;border:1px solid rgba(0,242,254,.55);border-radius:14px;background:linear-gradient(120deg,rgba(0,242,254,.12),rgba(155,81,224,.18),rgba(0,0,0,.2));text-align:center;box-shadow:0 0 24px rgba(0,180,255,.10);">
-        <div style="font-size:12px;letter-spacing:2px;font-weight:800;opacity:.8;">NEOFIND BLACK FRIDAY</div>
-        <div style="font-size:22px;font-weight:900;margin:5px 0;background:linear-gradient(90deg,#00f2fe,#4facfe,#b879ff);background-clip:text;-webkit-background-clip:text;color:transparent;">Premium: <span style="text-decoration:line-through;opacity:.65;color:#aaa;-webkit-text-fill-color:#aaa;">1000</span> <span style="-webkit-text-fill-color:#fff;">→</span> <span style="-webkit-text-fill-color:#7ef0b0;">500 Orbs</span></div>
-        <div style="font-size:13px;opacity:.8;">23–30 November 2026 · 50% off · Premium for 30 days</div>
+        <div id="neoPromoEyebrow" style="font-size:12px;letter-spacing:2px;font-weight:800;opacity:.8;">NEOFIND SPECIAL OFFER</div>
+        <div style="font-size:22px;font-weight:900;margin:5px 0;background:linear-gradient(90deg,#00f2fe,#4facfe,#b879ff);background-clip:text;-webkit-background-clip:text;color:transparent;">Premium: <span id="neoPromoOldPrice" style="text-decoration:line-through;opacity:.65;color:#aaa;-webkit-text-fill-color:#aaa;">1000</span> <span style="-webkit-text-fill-color:#fff;">→</span> <span id="neoPromoNewPrice" style="-webkit-text-fill-color:#7ef0b0;">750 Orbs</span></div>
+        <div id="neoPromoDetails" style="font-size:13px;opacity:.8;">13–19 October 2026 · 25% off · Premium for 30 days</div>
     </div>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button id="neoBuyPremiumButton" onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
@@ -12588,22 +12588,45 @@ async function ownerGrantChest() {
 }
 
 
-// Black Friday runs for the full local calendar days from 23 through 30 November 2026.
+// Scheduled Premium promotions use the visitor's local calendar date.
+// October offer: 13–19 October 2026, 25% off. Black Friday: 23–30 November 2026, 50% off.
+function getNeoFindPremiumPromo(now = Date.now()) {
+    const birthdayStart = new Date(2026, 9, 13, 0, 0, 0, 0).getTime();
+    const birthdayEnd = new Date(2026, 9, 20, 0, 0, 0, 0).getTime();
+    if (now >= birthdayStart && now < birthdayEnd) {
+        return { active: true, price: 750, oldPrice: 1000, discount: 25, eyebrow: "NEOFIND OCTOBER SALE", dates: "13–19 October 2026" };
+    }
+
+    const blackFridayStart = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
+    const blackFridayEnd = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
+    if (now >= blackFridayStart && now < blackFridayEnd) {
+        return { active: true, price: 500, oldPrice: 1000, discount: 50, eyebrow: "NEOFIND BLACK FRIDAY", dates: "23–30 November 2026" };
+    }
+
+    return { active: false, price: 1000, oldPrice: 1000, discount: 0, eyebrow: "", dates: "" };
+}
+
 function getNeoFindPremiumOrbPrice(now = Date.now()) {
-    const start = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
-    const endExclusive = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
-    return now >= start && now < endExclusive ? 500 : 1000;
+    return getNeoFindPremiumPromo(now).price;
 }
 
 function updateNeoFindBlackFridayPromo() {
-    const now = Date.now();
-    const start = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
-    const endExclusive = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
-    const active = now >= start && now < endExclusive;
+    const promo = getNeoFindPremiumPromo();
     const banner = document.getElementById("neoBlackFridayBanner");
+    const eyebrow = document.getElementById("neoPromoEyebrow");
+    const oldPrice = document.getElementById("neoPromoOldPrice");
+    const newPrice = document.getElementById("neoPromoNewPrice");
+    const details = document.getElementById("neoPromoDetails");
     const button = document.getElementById("neoBuyPremiumButton");
-    if (banner) banner.style.display = active ? "block" : "none";
-    if (button) button.textContent = active ? "Buy Premium (500 Orbs)" : "Buy Premium (1000 Orbs)";
+
+    if (banner) banner.style.display = promo.active ? "block" : "none";
+    if (eyebrow) eyebrow.textContent = promo.eyebrow;
+    if (oldPrice) oldPrice.textContent = String(promo.oldPrice);
+    if (newPrice) newPrice.textContent = promo.price + " Orbs";
+    if (details) details.textContent = promo.active
+        ? promo.dates + " · " + promo.discount + "% off · Premium for 30 days"
+        : "";
+    if (button) button.textContent = "Buy Premium (" + promo.price + " Orbs)";
 }
 window.updateNeoFindBlackFridayPromo = updateNeoFindBlackFridayPromo;
 if (document.readyState === "loading") {
