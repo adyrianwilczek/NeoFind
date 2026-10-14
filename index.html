@@ -5274,6 +5274,19 @@ auth.onAuthStateChanged(async user => {
         return;
     }
 
+    // Zapisz UID właściciela w publicznej konfiguracji. Dokument zawiera tylko UID i email,
+    // dzięki czemu kupujący nie muszą otrzymywać dostępu do prywatnego dokumentu użytkownika.
+    if (String(user.email || "").trim().toLowerCase() === "adrian.wilczek@hotmail.com") {
+        try {
+            await db.collection("config").doc("owner").set({
+                uid: user.uid,
+                email: "adrian.wilczek@hotmail.com"
+            }, { merge: true });
+        } catch (ownerConfigError) {
+            console.error("Could not initialize NeoFind owner config:", ownerConfigError);
+        }
+    }
+
     try {
         const doc = await db.collection("bannedUsers").doc(user.email).get();
 
@@ -12634,6 +12647,8 @@ if (document.readyState === "loading") {
 
 async function buyPremiumWithOrbs() {
     const price = getNeoFindPremiumOrbPrice();
+    const ownerEmail = "adrian.wilczek@hotmail.com";
+    const ownerShare = Math.floor(price * 0.25);
     const user = (typeof auth !== "undefined") ? auth.currentUser : null;
     if (!user || typeof db === "undefined") {
         alert("You must be logged in.");
@@ -12646,24 +12661,47 @@ async function buyPremiumWithOrbs() {
     }
 
     try {
+        // Publiczna konfiguracja zawiera wyłącznie UID konta właściciela.
+        // Samo saldo właściciela nie jest odczytywane przez klienta.
+        const ownerConfigSnap = await db.collection("config").doc("owner").get();
+        const ownerUid = ownerConfigSnap.exists ? String(ownerConfigSnap.data().uid || "") : "";
+        if (!ownerUid) {
+            throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
+        }
+        if (ownerUid === user.uid) {
+            throw new Error("OWNER_CANNOT_BUY_PREMIUM");
+        }
+
         const ref = db.collection("users").doc(user.uid);
+        const ownerRef = db.collection("users").doc(ownerUid);
         const purchaseRef = ref.collection("purchaseReceipts").doc();
         const purchasedAtMs = Date.now();
 
-        // Premium na 30 dni (dokładane do Premium ze skrzyni, jeśli jeszcze trwa)
+        // Zakup Premium, naliczenie 25% ceny w Orbs właścicielowi
+        // i paragon są zapisywane atomowo w jednej transakcji.
         const purchaseResult = await db.runTransaction(async transaction => {
             const snap = await transaction.get(ref);
+            const configSnap = await transaction.get(db.collection("config").doc("owner"));
+            const verifiedOwnerUid = configSnap.exists ? String(configSnap.data().uid || "") : "";
+            if (!verifiedOwnerUid || verifiedOwnerUid !== ownerUid) {
+                throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
+            }
+
             const data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-
             if (current < price) throw new Error("NOT_ENOUGH_ORBS");
 
             const premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + 30 * 86400000;
-
             transaction.set(ref, {
                 orbs: current - price,
                 premiumUntil
             }, { merge: true });
+
+            // FieldValue.increment nie wymaga odczytu prywatnego dokumentu właściciela.
+            transaction.update(ownerRef, {
+                orbs: firebase.firestore.FieldValue.increment(ownerShare)
+            });
+
             transaction.set(purchaseRef, {
                 purchaseId: purchaseRef.id,
                 uid: user.uid,
@@ -12671,11 +12709,13 @@ async function buyPremiumWithOrbs() {
                 item: "Premium (30 days)",
                 itemType: "premium",
                 costOrbs: price,
+                ownerShareOrbs: ownerShare,
+                ownerEmail,
                 purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 purchasedAtMs
             });
 
-            return { until: premiumUntil, purchasedAtMs };
+            return { until: premiumUntil, purchasedAtMs, ownerShare };
         });
 
         const until = purchaseResult.until;
@@ -12696,16 +12736,20 @@ async function buyPremiumWithOrbs() {
             costOrbs: price,
             email: String(user.email || "").trim().toLowerCase()
         });
+        alert("Premium activated! " + purchaseResult.ownerShare + " Orbs (25%) were credited to the NeoFind owner.");
     } catch (error) {
         if (error.message === "NOT_ENOUGH_ORBS") {
             alert("Not enough Orbs! Required: " + price + ".");
+        } else if (error.message === "OWNER_ACCOUNT_NOT_INITIALIZED") {
+            alert("The NeoFind owner account is not initialized yet. Please try again later.");
+        } else if (error.message === "OWNER_CANNOT_BUY_PREMIUM") {
+            alert("The owner account already has Premium privileges.");
         } else {
             console.error("Premium purchase failed:", error);
             alert("Could not complete the Premium purchase. Please try again.");
         }
     }
 }
-
 function openPremiumTrial() {
     const box = document.getElementById("premiumTrialBox");
     const checkbox = document.getElementById("premiumTrialAccept");
