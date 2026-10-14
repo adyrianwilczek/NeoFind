@@ -1,0 +1,947 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* =========================================================
+       AUTH
+       ========================================================= */
+
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isLoggedIn() && request.auth.uid == uid;
+    }
+
+    function isAdmin() {
+      return isLoggedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in [
+          "adrian.wilczek@hotmail.com",
+          "michal.szyszynski@outlook.com",
+          "account.neofind@gmail.com",
+          "support.neofind@gmail.com",
+          "michal.wilkowski@outlook.com",
+          "michal.wilkowski@gmail.com",
+          "j.e.wilkowska@gmail.com"
+        ];
+    }
+
+    function isOwnerAccount() {
+      return isLoggedIn()
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() == "adrian.wilczek@hotmail.com";
+    }
+
+    /* =========================================================
+       NEOFIND
+       ========================================================= */
+
+    match /customResults/{doc} {
+      allow read: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    match /config/{doc} {
+      allow read: if true;
+      // UID konta właściciela może ustawiać wyłącznie właściciel.
+      allow write: if doc == 'owner' ? isOwnerAccount() : isAdmin();
+    }
+
+    match /bannedUsers/{email} {
+      allow read: if isAdmin()
+        || (
+          isLoggedIn()
+          && request.auth.token.email != null
+          && request.auth.token.email.lower() == email.lower()
+        );
+      allow write: if isAdmin();
+    }
+
+    /* =========================================================
+       GLOBAL ANNOUNCEMENTS
+       ========================================================= */
+
+    match /announcements/{announcementId} {
+      allow read: if isLoggedIn();
+
+      allow create: if isAdmin()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 200
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 10000;
+
+      allow update, delete: if isAdmin();
+    }
+
+    /* =========================================================
+       USER ANNOUNCEMENTS
+       ========================================================= */
+
+    match /users/{userId}/announcements/{announcementId} {
+      allow read: if isAdmin() || isOwner(userId);
+
+      allow create: if isAdmin()
+        || (
+          isLoggedIn()
+          && request.resource.data.keys().hasOnly([
+            'title', 'body', 'type', 'from',
+            'globalId', 'createdAt', 'read'
+          ])
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 200
+          && request.resource.data.body is string
+          && request.resource.data.body.size() <= 5000
+          && request.resource.data.type is string
+          && request.resource.data.type in [
+            'chat_message', 'friend_request', 'premium_purchase',
+            'admin_orbs', 'admin', 'global', 'system'
+          ]
+          && request.resource.data.read is bool
+        );
+
+      allow update: if isAdmin()
+        || (
+          isOwner(userId)
+          && request.resource.data.title == resource.data.title
+          && request.resource.data.body == resource.data.body
+          && request.resource.data.type == resource.data.type
+          && request.resource.data.globalId == resource.data.globalId
+          && request.resource.data.from == resource.data.from
+          && request.resource.data.createdAt == resource.data.createdAt
+        );
+
+      allow delete: if isAdmin() || isOwner(userId);
+    }
+
+    /* =========================================================
+       FRIEND REQUESTS
+       ========================================================= */
+
+    match /friendRequests/{reqId} {
+      allow read: if isLoggedIn()
+        && (
+          resource.data.from == request.auth.token.email
+          || resource.data.to == request.auth.token.email
+        );
+
+      allow create: if isLoggedIn()
+        && request.resource.data.from == request.auth.token.email;
+
+      allow update: if isLoggedIn()
+        && resource.data.to == request.auth.token.email;
+
+      allow delete: if isAdmin()
+        || (
+          isLoggedIn()
+          && (
+            resource.data.from == request.auth.token.email
+            || resource.data.to == request.auth.token.email
+          )
+        );
+    }
+
+    /* =========================================================
+       CHATS
+       ========================================================= */
+
+    match /chats/{chatId} {
+      allow read, write: if isLoggedIn()
+        && (
+          chatId.split('__')[0] == request.auth.token.email
+          || chatId.split('__')[1] == request.auth.token.email
+        );
+    }
+
+    match /chats/{chatId}/messages/{msgId} {
+      function isParticipant() {
+        return isLoggedIn()
+          && (
+            chatId.split('__')[0] == request.auth.token.email
+            || chatId.split('__')[1] == request.auth.token.email
+          );
+      }
+
+      allow read: if isParticipant();
+
+      allow create: if isParticipant()
+        && request.resource.data.from == request.auth.token.email;
+
+      allow update, delete: if isParticipant()
+        && resource.data.from == request.auth.token.email;
+    }
+
+    /* =========================================================
+       SUPPORT CHATS
+       ========================================================= */
+
+    match /supportChats/{chatId} {
+      allow read, update, delete: if isAdmin();
+
+      allow create: if isLoggedIn()
+        && request.resource.data.userEmail == request.auth.token.email
+        && request.resource.data.status == "open";
+
+      allow read: if isLoggedIn()
+        && resource.data.userEmail == request.auth.token.email;
+
+      allow update: if isLoggedIn()
+        && resource.data.userEmail == request.auth.token.email
+        && request.resource.data.userEmail == resource.data.userEmail
+        && request.resource.data.status == resource.data.status;
+
+      match /messages/{msgId} {
+        allow read: if isAdmin();
+
+        allow read: if isLoggedIn()
+          && get(
+            /databases/$(database)/documents/supportChats/$(chatId)
+          ).data.userEmail == request.auth.token.email;
+
+        allow create: if isAdmin()
+          && request.resource.data.from == request.auth.token.email
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 5000;
+
+        allow create: if isLoggedIn()
+          && get(
+            /databases/$(database)/documents/supportChats/$(chatId)
+          ).data.userEmail == request.auth.token.email
+          && request.resource.data.from == request.auth.token.email
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 5000;
+
+        allow update, delete: if false;
+      }
+    }
+
+    /* =========================================================
+       RATINGS
+       ========================================================= */
+
+    match /ratings/{doc} {
+      allow read, create: if isLoggedIn();
+      allow delete: if isAdmin();
+    }
+
+    /* =========================================================
+       REPORTS
+       ========================================================= */
+
+    match /reports/{doc} {
+      allow create: if isLoggedIn();
+      allow read, delete: if isAdmin();
+    }
+
+    /* =========================================================
+       REDEEM CODES
+       ========================================================= */
+
+    match /redeemCodes/{codeId} {
+      allow read: if isLoggedIn();
+      allow write: if isAdmin();
+    }
+
+    match /redeemClaims/{claimId} {
+      allow read: if isAdmin()
+        || (isLoggedIn() && resource.data.uid == request.auth.uid);
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.codeId is string
+        && request.resource.data.scope in ['global', 'user']
+        && request.resource.data.redeemedAt == request.time
+        && (
+          (
+            request.resource.data.scope == 'global'
+            && claimId == request.resource.data.codeId
+            && get(
+              /databases/$(database)/documents/redeemCodes/$(request.resource.data.codeId)
+            ).data.scope == 'global'
+          )
+          ||
+          (
+            request.resource.data.scope == 'user'
+            && claimId == request.resource.data.codeId + '_' + request.auth.uid
+            && get(
+              /databases/$(database)/documents/redeemCodes/$(request.resource.data.codeId)
+            ).data.scope == 'user'
+          )
+        );
+
+      allow update, delete: if isAdmin();
+    }
+
+    /* =========================================================
+       USERS AND ECONOMY
+       ========================================================= */
+
+    match /users/{userId} {
+      function economyKeys() {
+        return [
+          'orbs', 'premium', 'premiumUntil',
+          'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
+          'missionDay', 'missionClaims', 'lastAdminOrbGrant',
+          'chestInventory', 'lastChestReward', 'lastAdminChestGrant',
+          'lastRedeemCode', 'lastRedeemAt', 'lastOrbTransferIn',
+          'lastOrbTransferOut', 'advancements', 'advancementStats',
+          'badges', 'advancementNotices', 'serverEvents',
+          'neoVisitDate', 'neoVisitStreak'
+        ];
+      }
+
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      function emailOk(keys) {
+        return !keys.hasAny(['email'])
+          || request.resource.data.email == request.auth.token.email;
+      }
+
+      /*
+       * MAIN DEVICE CHECK
+       *
+       * request.auth.token.deviceId must be issued by a trusted
+       * backend as a Firebase Custom Claim.
+       * Do not treat a localStorage ID as secure authentication.
+       */
+      function isMainDevice() {
+        return isLoggedIn()
+          && request.auth.token.deviceId is string
+          && get(
+            /databases/$(database)/documents/users/$(userId)
+          ).data.get('mainTrustedDeviceId', '') == request.auth.token.deviceId;
+      }
+
+      function oldOrbs() {
+        return resource.data.get('orbs', 0);
+      }
+
+      function newOrbs() {
+        return request.resource.data.get('orbs', 0);
+      }
+
+      function orbsValid() {
+        return newOrbs() is int && newOrbs() >= 0;
+      }
+
+      function nowMs() {
+        return request.time.toMillis();
+      }
+
+      function utcDay() {
+        return math.floor(nowMs() / 86400000);
+      }
+
+      function isStartBalance() {
+        return changedKeys().hasOnly(['orbs', 'email'])
+          && !('orbs' in resource.data)
+          && newOrbs() == 0;
+      }
+
+      function isDailyChest() {
+        let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
+          ? resource.data.get('premiumUntil', 0)
+          : nowMs();
+
+        return changedKeys().hasOnly([
+            'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
+            'orbs', 'premiumUntil', 'email'
+          ])
+          && request.resource.data.lastChestAt == request.time
+          && (
+            !('lastChestAt' in resource.data)
+            || request.time > resource.data.lastChestAt + duration.value(12, 'h')
+          )
+          && request.resource.data.dailyChestDate is string
+          && orbsValid()
+          && newOrbs() - oldOrbs() >= 0
+          && newOrbs() - oldOrbs() <= 250
+          && (
+            !changedKeys().hasAny(['premiumUntil'])
+            || (
+              request.resource.data.premiumUntil is int
+              && request.resource.data.premiumUntil <= premiumBase + 7 * 86400000 + 600000
+            )
+          );
+      }
+
+      function isMissionReward() {
+        let previousClaims = resource.data.get('missionDay', -1) == utcDay()
+          ? resource.data.get('missionClaims', 0)
+          : 0;
+
+        return changedKeys().hasOnly(['orbs', 'missionDay', 'missionClaims', 'email'])
+          && request.resource.data.missionDay == utcDay()
+          && request.resource.data.missionClaims == previousClaims + 1
+          && request.resource.data.missionClaims <= 6
+          && orbsValid()
+          && newOrbs() - oldOrbs() > 0
+          && newOrbs() - oldOrbs() <= 500;
+      }
+
+      function isRedeemReward() {
+        let codeId = request.resource.data.get('lastRedeemCode', '');
+        let codeRef = /databases/$(database)/documents/redeemCodes/$(codeId);
+        let code = get(codeRef).data;
+        let scope = code.get('scope', 'invalid');
+        let claimId = scope == 'global'
+          ? codeId
+          : codeId + '_' + request.auth.uid;
+        let claimRef = /databases/$(database)/documents/redeemClaims/$(claimId);
+        let orbReward = code.get('orbs', 0);
+        let premiumDays = code.get('premiumDays', 0);
+        let premiumBase = resource.data.get('premiumUntil', 0) > request.time.toMillis()
+          ? resource.data.get('premiumUntil', 0)
+          : request.time.toMillis();
+
+        return changedKeys().hasOnly([
+            'orbs', 'premiumUntil', 'lastRedeemCode', 'lastRedeemAt'
+          ])
+          && code.get('active', false) == true
+          && scope in ['global', 'user']
+          && orbReward is int
+          && orbReward >= 0
+          && orbReward <= 100000
+          && premiumDays is int
+          && premiumDays >= 0
+          && premiumDays <= 3650
+          && request.resource.data.lastRedeemCode == codeId
+          && request.resource.data.lastRedeemAt == request.time
+          && request.resource.data.orbs == resource.data.get('orbs', 0) + orbReward
+          && (
+            premiumDays == 0
+            ? request.resource.data.get('premiumUntil', 0) == resource.data.get('premiumUntil', 0)
+            : request.resource.data.premiumUntil == premiumBase + premiumDays * 86400000
+          )
+          && !exists(claimRef)
+          && getAfter(claimRef).data.uid == request.auth.uid
+          && getAfter(claimRef).data.codeId == codeId
+          && getAfter(claimRef).data.scope == scope
+          && getAfter(claimRef).data.redeemedAt == request.time;
+      }
+
+      function isChestPurchase() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0)
+          && newOrbs() == oldOrbs() - 25;
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0)
+          && newOrbs() == oldOrbs() - 50;
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0)
+          && newOrbs() == oldOrbs() - 100;
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1
+          && newOrbs() == oldOrbs() - 200;
+
+        return changedKeys().hasOnly(['orbs', 'chestInventory', 'email'])
+          && orbsValid()
+          && newInv is map
+          && (normal || rare || epic || neofind);
+      }
+
+      function isChestOpen() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) - 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) - 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) - 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) - 1;
+
+        let orbReward = newOrbs() - oldOrbs();
+        let premiumChanged = changedKeys().hasAny(['premiumUntil']);
+        let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
+          ? resource.data.get('premiumUntil', 0)
+          : nowMs();
+
+        let allowedOrbReward = orbReward in [
+          25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 300, 325
+        ];
+        let allowedPremium = premiumChanged
+          && request.resource.data.premiumUntil is int
+          && (
+            request.resource.data.premiumUntil == premiumBase + 3 * 86400000
+            || request.resource.data.premiumUntil == premiumBase + 7 * 86400000
+          );
+
+        return changedKeys().hasOnly([
+            'orbs', 'chestInventory', 'premiumUntil',
+            'lastChestReward', 'email'
+          ])
+          && orbsValid()
+          && newInv is map
+          && (normal || rare || epic || neofind)
+          && (
+            allowedOrbReward
+            || allowedPremium
+            || (allowedOrbReward && allowedPremium)
+          );
+      }
+
+      function isOwnerChestGrant() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1;
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1;
+
+        return isOwnerAccount()
+          && changedKeys().hasOnly(['chestInventory', 'lastAdminChestGrant', 'email'])
+          && newInv is map
+          && (normal || rare || epic || neofind);
+      }
+
+      function isPremiumPurchase() {
+        let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
+          ? resource.data.get('premiumUntil', 0)
+          : nowMs();
+        let ownerData = get(/databases/$(database)/documents/config/owner).data;
+        let ownerUid = ownerData.get('uid', '');
+        let ownerRef = /databases/$(database)/documents/users/$(ownerUid);
+        let ownerBefore = get(ownerRef).data.get('orbs', 0);
+        let ownerAfter = getAfter(ownerRef).data.get('orbs', 0);
+
+        return ownerUid is string
+          && ownerUid.size() > 0
+          && ownerUid != userId
+          && changedKeys().hasOnly(['orbs', 'premiumUntil', 'email'])
+          && orbsValid()
+          && oldOrbs() - newOrbs() == 1000
+          && request.resource.data.premiumUntil is int
+          && request.resource.data.premiumUntil > nowMs()
+          && request.resource.data.premiumUntil <= premiumBase + 30 * 86400000 + 600000
+          // Wymagaj równoczesnego dopisania 25% ceny do konta właściciela.
+          && ownerAfter == ownerBefore + 250;
+      }
+
+      function isPremiumOwnerCredit() {
+        let ownerData = get(/databases/$(database)/documents/config/owner).data;
+        let ownerUid = ownerData.get('uid', '');
+        let buyerRef = /databases/$(database)/documents/users/$(request.auth.uid);
+        let buyerBefore = get(buyerRef).data;
+        let buyerAfter = getAfter(buyerRef).data;
+        let buyerPremiumBase = buyerBefore.get('premiumUntil', 0) > nowMs()
+          ? buyerBefore.get('premiumUntil', 0)
+          : nowMs();
+
+        return isLoggedIn()
+          && ownerUid is string
+          && ownerUid == userId
+          && request.auth.uid != userId
+          && changedKeys().hasOnly(['orbs'])
+          && request.resource.data.get('orbs', 0) == resource.data.get('orbs', 0) + 250
+          && buyerBefore.get('orbs', 0) - buyerAfter.get('orbs', 0) == 1000
+          && buyerAfter.get('premiumUntil', 0) is int
+          && buyerAfter.get('premiumUntil', 0) > nowMs()
+          && buyerAfter.get('premiumUntil', 0) <= buyerPremiumBase + 30 * 86400000 + 600000;
+      }
+
+      allow read: if isAdmin() || isOwner(userId);
+
+      allow create: if isAdmin()
+        || (
+          isOwner(userId)
+          && emailOk(request.resource.data.keys())
+          && !request.resource.data.keys().hasAny([
+            'premium', 'premiumUntil',
+            'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
+            'missionDay', 'missionClaims', 'lastAdminOrbGrant'
+          ])
+          && request.resource.data.get('orbs', 0) == 0
+        );
+
+      /*
+       * Trusted-device fields can only be changed by the MAIN
+       * device authenticated with a backend-issued custom claim,
+       * or by an admin.
+       */
+      allow update: if isAdmin()
+        || isPremiumOwnerCredit()
+        || (
+          isOwner(userId)
+          && emailOk(changedKeys())
+          && (
+            !changedKeys().hasAny([
+              'trustedDeviceIds',
+              'trustedDeviceNames',
+              'mainTrustedDeviceId'
+            ])
+            || isMainDevice()
+          )
+          && (
+            !changedKeys().hasAny(economyKeys())
+            || isStartBalance()
+            || isOwnerChestGrant()
+            || isPremiumPurchase()
+          )
+        );
+
+      allow delete: if isAdmin();
+
+      match /purchaseReceipts/{purchaseId} {
+        allow read: if isAdmin() || isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'purchaseId', 'uid', 'email', 'item', 'itemType',
+            'costOrbs', 'ownerShareOrbs', 'ownerEmail',
+            'purchasedAt', 'purchasedAtMs'
+          ])
+          && request.resource.data.purchaseId == purchaseId
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.email == request.auth.token.email
+          && request.resource.data.item is string
+          && request.resource.data.itemType in ['chest', 'premium']
+          && request.resource.data.costOrbs is int
+          && request.resource.data.costOrbs > 0
+          && (
+            request.resource.data.itemType != 'premium'
+            || (
+              request.resource.data.costOrbs == 1000
+              && request.resource.data.ownerShareOrbs == 250
+              && request.resource.data.ownerEmail == 'adrian.wilczek@hotmail.com'
+            )
+          )
+          && request.resource.data.purchasedAtMs is int
+          && request.resource.data.purchasedAt == request.time;
+
+        allow update, delete: if false;
+      }
+
+      /* =========================================================
+         NEW DEVICE SIGN-IN APPROVALS
+         ========================================================= */
+
+      match /loginApprovals/{deviceId} {
+        allow read: if isAdmin() || isOwner(userId);
+
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasOnly([
+            'deviceId', 'deviceLabel', 'status', 'createdAt'
+          ])
+          && request.resource.data.deviceId == deviceId
+          && request.resource.data.deviceLabel is string
+          && request.resource.data.deviceLabel.size() > 0
+          && request.resource.data.deviceLabel.size() <= 100
+          && request.resource.data.status == 'pending'
+          && request.resource.data.createdAt == request.time;
+
+        /*
+         * Only the MAIN device or an admin can approve/deny.
+         */
+        allow update: if (isAdmin() || isMainDevice())
+          && resource.data.status == 'pending'
+          && request.resource.data.deviceId == resource.data.deviceId
+          && request.resource.data.deviceLabel == resource.data.deviceLabel
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.status in ['approved', 'denied']
+          && request.resource.data.reviewedAt == request.time
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'reviewedAt', 'trustedDeviceAdded'
+          ])
+          && (
+            !('trustedDeviceAdded' in request.resource.data)
+            || request.resource.data.trustedDeviceAdded == true
+          );
+
+        allow delete: if isAdmin();
+      }
+    }
+
+    /* =========================================================
+       MAIL
+       ========================================================= */
+
+    match /mail/{mailId} {
+      allow create: if isLoggedIn();
+    }
+
+    /* =========================================================
+       ALERTS
+       ========================================================= */
+
+    match /alerts/{alertId} {
+      allow create: if isLoggedIn()
+        && request.resource.data.keys().hasOnly([
+          'email', 'type', 'description', 'timestamp'
+        ])
+        && request.resource.data.type is string
+        && request.resource.data.description is string;
+
+      allow read, delete: if isAdmin();
+    }
+
+    /* =========================================================
+       API KEYS
+       ========================================================= */
+
+    match /api_keys/{keyId} {
+      allow create: if isLoggedIn()
+        && request.resource.data.userId == request.auth.uid;
+
+      allow read: if isAdmin()
+        || (
+          isLoggedIn()
+          && resource.data.userId == request.auth.uid
+        );
+
+      allow update, delete: if isAdmin()
+        || (
+          isLoggedIn()
+          && resource.data.userId == request.auth.uid
+        );
+    }
+
+    /* =========================================================
+       NEO SOCIAL: PROFILES
+       ========================================================= */
+
+    match /socialProfiles/{userId} {
+      allow read: if true;
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    /* =========================================================
+       NEO SOCIAL: POSTS
+       ========================================================= */
+
+    match /socialPosts/{postId} {
+      allow read: if true;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      allow update: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+
+      allow delete: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    /* =========================================================
+       NEO SOCIAL: REELS
+       ========================================================= */
+
+    match /socialReels/{reelId} {
+      allow read: if true;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      allow update: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+
+      allow delete: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    /* =========================================================
+       NEO SOCIAL: FOLLOWS
+       ========================================================= */
+
+    match /socialFollows/{followId} {
+      allow read: if true;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.followerUid == request.auth.uid
+        && request.resource.data.followingUid is string
+        && request.resource.data.followingUid != request.auth.uid;
+
+      allow update: if isLoggedIn()
+        && resource.data.uid == request.auth.uid;
+
+      allow delete: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    /* =========================================================
+       NEO SOCIAL: LIKES
+       ========================================================= */
+
+    match /socialLikes/{likeId} {
+      allow read: if true;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid;
+
+      allow delete: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+
+      allow update: if false;
+    }
+
+    /* =========================================================
+       NEO SOCIAL: COMMENTS
+       ========================================================= */
+
+    match /socialComments/{commentId} {
+      allow read: if true;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.type in ['post', 'reel']
+        && request.resource.data.targetId is string
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500;
+
+      allow update: if isLoggedIn()
+        && resource.data.uid == request.auth.uid;
+
+      allow delete: if isLoggedIn()
+        && (
+          resource.data.uid == request.auth.uid
+          || isAdmin()
+        );
+    }
+
+    /* =========================================================
+       NEO SOCIAL: MODERATION
+       ========================================================= */
+
+    match /socialModeration/{moderationId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    /* =========================================================
+       GLOBAL UPDATE ANNOUNCEMENT
+       ========================================================= */
+
+    match /system/{doc} {
+      allow read: if isLoggedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    /* =========================================================
+       NEO ECONOMY SUITE: SERVER-OWNED RECORDS
+       ========================================================= */
+
+    match /users/{userId}/orbTransactions/{transactionId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+
+    match /users/{userId}/chestHistory/{historyId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+
+    match /users/{userId}/inventory/{itemId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+
+    match /users/{userId}/blockedUsers/{targetUid} {
+      allow read: if isOwner(userId);
+
+      allow create: if isOwner(userId)
+        && targetUid != userId
+        && request.resource.data.keys().hasOnly(['targetUid', 'createdAt'])
+        && request.resource.data.targetUid == targetUid;
+
+      allow delete: if isOwner(userId);
+      allow update: if false;
+    }
+
+    match /users/{userId}/operationKeys/{operationId} {
+      allow read, write: if false;
+    }
+
+    match /users/{userId}/missionClaims/{claimId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+
+    match /users/{userId}/missionProgress/{dayId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow write: if false;
+    }
+
+    match /neoAiFeedback/{feedbackId} {
+      allow read: if isAdmin();
+
+      allow create, update: if isLoggedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.responseId is string
+        && request.resource.data.vote in ['up', 'down']
+        && request.resource.data.model is string;
+
+      allow delete: if isAdmin();
+    }
+
+    /* =========================================================
+       DEFAULT DENY
+       ========================================================= */
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
