@@ -2229,6 +2229,9 @@ body.ocean {
         🔑 Panel API
     </button>
 </div>
+<div style="text-align:right;margin:-2px 0 12px;">
+  <button type="button" id="neoFindArcadeMenuOpen" style="background:linear-gradient(110deg,rgba(0,242,254,.15),rgba(79,172,254,.16),rgba(155,81,224,.18));color:#eafaff;border:1px solid rgba(0,242,254,.55);padding:8px 14px;border-radius:9px;cursor:pointer;font-family:inherit;box-shadow:0 0 18px rgba(0,242,254,.08)">🎮 NeoFind Arcade</button>
+</div>
 
 <!-- PANEL KLUCZY API (Domyślnie ukryty: display: none) -->
 <div id="apiPanel" style="display: none; max-width: 500px; margin: 20px auto; padding: 25px; background: #13131a; border: 1px solid #3f3f46; border-radius: 12px; box-sizing: border-box;">
@@ -2317,6 +2320,39 @@ NOTE! Do not share the key with anyone.
     <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap"><button id="neoFindFlappyStart" type="button" style="padding:10px 20px;background:linear-gradient(100deg,#00cbd8,#4facfe);color:#04131d;border:0;font-weight:700">▶ Start game</button><button id="neoFindFlappyRestart" type="button" style="padding:10px 18px">↻ Restart</button></div>
     <p style="font-size:11px;opacity:.55;margin:12px 0 0">Space, ↑, click or tap to flap. Press Esc to close.</p>
   </section>
+</div>
+
+
+<div id="neoFindArcadeMenu" role="dialog" aria-modal="true" aria-labelledby="neoFindArcadeTitle" style="display:none;position:fixed;inset:0;z-index:100300;background:rgba(2,5,15,.9);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:16px;box-sizing:border-box">
+ <section style="position:relative;width:min(720px,100%);max-height:92vh;overflow:auto;box-sizing:border-box;padding:clamp(18px,4vw,30px);border:1px solid rgba(0,242,254,.35);border-radius:24px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);box-shadow:0 24px 90px #000a;color:#f4fbff;font-family:inherit">
+  <button type="button" id="neoFindArcadeMenuClose" aria-label="Close Arcade" style="position:absolute;right:14px;top:12px;font-size:22px;padding:4px 12px;background:#ffffff0d;border:1px solid #ffffff22;color:#fff;border-radius:9px;cursor:pointer">×</button>
+  <div style="font-size:11px;letter-spacing:4px;color:#00f2fe;text-align:center">SEARCH. CONNECT. DISCOVER.</div>
+  <h2 id="neoFindArcadeTitle" style="font-size:clamp(28px,5vw,38px);text-align:center;margin:8px 35px 5px">🎮 NeoFind Arcade</h2>
+  <p style="text-align:center;opacity:.7;margin:0 0 22px">Choose your game and jump right in.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px">
+   <button type="button" data-arcade-game="breakout" style="text-align:left;padding:17px;border:1px solid #00f2fe55;border-radius:15px;background:#00f2fe0d;color:#fff;cursor:pointer;font:inherit"><span style="font-size:28px">🧱</span><br><b>Breakout</b><br><small style="opacity:.7">Smash bricks. Keep the ball alive.</small></button>
+   <button type="button" data-arcade-game="flappy" style="text-align:left;padding:17px;border:1px solid #00f2fe55;border-radius:15px;background:#4facfe12;color:#fff;cursor:pointer;font:inherit"><span style="font-size:28px">🐤</span><br><b>Flappy Bird</b><br><small style="opacity:.7">Fly between pipes and beat your record.</small></button>
+   <button type="button" data-arcade-game="snake" style="text-align:left;padding:17px;border:1px solid #00f2fe55;border-radius:15px;background:#9b51e012;color:#fff;cursor:pointer;font:inherit"><span style="font-size:28px">🐍</span><br><b>Snake</b><br><small style="opacity:.7">Eat apples and grow longer.</small></button>
+   <button type="button" data-arcade-game="pacman" style="text-align:left;padding:17px;border:1px solid #00f2fe55;border-radius:15px;background:#ffc85710;color:#fff;cursor:pointer;font:inherit"><span style="font-size:28px">🟡</span><br><b>Pac-Man</b><br><small style="opacity:.7">Collect dots and avoid the ghost.</small></button>
+   <button type="button" data-arcade-game="tetris" style="text-align:left;padding:17px;border:1px solid #00f2fe55;border-radius:15px;background:#9b51e012;color:#fff;cursor:pointer;font:inherit"><span style="font-size:28px">🟪</span><br><b>Tetris</b><br><small style="opacity:.7">Fit falling blocks and clear lines.</small></button>
+  </div>
+ </section>
+</div>
+<div id="neoFindPacmanOverlay" role="dialog" aria-modal="true" aria-labelledby="neoFindPacmanTitle" style="display:none;position:fixed;inset:0;z-index:100301;background:rgba(2,5,15,.9);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:12px;box-sizing:border-box">
+ <section style="position:relative;width:min(520px,100%);max-height:94vh;overflow:auto;padding:20px;box-sizing:border-box;border:1px solid #00f2fe55;border-radius:20px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);color:#f4fbff;text-align:center;font-family:inherit">
+  <button id="neoFindPacmanClose" type="button" aria-label="Close Pac-Man" style="position:absolute;right:12px;top:10px;font-size:22px;background:#ffffff0d;color:#fff;border:1px solid #ffffff22;border-radius:8px;cursor:pointer">×</button>
+  <h2 id="neoFindPacmanTitle" style="margin:0 30px 8px">🟡 Pac-Man</h2><div style="margin-bottom:10px">Score: <b id="neoFindPacmanScore">0</b> · Lives: <b id="neoFindPacmanLives">3</b></div>
+  <div style="width:min(100%,390px);margin:auto;border:1px solid #00f2fe55;border-radius:8px;overflow:hidden"><canvas id="neoFindPacmanCanvas" width="390" height="390" style="display:block;width:100%;height:auto;touch-action:manipulation"></canvas></div>
+  <p id="neoFindPacmanStatus" role="status" style="min-height:20px">Use arrow keys or WASD to collect dots.</p><button id="neoFindPacmanStart" type="button" style="padding:10px 18px;border:0;border-radius:9px;background:linear-gradient(100deg,#00cbd8,#4facfe);color:#04131d;font-weight:700;cursor:pointer">▶ Start game</button>
+ </section>
+</div>
+<div id="neoFindTetrisOverlay" role="dialog" aria-modal="true" aria-labelledby="neoFindTetrisTitle" style="display:none;position:fixed;inset:0;z-index:100302;background:rgba(2,5,15,.9);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:12px;box-sizing:border-box">
+ <section style="position:relative;width:min(520px,100%);max-height:94vh;overflow:auto;padding:20px;box-sizing:border-box;border:1px solid #00f2fe55;border-radius:20px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);color:#f4fbff;text-align:center;font-family:inherit">
+  <button id="neoFindTetrisClose" type="button" aria-label="Close Tetris" style="position:absolute;right:12px;top:10px;font-size:22px;background:#ffffff0d;color:#fff;border:1px solid #ffffff22;border-radius:8px;cursor:pointer">×</button>
+  <h2 id="neoFindTetrisTitle" style="margin:0 30px 8px">🟪 Tetris</h2><div style="margin-bottom:10px">Score: <b id="neoFindTetrisScore">0</b> · Lines: <b id="neoFindTetrisLines">0</b></div>
+  <div style="width:min(100%,300px);margin:auto;border:1px solid #00f2fe55;border-radius:8px;overflow:hidden"><canvas id="neoFindTetrisCanvas" width="300" height="540" style="display:block;width:100%;height:auto;touch-action:manipulation"></canvas></div>
+  <p id="neoFindTetrisStatus" role="status" style="min-height:20px">← → move · ↑ rotate · ↓ drop faster · Space hard drop</p><button id="neoFindTetrisStart" type="button" style="padding:10px 18px;border:0;border-radius:9px;background:linear-gradient(100deg,#00cbd8,#4facfe);color:#04131d;font-weight:700;cursor:pointer">▶ Start game</button>
+ </section>
 </div>
 
 <div id="results"></div>
@@ -16215,6 +16251,89 @@ document.addEventListener("click", event => {
  function flTick(){flFrame++;bird.vy+=.28;bird.y+=bird.vy;if(flFrame%82===0)flAddPipe(FW+10);pipes.forEach(p=>{p.x-=2.5;if(!p.passed&&p.x+48<bird.x){p.passed=true;flScore++;$("neoFindFlappyScore").textContent=flScore;if(flScore>flBest){flBest=flScore;$("neoFindFlappyBest").textContent=flBest;try{localStorage.setItem("neoFindFlappyBest",String(flBest))}catch(e){}}}});pipes=pipes.filter(p=>p.x>-70);let hit=bird.y+bird.r>FH-12||bird.y-bird.r<0||pipes.some(p=>bird.x+bird.r>p.x&&bird.x-bird.r<p.x+48&&(bird.y-bird.r<p.top||bird.y+bird.r>p.top+p.gap));if(hit){flStop();flOver=true;$("neoFindFlappyStatus").textContent="Game over! Score: "+flScore+". Best: "+flBest+".";$("neoFindFlappyStart").textContent="↻ Play again"}flDraw()}
  $("neoFindFlappyStart").addEventListener("click",()=>{if(flRunning){flReset();flStart()}else flStart()});$("neoFindFlappyRestart").addEventListener("click",flReset);
  fc.addEventListener("pointerdown",e=>{e.preventDefault();flap()});
+})();
+</script>
+
+
+<script id="neoFindArcadeMenuAndGames">
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const menu=$("neoFindArcadeMenu"),open=$("neoFindArcadeMenuOpen");
+if(!menu||!open)return;
+const pac=$("neoFindPacmanOverlay"),tet=$("neoFindTetrisOverlay");
+function show(el){el.style.display="flex";document.body.style.overflow="hidden"}
+function hide(el){el.style.display="none";if(![menu,pac,tet,$("neoFindSnakeOverlay"),$("neoFindBreakoutOverlay"),$("neoFindFlappyOverlay")].some(x=>x&&x.style.display==="flex"))document.body.style.overflow=""}
+open.addEventListener("click",()=>show(menu));
+$("neoFindArcadeMenuClose").addEventListener("click",()=>hide(menu));
+menu.addEventListener("click",e=>{if(e.target===menu)hide(menu)});
+menu.querySelectorAll("[data-arcade-game]").forEach(btn=>btn.addEventListener("click",()=>{
+ const game=btn.dataset.arcadeGame;hide(menu);
+ if(game==="snake")$("neoFindSnakeOpen").click();
+ if(game==="breakout")$("neoFindBreakoutOpen").click();
+ if(game==="flappy")$("neoFindFlappyOpen").click();
+ if(game==="pacman"){pmReset();show(pac);$("neoFindPacmanStart").focus()}
+ if(game==="tetris"){ttReset();show(tet);$("neoFindTetrisStart").focus()}
+}));
+$("neoFindPacmanClose").addEventListener("click",()=>{pmStop();hide(pac)});
+pac.addEventListener("click",e=>{if(e.target===pac){pmStop();hide(pac)}});
+$("neoFindTetrisClose").addEventListener("click",()=>{ttStop();hide(tet)});
+tet.addEventListener("click",e=>{if(e.target===tet){ttStop();hide(tet)}});
+document.addEventListener("keydown",e=>{
+ if(e.key==="Escape"){if(pac.style.display==="flex"){$("neoFindPacmanClose").click();return}if(tet.style.display==="flex"){$("neoFindTetrisClose").click();return}if(menu.style.display==="flex"){hide(menu);return}}
+ if(pac.style.display==="flex"){
+  const d={ArrowUp:[0,-1],w:[0,-1],ArrowDown:[0,1],s:[0,1],ArrowLeft:[-1,0],a:[-1,0],ArrowRight:[1,0],d:[1,0]}[e.key]||{ };
+  if(d&&d.length){e.preventDefault();pmDir=d}
+ }
+ if(tet.style.display==="flex"&&ttRunning){
+  if(["ArrowLeft","ArrowRight","ArrowDown","ArrowUp"," "].includes(e.key))e.preventDefault();
+  if(e.key==="ArrowLeft")ttMove(-1,0);if(e.key==="ArrowRight")ttMove(1,0);if(e.key==="ArrowDown")ttMove(0,1);if(e.key==="ArrowUp")ttRotate();if(e.key===" ")ttHardDrop();
+ }
+});
+// PAC-MAN mini-maze
+const pc=$("neoFindPacmanCanvas"),px=pc.getContext("2d"),PS=26,PM=15;
+const maze=[
+"###############",
+"#.............#",
+"#.###.###.###.#",
+"#.............#",
+"#.##.#.#.#.##.#",
+"#....#...#....#",
+"###.##.#.##.###",
+"#.....#.#.....#",
+"#.##.....##...#",
+"#....#...#....#",
+"#.##.#.#.#.##.#",
+"#.............#",
+"#.###.###.###.#",
+"#.............#",
+"###############"
+];
+let pmGrid,pmPlayer,pmGhost,pmScore=0,pmLives=3,pmTimer=null,pmRunning=false,pmDir=[0,0],pmTick=0;
+function pmReset(){pmStop();pmGrid=maze.map(r=>r.split(""));pmPlayer={x:1,y:1};pmGhost={x:13,y:13};pmScore=0;pmLives=3;pmTick=0;pmDir=[0,0];$("neoFindPacmanScore").textContent=0;$("neoFindPacmanLives").textContent=3;$("neoFindPacmanStatus").textContent="Use arrow keys or WASD to collect dots."; $("neoFindPacmanStart").textContent="▶ Start game";pmDraw()}
+function pmStop(){if(pmTimer){clearInterval(pmTimer);pmTimer=null}pmRunning=false}
+function pmStart(){if(pmRunning)return;pmRunning=true;$("neoFindPacmanStatus").textContent="Collect every dot and avoid the ghost!";$("neoFindPacmanStart").textContent="↻ Restart";pmTimer=setInterval(pmStep,145)}
+function pmDraw(){px.fillStyle="#05091c";px.fillRect(0,0,pc.width,pc.height);for(let y=0;y<PM;y++)for(let x=0;x<PM;x++){const cx=x*PS,cy=y*PS;if(pmGrid[y][x]==="#"){px.fillStyle="#172b91";px.fillRect(cx+1,cy+1,PS-2,PS-2);px.strokeStyle="#3f75ff";px.strokeRect(cx+3,cy+3,PS-6,PS-6)}else if(pmGrid[y][x]==="."){px.fillStyle="#ffe7a3";px.beginPath();px.arc(cx+PS/2,cy+PS/2,2.5,0,Math.PI*2);px.fill()}}px.fillStyle="#ffdc35";px.beginPath();px.arc(pmPlayer.x*PS+PS/2,pmPlayer.y*PS+PS/2,10,0,Math.PI*2);px.fill();px.fillStyle="#06101d";px.beginPath();px.moveTo(pmPlayer.x*PS+PS/2,pmPlayer.y*PS+PS/2);px.lineTo(pmPlayer.x*PS+PS/2+11,pmPlayer.y*PS+PS/2-6);px.lineTo(pmPlayer.x*PS+PS/2+11,pmPlayer.y*PS+PS/2+6);px.fill();const gx=pmGhost.x*PS+PS/2,gy=pmGhost.y*PS+PS/2;px.fillStyle="#ff547b";px.beginPath();px.arc(gx,gy,10,Math.PI,0);px.lineTo(gx+10,gy+9);px.lineTo(gx+4,gy+6);px.lineTo(gx,gy+10);px.lineTo(gx-5,gy+6);px.lineTo(gx-10,gy+9);px.closePath();px.fill();px.fillStyle="#fff";px.beginPath();px.arc(gx-3,gy-2,3,0,Math.PI*2);px.arc(gx+4,gy-2,3,0,Math.PI*2);px.fill();px.fillStyle="#14213d";px.beginPath();px.arc(gx-2,gy-2,1.4,0,Math.PI*2);px.arc(gx+5,gy-2,1.4,0,Math.PI*2);px.fill();if(!pmRunning){px.fillStyle="#020617b8";px.fillRect(0,0,pc.width,pc.height);px.fillStyle="#fff";px.textAlign="center";px.font="bold 24px sans-serif";px.fillText(pmLives<=0?"GAME OVER":pmGrid.flat().every(c=>c!==" .".trim())&&pmScore>0?"PAC-MAN":"READY?",pc.width/2,pc.height/2)}}
+function pmStep(){pmTick++;const nx=pmPlayer.x+pmDir[0],ny=pmPlayer.y+pmDir[1];if(pmDir[0]||pmDir[1])if(pmGrid[ny]&&pmGrid[ny][nx]!=="#"){pmPlayer.x=nx;pmPlayer.y=ny;if(pmGrid[ny][nx]==="."){pmGrid[ny][nx]=" ";pmScore+=10;$("neoFindPacmanScore").textContent=pmScore}}if(pmTick%2===0){const choices=[[1,0],[-1,0],[0,1],[0,-1]].map(d=>({x:pmGhost.x+d[0],y:pmGhost.y+d[1]})).filter(p=>pmGrid[p.y]&&pmGrid[p.y][p.x]!=="#");if(choices.length){choices.sort((a,b)=>Math.abs(a.x-pmPlayer.x)+Math.abs(a.y-pmPlayer.y)-(Math.abs(b.x-pmPlayer.x)+Math.abs(b.y-pmPlayer.y));pmGhost=choices[0]}}if(pmGhost.x===pmPlayer.x&&pmGhost.y===pmPlayer.y){pmLives--;$("neoFindPacmanLives").textContent=pmLives;if(pmLives<=0){pmStop();$("neoFindPacmanStatus").textContent="Game over. Start again to retry."; $("neoFindPacmanStart").textContent="↻ Play again"}else{pmPlayer={x:1,y:1};pmGhost={x:13,y:13}}}if(!pmGrid.some(row=>row.includes("."))){pmStop();$("neoFindPacmanStatus").textContent="You cleared the maze!";$("neoFindPacmanStart").textContent="↻ Play again"}pmDraw()}
+$("neoFindPacmanStart").addEventListener("click",()=>{if(pmRunning){pmReset();pmStart()}else{if(pmLives<=0||!pmGrid.some(row=>row.includes(".")))pmReset();pmStart()}});
+pc.addEventListener("pointerdown",e=>{const r=pc.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;pmDir=Math.abs(x)>Math.abs(y)?[x>0?1:-1,0]:[0,y>0?1:-1];if(!pmRunning)pmStart()});
+// TETRIS
+const tc=$("neoFindTetrisCanvas"),tx=tc.getContext("2d"),TW=10,TH=18,TS=30;
+const shapes=[[[1,1,1,1]],[[1,1],[1,1]],[[0,1,0],[1,1,1]],[[1,0,0],[1,1,1]],[[0,0,1],[1,1,1]],[[1,1,0],[0,1,1]],[[0,1,1],[1,1,0]]],colors=["#00f2fe","#ffc857","#b58cff","#4facfe","#ff9c57","#ff6b9a","#8de36b"];
+let ttBoard,ttPiece,ttScore=0,ttLines=0,ttTimer=null,ttRunning=false,ttOver=false,ttLast=0;
+function ttNewPiece(){const i=Math.floor(Math.random()*shapes.length),shape=shapes[i].map(r=>r.slice());return {shape,x:Math.floor((TW-shape[0].length)/2),y:0,color:colors[i]}}
+function ttReset(){ttStop();ttBoard=Array.from({length:TH},()=>Array(TW).fill(""));ttPiece=ttNewPiece();ttScore=0;ttLines=0;ttOver=false;$("neoFindTetrisScore").textContent=0;$("neoFindTetrisLines").textContent=0;$("neoFindTetrisStatus").textContent="← → move · ↑ rotate · ↓ drop faster · Space hard drop";$("neoFindTetrisStart").textContent="▶ Start game";ttDraw()}
+function ttStop(){if(ttTimer){clearInterval(ttTimer);ttTimer=null}ttRunning=false}
+function ttStart(){if(ttOver)ttReset();if(ttRunning)return;ttRunning=true;$("neoFindTetrisStart").textContent="↻ Restart";$("neoFindTetrisStatus").textContent="Keep stacking!";ttTimer=setInterval(ttTick,480)}
+function ttValid(shape,x,y){for(let r=0;r<shape.length;r++)for(let c=0;c<shape[r].length;c++)if(shape[r][c]){let nx=x+c,ny=y+r;if(nx<0||nx>=TW||ny>=TH||(ny>=0&&ttBoard[ny][nx]))return false}return true}
+function ttMove(dx,dy){if(ttValid(ttPiece.shape,ttPiece.x+dx,ttPiece.y+dy)){ttPiece.x+=dx;ttPiece.y+=dy;ttDraw()}else if(dy>0)ttLock()}
+function ttRotate(){const sh=ttPiece.shape[0].map((_,i)=>ttPiece.shape.map(row=>row[i]).reverse());if(ttValid(sh,ttPiece.x,ttPiece.y))ttPiece.shape=sh;ttDraw()}
+function ttHardDrop(){while(ttValid(ttPiece.shape,ttPiece.x,ttPiece.y+1))ttPiece.y++;ttLock()}
+function ttLock(){ttPiece.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v&&ttPiece.y+r>=0)ttBoard[ttPiece.y+r][ttPiece.x+c]=ttPiece.color}));let cleared=0;ttBoard=ttBoard.filter(row=>{if(row.every(Boolean)){cleared++;return false}return true});while(ttBoard.length<TH)ttBoard.unshift(Array(TW).fill(""));if(cleared){ttLines+=cleared;ttScore+=[0,100,300,500,800][cleared]||800;$("neoFindTetrisScore").textContent=ttScore;$("neoFindTetrisLines").textContent=ttLines}ttPiece=ttNewPiece();if(!ttValid(ttPiece.shape,ttPiece.x,ttPiece.y)){ttStop();ttOver=true;$("neoFindTetrisStatus").textContent="Game over! Score: "+ttScore;$("neoFindTetrisStart").textContent="↻ Play again"}ttDraw()}
+function ttTick(){ttMove(0,1)}
+function ttDraw(){tx.fillStyle="#060b18";tx.fillRect(0,0,tc.width,tc.height);for(let y=0;y<TH;y++)for(let x=0;x<TW;x++){const color=ttBoard[y][x];if(color){tx.fillStyle=color;tx.fillRect(x*TS+1,y*TS+1,TS-2,TS-2)}else{tx.strokeStyle="#ffffff0b";tx.strokeRect(x*TS,y*TS,TS,TS)}}if(ttPiece)ttPiece.shape.forEach((row,r)=>row.forEach((v,c)=>{if(v){tx.fillStyle=ttPiece.color;tx.fillRect((ttPiece.x+c)*TS+1,(ttPiece.y+r)*TS+1,TS-2,TS-2)}}));if(!ttRunning){tx.fillStyle="#020617b8";tx.fillRect(0,0,tc.width,tc.height);tx.fillStyle="#fff";tx.textAlign="center";tx.font="bold 25px sans-serif";tx.fillText(ttOver?"GAME OVER":"TETRIS",tc.width/2,tc.height/2)}}
+$("neoFindTetrisStart").addEventListener("click",()=>{if(ttRunning){ttReset();ttStart()}else ttStart()});
+ttReset();pmReset();
 })();
 </script>
 
