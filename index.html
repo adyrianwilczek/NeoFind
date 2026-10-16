@@ -14288,8 +14288,13 @@ window.sendOrbsToUser = async function () {
       notice.querySelector("#neoUpdateResetButton").addEventListener("click", async function () {
         const button = this;
         button.disabled = true;
-        button.textContent = "Updating…";
+        button.textContent = "Downloading update…";
         try {
+          // Show the download state for a random 2–4 seconds.
+          const downloadDuration = 2000 + Math.floor(Math.random() * 2001);
+          await new Promise(resolve => window.setTimeout(resolve, downloadDuration));
+
+          button.textContent = "Applying update…";
           await updateDb.collection("users").doc(user.uid).set({
             completedUpdateVersion: requestedReleaseId,
             completedUpdateAt: Date.now()
