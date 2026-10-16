@@ -90,7 +90,7 @@ service cloud.firestore {
           isLoggedIn()
           && request.resource.data.keys().hasOnly([
             'title', 'body', 'type', 'from',
-            'globalId', 'createdAt', 'read'
+            'globalId', 'createdAt', 'read', 'inviteId'
           ])
           && request.resource.data.title is string
           && request.resource.data.title.size() > 0
@@ -100,7 +100,7 @@ service cloud.firestore {
           && request.resource.data.type is string
           && request.resource.data.type in [
             'chat_message', 'friend_request', 'premium_purchase',
-            'admin_orbs', 'admin', 'global', 'system'
+            'admin_orbs', 'admin', 'global', 'system', 'tic_tac_toe_invite'
           ]
           && request.resource.data.read is bool
         );
@@ -144,6 +144,56 @@ service cloud.firestore {
             || resource.data.to == request.auth.token.email
           )
         );
+    }
+
+    /* =========================================================
+       TIC TAC TOE FRIEND MATCHES
+       ========================================================= */
+
+    match /ticTacToeInvites/{inviteId} {
+      function isPlayer() {
+        return isLoggedIn()
+          && request.auth.token.email != null
+          && (
+            resource.data.from == request.auth.token.email
+            || resource.data.to == request.auth.token.email
+          );
+      }
+
+      allow create: if isLoggedIn()
+        && request.resource.data.from == request.auth.token.email
+        && request.resource.data.to is string
+        && request.resource.data.to != request.auth.token.email
+        && request.resource.data.status == 'pending'
+        && request.resource.data.board is list
+        && request.resource.data.board.size() == 9
+        && request.resource.data.turn == 'X';
+
+      allow read: if isPlayer();
+
+      allow update: if isPlayer()
+        && request.resource.data.from == resource.data.from
+        && request.resource.data.to == resource.data.to
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status', 'board', 'turn', 'acceptedAt', 'lastMoveAt', 'winner'
+        ])
+        && (
+          (
+            resource.data.status == 'pending'
+            && request.auth.token.email == resource.data.to
+            && request.resource.data.status in ['accepted', 'declined']
+          )
+          ||
+          (
+            resource.data.status == 'accepted'
+            && request.resource.data.status in ['accepted', 'finished']
+            && request.resource.data.board is list
+            && request.resource.data.board.size() == 9
+            && request.resource.data.turn in ['X', 'O']
+          )
+        );
+
+      allow delete: if false;
     }
 
     /* =========================================================
