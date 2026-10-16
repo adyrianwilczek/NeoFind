@@ -2265,8 +2265,13 @@ NOTE! Do not share the key with anyone.
 <!-- 🔍 wyniki -->
 
 <div id="neoFindSnakeFeature" style="display:none;width:85%;max-width:760px;margin:14px auto 18px;text-align:center">
-  <button type="button" id="neoFindSnakeOpen" style="font-family:inherit;font-size:15px;padding:12px 22px;border-radius:14px;border:1px solid rgba(0,242,254,.6);background:linear-gradient(110deg,rgba(0,242,254,.16),rgba(79,172,254,.18),rgba(155,81,224,.18));color:#fff;box-shadow:0 0 24px rgba(0,242,254,.12)">🐍 Play Snake</button>
-  <div style="font-size:12px;opacity:.65;margin-top:6px">NeoFind Arcade · Snake</div>
+  <div style="font-size:12px;letter-spacing:3px;color:#00f2fe;margin-bottom:10px">NEOFIND ARCADE</div>
+  <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+    <button type="button" id="neoFindSnakeOpen" style="font-family:inherit;font-size:15px;padding:12px 22px;border-radius:14px;border:1px solid rgba(0,242,254,.6);background:linear-gradient(110deg,rgba(0,242,254,.16),rgba(79,172,254,.18),rgba(155,81,224,.18));color:#fff;box-shadow:0 0 24px rgba(0,242,254,.12)">🐍 Play Snake</button>
+    <button type="button" id="neoFindBreakoutOpen" style="font-family:inherit;font-size:15px;padding:12px 22px;border-radius:14px;border:1px solid rgba(0,242,254,.6);background:linear-gradient(110deg,rgba(0,242,254,.16),rgba(79,172,254,.18),rgba(155,81,224,.18));color:#fff">🧱 Play Breakout</button>
+    <button type="button" id="neoFindFlappyOpen" style="font-family:inherit;font-size:15px;padding:12px 22px;border-radius:14px;border:1px solid rgba(0,242,254,.6);background:linear-gradient(110deg,rgba(0,242,254,.16),rgba(79,172,254,.18),rgba(155,81,224,.18));color:#fff">🐤 Play Flappy Bird</button>
+  </div>
+  <div style="font-size:12px;opacity:.65;margin-top:8px">One menu · Three mini-games · NeoFind Arcade</div>
 </div>
 <div id="neoFindSnakeOverlay" role="dialog" aria-modal="true" aria-labelledby="neoFindSnakeTitle" style="display:none;position:fixed;inset:0;z-index:100200;background:rgba(2,5,15,.88);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:14px;box-sizing:border-box">
   <section id="neoFindSnakeDialog" style="position:relative;width:min(620px,100%);max-height:94vh;overflow:auto;box-sizing:border-box;padding:clamp(14px,3vw,24px);border:1px solid rgba(0,242,254,.35);border-radius:22px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);box-shadow:0 24px 90px #000a,0 0 36px #00f2fe13;color:#f4fbff;text-align:center;font-family:inherit">
@@ -2285,6 +2290,32 @@ NOTE! Do not share the key with anyone.
       <button type="button" data-snake-dir="left" aria-label="Left" style="font-size:18px;padding:10px">←</button><button type="button" data-snake-dir="down" aria-label="Down" style="font-size:18px;padding:10px">↓</button><button type="button" data-snake-dir="right" aria-label="Right" style="font-size:18px;padding:10px">→</button>
     </div>
     <p style="font-size:11px;opacity:.55;margin:12px 0 0">Keyboard: WASD or arrow keys · Space: pause/resume · Swipe or use the buttons on touchscreens</p>
+  </section>
+</div>
+
+
+<div id="neoFindBreakoutOverlay" role="dialog" aria-modal="true" aria-labelledby="neoFindBreakoutTitle" style="display:none;position:fixed;inset:0;z-index:100201;background:rgba(2,5,15,.9);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:14px;box-sizing:border-box">
+  <section style="position:relative;width:min(620px,100%);max-height:94vh;overflow:auto;box-sizing:border-box;padding:clamp(14px,3vw,24px);border:1px solid rgba(0,242,254,.35);border-radius:22px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);box-shadow:0 24px 90px #000a;color:#f4fbff;text-align:center;font-family:inherit">
+    <button id="neoFindBreakoutClose" type="button" aria-label="Close Breakout" style="position:absolute;right:12px;top:12px;font-size:22px;padding:4px 12px;background:#ffffff0d;border-color:#ffffff22">×</button>
+    <div style="font-size:12px;letter-spacing:3px;color:#00f2fe;margin-bottom:5px">NEOFIND ARCADE</div><h2 id="neoFindBreakoutTitle" style="margin:0 32px 4px;font-size:clamp(25px,5vw,34px)">🧱 Breakout</h2>
+    <p style="margin:5px 0 12px;opacity:.7;font-size:13px">Break every brick with the ball. Keep it on your paddle!</p>
+    <div style="display:flex;justify-content:center;gap:22px;margin:0 0 12px;font-size:14px"><span>Score: <b id="neoFindBreakoutScore" style="color:#00f2fe">0</b></span><span>Lives: <b id="neoFindBreakoutLives" style="color:#b58cff">3</b></span></div>
+    <div style="width:min(100%,480px);margin:auto;border:1px solid #00f2fe55;border-radius:12px;overflow:hidden;background:#07111a"><canvas id="neoFindBreakoutCanvas" width="480" height="360" aria-label="Breakout game board" style="display:block;width:100%;height:auto;touch-action:manipulation"></canvas></div>
+    <div id="neoFindBreakoutStatus" role="status" style="min-height:22px;margin:10px 0 7px;font-size:13px;color:#b8d8e8">Press Start to play</div>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap"><button id="neoFindBreakoutStart" type="button" style="padding:10px 20px;background:linear-gradient(100deg,#00cbd8,#4facfe);color:#04131d;border:0;font-weight:700">▶ Start game</button><button id="neoFindBreakoutRestart" type="button" style="padding:10px 18px">↻ Restart</button></div>
+    <p style="font-size:11px;opacity:.55;margin:12px 0 0">Move with ← → or A/D. Mouse, touch and pointer movement also control the paddle. Space starts or pauses.</p>
+  </section>
+</div>
+<div id="neoFindFlappyOverlay" role="dialog" aria-modal="true" aria-labelledby="neoFindFlappyTitle" style="display:none;position:fixed;inset:0;z-index:100202;background:rgba(2,5,15,.9);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:14px;box-sizing:border-box">
+  <section style="position:relative;width:min(560px,100%);max-height:94vh;overflow:auto;box-sizing:border-box;padding:clamp(14px,3vw,24px);border:1px solid rgba(0,242,254,.35);border-radius:22px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);box-shadow:0 24px 90px #000a;color:#f4fbff;text-align:center;font-family:inherit">
+    <button id="neoFindFlappyClose" type="button" aria-label="Close Flappy Bird" style="position:absolute;right:12px;top:12px;font-size:22px;padding:4px 12px;background:#ffffff0d;border-color:#ffffff22">×</button>
+    <div style="font-size:12px;letter-spacing:3px;color:#00f2fe;margin-bottom:5px">NEOFIND ARCADE</div><h2 id="neoFindFlappyTitle" style="margin:0 32px 4px;font-size:clamp(25px,5vw,34px)">🐤 Flappy Bird</h2>
+    <p style="margin:5px 0 12px;opacity:.7;font-size:13px">Tap or press Space to fly through the pipes.</p>
+    <div style="display:flex;justify-content:center;gap:22px;margin:0 0 12px;font-size:14px"><span>Score: <b id="neoFindFlappyScore" style="color:#00f2fe">0</b></span><span>Best: <b id="neoFindFlappyBest" style="color:#b58cff">0</b></span></div>
+    <div style="width:min(100%,420px);margin:auto;border:1px solid #00f2fe55;border-radius:12px;overflow:hidden;background:#8ddcf5"><canvas id="neoFindFlappyCanvas" width="360" height="480" aria-label="Flappy Bird game board" style="display:block;width:100%;height:auto;touch-action:manipulation"></canvas></div>
+    <div id="neoFindFlappyStatus" role="status" style="min-height:22px;margin:10px 0 7px;font-size:13px;color:#b8d8e8">Press Start to play</div>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap"><button id="neoFindFlappyStart" type="button" style="padding:10px 20px;background:linear-gradient(100deg,#00cbd8,#4facfe);color:#04131d;border:0;font-weight:700">▶ Start game</button><button id="neoFindFlappyRestart" type="button" style="padding:10px 18px">↻ Restart</button></div>
+    <p style="font-size:11px;opacity:.55;margin:12px 0 0">Space, ↑, click or tap to flap. Press Esc to close.</p>
   </section>
 </div>
 
@@ -16100,7 +16131,7 @@ document.addEventListener("click", event => {
  bestEl.textContent=best;
  function normalized(v){return String(v||"").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim()}
  function isSnakeQuery(v){const q=normalized(v);return aliases.has(q)||q==="snake game online"||q==="google snake game"||q==="play the snake game"||q==="gra w snake"||q==="wazyk"||q==="waz online"}
- function updateFeature(){feature.style.display=isSnakeQuery(input.value)?"block":"none"}
+ function updateFeature(){const q=normalized(input.value);const arcadeTerms=["snake","the snake","snake game","google snake","game snake","waz","waz gra","gra w weza","waz gra online","snake online","play snake","play snake game","breakout","break out","breakout game","brick breaker","brick breaking game","gra breakout","flappy bird","flappy","flappybird","flappy bird game","gra flappy bird"];feature.style.display=arcadeTerms.includes(q)||q==="snake game online"||q==="google snake game"||q==="play the snake game"||q==="gra w snake"||q==="wazyk"||q==="waz online"?"block":"none"}
  input.addEventListener("input",updateFeature);
  document.addEventListener("keydown",function(e){if(e.key==="Enter")window.setTimeout(updateFeature,0)});
  function draw(){
@@ -16128,6 +16159,62 @@ document.addEventListener("click", event => {
  document.addEventListener("keydown",function(e){if(overlay.style.display!=="flex")return;if(e.key==="Escape"){closeGame();return}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)||/^w$|^a$|^s$|^d$/i.test(e.key)){e.preventDefault();if(e.key===" "){pause();return}const k=e.key.toLowerCase();setDirection(({arrowup:"up",w:"up",arrowdown:"down",s:"down",arrowleft:"left",a:"left",arrowright:"right",d:"right"})[k])}});
  let touchX=0,touchY=0;canvas.addEventListener("touchstart",e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});canvas.addEventListener("touchend",e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;setDirection(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"))},{passive:true});
  reset();updateFeature();
+})();
+</script>
+
+
+<script id="neoFindArcadeExtraGames">
+(function(){
+ "use strict";
+ const breakoutOverlay=document.getElementById("neoFindBreakoutOverlay"), flappyOverlay=document.getElementById("neoFindFlappyOverlay");
+ const breakoutOpen=document.getElementById("neoFindBreakoutOpen"), flappyOpen=document.getElementById("neoFindFlappyOpen");
+ if(!breakoutOverlay||!flappyOverlay||!breakoutOpen||!flappyOpen)return;
+ const $=id=>document.getElementById(id);
+ function show(overlay){overlay.style.display="flex";document.body.style.overflow="hidden"}
+ function hide(overlay){overlay.style.display="none";if(![breakoutOverlay,flappyOverlay,$("neoFindSnakeOverlay")].some(el=>el&&el.style.display==="flex"))document.body.style.overflow=""}
+ breakoutOpen.addEventListener("click",()=>{show(breakoutOverlay);brReset();$("neoFindBreakoutClose").focus()});
+ flappyOpen.addEventListener("click",()=>{show(flappyOverlay);flReset();$("neoFindFlappyClose").focus()});
+ $("neoFindBreakoutClose").addEventListener("click",()=>{brStop();hide(breakoutOverlay);breakoutOpen.focus()});
+ $("neoFindFlappyClose").addEventListener("click",()=>{flStop();hide(flappyOverlay);flappyOpen.focus()});
+ [breakoutOverlay,flappyOverlay].forEach(o=>o.addEventListener("click",e=>{if(e.target===o){if(o===breakoutOverlay)brStop();else flStop();hide(o)}}));
+ document.addEventListener("keydown",e=>{
+   if(e.key==="Escape"){if(breakoutOverlay.style.display==="flex"){$("neoFindBreakoutClose").click();return}if(flappyOverlay.style.display==="flex"){$("neoFindFlappyClose").click();return}}
+   if(breakoutOverlay.style.display==="flex"){
+     if(["ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault();
+     if(e.key==="ArrowLeft"||e.key.toLowerCase()==="a")brMove=-1;
+     if(e.key==="ArrowRight"||e.key.toLowerCase()==="d")brMove=1;
+     if(e.key===" "){if(brRunning)brPause();else brStart()}
+   }
+   if(flappyOverlay.style.display==="flex"&&(e.key===" "||e.key==="ArrowUp")){e.preventDefault();flap()}
+ });
+ document.addEventListener("keyup",e=>{if(e.key==="ArrowLeft"||e.key==="ArrowRight"||["a","d"].includes(e.key.toLowerCase()))brMove=0});
+ // BREAKOUT
+ const bc=$("neoFindBreakoutCanvas"), bx=bc.getContext("2d"), BW=bc.width,BH=bc.height;
+ let paddle,ball,bricks,brScore=0,brLives=3,brTimer=null,brRunning=false,brPaused=false,brOver=false,brMove=0;
+ function brReset(){brStop();paddle={x:BW/2-45,y:BH-24,w:90,h:10};ball={x:BW/2,y:BH-40,dx:3,dy:-3,r:7};bricks=[];for(let row=0;row<5;row++)for(let col=0;col<9;col++)bricks.push({x:13+col*51,y:35+row*23,w:45,h:15,on:true,color:["#00f2fe","#4facfe","#9b51e0","#ff6b9a","#ffc857"][row]});brScore=0;brLives=3;brOver=false;brPaused=false;$("neoFindBreakoutScore").textContent="0";$("neoFindBreakoutLives").textContent="3";$("neoFindBreakoutStatus").textContent="Press Start to play";$("neoFindBreakoutStart").textContent="▶ Start game";brDraw()}
+ function brStop(){if(brTimer){clearInterval(brTimer);brTimer=null}brRunning=false}
+ function brStart(){if(brOver)brReset();if(brRunning)return;brRunning=true;brPaused=false;$("neoFindBreakoutStatus").textContent="Break those bricks!";$("neoFindBreakoutStart").textContent="Ⅱ Pause";brTimer=setInterval(brTick,16)}
+ function brPause(){if(brRunning){brStop();brPaused=true;$("neoFindBreakoutStatus").textContent="Paused";$("neoFindBreakoutStart").textContent="▶ Resume"}else if(brPaused)brStart();brDraw()}
+ function brEnd(won){brStop();brOver=true;brPaused=false;$("neoFindBreakoutStatus").textContent=won?"All bricks cleared. You win!":"Game over. Try again!";$("neoFindBreakoutStart").textContent="↻ Play again";brDraw()}
+ function brDraw(){bx.clearRect(0,0,BW,BH);let g=bx.createLinearGradient(0,0,0,BH);g.addColorStop(0,"#0b2035");g.addColorStop(1,"#060b18");bx.fillStyle=g;bx.fillRect(0,0,BW,BH);bricks.forEach(b=>{if(!b.on)return;bx.fillStyle=b.color;bx.shadowColor=b.color;bx.shadowBlur=8;bx.beginPath();bx.roundRect(b.x,b.y,b.w,b.h,4);bx.fill()});bx.shadowBlur=12;bx.shadowColor="#00f2fe";bx.fillStyle="#b8fbff";bx.beginPath();bx.roundRect(paddle.x,paddle.y,paddle.w,paddle.h,5);bx.fill();bx.shadowColor="#fff";bx.fillStyle="#fff";bx.beginPath();bx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);bx.fill();bx.shadowBlur=0;if(!brRunning){bx.fillStyle="#07111acc";bx.fillRect(0,0,BW,BH);bx.textAlign="center";bx.fillStyle="#f4fbff";bx.font="600 24px Oxanium, sans-serif";bx.fillText(brOver?(bricks.every(b=>!b.on)?"YOU WIN!":"GAME OVER"):"READY?",BW/2,BH/2-6);bx.fillStyle="#b8d8e8";bx.font="13px Oxanium, sans-serif";bx.fillText(brOver?"Press Restart to play again":"Press Start to launch the ball",BW/2,BH/2+20)}}
+ function brTick(){paddle.x+=brMove*6;paddle.x=Math.max(0,Math.min(BW-paddle.w,paddle.x));ball.x+=ball.dx;ball.y+=ball.dy;if(ball.x<ball.r||ball.x>BW-ball.r)ball.dx*=-1;if(ball.y<ball.r)ball.dy=Math.abs(ball.dy);if(ball.dy>0&&ball.y+ball.r>=paddle.y&&ball.y-ball.r<=paddle.y+paddle.h&&ball.x>=paddle.x&&ball.x<=paddle.x+paddle.w){ball.dy=-Math.abs(ball.dy);ball.dx=((ball.x-(paddle.x+paddle.w/2))/(paddle.w/2))*4.5}for(const b of bricks){if(b.on&&ball.x+ball.r>b.x&&ball.x-ball.r<b.x+b.w&&ball.y+ball.r>b.y&&ball.y-ball.r<b.y+b.h){b.on=false;ball.dy*=-1;brScore+=10;$("neoFindBreakoutScore").textContent=brScore;break}}if(ball.y>BH){brLives--;$("neoFindBreakoutLives").textContent=brLives;if(brLives<=0){brEnd(false);return}ball={x:BW/2,y:BH-40,dx:3,dy:-3}}if(bricks.every(b=>!b.on)){brEnd(true);return}brDraw()}
+ $("neoFindBreakoutStart").addEventListener("click",()=>brRunning?brPause():brStart());$("neoFindBreakoutRestart").addEventListener("click",brReset);
+ function brPointer(e){const r=bc.getBoundingClientRect();paddle.x=Math.max(0,Math.min(BW-paddle.w,(e.clientX-r.left)/r.width*BW-paddle.w/2));if(!brRunning)brDraw()}
+ bc.addEventListener("pointermove",brPointer);bc.addEventListener("pointerdown",e=>{brPointer(e);if(!brRunning&&!brOver)brStart()});
+ // FLAPPY BIRD
+ const fc=$("neoFindFlappyCanvas"), fx=fc.getContext("2d"), FW=fc.width,FH=fc.height;
+ let bird,pipes,flScore=0,flBest=0,flTimer=null,flRunning=false,flOver=false,flStarted=false,flFrame=0;
+ try{flBest=Number(localStorage.getItem("neoFindFlappyBest")||0)||0}catch(e){}
+ $("neoFindFlappyBest").textContent=flBest;
+ function flReset(){flStop();bird={x:85,y:FH*.45,vy:0,r:12};pipes=[];flScore=0;flFrame=0;flOver=false;flStarted=false;$("neoFindFlappyScore").textContent="0";$("neoFindFlappyStatus").textContent="Press Start, then flap through the pipes";$("neoFindFlappyStart").textContent="▶ Start game";flDraw()}
+ function flStop(){if(flTimer){clearInterval(flTimer);flTimer=null}flRunning=false}
+ function flStart(){if(flOver)flReset();if(flRunning)return;flRunning=true;flStarted=true;$("neoFindFlappyStatus").textContent="Fly, bird, fly!";$("neoFindFlappyStart").textContent="↻ Restart";if(!pipes.length)flAddPipe(FW+30);flTimer=setInterval(flTick,20)}
+ function flap(){if(flappyOverlay.style.display!=="flex")return;if(flOver){flReset();flStart()}else if(!flRunning){flStart();bird.vy=-5.5}else bird.vy=-5.5}
+ function flAddPipe(x){const gap=132,top=45+Math.random()*(FH-gap-130);pipes.push({x,top,gap,passed:false})}
+ function flDraw(){fx.clearRect(0,0,FW,FH);let sky=fx.createLinearGradient(0,0,0,FH);sky.addColorStop(0,"#78d7f5");sky.addColorStop(1,"#d8f5ff");fx.fillStyle=sky;fx.fillRect(0,0,FW,FH);fx.fillStyle="rgba(255,255,255,.7)";[[60,85],[245,125],[160,45]].forEach(([x,y])=>{fx.beginPath();fx.ellipse(x,y,25,9,0,0,Math.PI*2);fx.ellipse(x+18,y-5,19,12,0,0,Math.PI*2);fx.fill()});pipes.forEach(p=>{fx.fillStyle="#28a957";fx.strokeStyle="#147b3b";fx.lineWidth=3;fx.fillRect(p.x,0,48,p.top);fx.strokeRect(p.x,0,48,p.top);fx.fillRect(p.x-5,p.top-18,58,18);fx.strokeRect(p.x-5,p.top-18,58,18);const bottom=p.top+p.gap;fx.fillRect(p.x,bottom,48,FH-bottom);fx.strokeRect(p.x,bottom,48,FH-bottom);fx.fillRect(p.x-5,bottom,58,18);fx.strokeRect(p.x-5,bottom,58,18)});fx.fillStyle="#f7ca45";fx.strokeStyle="#c58b1c";fx.lineWidth=2;fx.beginPath();fx.ellipse(bird.x,bird.y,bird.r+2,bird.r,0,0,Math.PI*2);fx.fill();fx.stroke();fx.fillStyle="#fff";fx.beginPath();fx.arc(bird.x+5,bird.y-4,4,0,Math.PI*2);fx.fill();fx.fillStyle="#14283c";fx.beginPath();fx.arc(bird.x+6,bird.y-4,1.8,0,Math.PI*2);fx.fill();fx.fillStyle="#f27b36";fx.beginPath();fx.moveTo(bird.x+10,bird.y);fx.lineTo(bird.x+19,bird.y+3);fx.lineTo(bird.x+10,bird.y+6);fx.fill();fx.fillStyle="#d2a15b";fx.fillRect(0,FH-12,FW,12);if(!flRunning){fx.fillStyle="#07111a88";fx.fillRect(0,0,FW,FH);fx.textAlign="center";fx.fillStyle="#fff";fx.font="700 24px Oxanium, sans-serif";fx.fillText(flOver?"GAME OVER":"FLAPPY BIRD",FW/2,FH/2-8);fx.font="13px Oxanium, sans-serif";fx.fillText(flOver?"Press Restart to try again":"Tap / Space to flap",FW/2,FH/2+18)}}
+ function flTick(){flFrame++;bird.vy+=.28;bird.y+=bird.vy;if(flFrame%82===0)flAddPipe(FW+10);pipes.forEach(p=>{p.x-=2.5;if(!p.passed&&p.x+48<bird.x){p.passed=true;flScore++;$("neoFindFlappyScore").textContent=flScore;if(flScore>flBest){flBest=flScore;$("neoFindFlappyBest").textContent=flBest;try{localStorage.setItem("neoFindFlappyBest",String(flBest))}catch(e){}}}});pipes=pipes.filter(p=>p.x>-70);let hit=bird.y+bird.r>FH-12||bird.y-bird.r<0||pipes.some(p=>bird.x+bird.r>p.x&&bird.x-bird.r<p.x+48&&(bird.y-bird.r<p.top||bird.y+bird.r>p.top+p.gap));if(hit){flStop();flOver=true;$("neoFindFlappyStatus").textContent="Game over! Score: "+flScore+". Best: "+flBest+".";$("neoFindFlappyStart").textContent="↻ Play again"}flDraw()}
+ $("neoFindFlappyStart").addEventListener("click",()=>{if(flRunning){flReset();flStart()}else flStart()});$("neoFindFlappyRestart").addEventListener("click",flReset);
+ fc.addEventListener("pointerdown",e=>{e.preventDefault();flap()});
 })();
 </script>
 
