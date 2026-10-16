@@ -3745,6 +3745,122 @@ function currentTipTitle(){
     return (t && t.didYouKnowTitle) || "Did you know?";
 }
 
+/* Safe NeoFind calculator parser: no eval/Function execution. */
+function calculateNeoExpression(expression) {
+    if (typeof expression !== "string" || !expression.trim() || expression.length > 100) return null;
+
+    let source = expression
+        .replace(/[×]/g, "*")
+        .replace(/[÷]/g, "/")
+        .replace(/[−]/g, "-")
+        .replace(/(\d),(\d)/g, "$1.$2")
+        .replace(/\s+/g, "");
+
+    const tokens = [];
+    const tokenPattern = /\d+(?:\.\d*)?|\.\d+|[eE]|[()+\-*/xX:!%^]/y;
+    let position = 0;
+
+    while (position < source.length) {
+        tokenPattern.lastIndex = position;
+        const match = tokenPattern.exec(source);
+        if (!match || match.index !== position) return null;
+        tokens.push(match[0].toLowerCase());
+        position = tokenPattern.lastIndex;
+    }
+    if (!tokens.length) return null;
+
+    let index = 0;
+    const peek = () => tokens[index];
+    const take = () => tokens[index++];
+
+    function primary() {
+        const token = take();
+        if (token === undefined) throw new Error("Missing value");
+
+        if (token === "(") {
+            const value = addSub();
+            if (take() !== ")") throw new Error("Missing closing parenthesis");
+            return value;
+        }
+        if (token === "e") return Math.E;
+        if (/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(token)) return Number(token);
+        throw new Error("Unexpected token");
+    }
+
+    function postfix() {
+        let value = primary();
+        while (peek() === "!" || peek() === "%") {
+            const operator = take();
+            if (operator === "%") {
+                value /= 100;
+            } else {
+                if (value < 0 || !Number.isInteger(value) || value > 170) {
+                    throw new Error("Factorial requires an integer from 0 to 170");
+                }
+                let factorial = 1;
+                for (let n = 2; n <= value; n++) factorial *= n;
+                value = factorial;
+            }
+        }
+        return value;
+    }
+
+    function power() {
+        const left = postfix();
+        if (peek() === "^") {
+            take();
+            return Math.pow(left, unary());
+        }
+        return left;
+    }
+
+    function unary() {
+        if (peek() === "+") { take(); return unary(); }
+        if (peek() === "-") { take(); return -unary(); }
+        return power();
+    }
+
+    function multiplyDivide() {
+        let value = unary();
+        while (true) {
+            const operator = peek();
+            if (operator === "*" || operator === "x" || operator === "/" || operator === ":") {
+                take();
+                const right = unary();
+                if ((operator === "/" || operator === ":") && right === 0) throw new Error("Division by zero");
+                value = (operator === "*" || operator === "x") ? value * right : value / right;
+                continue;
+            }
+            // Implicit multiplication: 2e, 2(3+4), e(2), etc.
+            if (operator === "e" || operator === "(" ||
+                (operator !== undefined && /^(?:\d+(?:\.\d*)?|\.\d+)$/.test(operator))) {
+                value *= unary();
+                continue;
+            }
+            break;
+        }
+        return value;
+    }
+
+    function addSub() {
+        let value = multiplyDivide();
+        while (peek() === "+" || peek() === "-") {
+            const operator = take();
+            const right = multiplyDivide();
+            value = operator === "+" ? value + right : value - right;
+        }
+        return value;
+    }
+
+    try {
+        const result = addSub();
+        if (index !== tokens.length || !Number.isFinite(result)) return null;
+        return Number(result.toPrecision(12));
+    } catch (error) {
+        return null;
+    }
+}
+
 /* 🔍 SEARCH + HISTORY */
 let searchDebounceTimer = null;
 let lastBadWord = ""; // poza listenerem: dedup raportu o wulgaryzmie (inaczej reset co znak)
@@ -3895,15 +4011,11 @@ if(badWord && badWord !== lastBadWord){
     }, 2000);
 }
 
-    // kalkulator
-    if (value.length <= 40 && /^[\d\s\+\-\*\/\.\(\)]+$/.test(value)) {
-        try {
-            const result = Function('"use strict"; return (' + value + ')')();
-            if (typeof result === "number" && isFinite(result)) {
-                box.innerHTML = `<div class="instant-box">🧮 ${escapeHtml(value)} = <b>${result}</b></div>`;
-                return;
-            }
-        } catch(e) {}
+    // Kalkulator: +, -, x/*, :/, ^, liczby dziesiętne, silnia, procenty, nawiasy i e.
+    const mathResult = calculateNeoExpression(value);
+    if (mathResult !== null) {
+        box.innerHTML = `<div class="instant-box">🧮 ${escapeHtml(this.value.trim())} = <b>${mathResult}</b></div>`;
+        return;
     }
 
     clearTimeout(searchDebounceTimer);
