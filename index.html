@@ -14233,6 +14233,40 @@ window.sendOrbsToUser = async function () {
     return notices[0] || null;
   }
 
+  function updateRunProgressScreen() {
+    return new Promise(resolve => {
+      document.getElementById("neoUpdateProgressScreen")?.remove();
+
+      const screen = document.createElement("div");
+      screen.id = "neoUpdateProgressScreen";
+      screen.setAttribute("role", "status");
+      screen.setAttribute("aria-live", "polite");
+      screen.style.cssText = "position:fixed;inset:0;z-index:2147483645;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:radial-gradient(ellipse at center,rgba(0,75,105,.42),rgba(1,7,15,.99) 72%);color:#eafcff;font-family:'Oxanium',sans-serif;text-align:center;";
+      screen.innerHTML = '<section style="width:min(560px,100%);"><div style="font-size:clamp(24px,5vw,38px);font-weight:800;letter-spacing:1px;color:#00f2fe;text-shadow:0 0 22px rgba(0,242,254,.38);">NeoFind</div><h2 style="margin:18px 0 8px;font-size:clamp(18px,3vw,25px);">Applying update…</h2><p style="margin:0 0 22px;color:#9ccbd2;">Please wait while NeoFind finishes preparing.</p><div id="neoUpdateProgressText" style="font:700 clamp(16px,3vw,22px)/1.6 monospace;letter-spacing:1px;overflow-wrap:anywhere;">-------------------- 0%</div><div style="height:10px;margin-top:10px;overflow:hidden;border:1px solid rgba(0,242,254,.35);border-radius:999px;background:rgba(255,255,255,.06);"><div id="neoUpdateProgressFill" style="width:0%;height:100%;border-radius:999px;background:linear-gradient(90deg,#00f2fe,#4facfe,#9b51e0);box-shadow:0 0 16px rgba(0,242,254,.55);"></div></div></section>';
+      document.body.appendChild(screen);
+
+      const text = screen.querySelector("#neoUpdateProgressText");
+      const fill = screen.querySelector("#neoUpdateProgressFill");
+      const duration = 2000 + Math.floor(Math.random() * 3001);
+      const startedAt = Date.now();
+
+      const timer = window.setInterval(() => {
+        const progress = Math.min(100, Math.floor(((Date.now() - startedAt) / duration) * 100));
+        const hashes = Math.round(progress / 5);
+        text.textContent = "#".repeat(hashes) + "-".repeat(20 - hashes) + " " + progress + "%";
+        fill.style.width = progress + "%";
+
+        if (progress >= 100) {
+          window.clearInterval(timer);
+          window.setTimeout(() => {
+            screen.remove();
+            resolve();
+          }, 120);
+        }
+      }, 50);
+    });
+  }
+
   let updateNoticeRenderPromise = null;
   let updateNoticeRenderQueued = false;
 
@@ -14295,6 +14329,8 @@ window.sendOrbsToUser = async function () {
           await new Promise(resolve => window.setTimeout(resolve, downloadDuration));
 
           button.textContent = "Applying update…";
+          await updateRunProgressScreen();
+
           await updateDb.collection("users").doc(user.uid).set({
             completedUpdateVersion: requestedReleaseId,
             completedUpdateAt: Date.now()
