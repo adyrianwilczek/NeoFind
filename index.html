@@ -16167,7 +16167,7 @@ document.addEventListener("click", event => {
  bestEl.textContent=best;
  function normalized(v){return String(v||"").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim()}
  function isSnakeQuery(v){const q=normalized(v);return aliases.has(q)||q==="snake game online"||q==="google snake game"||q==="play the snake game"||q==="gra w snake"||q==="wazyk"||q==="waz online"}
- function updateFeature(){const q=normalized(input.value);const arcadeTerms=["snake","the snake","snake game","google snake","game snake","waz","waz gra","gra w weza","waz gra online","snake online","play snake","play snake game","breakout","break out","breakout game","brick breaker","brick breaking game","gra breakout","flappy bird","flappy","flappybird","flappy bird game","gra flappy bird"];feature.style.display=arcadeTerms.includes(q)||q==="snake game online"||q==="google snake game"||q==="play the snake game"||q==="gra w snake"||q==="wazyk"||q==="waz online"?"block":"none"}
+ function updateFeature(){feature.style.display="none"}
  input.addEventListener("input",updateFeature);
  document.addEventListener("keydown",function(e){if(e.key==="Enter")window.setTimeout(updateFeature,0)});
  function draw(){
