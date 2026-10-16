@@ -2263,6 +2263,31 @@ NOTE! Do not share the key with anyone.
 <div id="suggestions"></div>
 
 <!-- 🔍 wyniki -->
+
+<div id="neoFindSnakeFeature" style="display:none;width:85%;max-width:760px;margin:14px auto 18px;text-align:center">
+  <button type="button" id="neoFindSnakeOpen" style="font-family:inherit;font-size:15px;padding:12px 22px;border-radius:14px;border:1px solid rgba(0,242,254,.6);background:linear-gradient(110deg,rgba(0,242,254,.16),rgba(79,172,254,.18),rgba(155,81,224,.18));color:#fff;box-shadow:0 0 24px rgba(0,242,254,.12)">🐍 Play Snake</button>
+  <div style="font-size:12px;opacity:.65;margin-top:6px">NeoFind Arcade · Snake</div>
+</div>
+<div id="neoFindSnakeOverlay" role="dialog" aria-modal="true" aria-labelledby="neoFindSnakeTitle" style="display:none;position:fixed;inset:0;z-index:100200;background:rgba(2,5,15,.88);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:14px;box-sizing:border-box">
+  <section id="neoFindSnakeDialog" style="position:relative;width:min(620px,100%);max-height:94vh;overflow:auto;box-sizing:border-box;padding:clamp(14px,3vw,24px);border:1px solid rgba(0,242,254,.35);border-radius:22px;background:linear-gradient(145deg,#081622,#101b30 65%,#211439);box-shadow:0 24px 90px #000a,0 0 36px #00f2fe13;color:#f4fbff;text-align:center;font-family:inherit">
+    <button id="neoFindSnakeClose" type="button" aria-label="Close Snake" style="position:absolute;right:12px;top:12px;font-size:22px;padding:4px 12px;background:#ffffff0d;border-color:#ffffff22">×</button>
+    <div style="font-size:12px;letter-spacing:3px;color:#00f2fe;margin-bottom:5px">NEOFIND ARCADE</div>
+    <h2 id="neoFindSnakeTitle" style="margin:0 32px 4px;font-size:clamp(25px,5vw,34px)">🐍 Snake</h2>
+    <p style="margin:5px 0 12px;opacity:.7;font-size:13px">Eat apples. Grow longer. Avoid walls and yourself.</p>
+    <div style="display:flex;justify-content:center;gap:22px;margin:0 0 12px;font-size:14px"><span>Score: <b id="neoFindSnakeScore" style="color:#00f2fe">0</b></span><span>Best: <b id="neoFindSnakeBest" style="color:#b58cff">0</b></span></div>
+    <div id="neoFindSnakeBoardWrap" style="width:min(100%,440px);margin:auto;border:1px solid #00f2fe55;border-radius:12px;overflow:hidden;background:#07111a;box-shadow:0 0 28px #00f2fe12">
+      <canvas id="neoFindSnakeCanvas" width="400" height="400" aria-label="Snake game board" style="display:block;width:100%;height:auto;aspect-ratio:1;touch-action:manipulation"></canvas>
+    </div>
+    <div id="neoFindSnakeStatus" role="status" style="min-height:22px;margin:10px 0 7px;font-size:13px;color:#b8d8e8">Press Start to play</div>
+    <div style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap"><button id="neoFindSnakeStart" type="button" style="padding:10px 20px;background:linear-gradient(100deg,#00cbd8,#4facfe);color:#04131d;border:0;font-weight:700">▶ Start game</button><button id="neoFindSnakeRestart" type="button" style="padding:10px 18px">↻ Restart</button></div>
+    <div style="margin:14px auto 0;max-width:330px;display:grid;grid-template-columns:repeat(3,54px);gap:6px;justify-content:center" aria-label="Touch controls">
+      <span></span><button type="button" data-snake-dir="up" aria-label="Up" style="font-size:18px;padding:10px">↑</button><span></span>
+      <button type="button" data-snake-dir="left" aria-label="Left" style="font-size:18px;padding:10px">←</button><button type="button" data-snake-dir="down" aria-label="Down" style="font-size:18px;padding:10px">↓</button><button type="button" data-snake-dir="right" aria-label="Right" style="font-size:18px;padding:10px">→</button>
+    </div>
+    <p style="font-size:11px;opacity:.55;margin:12px 0 0">Keyboard: WASD or arrow keys · Space: pause/resume · Swipe or use the buttons on touchscreens</p>
+  </section>
+</div>
+
 <div id="results"></div>
 </div><!-- /.searchBox -->
     </div><!-- /#homeWrapper -->
@@ -16047,6 +16072,62 @@ document.addEventListener("click", event => {
  window.closeNeoPremiumBenefits=function(){const e=document.getElementById("neoPremiumBenefitsOverlay");if(e)e.style.display="none";document.body.style.overflow="";const b=document.getElementById("neoPremiumBenefitsButton");if(b)b.focus();};
  document.addEventListener("keydown",e=>{const o=document.getElementById("neoPremiumBenefitsOverlay");if(e.key==="Escape"&&o&&o.style.display==="flex")window.closeNeoPremiumBenefits();});
  document.addEventListener("DOMContentLoaded",render);render();
+})();
+</script>
+
+
+<style id="neoFindSnakeStyles">
+#neoFindSnakeOverlay button{font-family:inherit;cursor:pointer;transition:transform .15s ease,background .15s ease}
+#neoFindSnakeOverlay button:hover{transform:translateY(-1px)}
+#neoFindSnakeOverlay button:focus-visible{outline:2px solid #00f2fe;outline-offset:3px}
+@media(max-height:700px){#neoFindSnakeDialog{max-height:98vh;padding:10px}#neoFindSnakeDialog p{margin-top:4px;margin-bottom:6px}#neoFindSnakeDialog #neoFindSnakeBoardWrap{width:min(56vh,360px,100%)}#neoFindSnakeDialog [data-snake-dir]{padding:6px!important}}
+</style>
+
+
+<script id="neoFindSnakeScript">
+(function(){
+ "use strict";
+ const aliases = new Set(["snake","the snake","snake game","google snake","game snake","wąż","waz","wąż gra","waz gra","gra w węża","gra w weza","wąż gra online","snake online","play snake","play snake game"]);
+ const input=document.getElementById("search"), feature=document.getElementById("neoFindSnakeFeature");
+ const openBtn=document.getElementById("neoFindSnakeOpen"), overlay=document.getElementById("neoFindSnakeOverlay");
+ const closeBtn=document.getElementById("neoFindSnakeClose"), canvas=document.getElementById("neoFindSnakeCanvas");
+ if(!input||!feature||!openBtn||!overlay||!canvas)return;
+ const ctx=canvas.getContext("2d"), scoreEl=document.getElementById("neoFindSnakeScore"),bestEl=document.getElementById("neoFindSnakeBest"),statusEl=document.getElementById("neoFindSnakeStatus"),startBtn=document.getElementById("neoFindSnakeStart");
+ const SIZE=20,CELL=20,MAX=SIZE-1;
+ const dirs={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+ let snake,food,dir,nextDir,score,best=0,timer=null,running=false,gameOver=false,paused=false,lastTime=0;
+ try{best=Number(localStorage.getItem("neoFindSnakeBest")||0)||0}catch(e){}
+ bestEl.textContent=best;
+ function normalized(v){return String(v||"").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim()}
+ function isSnakeQuery(v){const q=normalized(v);return aliases.has(q)||q==="snake game online"||q==="google snake game"||q==="play the snake game"||q==="gra w snake"||q==="wazyk"||q==="waz online"}
+ function updateFeature(){feature.style.display=isSnakeQuery(input.value)?"block":"none"}
+ input.addEventListener("input",updateFeature);
+ document.addEventListener("keydown",function(e){if(e.key==="Enter")window.setTimeout(updateFeature,0)});
+ function draw(){
+   ctx.clearRect(0,0,400,400);ctx.fillStyle="#07111a";ctx.fillRect(0,0,400,400);
+   ctx.strokeStyle="rgba(125,190,220,.055)";ctx.lineWidth=1;
+   for(let i=0;i<=SIZE;i++){ctx.beginPath();ctx.moveTo(i*CELL,0);ctx.lineTo(i*CELL,400);ctx.stroke();ctx.beginPath();ctx.moveTo(0,i*CELL);ctx.lineTo(400,i*CELL);ctx.stroke()}
+   if(food){const cx=food.x*CELL+10,cy=food.y*CELL+10;ctx.save();ctx.shadowColor="#ff537a";ctx.shadowBlur=13;ctx.fillStyle="#ff537a";ctx.beginPath();ctx.arc(cx,cy,7.2,0,Math.PI*2);ctx.fill();ctx.restore();ctx.strokeStyle="#6fe5a0";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(cx,cy-6);ctx.lineTo(cx+3,cy-11);ctx.stroke()}
+   if(snake){snake.forEach((p,i)=>{const inset=i===0?2:3;ctx.save();ctx.shadowColor=i===0?"#00f2fe":"#00d5a1";ctx.shadowBlur=i===0?12:3;ctx.fillStyle=i===0?"#9afff2":"#16c79a";const r=5;roundRect(ctx,p.x*CELL+inset,p.y*CELL+inset,CELL-inset*2,CELL-inset*2,r);ctx.fill();ctx.restore();if(i===0){ctx.fillStyle="#06333b";const d=dir.x===1?1:dir.x===-1?-1:0;const ex=dir.x===0?5:dir.x===1?13:5;const ey=dir.y===1?13:dir.y===-1?5:5;ctx.beginPath();ctx.arc(p.x*CELL+ex+ (dir.y===0?0:4),p.y*CELL+ey+(dir.x===0?0:4),2,0,Math.PI*2);ctx.fill()}})}
+   if(!running){ctx.fillStyle="rgba(2,8,16,.58)";ctx.fillRect(0,0,400,400);ctx.textAlign="center";ctx.fillStyle="#f2fbff";ctx.font="600 25px Oxanium, sans-serif";ctx.fillText(gameOver?"GAME OVER":paused?"PAUSED":"READY?",200,188);ctx.fillStyle="#9bbccc";ctx.font="14px Oxanium, sans-serif";ctx.fillText(gameOver?"Press Restart to try again":"Press Start to begin",200,216)}
+ }
+ function roundRect(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+ function randomFood(){const free=[];for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++)if(!snake.some(p=>p.x===x&&p.y===y))free.push({x,y});return free.length?free[Math.floor(Math.random()*free.length)]:null}
+ function reset(){stop();snake=[{x:10,y:10},{x:9,y:10},{x:8,y:10}];dir={x:1,y:0};nextDir={x:1,y:0};score=0;scoreEl.textContent="0";food=randomFood();running=false;gameOver=false;paused=false;statusEl.textContent="Ready when you are. Grab the apples!";startBtn.textContent="▶ Start game";draw()}
+ function stop(){if(timer){clearInterval(timer);timer=null}running=false}
+ function start(){if(gameOver)reset();if(running)return;running=true;paused=false;statusEl.textContent="Go!";startBtn.textContent="Ⅱ Pause";if(timer)clearInterval(timer);timer=setInterval(tick,125);draw()}
+ function pause(){if(!running&&!paused)return;if(running){stop();paused=true;statusEl.textContent="Paused. Press Start or Space to continue.";startBtn.textContent="▶ Resume"}else if(paused){start()}draw()}
+ function end(){stop();gameOver=true;paused=false;statusEl.textContent="Game over! Final score: "+score+".";startBtn.textContent="↻ Play again";if(score>best){best=score;bestEl.textContent=best;try{localStorage.setItem("neoFindSnakeBest",String(best))}catch(e){}}draw()}
+ function tick(){dir=nextDir;const head={x:snake[0].x+dir.x,y:snake[0].y+dir.y};if(head.x<0||head.x>MAX||head.y<0||head.y>MAX){end();return}const eating=food&&head.x===food.x&&head.y===food.y;const body=eating?snake:snake.slice(0,-1);if(body.some(p=>p.x===head.x&&p.y===head.y)){end();return}snake.unshift(head);if(eating){score+=10;scoreEl.textContent=score;food=randomFood();if(!food){statusEl.textContent="Perfect! You filled the whole board.";end();return}}else snake.pop();draw()}
+ function setDirection(name){const d=dirs[name];if(!d||gameOver)return;if(d.x===-dir.x&&d.y===-dir.y)return;if(d.x===-nextDir.x&&d.y===-nextDir.y)return;nextDir=d;if(!running&&!paused)statusEl.textContent="Direction set. Press Start to play."}
+ function openGame(){overlay.style.display="flex";document.body.style.overflow="hidden";reset();closeBtn.focus()}
+ function closeGame(){stop();overlay.style.display="none";document.body.style.overflow="";openBtn.focus()}
+ openBtn.addEventListener("click",openGame);closeBtn.addEventListener("click",closeGame);startBtn.addEventListener("click",function(){if(running)pause();else start()});document.getElementById("neoFindSnakeRestart").addEventListener("click",reset);
+ overlay.addEventListener("click",e=>{if(e.target===overlay)closeGame()});
+ overlay.querySelectorAll("[data-snake-dir]").forEach(b=>b.addEventListener("click",()=>setDirection(b.dataset.snakeDir)));
+ document.addEventListener("keydown",function(e){if(overlay.style.display!=="flex")return;if(e.key==="Escape"){closeGame();return}if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)||/^w$|^a$|^s$|^d$/i.test(e.key)){e.preventDefault();if(e.key===" "){pause();return}const k=e.key.toLowerCase();setDirection(({arrowup:"up",w:"up",arrowdown:"down",s:"down",arrowleft:"left",a:"left",arrowright:"right",d:"right"})[k])}});
+ let touchX=0,touchY=0;canvas.addEventListener("touchstart",e=>{const t=e.changedTouches[0];touchX=t.clientX;touchY=t.clientY},{passive:true});canvas.addEventListener("touchend",e=>{const t=e.changedTouches[0],dx=t.clientX-touchX,dy=t.clientY-touchY;if(Math.max(Math.abs(dx),Math.abs(dy))<18)return;setDirection(Math.abs(dx)>Math.abs(dy)?(dx>0?"right":"left"):(dy>0?"down":"up"))},{passive:true});
+ reset();updateFeature();
 })();
 </script>
 
