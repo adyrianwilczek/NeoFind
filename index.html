@@ -4561,6 +4561,16 @@ function neoProfileRenderImportedBookmarks(){
         list.appendChild(note);
     }
 }
+document.addEventListener("keydown", function(event){
+    const target = event.target;
+    if(event.key !== "Enter" || !target || target.id !== "search") return;
+    const command = String(target.value || "").trim().toLowerCase();
+    if(command !== "profile" && command !== "link") return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if(typeof openSettings === "function") openSettings();
+    if(typeof neoProfileRenderImportedBookmarks === "function") neoProfileRenderImportedBookmarks();
+}, true);
 function neoProfileOpenDefaultBrowserHelp(){
     const status = document.getElementById("neoProfileBrowserStatus");
     if(status) status.textContent = "Open NeoFind Browser on Windows, then go to Settings → Set as default. A website cannot change Windows default-app settings directly.";
