@@ -16797,15 +16797,14 @@ placeFindables();refreshDisplay();
 
 
 <script>
-/* NeoFind Beta Functions: topbar-integrated test tabs */
+/* NeoFind Beta Functions: full-screen website view with persistent tabs */
 (function(){
   const tabs=[];let activeId=null,nextId=1,betaEnabled=false;
   const $=id=>document.getElementById(id);
   function active(){return tabs.find(t=>t.id===activeId)||null;}
   function safeUrl(raw){
     let value=String(raw||"").trim();if(!value)return null;
-    if(/^about:blank$/i.test(value))return "about:blank";
-    if(/^about:home$/i.test(value))return "about:blank";
+    if(/^about:blank$/i.test(value)||/^about:home$/i.test(value))return "about:blank";
     if(!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)){
       if(!value.includes(".")&&!value.includes(" "))return "https://www.google.com/search?q="+encodeURIComponent(value);
       value="https://"+value;
@@ -16820,19 +16819,43 @@ placeFindables();refreshDisplay();
     b.setAttribute("aria-pressed",String(betaEnabled));
     b.title=betaEnabled?"Turn off beta functions":"Turn on beta functions";
   }
+  function allMainUi(){
+    return Array.from(document.body.children).filter(el=>
+      el.id!=="neoBetaWorkspace"&&el.tagName!=="SCRIPT"&&el.tagName!=="STYLE"
+    );
+  }
   function applyView(){
-    const workspace=$("neoBetaWorkspace"),viewport=$("neoBetaViewport"),h=$("homeWrapper"),t=active();
+    const workspace=$("neoBetaWorkspace"),viewport=$("neoBetaViewport"),t=active();
+    const websiteOpen=!!(betaEnabled&&t&&t.url!=="about:blank");
     workspace.style.display=betaEnabled?"block":"none";
-    const blank=!t||t.url==="about:blank";
-    viewport.style.display=betaEnabled&&!blank?"block":"none";
-    if(h)h.style.display=betaEnabled&&!blank?"none":"";
-    if(betaEnabled&&!blank){
-      workspace.style.width="100%";workspace.style.maxWidth="none";workspace.style.margin="0";workspace.style.padding="0 8px";workspace.style.boxSizing="border-box";
-      viewport.style.height="calc(100vh - 180px)";viewport.style.minHeight="300px";viewport.style.borderRadius="0";
-    }else{
-      workspace.style.width="100%";workspace.style.maxWidth="none";workspace.style.margin="0";workspace.style.padding="0 8px";workspace.style.boxSizing="border-box";
-      viewport.innerHTML="";
-    }
+    workspace.style.position=websiteOpen?"fixed":"relative";
+    workspace.style.zIndex=websiteOpen?"2147483000":"20";
+    workspace.style.inset=websiteOpen?"0":"auto";
+    workspace.style.width="100%";workspace.style.maxWidth="none";workspace.style.margin="0";
+    workspace.style.padding=websiteOpen?"0":"0 8px";workspace.style.boxSizing="border-box";
+    workspace.style.background=websiteOpen?"#fff":"transparent";
+    workspace.style.color=websiteOpen?"#111":"inherit";
+    const bar=$("neoBetaTabBar"),controls=workspace.querySelector("#neoBetaAddress").parentElement;
+    bar.style.position=websiteOpen?"absolute":"relative";
+    bar.style.top="0";bar.style.left="0";bar.style.right="0";bar.style.zIndex="3";
+    bar.style.height="42px";bar.style.boxSizing="border-box";
+    bar.style.background=websiteOpen?"#101521":"transparent";
+    bar.style.color=websiteOpen?"#edf7ff":"inherit";
+    controls.style.position=websiteOpen?"absolute":"relative";
+    controls.style.top=websiteOpen?"42px":"auto";controls.style.left=websiteOpen?"0":"auto";controls.style.right=websiteOpen?"0":"auto";
+    controls.style.zIndex="3";controls.style.background=websiteOpen?"#101521":"transparent";controls.style.color=websiteOpen?"#edf7ff":"inherit";
+    controls.style.boxSizing="border-box";
+    viewport.style.display=websiteOpen?"block":"none";
+    viewport.style.position=websiteOpen?"absolute":"relative";
+    viewport.style.top=websiteOpen?"92px":"auto";viewport.style.left=websiteOpen?"0":"auto";viewport.style.right=websiteOpen?"0":"auto";
+    viewport.style.bottom=websiteOpen?"0":"auto";viewport.style.width="100%";viewport.style.height=websiteOpen?"auto":"min(72vh,760px)";
+    viewport.style.minHeight=websiteOpen?"0":"300px";viewport.style.border=websiteOpen?"0":"1px solid #ffffff22";
+    viewport.style.borderRadius=websiteOpen?"0":"12px";viewport.style.background="transparent";
+    allMainUi().forEach(el=>{
+      el.style.setProperty("display",websiteOpen?"none":"", "important");
+    });
+    if(websiteOpen){workspace.style.setProperty("display","block","important");}
+    else{allMainUi().forEach(el=>el.style.removeProperty("display"));}
   }
   window.syncBetaFunctionsButton=updateButton;
   window.openBetaFunctions=function(){
