@@ -1451,6 +1451,22 @@ body.ocean {
 .announcement-delete { float:right; }
 .announcement-empty { opacity:.5; text-align:center; padding:30px; }
 
+/* NeoFind Browser download button: keep it visible beside NeoSocial */
+#topBar { gap: 8px; }
+#downloadNeoFindBtn {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative;
+  z-index: 1001;
+}
+@media (max-width: 900px) {
+  #topBar { overflow-x: auto; justify-content: flex-start; }
+  #topBar > div:first-child { flex: 0 0 auto; }
+  #newsBtn, #downloadNeoFindBtn { flex: 0 0 auto; }
+}
+
 /* 🔝 TOP BAR */
 #topBar {
     position: fixed;
