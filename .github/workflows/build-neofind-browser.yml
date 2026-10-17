@@ -43,6 +43,9 @@ jobs:
         with:
           name: NeoFind Browser ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          files: desktop/dist/NeoFind-Setup.exe
+          files: |
+            desktop/dist/NeoFind-Setup.exe
+            desktop/dist/latest.yml
+            desktop/dist/*.blockmap
           generate_release_notes: true
           prerelease: true
