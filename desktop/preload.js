@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   reload: () => ipcRenderer.send("browser:reload"),
   home: () => ipcRenderer.send("browser:home"),
   setBounds: (bounds) => ipcRenderer.send("browser:set-bounds", bounds),
+  openDefaultApps: () => ipcRenderer.invoke("browser:open-default-apps"),
+  chooseBookmarksFile: () => ipcRenderer.invoke("import:choose-bookmarks"),
   onTabsState: (callback) => {
     ipcRenderer.removeAllListeners("tabs:state");
     ipcRenderer.on("tabs:state", (_event, state) => callback(state));
