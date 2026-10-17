@@ -6,6 +6,7 @@ const HOME_URL = "https://neofind.pl/";
 let mainWindow;
 let nextTabId = 1;
 let activeTabId = null;
+let pendingExternalUrl = process.argv.find((arg) => /^https?:\\/\\//i.test(arg)) || null;
 const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 
@@ -169,7 +170,11 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, "ui.html"));
-  mainWindow.webContents.once("did-finish-load", () => openTab(HOME_URL, true));
+  mainWindow.webContents.once("did-finish-load", () => {
+    const target = pendingExternalUrl || HOME_URL;
+    pendingExternalUrl = null;
+    openTab(target, true);
+  });
   mainWindow.on("resize", updateActiveBounds);
   mainWindow.on("closed", () => {
     mainWindow = null;
@@ -224,5 +229,21 @@ ipcMain.handle("import:choose-bookmarks", async () => {
   return { canceled: false, content };
 });
 app.whenReady().then(createWindow);
+app.on("second-instance", (_event, commandLine) => {
+  const externalUrl = commandLine.find((arg) => /^https?:\\/\\//i.test(arg));
+  if (externalUrl) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      openTab(externalUrl, true);
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    } else {
+      pendingExternalUrl = externalUrl;
+      createWindow();
+    }
+  } else if (mainWindow && !mainWindow.isDestroyed()) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
