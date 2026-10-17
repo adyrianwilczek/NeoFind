@@ -12670,6 +12670,25 @@ function closeOrbChestModal() {
     selectedOrbChestType = null;
 }
 
+function showNeoBadgeRevealAnimation(badgeName, badgeType) {
+    const seasonal = /halloween|pumpkin|spooky/i.test(String(badgeName) + " " + String(badgeType));
+    const overlay = document.createElement("div");
+    overlay.style.cssText = "position:fixed;inset:0;z-index:1000000;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle,rgba(116,48,150,.48),rgba(4,5,15,.96));backdrop-filter:blur(8px)";
+    overlay.innerHTML = '<style>@keyframes neoBadgePop{0%{transform:scale(.25) rotate(-20deg);opacity:0}70%{transform:scale(1.12) rotate(5deg);opacity:1}100%{transform:scale(1) rotate(0)}}.neoBadgeDropCard{width:min(420px,94vw);text-align:center;padding:30px 24px;border-radius:24px;border:1px solid #c084fc;background:linear-gradient(145deg,#21132e,#101322);box-shadow:0 0 70px #9b51e066;color:white;font-family:inherit}.neoBadgeDropIcon{font-size:86px;filter:drop-shadow(0 0 22px #c084fc);animation:neoBadgePop .75s cubic-bezier(.2,.8,.2,1) both}.neoBadgeDropCard button{margin-top:14px;padding:11px 24px;border:0;border-radius:12px;background:linear-gradient(90deg,#9b51e0,#4facfe);color:white;font-weight:800;cursor:pointer}</style><section class="neoBadgeDropCard" role="dialog" aria-modal="true"><div style="color:#d8b4fe;font-weight:800;letter-spacing:4px">BADGE UNLOCKED</div><div class="neoBadgeDropIcon">' + (seasonal ? "🎃" : "🏅") + '</div><h2>' + escapeHtml(badgeName) + '</h2><p>This badge has been added to your NeoFind profile.</p><button type="button">Awesome!</button></section>';
+    const card = overlay.querySelector(".neoBadgeDropCard");
+    if (seasonal && card) { card.style.borderColor = "#ff982f"; card.style.boxShadow = "0 0 80px #ff982f77"; }
+    const close = () => overlay.remove();
+    overlay.querySelector("button").addEventListener("click", close);
+    overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+    const keyHandler = event => { if (event.key === "Escape" && overlay.isConnected) { close(); document.removeEventListener("keydown", keyHandler); } };
+    document.addEventListener("keydown", keyHandler);
+    document.body.appendChild(overlay);
+    if (typeof confetti === "function") { try { confetti({particleCount:120,spread:85,origin:{y:.58},colors:seasonal ? ["#ff982f","#ffcb75","#9b51e0","#ffffff"] : ["#c084fc","#4facfe","#ffffff"]}); } catch (_) {} }
+}
+function showHalloweenBadgeRevealAnimation(badgeName) {
+    showNeoBadgeRevealAnimation(badgeName, "halloween");
+}
+
 function showLuckyBoyRevealAnimation() {
     document.getElementById("luckyBoyReveal")?.remove();
 
