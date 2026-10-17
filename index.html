@@ -2211,6 +2211,20 @@ body.neo-theme-premium-gradient::before {
 </button>
 </div>
 
+    <!-- NeoFind Beta tabs: integrated into the existing NeoFind page -->
+    <div id="neoBetaWorkspace" style="display:none;position:relative;z-index:20;width:min(1180px,calc(100% - 24px));margin:10px auto 18px;color:var(--text-color,inherit);">
+      <div id="neoBetaTabBar" role="tablist" aria-label="NeoFind test tabs" style="display:flex;align-items:stretch;gap:5px;overflow-x:auto;padding:5px 5px 0;border-bottom:1px solid #ffffff22;"></div>
+      <div style="display:flex;align-items:center;gap:7px;padding:8px 5px;">
+        <button type="button" onclick="neoBetaNavigate(-1)" title="Back" aria-label="Back">←</button>
+        <button type="button" onclick="neoBetaNavigate(1)" title="Forward" aria-label="Forward">→</button>
+        <button type="button" onclick="neoBetaReload()" title="Reload" aria-label="Reload">↻</button>
+        <input id="neoBetaAddress" type="text" placeholder="Search or enter a website address" aria-label="Test tab address" style="flex:1;min-width:0;padding:10px 13px;border:1px solid #ffffff24;border-radius:10px;background:rgba(10,16,28,.75);color:inherit;outline:none;" onkeydown="if(event.key==='Enter')neoBetaGo()">
+        <button type="button" onclick="neoBetaGo()">Go</button>
+        <button type="button" onclick="closeBetaFunctions()" title="Disable test tabs" aria-label="Disable test tabs">×</button>
+      </div>
+      <div id="neoBetaViewport" style="display:none;position:relative;width:100%;height:min(72vh,760px);min-height:320px;overflow:hidden;border:1px solid #ffffff22;border-radius:12px;background:transparent;"></div>
+    </div>
+
 <!-- ⬇️ BOTTOM NAV -->
 <div id="bottomNav">
     <button onclick="openAnnouncements()">
@@ -2422,19 +2436,6 @@ NOTE! Do not share the key with anyone.
         <input id="consoleInput" placeholder="Enter command..." onkeydown="handleCommand(event)">
     </div>
 
-    <!-- NeoFind Beta tabs: integrated into the existing NeoFind page -->
-    <div id="neoBetaWorkspace" style="display:none;position:relative;z-index:20;width:min(1180px,calc(100% - 24px));margin:10px auto 18px;color:var(--text-color,inherit);">
-      <div id="neoBetaTabBar" role="tablist" aria-label="NeoFind test tabs" style="display:flex;align-items:stretch;gap:5px;overflow-x:auto;padding:5px 5px 0;border-bottom:1px solid #ffffff22;"></div>
-      <div style="display:flex;align-items:center;gap:7px;padding:8px 5px;">
-        <button type="button" onclick="neoBetaNavigate(-1)" title="Back" aria-label="Back">←</button>
-        <button type="button" onclick="neoBetaNavigate(1)" title="Forward" aria-label="Forward">→</button>
-        <button type="button" onclick="neoBetaReload()" title="Reload" aria-label="Reload">↻</button>
-        <input id="neoBetaAddress" type="text" placeholder="Search or enter a website address" aria-label="Test tab address" style="flex:1;min-width:0;padding:10px 13px;border:1px solid #ffffff24;border-radius:10px;background:rgba(10,16,28,.75);color:inherit;outline:none;" onkeydown="if(event.key==='Enter')neoBetaGo()">
-        <button type="button" onclick="neoBetaGo()">Go</button>
-        <button type="button" onclick="closeBetaFunctions()" title="Disable test tabs" aria-label="Disable test tabs">×</button>
-      </div>
-      <div id="neoBetaViewport" style="display:none;position:relative;width:100%;height:min(72vh,760px);min-height:320px;overflow:hidden;border:1px solid #ffffff22;border-radius:12px;background:transparent;"></div>
-    </div>
     <!-- ⚙️ SETTINGS -->
     <div id="settingsBox" style="display:none; text-align:center;">
         <button id="settingsCloseBtn" type="button" onclick="closeAllPanels()" aria-label="Close settings" title="Close">×</button>
@@ -16796,16 +16797,15 @@ placeFindables();refreshDisplay();
 
 
 <script>
-/* NeoFind Beta Functions: integrated test tabs */
+/* NeoFind Beta Functions: topbar-integrated test tabs */
 (function(){
-  const tabs=[]; let activeId=null,nextId=1,betaEnabled=false;
+  const tabs=[];let activeId=null,nextId=1,betaEnabled=false;
   const $=id=>document.getElementById(id);
   function active(){return tabs.find(t=>t.id===activeId)||null;}
-  function home(){return $("homeWrapper");}
   function safeUrl(raw){
     let value=String(raw||"").trim();if(!value)return null;
-    if(value.toLowerCase()==="about:blank")return "about:blank";
-    if(value.toLowerCase()==="about:home")return "about:blank";
+    if(/^about:blank$/i.test(value))return "about:blank";
+    if(/^about:home$/i.test(value))return "about:blank";
     if(!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value)){
       if(!value.includes(".")&&!value.includes(" "))return "https://www.google.com/search?q="+encodeURIComponent(value);
       value="https://"+value;
@@ -16820,22 +16820,28 @@ placeFindables();refreshDisplay();
     b.setAttribute("aria-pressed",String(betaEnabled));
     b.title=betaEnabled?"Turn off beta functions":"Turn on beta functions";
   }
-  function showWorkspace(){
-    $("neoBetaWorkspace").style.display=betaEnabled?"block":"none";
-    const t=active(),v=$("neoBetaViewport"),h=home();
-    const browsing=!!(betaEnabled&&t&&t.url!=="about:blank");
-    v.style.display=browsing?"block":"none";
-    if(h)h.style.display=browsing?"none":"";
-    if(!browsing)v.innerHTML="";
+  function applyView(){
+    const workspace=$("neoBetaWorkspace"),viewport=$("neoBetaViewport"),h=$("homeWrapper"),t=active();
+    workspace.style.display=betaEnabled?"block":"none";
+    const blank=!t||t.url==="about:blank";
+    viewport.style.display=betaEnabled&&!blank?"block":"none";
+    if(h)h.style.display=betaEnabled&&!blank?"none":"";
+    if(betaEnabled&&!blank){
+      workspace.style.width="100%";workspace.style.maxWidth="none";workspace.style.margin="0";workspace.style.padding="0 8px";workspace.style.boxSizing="border-box";
+      viewport.style.height="calc(100vh - 180px)";viewport.style.minHeight="300px";viewport.style.borderRadius="0";
+    }else{
+      workspace.style.width="100%";workspace.style.maxWidth="none";workspace.style.margin="0";workspace.style.padding="0 8px";workspace.style.boxSizing="border-box";
+      viewport.innerHTML="";
+    }
   }
   window.syncBetaFunctionsButton=updateButton;
   window.openBetaFunctions=function(){
     if(typeof isPremiumActive!=="function"||!isPremiumActive()){alert("Premium is required to try beta functions.");return;}
     betaEnabled=!betaEnabled;
     if(betaEnabled&&!tabs.length)window.neoBetaNewTab();
-    showWorkspace();updateButton();
+    applyView();updateButton();
   };
-  window.closeBetaFunctions=function(){betaEnabled=false;showWorkspace();updateButton();};
+  window.closeBetaFunctions=function(){betaEnabled=false;applyView();updateButton();};
   window.neoBetaNewTab=function(url){
     const t={id:nextId++,title:"New Tab",tooltip:"about:blank",url:"about:blank",history:["about:blank"],historyIndex:0};
     tabs.push(t);activeId=t.id;renderTabs();renderActive();if(url)loadUrl(t,url);
@@ -16849,8 +16855,7 @@ placeFindables();refreshDisplay();
   function renderTabs(){
     const bar=$("neoBetaTabBar");bar.innerHTML="";
     tabs.forEach(t=>{
-      const w=document.createElement("div");
-      w.style.cssText="display:flex;align-items:center;gap:7px;flex:0 1 210px;min-width:100px;max-width:210px;padding:7px 9px;border:1px solid "+(t.id===activeId?"rgba(0,242,254,.5)":"#ffffff18")+";border-bottom:0;border-radius:9px 9px 0 0;background:"+(t.id===activeId?"rgba(0,190,220,.14)":"rgba(100,120,150,.08)")+";color:inherit;";
+      const w=document.createElement("div");w.style.cssText="display:flex;align-items:center;gap:7px;flex:0 1 210px;min-width:100px;max-width:210px;padding:7px 9px;border:1px solid "+(t.id===activeId?"rgba(0,242,254,.5)":"#ffffff18")+";border-bottom:0;border-radius:9px 9px 0 0;background:"+(t.id===activeId?"rgba(0,190,220,.14)":"rgba(100,120,150,.08)")+";color:inherit;";
       const b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.setAttribute("aria-selected",String(t.id===activeId));b.title=t.tooltip||t.title;b.textContent=t.title;b.style.cssText="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;border:0;background:transparent;color:inherit;cursor:pointer;padding:2px;";b.onclick=()=>window.neoBetaSelectTab(t.id);
       const x=document.createElement("button");x.type="button";x.textContent="×";x.title="Close tab";x.setAttribute("aria-label","Close "+t.title);x.style.cssText="flex:0 0 23px;padding:1px;border:0;border-radius:6px;background:transparent;color:inherit;font-size:18px;cursor:pointer;";x.onclick=()=>window.neoBetaCloseTab(t.id);
       w.append(b,x);bar.append(w);
@@ -16865,27 +16870,20 @@ placeFindables();refreshDisplay();
       const f=document.createElement("iframe");f.src=t.url;f.title=t.title;f.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:0;background:transparent;";
       f.referrerPolicy="strict-origin-when-cross-origin";f.setAttribute("allow","fullscreen");v.append(f);
     }
-    showWorkspace();
+    applyView();
   }
   function loadUrl(t,raw){
     const u=safeUrl(raw);if(!u){alert("Enter a valid website address, search term, or about:blank.");return;}
     if(t.historyIndex<t.history.length-1)t.history=t.history.slice(0,t.historyIndex+1);
     t.history.push(u);t.historyIndex=t.history.length-1;t.url=u;
-    t.title=u==="about:blank"?"New Tab":(new URL(u)).hostname;
-    t.tooltip=u==="about:blank"?"about:blank":u;
+    t.title=u==="about:blank"?"New Tab":new URL(u).hostname;t.tooltip=u==="about:blank"?"about:blank":u;
     renderTabs();renderActive();
   }
   window.neoBetaGo=function(){const t=active();if(t)loadUrl(t,$("neoBetaAddress").value);};
-  window.neoBetaOpenExternal=function(){const t=active();if(t&&t.url!=="about:blank")window.open(t.url,"_blank","noopener,noreferrer");};
-  window.neoBetaReload=function(){const t=active();if(!t)return;if(t.url==="about:blank"){renderActive();return;}const f=$("neoBetaViewport").querySelector("iframe");if(f)f.src=t.url;};
-  window.neoBetaNavigate=function(d){
-    const t=active();if(!t)return;const i=t.historyIndex+d;if(i<0||i>=t.history.length)return;
-    t.historyIndex=i;t.url=t.history[i];t.title=t.url==="about:blank"?"New Tab":(new URL(t.url)).hostname;t.tooltip=t.url==="about:blank"?"about:blank":t.url;
-    renderTabs();renderActive();
-  };
+  window.neoBetaReload=function(){const t=active();if(!t)return;if(t.url==="about:blank"){applyView();return;}const f=$("neoBetaViewport").querySelector("iframe");if(f)f.src=t.url;};
+  window.neoBetaNavigate=function(d){const t=active();if(!t)return;const i=t.historyIndex+d;if(i<0||i>=t.history.length)return;t.historyIndex=i;t.url=t.history[i];t.title=t.url==="about:blank"?"New Tab":new URL(t.url).hostname;t.tooltip=t.url==="about:blank"?"about:blank":t.url;renderTabs();renderActive();};
   document.addEventListener("DOMContentLoaded",updateButton);
-  const original=window.openSettings;
-  if(typeof original==="function")window.openSettings=function(){const r=original.apply(this,arguments);updateButton();return r;};
+  const original=window.openSettings;if(typeof original==="function")window.openSettings=function(){const r=original.apply(this,arguments);updateButton();return r;};
 })();
 </script>
 
