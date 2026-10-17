@@ -16516,5 +16516,160 @@ ttReset();pmReset();
 })();
 </script>
 
+
+<!-- NeoFind Halloween Event: inline SVG visuals + event UI -->
+<style id="neoHalloween2026Styles">
+#neoHalloween2026{--halloween-purple:#9b51e0;--halloween-cyan:#00f2fe;--halloween-orange:#ff9e2c;position:relative;z-index:9990;font-family:inherit;color:#f8f5ff}
+#neoHalloween2026 *{box-sizing:border-box}
+#neoHalloween2026 .nh-fx{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:9988}
+#neoHalloween2026 .nh-ghost{position:absolute;width:clamp(38px,5vw,72px);opacity:.68;filter:drop-shadow(0 0 12px #b68cff);animation:nhGhostFloat 16s linear infinite}
+#neoHalloween2026 .nh-ghost.g2{width:42px;animation-duration:21s;animation-delay:-9s;opacity:.43}
+#neoHalloween2026 .nh-ghost.g3{width:54px;animation-duration:25s;animation-delay:-17s;opacity:.52}
+#neoHalloween2026 .nh-lightning{position:fixed;inset:0;background:#d9c8ff;opacity:0;z-index:9987;pointer-events:none;animation:nhLightning 14s infinite}
+#neoHalloween2026 .nh-pumpkin-deco{position:fixed;width:54px;bottom:12px;opacity:.9;filter:drop-shadow(0 0 12px #ff8c24);pointer-events:none;z-index:9989;animation:nhBob 3.5s ease-in-out infinite}
+#neoHalloween2026 .nh-pumpkin-left{left:12px}.nh-pumpkin-right{right:12px;animation-delay:-1.8s}
+#neoHalloween2026 .nh-event-button{position:fixed;right:18px;bottom:18px;z-index:10000;border:1px solid #a875ff;background:linear-gradient(135deg,#201235f5,#101b36f5);color:#fff;border-radius:16px;padding:11px 15px;display:flex;align-items:center;gap:9px;box-shadow:0 0 24px #9b51e044;cursor:pointer;font:700 13px inherit;backdrop-filter:blur(12px);transition:transform .2s,box-shadow .2s}
+#neoHalloween2026 .nh-event-button:hover{transform:translateY(-2px);box-shadow:0 0 30px #9b51e088}
+#neoHalloween2026 .nh-event-button svg{width:26px;height:26px;flex:none}
+#neoHalloween2026 .nh-overlay{position:fixed;inset:0;background:#05030bd9;backdrop-filter:blur(9px);display:none;align-items:center;justify-content:center;padding:18px;z-index:10002}
+#neoHalloween2026 .nh-overlay.nh-open{display:flex}
+#neoHalloween2026 .nh-panel{position:relative;width:min(640px,100%);max-height:min(86vh,820px);overflow:auto;border:1px solid #7652a9;border-radius:22px;background:radial-gradient(ellipse at 50% 0%,#382052 0,#171226 48%,#0b1020 100%);box-shadow:0 20px 90px #000b,0 0 40px #9b51e033;padding:23px}
+#neoHalloween2026 .nh-panel h2{margin:0 0 7px;font-size:clamp(22px,4vw,30px);color:#fff}
+#neoHalloween2026 .nh-muted{color:#c4b8d9;font-size:13px;line-height:1.55}
+#neoHalloween2026 .nh-close{position:absolute;right:13px;top:13px;border:1px solid #5c4a78;background:#20172e;color:#fff;width:35px;height:35px;border-radius:11px;cursor:pointer;font-size:20px}
+#neoHalloween2026 .nh-hero{display:flex;align-items:center;gap:15px;padding:14px;border:1px solid #6b438d;border-radius:17px;background:#160f25a8;margin:16px 0}
+#neoHalloween2026 .nh-hero svg{width:94px;height:94px;flex:none;filter:drop-shadow(0 0 15px #9b51e055)}
+#neoHalloween2026 .nh-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}
+#neoHalloween2026 .nh-stat{padding:13px;border-radius:14px;background:#ffffff09;border:1px solid #ffffff1a}
+#neoHalloween2026 .nh-stat strong{display:block;font-size:21px;color:#fff;margin-top:4px}
+#neoHalloween2026 .nh-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+#neoHalloween2026 .nh-btn{border:1px solid #8b5bc1;border-radius:12px;padding:10px 13px;background:linear-gradient(135deg,#6f35a5,#3b2a69);color:white;cursor:pointer;font-weight:700}
+#neoHalloween2026 .nh-btn:hover{filter:brightness(1.15)}
+#neoHalloween2026 .nh-btn.secondary{background:#ffffff0a;border-color:#5a4b70}
+#neoHalloween2026 .nh-btn:disabled{opacity:.45;cursor:not-allowed}
+#neoHalloween2026 .nh-list{display:grid;gap:9px;margin-top:14px}
+#neoHalloween2026 .nh-card{padding:13px;border-radius:14px;border:1px solid #ffffff1a;background:#ffffff08}
+#neoHalloween2026 .nh-card strong{color:#fff}
+#neoHalloween2026 .nh-progress{height:7px;border-radius:20px;background:#ffffff16;overflow:hidden;margin-top:10px}
+#neoHalloween2026 .nh-progress span{display:block;height:100%;background:linear-gradient(90deg,#9b51e0,#00f2fe);width:0;transition:width .25s}
+#neoHalloween2026 .nh-chances{display:grid;gap:10px;margin:16px 0}
+#neoHalloween2026 .nh-chance{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:13px}
+#neoHalloween2026 .nh-chance-track{grid-column:1/-1;height:6px;background:#ffffff18;border-radius:8px;overflow:hidden;margin-top:-5px}
+#neoHalloween2026 .nh-chance-track span{display:block;height:100%;background:linear-gradient(90deg,#9b51e0,#ff9e2c)}
+#neoHalloween2026 .nh-notice{margin-top:12px;min-height:22px;color:#aeefff;font-size:13px}
+#neoHalloween2026 .nh-candy{color:#ffc66e}
+#neoHalloween2026 .nh-findables{position:fixed;inset:0;pointer-events:none;z-index:9991}
+#neoHalloween2026 .nh-findable{position:absolute;pointer-events:auto;border:0;background:transparent;padding:0;cursor:pointer;filter:drop-shadow(0 0 10px #ff9e2c77);animation:nhBob 3s ease-in-out infinite}
+#neoHalloween2026 .nh-findable svg{width:36px;height:40px}
+#neoHalloween2026 .nh-findable.nh-found{opacity:.2;pointer-events:none;filter:grayscale(1)}
+#neoHalloween2026 .nh-candle{filter:drop-shadow(0 0 9px #ffb84d)}
+#neoHalloween2026 .nh-candle svg{width:27px;height:42px}
+#neoHalloween2026 .nh-result{font-size:22px;font-weight:800;color:#ffc66e;margin:10px 0}
+@keyframes nhGhostFloat{0%{transform:translate(-12vw,16vh) rotate(-8deg)}25%{transform:translate(28vw,-5vh) rotate(7deg)}50%{transform:translate(58vw,19vh) rotate(-4deg)}75%{transform:translate(91vw,-8vh) rotate(8deg)}100%{transform:translate(115vw,10vh) rotate(-8deg)}}
+@keyframes nhBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-8px) rotate(2deg)}}
+@keyframes nhLightning{0%,94%,96%,100%{opacity:0}94.4%{opacity:.15}94.8%{opacity:0}95.1%{opacity:.22}95.5%{opacity:0}}
+@media(max-width:520px){#neoHalloween2026 .nh-event-button{right:10px;bottom:10px;padding:9px 11px}#neoHalloween2026 .nh-event-button span{max-width:88px}#neoHalloween2026 .nh-panel{padding:18px}#neoHalloween2026 .nh-hero svg{width:70px;height:70px}#neoHalloween2026 .nh-pumpkin-deco{width:40px;bottom:64px}}
+@media(prefers-reduced-motion:reduce){#neoHalloween2026 .nh-ghost,#neoHalloween2026 .nh-pumpkin-deco,#neoHalloween2026 .nh-findable,#neoHalloween2026 .nh-lightning{animation:none!important}}
+</style>
+<div id="neoHalloween2026">
+  <div class="nh-lightning" aria-hidden="true"></div>
+  <div class="nh-fx" aria-hidden="true">
+    <svg class="nh-ghost" style="top:9%;left:-12%" viewBox="0 0 80 90"><path d="M10 82V38C10 19 23 5 40 5S70 19 70 38V82L58 73 47 83 35 73 22 83Z" fill="#f3edff" stroke="#c7a9ff" stroke-width="2"/><ellipse cx="29" cy="38" rx="4" ry="7" fill="#32204b"/><ellipse cx="51" cy="38" rx="4" ry="7" fill="#32204b"/><path d="M34 54Q40 61 46 54" fill="none" stroke="#32204b" stroke-width="3" stroke-linecap="round"/></svg>
+    <svg class="nh-ghost g2" style="top:52%;left:-15%" viewBox="0 0 80 90"><path d="M10 82V38C10 19 23 5 40 5S70 19 70 38V82L58 73 47 83 35 73 22 83Z" fill="#e7fbff" stroke="#00cce8" stroke-width="2"/><circle cx="29" cy="38" r="5" fill="#16304d"/><circle cx="51" cy="38" r="5" fill="#16304d"/><ellipse cx="40" cy="55" rx="5" ry="7" fill="#16304d"/></svg>
+    <svg class="nh-ghost g3" style="top:27%;left:-18%" viewBox="0 0 80 90"><path d="M10 82V38C10 19 23 5 40 5S70 19 70 38V82L58 73 47 83 35 73 22 83Z" fill="#f5e8ff" stroke="#b98cff" stroke-width="2"/><circle cx="29" cy="38" r="4" fill="#342044"/><circle cx="51" cy="38" r="4" fill="#342044"/></svg>
+  </div>
+  <svg class="nh-pumpkin-deco nh-pumpkin-left" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 14Q28 5 35 3Q43 2 40 14" fill="#4b9c55" stroke="#246f3b" stroke-width="2"/><path d="M32 15C20 7 5 20 8 37C10 51 20 59 32 57C44 59 54 51 56 37C59 20 44 7 32 15Z" fill="#ff982f" stroke="#e36c18" stroke-width="2"/><path d="M17 29L27 34 18 39Z M47 29L37 34 46 39Z" fill="#28132d"/><path d="M20 45L25 42 29 47 34 42 39 47 44 43" fill="none" stroke="#28132d" stroke-width="4" stroke-linejoin="round"/></svg>
+  <svg class="nh-pumpkin-deco nh-pumpkin-right" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 14Q28 5 35 3Q43 2 40 14" fill="#4b9c55" stroke="#246f3b" stroke-width="2"/><path d="M32 15C20 7 5 20 8 37C10 51 20 59 32 57C44 59 54 51 56 37C59 20 44 7 32 15Z" fill="#ff982f" stroke="#e36c18" stroke-width="2"/><path d="M17 29L27 34 18 39Z M47 29L37 34 46 39Z" fill="#28132d"/><path d="M20 45L25 42 29 47 34 42 39 47 44 43" fill="none" stroke="#28132d" stroke-width="4" stroke-linejoin="round"/></svg>
+  <div class="nh-findables" id="nhFindables" aria-label="Halloween hidden items"></div>
+  <button class="nh-event-button" id="nhOpenEvent" type="button" aria-label="Open Halloween event">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 14Q28 5 35 3Q43 2 40 14" fill="#6ebc72" stroke="#387b40" stroke-width="2"/><path d="M32 15C20 7 5 20 8 37C10 51 20 59 32 57C44 59 54 51 56 37C59 20 44 7 32 15Z" fill="#ff982f" stroke="#ffca78" stroke-width="2"/><path d="M17 29L27 34 18 39Z M47 29L37 34 46 39Z" fill="#28132d"/><path d="M20 45L25 42 29 47 34 42 39 47 44 43" fill="none" stroke="#28132d" stroke-width="4" stroke-linejoin="round"/></svg>
+    <span>Halloween Event</span>
+  </button>
+  <div class="nh-overlay" id="nhEventOverlay" role="dialog" aria-modal="true" aria-labelledby="nhEventTitle">
+    <section class="nh-panel">
+      <button class="nh-close" data-nh-close aria-label="Close">×</button>
+      <h2 id="nhEventTitle">NeoFind Halloween</h2>
+      <div class="nh-muted">The night is awake. Find hidden pumpkins, light candles and trade with the Grim Reaper.</div>
+      <div class="nh-hero">
+        <svg viewBox="0 0 100 100" role="img" aria-label="SVG Grim Reaper"><defs><linearGradient id="nhRobe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#35234f"/><stop offset="1" stop-color="#090b1c"/></linearGradient></defs><path d="M17 90L24 52Q9 41 19 22L35 8 65 8 81 22Q91 41 76 52L84 90 61 81 50 93 39 81Z" fill="url(#nhRobe)" stroke="#9b6dd4" stroke-width="2"/><path d="M28 36Q27 12 50 12Q73 12 72 36L65 56 50 62 35 56Z" fill="#080813" stroke="#65418c" stroke-width="2"/><path d="M36 38L47 42 38 46Z M64 38L53 42 62 46Z" fill="#a8faff" style="filter:drop-shadow(0 0 5px #00f2fe)"/><path d="M76 12L88 5 92 8 83 20 90 22 96 18" fill="none" stroke="#c7d3e8" stroke-width="3" stroke-linecap="round"/><path d="M83 19L91 28" stroke="#c7d3e8" stroke-width="3"/></svg>
+        <div><strong>The Grim Reaper is waiting.</strong><div class="nh-muted">Ask for a mission, discover who he is, or open the chest shop.</div><div class="nh-actions"><button class="nh-btn" id="nhTalkReaper">Talk to Reaper</button><button class="nh-btn secondary" id="nhOpenChest">Halloween Chest</button></div></div>
+      </div>
+      <div class="nh-stats">
+        <div class="nh-stat"><span class="nh-muted">Halloween Candy</span><strong class="nh-candy" id="nhCandyCount">0</strong></div>
+        <div class="nh-stat"><span class="nh-muted">Your Orbs</span><strong id="nhOrbsCount">0</strong></div>
+      </div>
+      <div class="nh-card"><strong>Active mission</strong><div class="nh-muted" id="nhMissionText">Talk to the Reaper to get your first mission.</div><div class="nh-progress"><span id="nhMissionProgress"></span></div><div class="nh-muted" id="nhMissionTime"></div><div class="nh-actions"><button class="nh-btn secondary" id="nhShowMission">Mission details</button><button class="nh-btn secondary" id="nhExchange">Exchange 5 Candy → 2 Orbs</button></div></div>
+      <div class="nh-actions"><button class="nh-btn secondary" id="nhHowTo">How to play</button><button class="nh-btn secondary" id="nhLightCandles">Find a candle</button></div>
+      <div class="nh-notice" id="nhNotice" role="status" aria-live="polite"></div>
+    </section>
+  </div>
+  <div class="nh-overlay" id="nhReaperOverlay" role="dialog" aria-modal="true" aria-labelledby="nhReaperTitle">
+    <section class="nh-panel"><button class="nh-close" data-nh-close aria-label="Close">×</button><h2 id="nhReaperTitle">The Grim Reaper</h2><div class="nh-hero"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M17 90L24 52Q9 41 19 22L35 8 65 8 81 22Q91 41 76 52L84 90 61 81 50 93 39 81Z" fill="#171327" stroke="#9b6dd4" stroke-width="2"/><path d="M28 36Q27 12 50 12Q73 12 72 36L65 56 50 62 35 56Z" fill="#080813"/><path d="M36 38L47 42 38 46Z M64 38L53 42 62 46Z" fill="#a8faff"/></svg><div class="nh-muted" id="nhReaperLine">Welcome, what you want?</div></div><div class="nh-actions" id="nhReaperActions"><button class="nh-btn" data-nh-reaper="mission">I want mission</button><button class="nh-btn secondary" data-nh-reaper="who">Who are you?</button><button class="nh-btn secondary" data-nh-reaper="nothing">Nothing</button></div><div class="nh-notice" id="nhReaperNotice" role="status" aria-live="polite"></div></section>
+  </div>
+  <div class="nh-overlay" id="nhChestOverlay" role="dialog" aria-modal="true" aria-labelledby="nhChestTitle">
+    <section class="nh-panel"><button class="nh-close" data-nh-close aria-label="Close">×</button><h2 id="nhChestTitle">Halloween Chest</h2><div class="nh-hero"><svg viewBox="0 0 100 100" aria-label="SVG treasure chest"><path d="M17 43V30Q17 13 34 13H66Q83 13 83 30V43Z" fill="#5d2c83" stroke="#c49aff" stroke-width="3"/><path d="M11 42H89V81Q89 88 82 88H18Q11 88 11 81Z" fill="#271634" stroke="#a26ce0" stroke-width="3"/><path d="M20 49H80V81H20Z" fill="#54316f"/><path d="M43 49H57V69H43Z" fill="#ffc66e" stroke="#ffe5a8" stroke-width="2"/><circle cx="50" cy="59" r="3" fill="#28132d"/></svg><div><strong>100 Halloween Candy</strong><div class="nh-muted">Open the chest to receive one random reward.</div><div class="nh-actions"><button class="nh-btn" id="nhBuyChest">Buy and open</button><button class="nh-btn secondary" id="nhShowOdds">Drop chances</button></div></div></div><div class="nh-chances" id="nhOdds" hidden><div class="nh-chance"><span>100 Orbs</span><b>50%</b><div class="nh-chance-track"><span style="width:50%"></span></div></div><div class="nh-chance"><span>50 Candy</span><b>20%</b><div class="nh-chance-track"><span style="width:20%"></span></div></div><div class="nh-chance"><span>200 Orbs</span><b>9%</b><div class="nh-chance-track"><span style="width:9%"></span></div></div><div class="nh-chance"><span>Halloween Badge</span><b>1%</b><div class="nh-chance-track"><span style="width:1%"></span></div></div><div class="nh-chance"><span>25 Candy</span><b>20%</b><div class="nh-chance-track"><span style="width:20%"></span></div></div></div><div id="nhChestResult" class="nh-result" aria-live="polite"></div><div class="nh-notice" id="nhChestNotice" role="status" aria-live="polite"></div></section>
+  </div>
+  <div class="nh-overlay" id="nhMissionOverlay" role="dialog" aria-modal="true" aria-labelledby="nhMissionTitle">
+    <section class="nh-panel"><button class="nh-close" data-nh-close aria-label="Close">×</button><h2 id="nhMissionTitle">Mission details</h2><div class="nh-muted">Only one mission can be started every 12 hours. Complete the objective and return to the Reaper.</div><div class="nh-list" id="nhMissionList"></div><div class="nh-actions"><button class="nh-btn" id="nhClaimMission">Claim reward</button><button class="nh-btn secondary" data-nh-close>Close</button></div><div class="nh-notice" id="nhMissionNotice" role="status" aria-live="polite"></div></section>
+  </div>
+  <div class="nh-overlay" id="nhInfoOverlay" role="dialog" aria-modal="true" aria-labelledby="nhInfoTitle">
+    <section class="nh-panel"><button class="nh-close" data-nh-close aria-label="Close">×</button><h2 id="nhInfoTitle">How to play</h2><div class="nh-list"><div class="nh-card"><strong>1. Pumpkin Hunt</strong><div class="nh-muted">Find 10 small pumpkins on the page. Reward: 50 Candy.</div></div><div class="nh-card"><strong>2. The Reaper's Chest</strong><div class="nh-muted">Buy a Halloween Chest and return to the Reaper. Reward: 150 Candy.</div></div><div class="nh-card"><strong>3. A Deal with Death</strong><div class="nh-muted">Give the Reaper 50 Orbs. Reward: 100 Candy.</div></div><div class="nh-card"><strong>4. Candle Keeper</strong><div class="nh-muted">Find and light 5 candles in the search area. Reward: 150 Candy.</div></div></div><div class="nh-muted" style="margin-top:12px">Exchange: 5 Candy → 2 Orbs. The Halloween Badge has a 1% chance in a chest.</div></section>
+  </div>
+</div>
+<script id="neoHalloween2026Logic">
+(function(){
+"use strict";
+const root=document.getElementById("neoHalloween2026");
+if(!root||root.dataset.ready==="1")return;root.dataset.ready="1";
+const $=id=>document.getElementById(id);
+const overlays=["nhEventOverlay","nhReaperOverlay","nhChestOverlay","nhMissionOverlay","nhInfoOverlay"];
+const missionDefs={
+ pumpkins:{title:"Pumpkin Hunt",description:"Find 10 hidden pumpkins on the page.",goal:10,reward:50,unit:"pumpkins"},
+ chest:{title:"The Reaper's Chest",description:"Open a Halloween Chest, then return to the Reaper.",goal:1,reward:150,unit:"chests"},
+ orbs:{title:"A Deal with Death",description:"Give the Reaper 50 Orbs.",goal:50,reward:100,unit:"Orbs"},
+ candles:{title:"Candle Keeper",description:"Find and light 5 candles in the search area.",goal:5,reward:150,unit:"candles"}
+};
+let state={candy:0,mission:null,missionStartedAt:0,lastMissionAt:0,progress:0,completed:false,pumpkinsFound:0,candlesFound:0,badge:false};
+let loadedUid=null, saving=false;
+function currentUser(){return window.auth&&window.auth.currentUser||null}
+function userRef(){const u=currentUser();return u&&window.db?window.db.collection("users").doc(u.uid):null}
+function say(id,msg){const el=$(id);if(el)el.textContent=msg}
+function show(id){overlays.forEach(x=>$(x).classList.toggle("nh-open",x===id));if(id==="nhEventOverlay")refreshDisplay();if(id==="nhMissionOverlay")renderMissionDetails()}
+function closeAll(){overlays.forEach(x=>$(x).classList.remove("nh-open"))}
+root.querySelectorAll("[data-nh-close]").forEach(b=>b.addEventListener("click",closeAll));
+overlays.forEach(id=>$(id).addEventListener("click",e=>{if(e.target===$(id))closeAll()}));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll()});
+function refreshDisplay(){ $("nhCandyCount").textContent=state.candy||0;$("nhOrbsCount").textContent=typeof window.userOrbs==="number"?window.userOrbs:(localStorage.getItem("userOrbs")||"0");const m=state.mission&&missionDefs[state.mission];$("nhMissionText").textContent=m?(m.title+" · "+state.progress+"/"+m.goal+" "+m.unit):"Talk to the Reaper to get your first mission.";$("nhMissionProgress").style.width=m?Math.min(100,state.progress/m.goal*100)+"%":"0%";$("nhMissionTime").textContent=state.mission?(state.completed?"Objective complete. Return to the Reaper to claim your reward.":"One mission at a time."):cooldownText()}
+function cooldownText(){const remain=Math.max(0,12*60*60*1000-(Date.now()-(state.lastMissionAt||0)));if(!state.lastMissionAt||remain===0)return "You can accept a mission now.";return "Next mission in "+Math.floor(remain/3600000)+"h "+Math.floor(remain%3600000/60000)+"m."}
+async function persist(mutator){const ref=userRef();if(!ref){say("nhNotice","Log in to save event progress.");return false}if(saving)return false;saving=true;try{await window.db.runTransaction(async tx=>{const snap=await tx.get(ref);const data=snap.exists?snap.data():{};const old=data.halloweenEvent&&typeof data.halloweenEvent==="object"?data.halloweenEvent:{};const next=Object.assign({},old);const result=mutator(next,data);if(result===false)throw new Error("HALLOWEEN_ACTION_REJECTED");tx.set(ref,{halloweenEvent:next},{merge:true});state=Object.assign(state,next)});refreshDisplay();return true}catch(e){console.error("NeoFind Halloween save failed:",e);say("nhNotice",e.message==="HALLOWEEN_ACTION_REJECTED"?"That action is not available yet.":"Could not save Halloween progress. Check Firestore permissions and try again.");return false}finally{saving=false}}
+async function loadState(user){if(!user||!window.db){loadedUid=null;state={candy:0,mission:null,missionStartedAt:0,lastMissionAt:0,progress:0,completed:false,pumpkinsFound:0,candlesFound:0,badge:false};refreshDisplay();return}if(loadedUid===user.uid)return;loadedUid=user.uid;try{const snap=await window.db.collection("users").doc(user.uid).get();const d=snap.exists?snap.data().halloweenEvent:null;if(d)state=Object.assign(state,d);else state={candy:0,mission:null,missionStartedAt:0,lastMissionAt:0,progress:0,completed:false,pumpkinsFound:0,candlesFound:0,badge:false};refreshDisplay()}catch(e){console.error("Halloween state load failed:",e);say("nhNotice","Event progress could not be loaded. Check Firestore permissions.")}}
+function requireLogin(){if(!currentUser()){say("nhNotice","Please log in to NeoFind to save progress and receive rewards.");return false}return true}
+function randomMission(){return Object.keys(missionDefs)[Math.floor(Math.random()*Object.keys(missionDefs).length)]}
+async function startMission(){if(!requireLogin())return;const now=Date.now();if(state.mission&&!state.completed){say("nhReaperNotice","You already have an active mission. Finish it first.");return}const remaining=12*3600000-(now-(state.lastMissionAt||0));if(state.lastMissionAt&&remaining>0){say("nhReaperNotice",cooldownText());return}const key=randomMission();const ok=await persist(n=>{n.mission=key;n.missionStartedAt=now;n.lastMissionAt=now;n.progress=0;n.completed=false;n.pumpkinsFound=0;n.candlesFound=0;return true});if(ok){say("nhReaperLine","A task for you: "+missionDefs[key].description);say("nhReaperNotice","Mission accepted: "+missionDefs[key].title);refreshDisplay()}}
+function renderMissionDetails(){const box=$("nhMissionList");const key=state.mission;const m=key&&missionDefs[key];box.innerHTML=m?'<div class="nh-card"><strong>'+m.title+'</strong><div class="nh-muted">'+m.description+'</div><div style="margin-top:8px">Progress: '+state.progress+'/'+m.goal+' '+m.unit+'</div><div class="nh-progress"><span style="width:'+Math.min(100,state.progress/m.goal*100)+'%"></span></div><div class="nh-muted" style="margin-top:8px">Reward: '+m.reward+' Candy</div></div>':'<div class="nh-card">No active mission. Speak to the Reaper to accept one.</div>';const b=$("nhClaimMission");b.disabled=!(m&&state.completed)}
+async function progressMission(kind,amount){if(!state.mission||state.completed)return;const m=missionDefs[state.mission];if(!m)return;if((state.mission==="pumpkins"&&kind!=="pumpkins")||(state.mission==="candles"&&kind!=="candles"))return;const p=Math.min(m.goal,state.progress+amount);const ok=await persist(n=>{if(!n.mission||n.completed)return false;n.progress=Math.min(m.goal,Number(n.progress||0)+amount);if(n.mission==="pumpkins")n.pumpkinsFound=Number(n.pumpkinsFound||0)+amount;if(n.mission==="candles")n.candlesFound=Number(n.candlesFound||0)+amount;n.completed=n.progress>=m.goal;return true});if(ok){refreshDisplay();if(state.completed)say("nhNotice","Mission complete! Return to the Reaper to claim your reward.")}}
+async function claimMission(){if(!requireLogin())return;const m=state.mission&&missionDefs[state.mission];if(!m||!state.completed){say("nhMissionNotice","Complete the objective before claiming the reward.");return}const ok=await persist((n,data)=>{const mm=n.mission&&missionDefs[n.mission];if(!mm||!n.completed||Number(n.progress)<mm.goal)return false;n.candy=Number(n.candy||0)+mm.reward;n.mission=null;n.missionStartedAt=0;n.progress=0;n.completed=false;n.pumpkinsFound=0;n.candlesFound=0;return true});if(ok){say("nhMissionNotice","Reward claimed: +"+m.reward+" Candy!");say("nhReaperNotice","Well done. The candy is yours.");refreshDisplay();renderMissionDetails()}}
+function placeFindables(){const box=$("nhFindables");box.innerHTML="";const positions=[["11%","25%"],["28%","72%"],["48%","17%"],["72%","64%"],["87%","29%"],["19%","51%"],["60%","79%"],["39%","38%"],["78%","45%"],["52%","56%"]];positions.forEach((p,i)=>{const b=document.createElement("button");b.type="button";b.className="nh-findable";b.style.left=p[0];b.style.top=p[1];b.style.animationDelay=(-i*.23)+"s";b.setAttribute("aria-label","Find hidden Halloween pumpkin "+(i+1));b.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 14Q28 5 35 3Q43 2 40 14" fill="#4b9c55" stroke="#246f3b" stroke-width="2"/><path d="M32 15C20 7 5 20 8 37C10 51 20 59 32 57C44 59 54 51 56 37C59 20 44 7 32 15Z" fill="#ff982f" stroke="#e36c18" stroke-width="2"/><path d="M17 29L27 34 18 39Z M47 29L37 34 46 39Z" fill="#28132d"/><path d="M20 45L25 42 29 47 34 42 39 47 44 43" fill="none" stroke="#28132d" stroke-width="4" stroke-linejoin="round"/></svg>';b.addEventListener("click",async()=>{if(!requireLogin())return;b.classList.add("nh-found");b.disabled=true;await progressMission("pumpkins",1);say("nhNotice","Pumpkin found!");});box.appendChild(b)})}
+function makeCandle(){const b=document.createElement("button");b.type="button";b.className="nh-findable nh-candle";b.style.left=(15+Math.random()*70)+"%";b.style.top=(24+Math.random()*55)+"%";b.setAttribute("aria-label","Light a hidden Halloween candle");b.innerHTML='<svg viewBox="0 0 40 64" aria-hidden="true"><path d="M20 2C8 15 17 18 20 25C24 18 32 14 20 2Z" fill="#ffcb65" stroke="#fff1b1" stroke-width="1.5"/><path d="M11 27H29V56Q20 62 11 56Z" fill="#f5e7c9" stroke="#bda6d9" stroke-width="2"/><path d="M13 34H27" stroke="#c8b3e3" stroke-width="2"/><path d="M20 25V29" stroke="#38234a" stroke-width="2"/></svg>';b.addEventListener("click",async()=>{if(!requireLogin())return;b.remove();await progressMission("candles",1);say("nhNotice","Candle lit!");});return b}
+let candleCount=0;
+function spawnCandles(){const box=$("nhFindables");for(let i=0;i<5;i++){const c=makeCandle();c.style.left=(12+i*18)+"%";c.style.top=(34+(i%2)*28)+"%";box.appendChild(c)}candleCount=5}
+$("nhOpenEvent").addEventListener("click",async()=>{await loadState(currentUser());show("nhEventOverlay")});
+$("nhTalkReaper").addEventListener("click",()=>{say("nhReaperLine","Welcome, what you want?");say("nhReaperNotice","");show("nhReaperOverlay")});
+root.querySelectorAll("[data-nh-reaper]").forEach(b=>b.addEventListener("click",async()=>{const action=b.dataset.nhReaper;if(action==="nothing"){closeAll();return}if(action==="who"){say("nhReaperLine","I'm NeoFind grim reaper, i can give you candy but you have to complete my mission.");$("nhReaperActions").innerHTML='<button class="nh-btn" data-nh-reaper="mission">Give me mission</button><button class="nh-btn secondary" data-nh-reaper="nothing">Ok</button>';wireReaperActions();return}if(action==="mission"){await startMission();if(state.mission)show("nhMissionOverlay")}}));
+function wireReaperActions(){root.querySelectorAll("[data-nh-reaper]").forEach(b=>{if(b.dataset.wired)return;b.dataset.wired="1";b.addEventListener("click",async()=>{const a=b.dataset.nhReaper;if(a==="nothing"){closeAll();return}if(a==="who"){say("nhReaperLine","I'm NeoFind grim reaper, i can give you candy but you have to complete my mission.");$("nhReaperActions").innerHTML='<button class="nh-btn" data-nh-reaper="mission">Give me mission</button><button class="nh-btn secondary" data-nh-reaper="nothing">Ok</button>';wireReaperActions()}if(a==="mission"){await startMission();if(state.mission)show("nhMissionOverlay")}})})}
+$("nhOpenChest").addEventListener("click",()=>{say("nhChestNotice","");$("nhChestResult").textContent="";show("nhChestOverlay")});
+$("nhShowOdds").addEventListener("click",()=>{$("nhOdds").hidden=!$("nhOdds").hidden});
+$("nhShowMission").addEventListener("click",()=>show("nhMissionOverlay"));
+$("nhClaimMission").addEventListener("click",claimMission);
+$("nhHowTo").addEventListener("click",()=>show("nhInfoOverlay"));
+$("nhLightCandles").addEventListener("click",()=>{spawnCandles();say("nhNotice","Five SVG candles have appeared. Click them to light them.")});
+$("nhExchange").addEventListener("click",async()=>{if(!requireLogin())return;const ref=userRef();if(!ref)return;try{await window.db.runTransaction(async tx=>{const snap=await tx.get(ref);const d=snap.exists?snap.data():{};const ev=d.halloweenEvent||{};const candy=Number(ev.candy||0);const orbs=Number(d.orbs||0);if(candy<5)throw new Error("NOT_ENOUGH_CANDY");tx.set(ref,{orbs:orbs+2,halloweenEvent:Object.assign({},ev,{candy:candy-5})},{merge:true});state=Object.assign(state,ev,{candy:candy-5})});if(typeof window.syncUserEconomy==="function")await window.syncUserEconomy(currentUser());say("nhNotice","Exchange complete: 5 Candy → 2 Orbs.");refreshDisplay()}catch(e){say("nhNotice",e.message==="NOT_ENOUGH_CANDY"?"You need at least 5 Candy.":"Exchange failed. Check Firestore permissions.");console.error(e)}});
+$("nhBuyChest").addEventListener("click",async()=>{if(!requireLogin())return;const roll=Math.random()*100;let reward;if(roll<50)reward={type:"orbs",amount:100,label:"100 Orbs"};else if(roll<70)reward={type:"candy",amount:50,label:"50 Candy"};else if(roll<79)reward={type:"orbs",amount:200,label:"200 Orbs"};else if(roll<80)reward={type:"badge",amount:1,label:"Halloween Badge"};else reward={type:"candy",amount:25,label:"25 Candy"};const ref=userRef();try{await window.db.runTransaction(async tx=>{const snap=await tx.get(ref);const d=snap.exists?snap.data():{};const ev=d.halloweenEvent||{};const candy=Number(ev.candy||0);if(candy<100)throw new Error("NOT_ENOUGH_CANDY");const next=Object.assign({},ev,{candy:candy-100});let changes={halloweenEvent:next};if(reward.type==="orbs")changes.orbs=Number(d.orbs||0)+reward.amount;if(reward.type==="candy")next.candy+=reward.amount;if(reward.type==="badge"){next.badge=true;const badges=Array.isArray(d.badges)?d.badges.slice():[];if(!badges.includes("halloweenPumpkin"))badges.push("halloweenPumpkin");changes.badges=badges}if(next.mission==="chest"&&!next.completed){next.progress=1;next.completed=true}changes.halloweenEvent=next;tx.set(ref,changes,{merge:true});state=Object.assign(state,next)});if(typeof window.syncUserEconomy==="function")await window.syncUserEconomy(currentUser());$("nhChestResult").textContent="You got: "+reward.label+"!";say("nhChestNotice",reward.type==="badge"?"Rare drop! The pumpkin badge has been added to your event collection.":"Chest opened successfully.");refreshDisplay()}catch(e){$("nhChestResult").textContent="";say("nhChestNotice",e.message==="NOT_ENOUGH_CANDY"?"A chest costs 100 Candy.":"Chest opening failed. Check Firestore permissions.");console.error("Halloween chest failed:",e)}});
+window.addEventListener("DOMContentLoaded",()=>{spawnCandles();if(window.auth&&typeof window.auth.onAuthStateChanged==="function")window.auth.onAuthStateChanged(u=>{loadedUid=null;loadState(u)});else refreshDisplay()});
+if(window.auth&&typeof window.auth.onAuthStateChanged==="function")window.auth.onAuthStateChanged(u=>{loadedUid=null;loadState(u)});
+wireReaperActions();placeFindables();refreshDisplay();
+})();
+</script>
+
 </body>
 </html>
