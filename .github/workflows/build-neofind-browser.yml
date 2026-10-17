@@ -7,7 +7,6 @@ on:
     paths:
       - "desktop/**"
       - ".github/workflows/build-neofind-browser.yml"
-  push:
     tags:
       - "neofind-browser-v*"
   workflow_dispatch:
