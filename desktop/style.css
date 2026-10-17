@@ -24,3 +24,43 @@ html,body { margin:0; width:100%; height:100%; overflow:hidden; background:var(-
 .go-button:hover { filter:brightness(1.15); }
 #pageViewport { position:absolute; top:92px; left:0; right:0; bottom:0; background:#fff; }
 @media (max-width:800px) { .tab { min-width:82px; padding:0 7px; } .toolbar { gap:4px; padding-left:6px; padding-right:6px; } .tool { width:29px; } }
+
+
+.hidden { display:none !important; }
+.settings-button { margin-left:1px; }
+.settings-overlay { position:fixed; z-index:20; inset:0; display:flex; align-items:center; justify-content:center; padding:20px; background:#020611c9; backdrop-filter:blur(7px); }
+.settings-card { width:min(760px,100%); max-height:min(780px,94vh); overflow:auto; padding:24px; border:1px solid #30415b; border-radius:18px; background:linear-gradient(145deg,#111c2d,#0a1120); box-shadow:0 24px 80px #0009; }
+.settings-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.settings-heading h1 { margin:0; font-size:26px; letter-spacing:-.5px; }
+.eyebrow { margin:0 0 5px; color:var(--cyan); font-size:10px; letter-spacing:2px; font-weight:800; }
+.settings-tabs { display:flex; gap:8px; margin:22px 0; border-bottom:1px solid var(--line); }
+.settings-tab { border:0; border-bottom:2px solid transparent; padding:10px 12px; color:var(--muted); background:transparent; cursor:pointer; }
+.settings-tab.selected { color:var(--text); border-bottom-color:var(--cyan); }
+.settings-section h2 { margin:0 0 8px; font-size:19px; }
+.settings-section > p { color:var(--muted); font-size:13px; line-height:1.55; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:15px 0; border-bottom:1px solid #25334a; }
+.setting-row strong { display:block; font-size:13px; }
+.setting-row small { display:block; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.45; }
+.setting-pill { align-self:center; padding:5px 9px; border:1px solid #2d6681; border-radius:999px; color:#b4f6ff; font-size:11px; }
+.field-label { display:block; margin:18px 0 7px; font-size:12px; color:#b8c8db; }
+.settings-select { width:100%; padding:11px; border:1px solid var(--line); border-radius:9px; color:var(--text); background:#0a1220; }
+.import-presets { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:14px 0; }
+.preset-button { text-align:left; padding:13px; border:1px solid var(--line); border-radius:10px; color:var(--text); background:#101a2a; cursor:pointer; }
+.preset-button.selected { border-color:var(--cyan); background:#10273a; box-shadow:inset 0 0 0 1px #00f2fe25; }
+.preset-button strong { font-size:13px; }
+.preset-button small,.data-options small { display:block; margin-top:4px; color:var(--muted); font-size:12px; line-height:1.45; }
+.data-options { display:grid; grid-template-columns:1fr 1fr; gap:0 18px; border-top:1px solid var(--line); }
+.data-options label { display:flex; align-items:flex-start; gap:9px; padding:12px 0; border-bottom:1px solid #223148; cursor:pointer; }
+.data-options input { margin-top:3px; accent-color:var(--cyan); }
+.data-options strong { display:block; font-size:13px; }
+.privacy-note { margin-top:16px; padding:13px; border:1px solid #5a4b2a; border-radius:10px; background:#282216; }
+.privacy-note strong { color:#ffd98a; font-size:12px; }
+.privacy-note p { margin:6px 0 0; color:#d5c8ac; font-size:12px; line-height:1.55; }
+.import-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:15px; }
+.primary-button,.secondary-button { padding:10px 14px; border:1px solid transparent; border-radius:9px; color:white; background:linear-gradient(100deg,#087dba,#5652c8); font-weight:600; cursor:pointer; }
+.secondary-button { border-color:var(--line); background:#172235; }
+.import-status { min-height:20px; }
+.imported-bookmarks { display:flex; flex-direction:column; gap:7px; max-height:180px; overflow:auto; padding-top:8px; }
+.imported-bookmarks h3 { margin:6px 0; font-size:13px; }
+.imported-bookmarks a { overflow:hidden; color:#9beeff; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+@media (max-width:600px) { .settings-card { padding:16px; } .import-presets,.data-options { grid-template-columns:1fr; } }
