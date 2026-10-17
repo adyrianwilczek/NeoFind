@@ -136,3 +136,23 @@ document.getElementById("chooseBookmarksFile").addEventListener("click", async (
 });
 document.getElementById("showImportedBookmarks").addEventListener("click", renderImportedBookmarks);
 setImportPreset("no-cookies");
+
+
+const updateStatusElement = document.getElementById("updateStatus");
+const checkUpdatesButton = document.getElementById("checkUpdatesButton");
+window.neoBrowser.getVersion().then((version) => { document.getElementById("appVersion").textContent = "Installed version: " + version; }).catch(() => {});
+window.neoBrowser.onUpdaterState((state) => {
+  updateStatusElement.textContent = state.message || "Update status changed.";
+  if (state.status === "current" && state.version) updateStatusElement.textContent = "Version " + state.version + " is already installed.";
+  checkUpdatesButton.disabled = ["checking", "downloading"].includes(state.status);
+  checkUpdatesButton.textContent = state.status === "downloading" ? "Downloading..." : state.status === "checking" ? "Checking..." : "Check for updates";
+});
+checkUpdatesButton.addEventListener("click", async () => {
+  checkUpdatesButton.disabled = true;
+  updateStatusElement.textContent = "Checking GitHub Releases...";
+  try {
+    const result = await window.neoBrowser.checkForUpdates();
+    if (result && result.message && result.status !== "checking") updateStatusElement.textContent = result.message;
+  } catch (error) { updateStatusElement.textContent = "Could not check for updates: " + String(error.message || error); }
+  finally { checkUpdatesButton.disabled = false; }
+});
