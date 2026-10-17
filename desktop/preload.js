@@ -12,6 +12,12 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   setBounds: (bounds) => ipcRenderer.send("browser:set-bounds", bounds),
   openDefaultApps: () => ipcRenderer.invoke("browser:open-default-apps"),
   chooseBookmarksFile: () => ipcRenderer.invoke("import:choose-bookmarks"),
+  checkForUpdates: () => ipcRenderer.invoke("updater:check"),
+  getVersion: () => ipcRenderer.invoke("updater:version"),
+  onUpdaterState: (callback) => {
+    ipcRenderer.removeAllListeners("updater:state");
+    ipcRenderer.on("updater:state", (_event, state) => callback(state));
+  },
   onTabsState: (callback) => {
     ipcRenderer.removeAllListeners("tabs:state");
     ipcRenderer.on("tabs:state", (_event, state) => callback(state));
