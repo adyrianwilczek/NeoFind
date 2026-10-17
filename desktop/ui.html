@@ -23,9 +23,43 @@
         <input id="address" autocomplete="off" spellcheck="false" placeholder="Search NeoFind or enter an address">
       </form>
       <button id="go" class="go-button">Go</button>
+      <button id="settingsButton" class="tool settings-button" title="Settings" aria-label="Settings">⚙</button>
     </div>
   </header>
   <main id="pageViewport" aria-label="Web page area"></main>
+  <section id="settingsPanel" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="settings-card">
+      <div class="settings-heading"><div><p class="eyebrow">NEOFIND BROWSER</p><h1 id="settingsTitle">Settings</h1></div><button id="closeSettings" class="tool" aria-label="Close settings">×</button></div>
+      <nav class="settings-tabs"><button class="settings-tab selected" data-settings-tab="general">General</button><button class="settings-tab" data-settings-tab="import">Import browser data</button></nav>
+      <section id="settingsGeneral" class="settings-section">
+        <h2>General</h2><p>Manage your NeoFind Browser preferences.</p>
+        <div class="setting-row"><div><strong>Default browser</strong><small>Set NeoFind Browser as the app that opens web links in Windows.</small></div><button id="setDefaultBrowser" class="primary-button">Set as default</button></div>
+        <p id="defaultBrowserStatus" class="import-status" role="status">Windows may ask you to confirm NeoFind Browser in Default apps.</p>
+        <div class="setting-row"><div><strong>Start page</strong><small>Open NeoFind when a new browser window starts.</small></div><span class="setting-pill">NeoFind</span></div>
+      </section>
+      <section id="settingsImport" class="settings-section hidden">
+        <h2>Import browser data</h2><p>Move selected information from another browser into NeoFind Browser.</p>
+        <label class="field-label" for="sourceBrowser">Source browser</label>
+        <select id="sourceBrowser" class="settings-select"><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Brave</option><option>Opera</option><option>Another browser</option></select>
+        <div class="import-presets">
+          <button id="importEverything" class="preset-button"><strong>Everything</strong><small>Select all categories, including cookies.</small></button>
+          <button id="importNoCookies" class="preset-button selected"><strong>Everything except cookies</strong><small>Select all categories except cookies.</small></button>
+        </div>
+        <div class="data-options">
+          <label><input type="checkbox" name="importData" value="bookmarks" checked> <span><strong>Bookmarks</strong><small>Saved websites and folders</small></span></label>
+          <label><input type="checkbox" name="importData" value="history" checked> <span><strong>Browsing history</strong><small>Previously visited pages</small></span></label>
+          <label><input type="checkbox" name="importData" value="passwords" checked> <span><strong>Saved passwords</strong><small>Sensitive login information</small></span></label>
+          <label><input type="checkbox" name="importData" value="autofill" checked> <span><strong>Autofill data</strong><small>Addresses and form details</small></span></label>
+          <label><input type="checkbox" name="importData" value="settings" checked> <span><strong>Browser settings</strong><small>Preferences, where supported</small></span></label>
+          <label><input type="checkbox" name="importData" value="extensions" checked> <span><strong>Extensions</strong><small>May need to be installed again</small></span></label>
+          <label><input type="checkbox" name="importData" value="cookies"> <span><strong>Cookies and website sessions</strong><small>Can transfer active sign-in sessions. Only select if you trust this device.</small></span></label>
+        </div>
+        <div class="privacy-note"><strong>Import availability in this version</strong><p>The choices let you plan what to migrate, but this build currently imports bookmarks from an HTML export only. History, passwords, autofill, settings, extensions and cookies are not transferred yet. Passwords and cookies are sensitive, so this app will not pretend they were imported when they were not.</p></div>
+        <div class="import-actions"><button id="chooseBookmarksFile" class="primary-button">Choose bookmarks HTML…</button><button id="showImportedBookmarks" class="secondary-button">View imported bookmarks</button></div>
+        <p id="importStatus" class="import-status" role="status">Choose a preset or customize the categories.</p><div id="importedBookmarksList" class="imported-bookmarks hidden"></div>
+      </section>
+    </div>
+  </section>
   <script src="renderer.js"></script>
 </body>
 </html>
