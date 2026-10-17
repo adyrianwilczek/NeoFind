@@ -16309,7 +16309,7 @@ document.addEventListener("click", event => {
  bestEl.textContent=best;
  function normalized(v){return String(v||"").toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]/g," ").replace(/\s+/g," ").trim()}
  function isSnakeQuery(v){const q=normalized(v);return aliases.has(q)||q==="snake game online"||q==="google snake game"||q==="play the snake game"||q==="gra w snake"||q==="wazyk"||q==="waz online"}
- function updateFeature(){feature.style.display="none"}
+ function updateFeature(){const q=normalized(input.value);const halloweenTerms=["halloween","halloween event","halloween neofind","dynia","dynie","halloween snake","snake halloween"];const showSnake=isSnakeQuery(input.value);const showHalloween=halloweenTerms.includes(q);feature.style.display=(showSnake||showHalloween)?"block":"none";const banner=document.getElementById("neoHalloweenBanner");if(banner){const now=new Date(),start=new Date(2026,9,20),end=new Date(2026,10,6);const active=now>=start&&now<end;banner.style.display=showHalloween||active?"block":"none";const desc=banner.querySelector("div[style*=margin-top]");if(desc&&!active)desc.textContent="Event starts 20 October. Come back for pumpkins, quests and Halloween rewards.";}}
  input.addEventListener("input",updateFeature);
  document.addEventListener("keydown",function(e){if(e.key==="Enter")window.setTimeout(updateFeature,0)});
  function draw(){
