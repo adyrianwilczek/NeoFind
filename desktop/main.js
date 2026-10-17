@@ -1,4 +1,5 @@
-const { app, BrowserWindow, WebContentsView, ipcMain } = require("electron");
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell } = require("electron");
+const fs = require("node:fs/promises");
 const path = require("node:path");
 
 const HOME_URL = "https://neofind.pl/";
@@ -206,6 +207,22 @@ ipcMain.on("browser:set-bounds", (_event, bounds) => {
   updateActiveBounds();
 });
 
+ipcMain.handle("browser:open-default-apps", async () => {
+  if (process.platform !== "win32") return { ok: false };
+  try { await shell.openExternal("ms-settings:defaultapps"); return { ok: true }; }
+  catch { return { ok: false }; }
+});
+ipcMain.handle("import:choose-bookmarks", async () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return { canceled: true };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Select exported bookmarks",
+    properties: ["openFile"],
+    filters: [{ name: "Bookmarks HTML", extensions: ["html", "htm"] }]
+  });
+  if (result.canceled || !result.filePaths[0]) return { canceled: true };
+  const content = await fs.readFile(result.filePaths[0], "utf8");
+  return { canceled: false, content };
+});
 app.whenReady().then(createWindow);
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
