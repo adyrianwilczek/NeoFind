@@ -15,6 +15,7 @@ let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 function normalizeAddress(input) {
   const value = String(input || "").trim();
   if (!value || /^about:(blank|home)$/i.test(value)) return HOME_URL;
+  if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
 
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
     try {
