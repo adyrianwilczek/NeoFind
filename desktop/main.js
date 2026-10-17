@@ -1,4 +1,5 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell } = require("electron");
+const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
@@ -229,7 +230,39 @@ ipcMain.handle("import:choose-bookmarks", async () => {
   const content = await fs.readFile(result.filePaths[0], "utf8");
   return { canceled: false, content };
 });
-app.whenReady().then(createWindow);
+function sendUpdaterState(state) {
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("updater:state", state);
+}
+
+autoUpdater.autoDownload = true;
+autoUpdater.autoInstallOnAppQuit = true;
+autoUpdater.allowPrerelease = true;
+autoUpdater.on("checking-for-update", () => sendUpdaterState({ status: "checking", message: "Checking for updates..." }));
+autoUpdater.on("update-available", (info) => sendUpdaterState({ status: "available", version: info.version, message: "Update found. Downloading in the background..." }));
+autoUpdater.on("update-not-available", (info) => sendUpdaterState({ status: "current", version: info.version, message: "NeoFind Browser is up to date." }));
+autoUpdater.on("download-progress", (progress) => sendUpdaterState({ status: "downloading", percent: Math.round(progress.percent), message: "Downloading update: " + Math.round(progress.percent) + "%" }));
+autoUpdater.on("update-downloaded", (info) => {
+  sendUpdaterState({ status: "downloaded", version: info.version, message: "Update downloaded. Restart to install it." });
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  dialog.showMessageBox(mainWindow, {
+    type: "info", title: "NeoFind Browser update ready",
+    message: "NeoFind Browser " + info.version + " has been downloaded.",
+    detail: "Restart the browser now to install the update. Your browser data should remain in place.",
+    buttons: ["Restart and install", "Later"], defaultId: 0, cancelId: 1
+  }).then(({ response }) => { if (response === 0) autoUpdater.quitAndInstall(); });
+});
+autoUpdater.on("error", (error) => sendUpdaterState({ status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }));
+
+ipcMain.handle("updater:check", async () => {
+  if (!app.isPackaged) return { status: "development", message: "Updates are available in the installed version." };
+  try { await autoUpdater.checkForUpdates(); return { status: "checking", message: "Checking GitHub Releases..." }; }
+  catch (error) { return { status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }; }
+});
+ipcMain.handle("updater:version", () => app.getVersion());
+app.whenReady().then(() => {
+  createWindow();
+  if (app.isPackaged) setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 5000);
+});
 app.on("second-instance", (_event, commandLine) => {
   const externalUrl = commandLine.find(isHttpUrl);
   if (externalUrl) {
