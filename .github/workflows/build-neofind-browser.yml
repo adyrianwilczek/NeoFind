@@ -28,8 +28,8 @@ jobs:
       - name: Publish installer to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: NeoFind Browser \${{ github.ref_name }}
-          tag_name: \${{ github.ref_name }}
+          name: NeoFind Browser ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
           files: desktop/dist/NeoFind-Setup.exe
           generate_release_notes: true
           prerelease: true
