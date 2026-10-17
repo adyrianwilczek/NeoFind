@@ -2468,16 +2468,7 @@ NOTE! Do not share the key with anyone.
 </div>
 
 
-        <section id="neoProfileBrowserSection" style="margin:20px auto;padding:18px;max-width:900px;text-align:left;border:1px solid rgba(0,242,254,.28);border-radius:16px;background:rgba(8,18,32,.55);">
-            <h4 style="margin:0 0 8px;">NeoFind Browser</h4>
-            <p style="font-size:13px;opacity:.8;margin:0 0 14px;">Browser tools for your NeoFind profile. Import bookmarks from an exported HTML file or open the default-browser instructions.</p>
-            <label for="neoProfileBookmarksFile" style="display:block;margin:8px 0;">Import bookmarks (HTML export)</label>
-            <input id="neoProfileBookmarksFile" type="file" accept=".html,.htm,text/html" style="display:block;max-width:100%;margin:0 0 10px;">
-            <button type="button" id="neoProfileImportBookmarksBtn" onclick="neoProfileImportBookmarks()" style="margin-right:8px;">Import bookmarks</button>
-            <button type="button" onclick="neoProfileOpenDefaultBrowserHelp()">Set NeoFind Browser as default</button>
-            <p id="neoProfileBrowserStatus" role="status" style="font-size:12px;opacity:.8;margin:10px 0 0;">Import supports bookmarks exported as HTML. Windows does not let a website change default-app settings directly.</p>
-            <div id="neoProfileImportedBookmarks" style="display:grid;gap:6px;margin-top:10px;"></div>
-        </section>
+
 
         <div class="settings-grid">
             <div class="settings-col">
@@ -2543,6 +2534,17 @@ NOTE! Do not share the key with anyone.
                 </div>
             </div>
         </div>
+
+        <section id="neoProfileBrowserSection" style="margin:20px auto;padding:18px;max-width:900px;text-align:left;border:1px solid rgba(0,242,254,.28);border-radius:16px;background:rgba(8,18,32,.55);">
+            <h4 style="margin:0 0 8px;">NeoFind Browser</h4>
+            <p style="font-size:13px;opacity:.8;margin:0 0 14px;">Browser tools for your NeoFind profile. Import bookmarks from an exported HTML file or open the default-browser instructions.</p>
+            <label for="neoProfileBookmarksFile" style="display:block;margin:8px 0;">Import bookmarks (HTML export)</label>
+            <input id="neoProfileBookmarksFile" type="file" accept=".html,.htm,text/html" style="display:block;max-width:100%;margin:0 0 10px;">
+            <button type="button" id="neoProfileImportBookmarksBtn" onclick="neoProfileImportBookmarks()" style="margin-right:8px;">Import bookmarks</button>
+            <button type="button" onclick="neoProfileOpenDefaultBrowserHelp()">Set NeoFind Browser as default</button>
+            <p id="neoProfileBrowserStatus" role="status" style="font-size:12px;opacity:.8;margin:10px 0 0;">Import supports bookmarks exported as HTML. Windows does not let a website change default-app settings directly.</p>
+            <div id="neoProfileImportedBookmarks" style="display:grid;gap:6px;margin-top:10px;"></div>
+        </section>
 
         <section id="neoConnectedDevicesSection" style="display:none;margin:22px auto 16px;max-width:900px;padding:18px;text-align:left;border:1px solid rgba(0,242,254,.25);border-radius:16px;background:rgba(8,18,32,.55);">
             <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
