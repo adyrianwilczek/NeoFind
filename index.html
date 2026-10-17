@@ -16570,9 +16570,32 @@ ttReset();pmReset();
 @keyframes nhLightning{0%,94%,96%,100%{opacity:0}94.4%{opacity:.15}94.8%{opacity:0}95.1%{opacity:.22}95.5%{opacity:0}}
 @media(max-width:520px){#neoHalloween2026 .nh-event-button{right:10px;bottom:10px;padding:9px 11px}#neoHalloween2026 .nh-event-button span{max-width:88px}#neoHalloween2026 .nh-panel{padding:18px}#neoHalloween2026 .nh-hero svg{width:70px;height:70px}#neoHalloween2026 .nh-pumpkin-deco{width:40px;bottom:64px}}
 @media(prefers-reduced-motion:reduce){#neoHalloween2026 .nh-ghost,#neoHalloween2026 .nh-pumpkin-deco,#neoHalloween2026 .nh-findable,#neoHalloween2026 .nh-lightning{animation:none!important}}
+
+#neoHalloween2026 .nh-graveyard{position:fixed;left:0;right:0;bottom:0;width:100%;height:clamp(110px,24vh,230px);z-index:9986;pointer-events:none;opacity:.72;filter:drop-shadow(0 -8px 18px #090713)}
+#neoHalloween2026 .nh-fog{position:fixed;left:-20%;bottom:0;width:140%;height:22vh;z-index:9986;pointer-events:none;opacity:.18;background:linear-gradient(0deg,#a8b7ff33,transparent);animation:nhFog 18s ease-in-out infinite alternate}
+#neoHalloween2026.nh-mode-off .nh-fx,#neoHalloween2026.nh-mode-off .nh-lightning,#neoHalloween2026.nh-mode-off .nh-pumpkin-deco,#neoHalloween2026.nh-mode-off .nh-graveyard,#neoHalloween2026.nh-mode-off .nh-fog,#neoHalloween2026.nh-mode-off .nh-findables{display:none!important}
+#neoHalloween2026 .nh-mode-switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 13px;margin:12px 0;border:1px solid #7652a9;border-radius:14px;background:#ffffff08}
+#neoHalloween2026 .nh-mode-switch strong{display:block;color:#fff}
+#neoHalloween2026 .nh-mode-switch small{display:block;color:#c4b8d9;margin-top:3px}
+@keyframes nhFog{from{transform:translateX(-4%)}to{transform:translateX(4%)}}
 </style>
 <div id="neoHalloween2026">
   <div class="nh-lightning" aria-hidden="true"></div>
+  <div class="nh-fog" aria-hidden="true"></div>
+  <svg class="nh-graveyard" viewBox="0 0 1440 250" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="nhGround" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#25213b"/><stop offset="1" stop-color="#080a16"/></linearGradient><linearGradient id="nhStone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#77718e"/><stop offset="1" stop-color="#29273e"/></linearGradient></defs>
+    <path d="M0 120Q150 65 300 120T600 112T900 125T1200 102T1440 118V250H0Z" fill="url(#nhGround)"/>
+    <g fill="url(#nhStone)" stroke="#8f83ae" stroke-width="2" opacity=".9">
+      <path d="M82 180V126Q82 102 104 102Q126 102 126 126V180Z"/><path d="M98 112V145M89 128H108" stroke="#b7a5d9" stroke-width="4" fill="none"/>
+      <path d="M220 198V145Q220 123 243 123Q266 123 266 145V198Z"/><path d="M243 135V170M230 151H256" stroke="#b7a5d9" stroke-width="4" fill="none"/>
+      <path d="M470 190V130Q470 105 496 105Q522 105 522 130V190Z"/><path d="M496 118V158M480 138H512" stroke="#b7a5d9" stroke-width="4" fill="none"/>
+      <path d="M690 205V148Q690 124 714 124Q738 124 738 148V205Z"/><path d="M714 136V171M700 153H728" stroke="#b7a5d9" stroke-width="4" fill="none"/>
+      <path d="M990 188V129Q990 104 1016 104Q1042 104 1042 129V188Z"/><path d="M1016 116V156M1001 136H1031" stroke="#b7a5d9" stroke-width="4" fill="none"/>
+      <path d="M1210 200V150Q1210 127 1233 127Q1256 127 1256 150V200Z"/><path d="M1233 139V173M1220 156H1246" stroke="#b7a5d9" stroke-width="4" fill="none"/>
+      <path d="M1350 178V132Q1350 110 1372 110Q1394 110 1394 132V178Z"/>
+    </g>
+    <g stroke="#0d1020" stroke-width="6" fill="none" stroke-linecap="round"><path d="M320 178Q350 145 370 174T422 166"/><path d="M1070 191Q1100 158 1124 184T1170 176"/></g>
+  </svg>
   <div class="nh-fx" aria-hidden="true">
     <svg class="nh-ghost" style="top:9%;left:-12%" viewBox="0 0 80 90"><path d="M10 82V38C10 19 23 5 40 5S70 19 70 38V82L58 73 47 83 35 73 22 83Z" fill="#f3edff" stroke="#c7a9ff" stroke-width="2"/><ellipse cx="29" cy="38" rx="4" ry="7" fill="#32204b"/><ellipse cx="51" cy="38" rx="4" ry="7" fill="#32204b"/><path d="M34 54Q40 61 46 54" fill="none" stroke="#32204b" stroke-width="3" stroke-linecap="round"/></svg>
     <svg class="nh-ghost g2" style="top:52%;left:-15%" viewBox="0 0 80 90"><path d="M10 82V38C10 19 23 5 40 5S70 19 70 38V82L58 73 47 83 35 73 22 83Z" fill="#e7fbff" stroke="#00cce8" stroke-width="2"/><circle cx="29" cy="38" r="5" fill="#16304d"/><circle cx="51" cy="38" r="5" fill="#16304d"/><ellipse cx="40" cy="55" rx="5" ry="7" fill="#16304d"/></svg>
@@ -16594,6 +16617,7 @@ ttReset();pmReset();
         <svg viewBox="0 0 100 100" role="img" aria-label="SVG Grim Reaper"><defs><linearGradient id="nhRobe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#35234f"/><stop offset="1" stop-color="#090b1c"/></linearGradient></defs><path d="M17 90L24 52Q9 41 19 22L35 8 65 8 81 22Q91 41 76 52L84 90 61 81 50 93 39 81Z" fill="url(#nhRobe)" stroke="#9b6dd4" stroke-width="2"/><path d="M28 36Q27 12 50 12Q73 12 72 36L65 56 50 62 35 56Z" fill="#080813" stroke="#65418c" stroke-width="2"/><path d="M36 38L47 42 38 46Z M64 38L53 42 62 46Z" fill="#a8faff" style="filter:drop-shadow(0 0 5px #00f2fe)"/><path d="M76 12L88 5 92 8 83 20 90 22 96 18" fill="none" stroke="#c7d3e8" stroke-width="3" stroke-linecap="round"/><path d="M83 19L91 28" stroke="#c7d3e8" stroke-width="3"/></svg>
         <div><strong>The Grim Reaper is waiting.</strong><div class="nh-muted">Ask for a mission, discover who he is, or open the chest shop.</div><div class="nh-actions"><button class="nh-btn" id="nhTalkReaper">Talk to Reaper</button><button class="nh-btn secondary" id="nhOpenChest">Halloween Chest</button></div></div>
       </div>
+      <div class="nh-mode-switch"><div><strong>Halloween Mode</strong><small id="nhModeDescription">Spooky visuals are enabled.</small></div><button class="nh-btn secondary" id="nhToggleMode" type="button" aria-pressed="true">Turn off</button></div>
       <div class="nh-stats">
         <div class="nh-stat"><span class="nh-muted">Halloween Candy</span><strong class="nh-candy" id="nhCandyCount">0</strong></div>
         <div class="nh-stat"><span class="nh-muted">Your Orbs</span><strong id="nhOrbsCount">0</strong></div>
@@ -16616,7 +16640,7 @@ ttReset();pmReset();
     <section class="nh-panel"><button class="nh-close" data-nh-close aria-label="Close">×</button><h2 id="nhInfoTitle">How to play</h2><div class="nh-list"><div class="nh-card"><strong>1. Pumpkin Hunt</strong><div class="nh-muted">Find 10 small pumpkins on the page. Reward: 50 Candy.</div></div><div class="nh-card"><strong>2. The Reaper's Chest</strong><div class="nh-muted">Buy a Halloween Chest and return to the Reaper. Reward: 150 Candy.</div></div><div class="nh-card"><strong>3. A Deal with Death</strong><div class="nh-muted">Give the Reaper 50 Orbs. Reward: 100 Candy.</div></div><div class="nh-card"><strong>4. Candle Keeper</strong><div class="nh-muted">Find and light 5 candles in the search area. Reward: 150 Candy.</div></div></div><div class="nh-muted" style="margin-top:12px">Exchange: 5 Candy → 2 Orbs. The Halloween Badge has a 1% chance in a chest.</div></section>
   </div>
 </div>
-<script id="neoHalloween2026Logic">
+<script id="neoHalloween2026Logic"><script id="neoHalloween2026Logic">
 (function(){
 "use strict";
 const root=document.getElementById("neoHalloween2026");
@@ -16653,6 +16677,13 @@ function placeFindables(){const box=$("nhFindables");box.innerHTML="";const posi
 function makeCandle(){const b=document.createElement("button");b.type="button";b.className="nh-findable nh-candle";b.style.left=(15+Math.random()*70)+"%";b.style.top=(24+Math.random()*55)+"%";b.setAttribute("aria-label","Light a hidden Halloween candle");b.innerHTML='<svg viewBox="0 0 40 64" aria-hidden="true"><path d="M20 2C8 15 17 18 20 25C24 18 32 14 20 2Z" fill="#ffcb65" stroke="#fff1b1" stroke-width="1.5"/><path d="M11 27H29V56Q20 62 11 56Z" fill="#f5e7c9" stroke="#bda6d9" stroke-width="2"/><path d="M13 34H27" stroke="#c8b3e3" stroke-width="2"/><path d="M20 25V29" stroke="#38234a" stroke-width="2"/></svg>';b.addEventListener("click",async()=>{if(!requireLogin())return;b.remove();await progressMission("candles",1);say("nhNotice","Candle lit!");});return b}
 let candleCount=0;
 function spawnCandles(){const box=$("nhFindables");for(let i=0;i<5;i++){const c=makeCandle();c.style.left=(12+i*18)+"%";c.style.top=(34+(i%2)*28)+"%";box.appendChild(c)}candleCount=5}
+
+const modeButton=$("nhToggleMode");
+function setHalloweenMode(on){root.classList.toggle("nh-mode-off",!on);if(modeButton){modeButton.textContent=on?"Turn off":"Turn on";modeButton.setAttribute("aria-pressed",String(on));}say("nhModeDescription",on?"Spooky visuals are enabled.":"Spooky visuals are hidden; event menus still work.");try{localStorage.setItem("neoHalloweenMode",on?"on":"off")}catch(e){}}
+let halloweenMode=true;try{halloweenMode=localStorage.getItem("neoHalloweenMode")!=="off"}catch(e){}
+setHalloweenMode(halloweenMode);
+if(modeButton)modeButton.addEventListener("click",()=>{halloweenMode=!halloweenMode;setHalloweenMode(halloweenMode)});
+
 $("nhOpenEvent").addEventListener("click",async()=>{await loadState(currentUser());show("nhEventOverlay")});
 $("nhTalkReaper").addEventListener("click",()=>{say("nhReaperLine","Welcome, what you want?");say("nhReaperNotice","");show("nhReaperOverlay")});
 root.addEventListener("click",async e=>{const b=e.target.closest("[data-nh-reaper]");if(!b)return;const action=b.dataset.nhReaper;if(action==="nothing"){closeAll();return}if(action==="who"){say("nhReaperLine","I am the NeoFind Grim Reaper. I can give you candy, but you must complete my mission.");$("nhReaperActions").innerHTML='<button class="nh-btn" data-nh-reaper="mission">Give me mission</button><button class="nh-btn secondary" data-nh-reaper="nothing">Ok</button>';return}if(action==="mission"){await startMission();if(state.mission)show("nhMissionOverlay")}});
