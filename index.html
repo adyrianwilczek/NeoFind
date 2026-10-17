@@ -16803,26 +16803,45 @@ placeFindables();refreshDisplay();
 
 
 <script>
-/* NeoFind Beta Functions: browser-style tab manager */
+/* NeoFind Beta Functions: toggleable browser-style test tabs */
 (function(){
-  const tabs=[]; let activeId=null, nextId=1;
+  const tabs=[]; let activeId=null, nextId=1, betaEnabled=false;
   const $=id=>document.getElementById(id);
   function active(){return tabs.find(t=>t.id===activeId)||null;}
   function safeUrl(raw){
     let value=String(raw||"").trim(); if(!value)return null;
+    if(value.toLowerCase()==="about:home")return "about:home";
     if(!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(value))value="https://"+value;
     try{const u=new URL(value);if(u.protocol!=="http:"&&u.protocol!=="https:")return null;return u.href;}catch(e){return null;}
   }
-  window.syncBetaFunctionsButton=function(){const b=$("tryBetaFunctionsBtn");if(b)b.style.display=(typeof isPremiumActive==="function"&&isPremiumActive())?"block":"none";};
+  function updateButton(){
+    const b=$("tryBetaFunctionsBtn");if(!b)return;
+    const premium=typeof isPremiumActive==="function"&&isPremiumActive();
+    b.style.display=premium?"block":"none";
+    b.textContent=betaEnabled?"✕ Disable beta functions":"✦ Try beta functions";
+    b.setAttribute("aria-pressed",String(betaEnabled));
+    b.title=betaEnabled?"Turn off beta functions":"Turn on beta functions";
+  }
+  window.syncBetaFunctionsButton=updateButton;
   window.openBetaFunctions=function(){
     if(typeof isPremiumActive!=="function"||!isPremiumActive()){alert("Premium is required to try beta functions.");return;}
-    $("neoBetaOverlay").style.display="block";document.body.style.overflow="hidden";
-    if(!tabs.length)window.neoBetaNewTab();window.syncBetaFunctionsButton();
+    if(betaEnabled){
+      betaEnabled=false;
+      $("neoBetaOverlay").style.display="none";
+      document.body.style.overflow="";
+    }else{
+      betaEnabled=true;
+      $("neoBetaOverlay").style.display="block";
+      document.body.style.overflow="hidden";
+      if(!tabs.length)window.neoBetaNewTab();
+    }
+    updateButton();
   };
   window.closeBetaFunctions=function(){$("neoBetaOverlay").style.display="none";document.body.style.overflow="";};
   window.neoBetaNewTab=function(url){
-    const t={id:nextId++,title:"New Tab",url:"",history:[],historyIndex:-1};tabs.push(t);activeId=t.id;renderTabs();renderActive();
-    if(url)loadUrl(t,url);else $("neoBetaAddress").value="";
+    const t={id:nextId++,title:"about:home",url:"about:home",history:["about:home"],historyIndex:0};
+    tabs.push(t);activeId=t.id;renderTabs();renderActive();
+    if(url)loadUrl(t,url);
   };
   window.neoBetaCloseTab=function(id){
     const i=tabs.findIndex(t=>t.id===id);if(i<0)return;const was=activeId===id;tabs.splice(i,1);
@@ -16842,22 +16861,32 @@ placeFindables();refreshDisplay();
   function renderActive(){
     const t=active();if(!t)return;$("neoBetaAddress").value=t.url;
     const v=$("neoBetaViewport");v.innerHTML="";
-    if(!t.url){const w=document.createElement("div");w.style.cssText="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;background:radial-gradient(circle at 50% 15%,#18364b,#0c1220 65%);color:#edf7ff;";w.innerHTML='<div style="max-width:560px"><div style="font-size:42px;margin-bottom:12px">✦</div><h2>New tab</h2><p>Enter a website address in the bar above.</p></div>';v.append(w);return;}
+    if(t.url==="about:home"){
+      v.style.background="#fff";
+      return;
+    }
+    v.style.background="#fff";
     const f=document.createElement("iframe");f.src=t.url;f.title=t.title;f.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:0;background:white;";f.referrerPolicy="strict-origin-when-cross-origin";f.setAttribute("allow","fullscreen");v.append(f);
   }
   function loadUrl(t,raw){
-    const u=safeUrl(raw);if(!u){alert("Enter a valid http:// or https:// address.");return;}
+    const u=safeUrl(raw);if(!u){alert("Enter a valid website address or about:home.");return;}
     if(t.historyIndex<t.history.length-1)t.history=t.history.slice(0,t.historyIndex+1);
-    t.history.push(u);t.historyIndex=t.history.length-1;t.url=u;try{t.title=new URL(u).hostname;}catch(e){t.title="Website";}renderTabs();renderActive();
+    t.history.push(u);t.historyIndex=t.history.length-1;t.url=u;
+    try{t.title=u==="about:home"?"about:home":new URL(u).hostname;}catch(e){t.title="about:home";}
+    renderTabs();renderActive();
   }
   window.neoBetaGo=function(){const t=active();if(t)loadUrl(t,$("neoBetaAddress").value);};
-  window.neoBetaOpenExternal=function(){const t=active();if(t&&t.url)window.open(t.url,"_blank","noopener,noreferrer");};
-  window.neoBetaReload=function(){const t=active();if(!t||!t.url)return;const f=$("neoBetaViewport").querySelector("iframe");if(f)f.src=t.url;};
-  window.neoBetaNavigate=function(d){const t=active();if(!t)return;const i=t.historyIndex+d;if(i<0||i>=t.history.length)return;t.historyIndex=i;t.url=t.history[i];try{t.title=new URL(t.url).hostname;}catch(e){}renderTabs();renderActive();};
+  window.neoBetaOpenExternal=function(){const t=active();if(t&&t.url&&t.url!=="about:home")window.open(t.url,"_blank","noopener,noreferrer");};
+  window.neoBetaReload=function(){const t=active();if(!t)return;if(t.url==="about:home"){renderActive();return;}const f=$("neoBetaViewport").querySelector("iframe");if(f)f.src=t.url;};
+  window.neoBetaNavigate=function(d){
+    const t=active();if(!t)return;const i=t.historyIndex+d;if(i<0||i>=t.history.length)return;
+    t.historyIndex=i;t.url=t.history[i];try{t.title=t.url==="about:home"?"about:home":new URL(t.url).hostname;}catch(e){t.title="about:home";}
+    renderTabs();renderActive();
+  };
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("neoBetaOverlay")&&$("neoBetaOverlay").style.display==="block")window.closeBetaFunctions();});
-  document.addEventListener("DOMContentLoaded",window.syncBetaFunctionsButton);
+  document.addEventListener("DOMContentLoaded",updateButton);
   const original=window.openSettings;
-  if(typeof original==="function")window.openSettings=function(){const r=original.apply(this,arguments);window.syncBetaFunctionsButton();return r;};
+  if(typeof original==="function")window.openSettings=function(){const r=original.apply(this,arguments);updateButton();return r;};
 })();
 </script>
 
