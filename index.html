@@ -2453,7 +2453,7 @@ NOTE! Do not share the key with anyone.
                     <option value="ocean">Ocean</option>
                     <option value="space">Space</option>
                     <option value="matrix">Matrix</option>
-                    <option value="premium-gradient" data-premium-theme="true">Animated Gradient (Premium)</option>
+                    <option value="premium-gradient" data-premium-theme="true">Animated Gradient ◆</option>
                 </select>
                 <button type="button" id="openOwnThemeStudioBtn" onclick="openOwnThemeStudio()" style="margin-top:10px;width:100%;">Own Theme</button>
                 <p style="font-size:12px;opacity:.7;margin:7px 0 0;">Customize theme colors and panel appearance.</p>
@@ -4730,7 +4730,20 @@ const NEOFIND_AVAILABLE_THEMES = [
 function applyTheme(theme){
     theme = String(theme || "classic").toLowerCase();
     if (theme !== "own" && !NEOFIND_AVAILABLE_THEMES.includes(theme)) theme = "classic";
-    if (theme === "premium-gradient" && typeof isPremiumActive === "function" && !isPremiumActive()) theme = "classic";
+    if (theme === "premium-gradient" && typeof isPremiumActive === "function" && !isPremiumActive()) {
+        const selector = document.getElementById("themeSelect");
+        if (selector) selector.value = localStorage.getItem("theme") || "classic";
+        if (typeof window.showNeoFindPopup === "function") {
+            window.showNeoFindPopup("You need an active Premium subscription to use Animated Gradient.", {
+                title: "Premium theme",
+                icon: "◆",
+                button: "OK"
+            });
+        } else {
+            alert("You need an active Premium subscription to use Animated Gradient.");
+        }
+        return localStorage.getItem("theme") || "classic";
+    }
 
     console.log("THEME:", theme);
 
@@ -4781,7 +4794,7 @@ function applyTheme(theme){
         }
     }
 
-    // Keep the Premium theme visible in the selector; applyTheme enforces Premium access when selected.
+    // Premium theme stays visible to everyone; selection is gated with a popup in applyTheme().
     return theme;
 }
 
