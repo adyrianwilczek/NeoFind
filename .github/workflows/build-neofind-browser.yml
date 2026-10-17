@@ -2,8 +2,11 @@ name: Build NeoFind Browser for Windows
 
 on:
   push:
-    tags:
-      - "neofind-browser-v*"
+    branches:
+      - main
+    paths:
+      - "desktop/**"
+      - ".github/workflows/build-neofind-browser.yml"
   workflow_dispatch:
 
 permissions:
@@ -25,6 +28,13 @@ jobs:
       - name: Build Windows installer
         working-directory: desktop
         run: npm run build:win
+      - name: Upload installer as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeoFind-Windows-Installer
+          path: desktop/dist/NeoFind-Setup.exe
+          if-no-files-found: error
+          retention-days: 14
       - name: Publish installer to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
