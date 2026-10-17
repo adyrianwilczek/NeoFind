@@ -28,7 +28,7 @@
     ],
     "win": {
       "target": "nsis",
-      "artifactName": "NeoFind-Setup.\${ext}"
+      "artifactName": "NeoFind-Setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
