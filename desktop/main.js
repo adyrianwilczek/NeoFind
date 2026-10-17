@@ -6,7 +6,8 @@ const HOME_URL = "https://neofind.pl/";
 let mainWindow;
 let nextTabId = 1;
 let activeTabId = null;
-let pendingExternalUrl = process.argv.find((arg) => /^https?:\\/\\//i.test(arg)) || null;
+function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
+let pendingExternalUrl = process.argv.find(isHttpUrl) || null;
 const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 
@@ -230,7 +231,7 @@ ipcMain.handle("import:choose-bookmarks", async () => {
 });
 app.whenReady().then(createWindow);
 app.on("second-instance", (_event, commandLine) => {
-  const externalUrl = commandLine.find((arg) => /^https?:\\/\\//i.test(arg));
+  const externalUrl = commandLine.find(isHttpUrl);
   if (externalUrl) {
     if (mainWindow && !mainWindow.isDestroyed()) {
       openTab(externalUrl, true);
