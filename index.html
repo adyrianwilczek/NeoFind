@@ -4781,8 +4781,7 @@ function applyTheme(theme){
         }
     }
 
-    const premiumThemeOption = document.querySelector('#themeSelect option[data-premium-theme="true"]');
-    if (premiumThemeOption) premiumThemeOption.hidden = !(typeof isPremiumActive === "function" && isPremiumActive());
+    // Keep the Premium theme visible in the selector; applyTheme enforces Premium access when selected.
     return theme;
 }
 
