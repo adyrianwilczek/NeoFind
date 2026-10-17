@@ -1,0 +1,40 @@
+{
+  "name": "neofind-browser",
+  "version": "0.1.0",
+  "description": "NeoFind Browser for Windows",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "pl.neofind.browser",
+    "productName": "NeoFind Browser",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "ui.html",
+      "renderer.js",
+      "style.css",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "artifactName": "NeoFind-Setup.\${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
