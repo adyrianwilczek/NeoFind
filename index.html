@@ -2082,19 +2082,28 @@ body.ocean {
 
 
 <style id="neo-premium-gradient-styles">
-/* Premium-only animated gradient. Reduced-motion preferences are respected. */
-@keyframes neoPremiumGradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+/* Optional Premium theme: a restrained moving glow that does not replace the page background. */
+@keyframes neoPremiumGradientDrift {
+  0% { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
+  50% { transform: translate3d(4%, 2%, 0) rotate(8deg); }
+  100% { transform: translate3d(-4%, -2%, 0) rotate(0deg); }
 }
-body.neo-premium-animated-gradient {
-  background-image: linear-gradient(120deg, #0f2027, #00a8c7, #4facfe, #8056d9, #0f2027) !important;
-  background-size: 350% 350% !important;
-  animation: neoPremiumGradientShift 18s ease infinite !important;
+body.neo-theme-premium-gradient { position: relative; isolation: isolate; }
+body.neo-theme-premium-gradient::before {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+  inset: -18%;
+  background:
+    radial-gradient(ellipse at 20% 25%, rgba(0,242,254,.16), transparent 42%),
+    radial-gradient(ellipse at 78% 30%, rgba(79,172,254,.15), transparent 44%),
+    radial-gradient(ellipse at 55% 82%, rgba(155,81,224,.16), transparent 46%);
+  filter: blur(24px);
+  animation: neoPremiumGradientDrift 24s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  body.neo-premium-animated-gradient { animation: none !important; background-position: 50% 50% !important; }
+  body.neo-theme-premium-gradient::before { animation: none; }
 }
 .neo-history-delete:hover { background: rgba(255,70,100,.22) !important; border-color: rgba(255,100,120,.75) !important; }
 .neo-history-use:focus-visible, .neo-history-delete:focus-visible { outline: 2px solid #00f2fe; outline-offset: 2px; }
@@ -2444,6 +2453,7 @@ NOTE! Do not share the key with anyone.
                     <option value="ocean">Ocean</option>
                     <option value="space">Space</option>
                     <option value="matrix">Matrix</option>
+                    <option value="premium-gradient" data-premium-theme="true">Animated Gradient (Premium)</option>
                 </select>
                 <button type="button" id="openOwnThemeStudioBtn" onclick="openOwnThemeStudio()" style="margin-top:10px;width:100%;">Own Theme</button>
                 <p style="font-size:12px;opacity:.7;margin:7px 0 0;">Customize theme colors and panel appearance.</p>
@@ -4714,12 +4724,13 @@ function startMatrix(){
 const NEOFIND_AVAILABLE_THEMES = [
     "classic", "aurora", "midnight", "nord", "lavender", "rose",
     "sunset", "ember", "forest", "sakura", "paper", "cyber",
-    "ocean", "space", "matrix"
+    "ocean", "space", "matrix", "premium-gradient"
 ];
 
 function applyTheme(theme){
     theme = String(theme || "classic").toLowerCase();
     if (theme !== "own" && !NEOFIND_AVAILABLE_THEMES.includes(theme)) theme = "classic";
+    if (theme === "premium-gradient" && typeof isPremiumActive === "function" && !isPremiumActive()) theme = "classic";
 
     console.log("THEME:", theme);
 
@@ -4729,7 +4740,7 @@ function applyTheme(theme){
         "neo-theme-lavender", "neo-theme-rose", "neo-theme-sunset",
         "neo-theme-ember", "neo-theme-forest", "neo-theme-sakura",
         "neo-theme-paper", "neo-theme-cyber", "neo-theme-ocean",
-        "neo-theme-space", "neo-theme-matrix", "neo-theme-own"
+        "neo-theme-space", "neo-theme-matrix", "neo-theme-own", "neo-theme-premium-gradient"
     ];
 
     document.body.classList.remove(...allThemeClasses);
@@ -4770,7 +4781,8 @@ function applyTheme(theme){
         }
     }
 
-    if (typeof window.updateNeoPremiumGradient === "function") window.updateNeoPremiumGradient();
+    const premiumThemeOption = document.querySelector('#themeSelect option[data-premium-theme="true"]');
+    if (premiumThemeOption) premiumThemeOption.hidden = !(typeof isPremiumActive === "function" && isPremiumActive());
     return theme;
 }
 
@@ -4950,7 +4962,6 @@ async function syncUserEconomy(user) {
         userOrbs = Math.floor(orbs);
         localStorage.setItem("userOrbs", String(userOrbs));
         localStorage.setItem("userPremium", premium ? "true" : "false");
-        if (typeof window.updateNeoPremiumGradient === "function") window.updateNeoPremiumGradient();
         if (premiumUntil > 0) {
             localStorage.setItem("neoPremiumUntil", String(premiumUntil));
         }
@@ -4965,20 +4976,6 @@ async function syncUserEconomy(user) {
         };
     }
 }
-
-window.updateNeoPremiumGradient = function updateNeoPremiumGradient() {
-    const state = window.neoPremiumState;
-    const statePremium = !!state?.premium && (
-        Number(state.premiumUntil || 0) === 0 ||
-        Number(state.premiumUntil || 0) > Date.now()
-    );
-    const localPremium = localStorage.getItem("userPremium") === "true";
-    const storedUntil = Number(localStorage.getItem("neoPremiumUntil") || 0);
-    const localPremiumActive = localPremium && (storedUntil === 0 || storedUntil > Date.now());
-    const active = statePremium || localPremiumActive;
-    if (document.body) document.body.classList.toggle("neo-premium-animated-gradient", active);
-    return active;
-};
 
 function isPremiumActive() {
     const user = (typeof auth !== "undefined") ? auth.currentUser : null;
