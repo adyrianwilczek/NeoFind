@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:;">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NeoFind Browser</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="chrome">
+    <div class="tab-strip">
+      <div id="tabs" class="tabs"></div>
+      <button id="newTab" class="new-tab" title="New tab" aria-label="New tab">+</button>
+    </div>
+    <div class="toolbar">
+      <button id="back" class="tool" title="Back" aria-label="Back">←</button>
+      <button id="forward" class="tool" title="Forward" aria-label="Forward">→</button>
+      <button id="reload" class="tool" title="Reload" aria-label="Reload">↻</button>
+      <button id="home" class="tool" title="NeoFind home" aria-label="NeoFind home">⌂</button>
+      <form id="addressForm" class="address-form">
+        <span class="secure-dot" aria-hidden="true"></span>
+        <input id="address" autocomplete="off" spellcheck="false" placeholder="Search NeoFind or enter an address">
+      </form>
+      <button id="go" class="go-button">Go</button>
+    </div>
+  </header>
+  <main id="pageViewport" aria-label="Web page area"></main>
+  <script src="renderer.js"></script>
+</body>
+</html>
