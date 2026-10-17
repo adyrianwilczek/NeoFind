@@ -1,0 +1,37 @@
+name: Build NeoFind Browser for Windows
+
+on:
+  push:
+    tags:
+      - "neofind-browser-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Install dependencies
+        working-directory: desktop
+        run: npm install
+      - name: Build Windows installer
+        working-directory: desktop
+        run: npm run build:win
+      - name: Publish installer to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: NeoFind Browser \${{ github.ref_name }}
+          tag_name: \${{ github.ref_name }}
+          files: desktop/dist/NeoFind-Setup.exe
+          generate_release_notes: true
+          prerelease: true
