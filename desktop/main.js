@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell } = require("electron");
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
@@ -15,12 +15,14 @@ const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
+const recentlyClosedTabs = [];
 
 function getSessionSnapshot() {
   const orderedTabs = Array.from(tabs.values());
   const savedTabs = [];
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
+    if (tab.isPrivate) return;
     let currentUrl = tab.isHomeTab ? "about:home" : (tab.url || HOME_URL);
     let currentTitle = tab.title || "New Tab";
     try {
@@ -33,7 +35,7 @@ function getSessionSnapshot() {
     }
     if (isRestorableUrl(currentUrl)) {
       if (tab.id === activeTabId) activeIndex = savedTabs.length;
-      savedTabs.push({ url: currentUrl, title: currentTitle, isHomeTab: tab.isHomeTab === true });
+      savedTabs.push({ url: currentUrl, title: currentTitle, isHomeTab: tab.isHomeTab === true, pinned: tab.pinned === true });
     }
   });
   return { tabs: savedTabs, activeIndex };
@@ -83,7 +85,7 @@ function restoreSessionOrHome() {
   restoredSession = null;
   if (saved && saved.tabs.length) {
     const activeIndex = Math.max(0, Math.min(saved.activeIndex, saved.tabs.length - 1));
-    saved.tabs.forEach((tab, index) => openTab(tab.isHomeTab ? "about:home" : tab.url, index === activeIndex));
+    saved.tabs.forEach((tab, index) => openTab(tab.isHomeTab ? "about:home" : tab.url, index === activeIndex, { pinned: tab.pinned === true }));
     return;
   }
   openTab(HOME_URL, true);
@@ -115,6 +117,8 @@ function sendState() {
     title: tab.title || "New Tab",
     url: tab.url || "",
     isHomeTab: tab.isHomeTab === true,
+    isPrivate: tab.isPrivate === true,
+    pinned: tab.pinned === true,
     loading: tab.loading,
     canGoBack: tab.view.webContents.navigationHistory.canGoBack(),
     canGoForward: tab.view.webContents.navigationHistory.canGoForward()
@@ -148,18 +152,20 @@ function showActiveTab() {
   sendState();
 }
 
-function openTab(address = HOME_URL, activate = true) {
+function openTab(address = HOME_URL, activate = true, options = {}) {
   const id = nextTabId++;
+  const isPrivate = options.private === true;
   const view = new WebContentsView({
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
       sandbox: true,
-      webSecurity: true
+      webSecurity: true,
+      ...(isPrivate ? { partition: "neofind-private-" + id } : {})
     }
   });
   const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
-  const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab };
+  const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
   tabs.set(id, tab);
   const wc = view.webContents;
 
@@ -220,9 +226,14 @@ function openTab(address = HOME_URL, activate = true) {
 function closeTab(id) {
   const tab = tabs.get(Number(id));
   if (!tab) return;
+  if (!tab.isPrivate && tab.url && isRestorableUrl(tab.url)) {
+    recentlyClosedTabs.unshift({ url: tab.isHomeTab ? "about:home" : tab.url, title: tab.title || "New Tab", isHomeTab: tab.isHomeTab === true, pinned: tab.pinned === true });
+    if (recentlyClosedTabs.length > 10) recentlyClosedTabs.length = 10;
+  }
   try { mainWindow.contentView.removeChildView(tab.view); } catch {}
   try { tab.view.webContents.close(); } catch {}
   tabs.delete(tab.id);
+  if (tab.isPrivate) { try { tab.view.webContents.session.clearStorageData(); tab.view.webContents.session.clearCache(); } catch {} }
   saveSessionSync();
 
   if (activeTabId === tab.id) {
@@ -262,6 +273,12 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, "ui.html"));
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
+    const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return "this website"; } })() : "this website";
+    const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
+    if (!allowedPermissions.has(permission) || !mainWindow || mainWindow.isDestroyed()) { callback(false); return; }
+    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants permission: " + permission, detail: "Allow only if you trust this website. You can deny the request.", buttons: ["Deny", "Allow"], defaultId: 0, cancelId: 0 }).then(({ response }) => callback(response === 1)).catch(() => callback(false));
+  });
   mainWindow.webContents.once("did-finish-load", () => {
     if (pendingExternalUrl) {
       const target = pendingExternalUrl;
@@ -283,7 +300,11 @@ function createWindow() {
   });
 }
 
-ipcMain.handle("tabs:create", (_event, url) => openTab(url || HOME_URL, true));
+ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
+ipcMain.handle("tabs:duplicate", () => { const tab = tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
+ipcMain.handle("tabs:reopen", () => { const tab = recentlyClosedTabs.shift(); if (!tab) return null; const id = openTab(tab.isHomeTab ? "about:home" : tab.url, true, { pinned: tab.pinned }); return id; });
+ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
+ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
 ipcMain.handle("sidebar:open-neoai", () => {
   const id = openTab(HOME_URL, true);
   const tab = tabs.get(id);
@@ -309,6 +330,7 @@ ipcMain.on("tabs:reorder", (_event, fromId, toId) => {
   const ids = Array.from(tabs.keys());
   const fromIndex = ids.indexOf(from), toIndex = ids.indexOf(to);
   if (fromIndex < 0 || toIndex < 0 || from === to) return;
+  if (tabs.get(from)?.pinned) return;
   ids.splice(fromIndex, 1);
   ids.splice(toIndex, 0, from);
   const ordered = new Map();
@@ -331,6 +353,8 @@ ipcMain.on("browser:forward", () => {
   if (wc && wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward();
 });
 ipcMain.on("browser:reload", () => activeContents()?.reload());
+ipcMain.on("browser:focus-address", () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:focus-address"); });
+ipcMain.on("browser:close-active-tab", () => { if (activeTabId !== null) closeTab(activeTabId); });
 ipcMain.on("browser:home", () => activeContents()?.loadURL(HOME_URL));
 ipcMain.on("browser:hide-content", () => {
   const tab = tabs.get(activeTabId);
