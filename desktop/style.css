@@ -105,3 +105,6 @@ body[data-theme="paper"] .tab.active { background:#fffdf7; color:#302c27; border
 body[data-theme="paper"] .address-form, body[data-theme="paper"] .settings-select, body[data-theme="paper"] .preset-button { background:#fffdf7; color:#302c27; border-color:#c9beaa; }
 body[data-theme="paper"] #address { color:#302c27; }
 body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c27; background:#e8e1d2; border-color:#c9beaa; }
+
+/* NeoFind Browser 0.1.4 sidebar foundation */
+#pageViewport{margin-left:58px}
