@@ -44,7 +44,7 @@
       <section id="settingsImport" class="settings-section hidden">
         <h2>Import browser data</h2><p>Move selected information from another browser into NeoFind Browser.</p>
         <label class="field-label" for="sourceBrowser">Source browser</label>
-        <select id="sourceBrowser" class="settings-select"><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Brave</option><option>Opera</option><option>Another browser</option></select>
+        <select id="sourceBrowser" class="settings-select"><option>Google Chrome</option><option>Microsoft Edge</option><option>Mozilla Firefox</option><option>Brave</option><option>Opera</option><option>Opera GX</option><option>Another browser</option></select>
         <div class="import-presets">
           <button id="importEverything" class="preset-button"><strong>Everything</strong><small>Select all categories, including cookies.</small></button>
           <button id="importNoCookies" class="preset-button selected"><strong>Everything except cookies</strong><small>Select all categories except cookies.</small></button>
@@ -58,8 +58,8 @@
           <label><input type="checkbox" name="importData" value="extensions" checked> <span><strong>Extensions</strong><small>May need to be installed again</small></span></label>
           <label><input type="checkbox" name="importData" value="cookies"> <span><strong>Cookies and website sessions</strong><small>Can transfer active sign-in sessions. Only select if you trust this device.</small></span></label>
         </div>
-        <div class="privacy-note"><strong>Import availability in this version</strong><p>The choices let you plan what to migrate, but this build currently imports bookmarks from an HTML export only. History, passwords, autofill, settings, extensions and cookies are not transferred yet. Passwords and cookies are sensitive, so this app will not pretend they were imported when they were not.</p></div>
-        <div class="import-actions"><button id="chooseOperaProfile" class="primary-button">Import Opera GX profile folder…</button><button id="chooseBookmarksFile" class="secondary-button">Choose bookmarks HTML…</button><button id="showImportedBookmarks" class="secondary-button">View imported bookmarks</button></div><div id="importedHistoryList" class="imported-bookmarks hidden"></div>
+        <div class="privacy-note"><strong>Import availability in this version</strong><p>Chromium-based browsers (Chrome, Edge, Brave, Opera and Opera GX) can import bookmarks and history from their profile folder. Firefox, passwords, autofill, settings, extensions and cookies are not fully migrated in this version.</p></div>
+        <div class="import-actions"><button id="chooseOperaProfile" class="primary-button">Import selected browser profile…</button><button id="chooseBookmarksFile" class="secondary-button">Choose bookmarks HTML…</button><button id="showImportedBookmarks" class="secondary-button">View imported bookmarks</button></div><div id="importedHistoryList" class="imported-bookmarks hidden"></div>
         <p id="importStatus" class="import-status" role="status">Choose a preset or customize the categories.</p><div id="importedBookmarksList" class="imported-bookmarks hidden"></div>
       </section>
     </div>
