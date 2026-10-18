@@ -35,8 +35,21 @@ function translateBrowserText(lang) {
   });
   const pin=document.querySelector('#tabContextMenu [data-tab-action="pin"]');
   if(pin && !pin.dataset.neoDynamicPin) pin.dataset.neoDynamicPin="1";
-  document.querySelectorAll("#tabContextMenu [data-tab-action]").forEach(btn=>{const original=btn.dataset.tabAction==="duplicate"?"Duplicate tab":(btn.textContent.includes("Unpin")?"Unpin tab":"Pin tab");btn.textContent=dict[original]||original;});
+  document.querySelectorAll("#tabContextMenu [data-tab-action]").forEach(btn=>{const original=btn.dataset.tabAction==="duplicate"?"Duplicate tab":(btn.dataset.pinned==="true"?"Unpin tab":"Pin tab");btn.textContent=dict[original]||original;});
 }
+function tr(key) { const lang=localStorage.getItem(browserLanguageKey)||"en"; return (browserTranslations[lang]||browserTranslations.en)[key]||key; }
+const dynamicTranslationObserver = new MutationObserver((mutations) => {
+  const lang=localStorage.getItem(browserLanguageKey)||"en", dict=browserTranslations[lang]||browserTranslations.en;
+  for (const mutation of mutations) if (mutation.type==="childList") mutation.addedNodes.forEach(node=>{
+    if(node.nodeType===Node.TEXT_NODE){const key=node.nodeValue.trim();if(dict[key])node.nodeValue=node.nodeValue.replace(key,dict[key]);}
+    else if(node.nodeType===Node.ELEMENT_NODE){
+      const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+      nodes.forEach(textNode=>{const key=textNode.nodeValue.trim();if(dict[key])textNode.nodeValue=textNode.nodeValue.replace(key,dict[key]);});
+      node.querySelectorAll?.("[title],[aria-label],[placeholder]").forEach(el=>{for(const attr of ["title","aria-label","placeholder"]){const key=el.getAttribute(attr);if(key&&dict[key])el.setAttribute(attr,dict[key]);}});
+    }
+  });
+});
+dynamicTranslationObserver.observe(document.body,{childList:true,subtree:true});
 const browserLanguageSelect=document.getElementById("browserLanguage");
 browserLanguageSelect.value=localStorage.getItem(browserLanguageKey)||"en";
 translateBrowserText(browserLanguageSelect.value);
@@ -102,7 +115,9 @@ if (!tabContextMenu) {
 function showTabContextMenu(x, y, tab) {
   tabContextTarget = tab;
   const pinAction = tabContextMenu.querySelector('[data-tab-action="pin"]');
-  pinAction.textContent = tab.pinned ? "Unpin tab" : "Pin tab";
+  pinAction.dataset.pinned = tab.pinned ? "true" : "false";
+  pinAction.textContent = tr(tab.pinned ? "Unpin tab" : "Pin tab");
+  tabContextMenu.querySelector('[data-tab-action="duplicate"]').textContent = tr("Duplicate tab");
   tabContextMenu.classList.remove("hidden");
   const width = tabContextMenu.offsetWidth || 180, height = tabContextMenu.offsetHeight || 80;
   tabContextMenu.style.left = Math.max(6, Math.min(x, window.innerWidth - width - 6)) + "px";
