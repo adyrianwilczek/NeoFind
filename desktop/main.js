@@ -16,6 +16,7 @@ let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
 const recentlyClosedTabs = [];
+const blockedDialogOrigins = new Set();
 
 function getSessionSnapshot() {
   const orderedTabs = Array.from(tabs.values());
@@ -166,6 +167,29 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   });
   const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
   const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
+  view.webContents.on("did-finish-load", () => {
+    const wc = view.webContents;
+    wc.executeJavaScript(`window.addEventListener("message", event => { if (event.source === window && event.data && event.data.__neoBlockMessages && typeof event.data.origin === "string") console.error("__NEOFIND_BLOCK_DIALOGS__:" + event.data.origin); });`).catch(() => {});
+    if (wc.isDestroyed()) return;
+    const origin = (() => { try { return new URL(wc.getURL()).origin; } catch { return ""; } })();
+    if (!origin || origin === "null") return;
+    const isBlocked = blockedDialogOrigins.has(origin);
+    const script = `(() => {
+      if (window.__neoDialogGuardInstalled) return;
+      window.__neoDialogGuardInstalled = true;
+      const origin = ${JSON.stringify(origin)};
+      let blocked = ${JSON.stringify(isBlocked)};
+      const nativeAlert = window.alert.bind(window);
+      const nativeConfirm = window.confirm.bind(window);
+      const nativePrompt = window.prompt.bind(window);
+      const askBlock = (message) => nativeConfirm(String(message) + "\\n\\nOK: dismiss this message.\\nCancel: block future messages from this website.");
+      window.alert = (message) => { if (blocked) return; if (!askBlock(message)) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); } };
+      window.confirm = (message) => { if (blocked) return false; const result = askBlock(message); if (!result) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); return false; } return nativeConfirm(message); };
+      window.prompt = (message, defaultValue) => { if (blocked) return null; if (!askBlock(message)) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); return null; } return nativePrompt(message, defaultValue); };
+    })();`;
+    wc.executeJavaScript(script).catch(() => {});
+  });
+  view.webContents.on("console-message", (_event, level, message) => { if (level > 2 && typeof message === "string" && message.startsWith("__NEOFIND_BLOCK_DIALOGS__:")) blockedDialogOrigins.add(message.slice("__NEOFIND_BLOCK_DIALOGS__:".length)); });
   tabs.set(id, tab);
   const wc = view.webContents;
 
@@ -303,6 +327,7 @@ function createWindow() {
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
+ipcMain.handle("browser:reload-ignoring-cache", () => { const tab = tabs.get(activeTabId); if (tab && !tab.isHomeTab) tab.view.webContents.reloadIgnoringCache(); });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
 ipcMain.handle("sidebar:open-neoai", () => {
   const id = openTab(HOME_URL, true);
