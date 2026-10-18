@@ -168,6 +168,34 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
   tabs.set(id, tab);
   const wc = view.webContents;
+  // NEOFIND_011_KEYBOARD_SHORTCUTS: keep browser shortcuts active while a web page has focus.
+  wc.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown") return;
+    const key = String(input.key || "").toLowerCase();
+    const control = input.control || input.meta;
+    if (control && key === "u") {
+      event.preventDefault();
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:shortcut", "settings");
+    } else if (control && key === "c") {
+      event.preventDefault();
+      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:focus-address");
+    } else if (control && key === "r") {
+      event.preventDefault();
+      activeContents()?.reload();
+    } else if (control && key === "f5") {
+      event.preventDefault();
+      activeContents()?.reloadIgnoringCache();
+    } else if (control && key === "x") {
+      event.preventDefault();
+      if (activeTabId !== null) closeTab(activeTabId);
+    } else if (!control && !input.alt && key === "arrowleft") {
+      const current = activeContents();
+      if (current && current.navigationHistory.canGoBack()) { event.preventDefault(); current.navigationHistory.goBack(); }
+    } else if (!control && !input.alt && key === "arrowright") {
+      const current = activeContents();
+      if (current && current.navigationHistory.canGoForward()) { event.preventDefault(); current.navigationHistory.goForward(); }
+    }
+  });
 
   wc.setWindowOpenHandler(({ url }) => {
     openTab(url, true);
