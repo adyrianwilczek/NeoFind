@@ -301,8 +301,7 @@ function createWindow() {
 }
 
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
-ipcMain.handle("tabs:duplicate", () => { const tab = tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
-ipcMain.handle("tabs:reopen", () => { const tab = recentlyClosedTabs.shift(); if (!tab) return null; const id = openTab(tab.isHomeTab ? "about:home" : tab.url, true, { pinned: tab.pinned }); return id; });
+ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
 ipcMain.handle("sidebar:open-neoai", () => {
