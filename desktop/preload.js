@@ -11,6 +11,8 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   reload: () => ipcRenderer.send("browser:reload"),
   home: () => ipcRenderer.send("browser:home"),
   setBounds: (bounds) => ipcRenderer.send("browser:set-bounds", bounds),
+  hideContent: () => ipcRenderer.send("browser:hide-content"),
+  showContent: () => ipcRenderer.send("browser:show-content"),
   openDefaultApps: () => ipcRenderer.invoke("browser:open-default-apps"),
   chooseBookmarksFile: () => ipcRenderer.invoke("import:choose-bookmarks"),
   chooseOperaProfile: () => ipcRenderer.invoke("import:choose-opera-profile"),
