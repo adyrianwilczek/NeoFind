@@ -58,7 +58,7 @@ document.getElementById("forward").addEventListener("click", () => window.neoBro
 document.getElementById("reload").addEventListener("click", () => window.neoBrowser.reload());
 document.getElementById("home").addEventListener("click", () => window.neoBrowser.home());
 document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
-document.getElementById("downloadNeoFind").addEventListener("click", () => window.neoBrowser.navigate("https://neofind.pl/"));
+document.getElementById("downloadNeoFind").addEventListener("click", () => window.neoBrowser.navigate("https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe"));
 document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
 document.getElementById("downloadNeoFind").addEventListener("click", () => window.neoBrowser.navigate("https://neofind.pl/"));
 window.neoBrowser.onTabsState(renderTabs);
@@ -92,10 +92,11 @@ function setImportPreset(preset) {
     ? "All categories selected, including cookies. Selected data will be imported only where supported."
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
-document.getElementById("settingsButton").addEventListener("click", () => { settingsPanel.classList.remove("hidden"); setSettingsTab("general"); });
-document.getElementById("closeSettings").addEventListener("click", () => settingsPanel.classList.add("hidden"));
-settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) settingsPanel.classList.add("hidden"); });
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") settingsPanel.classList.add("hidden"); });
+document.getElementById("settingsButton").addEventListener("click", () => { window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); });
+function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.neoBrowser.showContent(); }
+document.getElementById("closeSettings").addEventListener("click", closeSettingsPanel);
+settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !settingsPanel.classList.contains("hidden")) closeSettingsPanel(); });
 document.querySelectorAll(".settings-tab").forEach((button) => button.addEventListener("click", () => setSettingsTab(button.dataset.settingsTab)));
 document.getElementById("importEverything").addEventListener("click", () => setImportPreset("everything"));
 document.getElementById("importNoCookies").addEventListener("click", () => setImportPreset("no-cookies"));
@@ -128,7 +129,7 @@ function renderImportedBookmarks() {
   const heading = document.createElement("h3"); heading.textContent = "Imported bookmarks (" + bookmarks.length + ")"; container.append(heading);
   bookmarks.slice(0, 300).forEach((bookmark) => {
     const link = document.createElement("a"); link.href = bookmark.url; link.textContent = bookmark.title || bookmark.url; link.title = bookmark.url;
-    link.addEventListener("click", (event) => { event.preventDefault(); window.neoBrowser.navigate(bookmark.url); settingsPanel.classList.add("hidden"); });
+    link.addEventListener("click", (event) => { event.preventDefault(); window.neoBrowser.navigate(bookmark.url); closeSettingsPanel(); });
     container.append(link);
   });
 }
