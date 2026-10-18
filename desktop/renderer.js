@@ -203,7 +203,7 @@ function renderImportedHistory() {
     link.addEventListener("click", (event) => {
       event.preventDefault();
       window.neoBrowser.navigate(entry.url);
-      settingsPanel.classList.add("hidden");
+      closeSettingsPanel();
     });
     container.append(link);
   });
