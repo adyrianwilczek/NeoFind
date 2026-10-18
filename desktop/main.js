@@ -266,42 +266,56 @@ ipcMain.handle("import:source-profile", async (_event, sourceBrowser, profilePat
   const profile = path.resolve(profilePath);
   const firefox = sourceBrowser === "Mozilla Firefox";
   const result = { bookmarks: [], history: [], settingsFound: false, extensionsFound: 0, cookiesFound: false, notes: [] };
-  if (firefox) result.notes.push("Firefox profile selected. Firefox uses a different database format; bookmarks and history need a dedicated Firefox importer and are not copied by this Chromium importer.");
+
   if (selected.bookmarks) {
+    let tempFile;
     try {
-      const data = JSON.parse(await fs.readFile(path.join(profile, "Bookmarks"), "utf8"));
-      const walk = (node) => {
-        if (!node || typeof node !== "object") return;
-        if (node.type === "url" && typeof node.url === "string") {
-          try { const u = new URL(node.url); if (["http:", "https:"].includes(u.protocol)) result.bookmarks.push({ title: String(node.name || u.href).slice(0, 300), url: u.href }); } catch {}
-        }
-        if (Array.isArray(node.children)) node.children.forEach(walk);
-        else Object.values(node).forEach((value) => { if (value && typeof value === "object") walk(value); });
-      };
-      walk(data.roots);
-    } catch { result.notes.push("Bookmarks file could not be read. Close Opera GX and try again."); }
+      if (firefox) {
+        tempFile = path.join(app.getPath("temp"), "neofind-firefox-bookmarks-" + Date.now() + ".sqlite");
+        await fs.copyFile(path.join(profile, "places.sqlite"), tempFile);
+        const { DatabaseSync } = require("node:sqlite");
+        const db = new DatabaseSync(tempFile, { readOnly: true });
+        try {
+          result.bookmarks = db.prepare("SELECT p.url AS url, COALESCE(b.title,p.title,p.url) AS title FROM moz_bookmarks b JOIN moz_places p ON p.id=b.fk WHERE b.type=1 AND (p.url LIKE 'http://%' OR p.url LIKE 'https://%') LIMIT 50000").all().map((row) => ({ url: String(row.url), title: String(row.title || row.url).slice(0, 300) }));
+        } finally { db.close(); }
+      } else {
+        const data = JSON.parse(await fs.readFile(path.join(profile, "Bookmarks"), "utf8"));
+        const walk = (node) => {
+          if (!node || typeof node !== "object") return;
+          if (node.type === "url" && typeof node.url === "string") {
+            try { const u = new URL(node.url); if (["http:", "https:"].includes(u.protocol)) result.bookmarks.push({ title: String(node.name || u.href).slice(0, 300), url: u.href }); } catch {}
+          }
+          if (Array.isArray(node.children)) node.children.forEach(walk);
+          else Object.values(node).forEach((value) => { if (value && typeof value === "object") walk(value); });
+        };
+        walk(data.roots);
+      }
+    } catch { result.notes.push("Bookmarks file could not be read. Close the source browser and select its actual profile folder."); }
+    finally { if (tempFile) await fs.rm(tempFile, { force: true }).catch(() => {}); }
   }
   if (selected.history) {
     let tempFile;
     try {
-      const source = path.join(profile, "History");
+      const source = path.join(profile, firefox ? "places.sqlite" : "History");
       await fs.access(source);
       tempFile = path.join(app.getPath("temp"), "neofind-history-" + Date.now() + ".sqlite");
       await fs.copyFile(source, tempFile);
       const { DatabaseSync } = require("node:sqlite");
       const db = new DatabaseSync(tempFile, { readOnly: true });
       try {
-        const rows = db.prepare("SELECT url, title, last_visit_time, visit_count FROM urls WHERE url LIKE 'http://%' OR url LIKE 'https://%' ORDER BY last_visit_time DESC LIMIT 20000").all();
+        const rows = firefox
+          ? db.prepare("SELECT url,title,visit_count,last_visit_date AS last_visit_time FROM moz_places WHERE (url LIKE 'http://%' OR url LIKE 'https://%') AND visit_count>0 ORDER BY last_visit_date DESC LIMIT 20000").all()
+          : db.prepare("SELECT url, title, last_visit_time, visit_count FROM urls WHERE url LIKE 'http://%' OR url LIKE 'https://%' ORDER BY last_visit_time DESC LIMIT 20000").all();
         result.history = rows.map((row) => ({ url: String(row.url || ""), title: String(row.title || row.url || "").slice(0, 300), visitCount: Number(row.visit_count || 1), lastVisitTime: Number(row.last_visit_time || 0) }));
       } finally { db.close(); }
     } catch {
       result.notes.push("History could not be read. Close Opera GX and try again; this feature needs a compatible SQLite runtime.");
     } finally { if (tempFile) await fs.rm(tempFile, { force: true }).catch(() => {}); }
   }
-  if (selected.settings) { try { await fs.access(path.join(profile, "Preferences")); result.settingsFound = true; } catch {} }
-  if (selected.extensions) { try { result.extensionsFound = (await fs.readdir(path.join(profile, "Extensions"), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length; } catch {} }
+  if (selected.settings) { try { await fs.access(path.join(profile, firefox ? "prefs.js" : "Preferences")); result.settingsFound = true; } catch {} }
+  if (selected.extensions) { try { result.extensionsFound = (await fs.readdir(path.join(profile, firefox ? "extensions" : "Extensions"), { withFileTypes: true })).filter((entry) => entry.isDirectory() || entry.isFile()).length; } catch {} }
   if (selected.cookies) {
-    try { await fs.access(path.join(profile, "Network", "Cookies")); result.cookiesFound = true; }
+    try { await fs.access(path.join(profile, firefox ? "cookies.sqlite" : "Network", "Cookies")); result.cookiesFound = true; }
     catch { try { await fs.access(path.join(profile, "Cookies")); result.cookiesFound = true; } catch {} }
     if (result.cookiesFound) result.notes.push("Cookies were detected but not copied: their encryption and session format are browser-specific.");
   }
