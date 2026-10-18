@@ -246,6 +246,7 @@ ipcMain.handle("import:opera-profile", async (_event, profilePath, selected) => 
           try { const u = new URL(node.url); if (["http:", "https:"].includes(u.protocol)) result.bookmarks.push({ title: String(node.name || u.href).slice(0, 300), url: u.href }); } catch {}
         }
         if (Array.isArray(node.children)) node.children.forEach(walk);
+        else Object.values(node).forEach((value) => { if (value && typeof value === "object") walk(value); });
       };
       walk(data.roots);
     } catch { result.notes.push("Bookmarks file could not be read. Close Opera GX and try again."); }
