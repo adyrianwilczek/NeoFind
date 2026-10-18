@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
     ipcRenderer.on("updater:state", (_event, state) => callback(state));
   },
   onFocusAddress: (callback) => { ipcRenderer.removeAllListeners("browser:focus-address"); ipcRenderer.on("browser:focus-address", () => callback()); },
+  onShortcut: (callback) => { ipcRenderer.removeAllListeners("browser:shortcut"); ipcRenderer.on("browser:shortcut", (_event, action) => callback(action)); },
   onTabsState: (callback) => {
     ipcRenderer.removeAllListeners("tabs:state");
     ipcRenderer.on("tabs:state", (_event, state) => callback(state));
