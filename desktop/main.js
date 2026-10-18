@@ -6,8 +6,6 @@ const path = require("node:path");
 
 const HOME_URL = "https://neofind.pl/";
 let mainWindow;
-const blockedDialogOrigins = new Set();
-let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
@@ -168,64 +166,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   });
   const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
   const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
-  // NEOFIND_SITE_DIALOG_GUARD: add a per-origin opt-out for JavaScript dialogs.
-  const getDialogPrompt = () => ({
-    en: "Block messages from this website?",
-    pl: "Zablokować komunikaty tej strony?",
-    es: "¿Bloquear los mensajes de este sitio web?",
-    fr: "Bloquer les messages de ce site web ?"
-  }[browserLanguage] || "Block messages from this website?");
-  view.webContents.on("did-finish-load", () => {
-    const wc = view.webContents;
-    if (wc.isDestroyed()) return;
-    let origin = "";
-    try { origin = new URL(wc.getURL()).origin; } catch {}
-    if (!origin || origin === "null") return;
-    const alreadyBlocked = blockedDialogOrigins.has(origin);
-    const promptText = getDialogPrompt();
-    const bridge = `window.addEventListener("message", event => { if (event.source === window && event.data && event.data.__neoFindBlockDialogs && typeof event.data.origin === "string") console.warn("__NEOFIND_BLOCK_DIALOGS__:" + event.data.origin); });`;
-    const script = `(() => {
-      if (window.__neoFindDialogGuard) return;
-      window.__neoFindDialogGuard = true;
-      const origin = ${JSON.stringify(origin)};
-      const promptText = ${JSON.stringify(promptText)};
-      let blocked = ${JSON.stringify(alreadyBlocked)};
-      const nativeAlert = window.alert.bind(window);
-      const nativeConfirm = window.confirm.bind(window);
-      const nativePrompt = window.prompt.bind(window);
-      const offerBlock = () => {
-        if (blocked) return;
-        if (nativeConfirm(promptText)) {
-          blocked = true;
-          window.postMessage({ __neoFindBlockDialogs: true, origin }, "*");
-        }
-      };
-      window.alert = (message) => { if (blocked) return; nativeAlert(String(message)); offerBlock(); };
-      window.confirm = (message) => { if (blocked) return false; const answer = nativeConfirm(String(message)); offerBlock(); return answer; };
-      window.prompt = (message, defaultValue) => { if (blocked) return null; const answer = nativePrompt(String(message), defaultValue); offerBlock(); return answer; };
-    })();`;
-    wc.executeJavaScript(bridge).then(() => wc.executeJavaScript(script)).catch(() => {});
-  });
-  view.webContents.on("console-message", (_event, detailsOrLevel, legacyMessage) => {
-    const level = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.level : detailsOrLevel;
-    const message = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.message : legacyMessage;
-    if (typeof message === "string" && message.startsWith("__NEOFIND_BLOCK_DIALOGS__:")) {
-      const origin = message.slice("__NEOFIND_BLOCK_DIALOGS__:".length);
-      try { if (new URL(origin).origin === origin) blockedDialogOrigins.add(origin); } catch {}
-    }
-  });
-  wc.on("before-input-event", (event, input) => {
-    if (input.type !== "keyDown") return;
-    const key = String(input.key || "").toLowerCase();
-    const control = input.control || input.meta;
-    if (control && key === "u") { event.preventDefault(); mainWindow?.webContents.send("browser:shortcut", "settings"); }
-    else if (control && key === "c") { event.preventDefault(); mainWindow?.webContents.send("browser:shortcut", "focus-address"); }
-    else if (control && key === "r") { event.preventDefault(); wc.reload(); }
-    else if (control && key === "f5") { event.preventDefault(); wc.reloadIgnoringCache(); }
-    else if (control && key === "x") { event.preventDefault(); if (tab.id === activeTabId) closeTab(tab.id); }
-    else if (!control && !input.alt && key === "arrowleft") { event.preventDefault(); if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack(); }
-    else if (!control && !input.alt && key === "arrowright") { event.preventDefault(); if (wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward(); }
-  });
   tabs.set(id, tab);
   const wc = view.webContents;
 
@@ -412,8 +352,6 @@ ipcMain.on("browser:forward", () => {
   if (wc && wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward();
 });
 ipcMain.on("browser:reload", () => activeContents()?.reload());
-ipcMain.on("browser:reload-ignoring-cache", () => activeContents()?.reloadIgnoringCache());
-ipcMain.on("browser:set-language", (_event, language) => { if (["en", "pl", "es", "fr"].includes(language)) browserLanguage = language; });
 ipcMain.on("browser:focus-address", () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:focus-address"); });
 ipcMain.on("browser:close-active-tab", () => { if (activeTabId !== null) closeTab(activeTabId); });
 ipcMain.on("browser:home", () => activeContents()?.loadURL(HOME_URL));
