@@ -7,11 +7,13 @@
   "scripts": {
     "start": "electron .",
     "build:win": "electron-builder --win nsis",
-    "release:win": "electron-builder --win nsis --publish always"
+    "release:win": "electron-builder --win nsis --publish always",
+    "prebuild:win": "node -e \"require('png-to-ico')('../icon_round.png').then(icon => require('fs').writeFileSync('icon.ico', icon))\""
   },
   "devDependencies": {
     "electron": "^38.0.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "png-to-ico": "^2.0.0"
   },
   "build": {
     "appId": "pl.neofind.browser",
@@ -25,11 +27,13 @@
       "ui.html",
       "renderer.js",
       "style.css",
-      "package.json"
+      "package.json",
+      "icon.ico"
     ],
     "win": {
       "target": "nsis",
-      "artifactName": "NeoFind-Setup.${ext}"
+      "artifactName": "NeoFind-Setup.${ext}",
+      "icon": "icon.ico"
     },
     "nsis": {
       "oneClick": false,
