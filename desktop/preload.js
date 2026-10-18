@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   back: () => ipcRenderer.send("browser:back"),
   forward: () => ipcRenderer.send("browser:forward"),
   reload: () => ipcRenderer.send("browser:reload"),
+  reloadIgnoringCache: () => ipcRenderer.invoke("browser:reload-ignoring-cache"),
   home: () => ipcRenderer.send("browser:home"),
   setBounds: (bounds) => ipcRenderer.send("browser:set-bounds", bounds),
   hideContent: () => ipcRenderer.send("browser:hide-content"),
