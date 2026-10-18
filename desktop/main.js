@@ -220,6 +220,67 @@ ipcMain.handle("browser:open-default-apps", async () => {
   try { await shell.openExternal("ms-settings:defaultapps"); return { ok: true }; }
   catch { return { ok: false }; }
 });
+ipcMain.handle("import:choose-opera-profile", async () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return { canceled: true };
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title: "Choose Opera GX profile folder",
+    properties: ["openDirectory"],
+    defaultPath: path.join(app.getPath("appData"), "Opera Software", "Opera GX Stable")
+  });
+  if (result.canceled || !result.filePaths[0]) return { canceled: true };
+  return { canceled: false, profilePath: result.filePaths[0] };
+});
+
+ipcMain.handle("import:opera-profile", async (_event, profilePath, selected) => {
+  if (typeof profilePath !== "string" || !path.isAbsolute(profilePath) || !selected || typeof selected !== "object") {
+    throw new Error("Invalid Opera GX import selection.");
+  }
+  const profile = path.resolve(profilePath);
+  const result = { bookmarks: [], history: [], settingsFound: false, extensionsFound: 0, cookiesFound: false, notes: [] };
+  if (selected.bookmarks) {
+    try {
+      const data = JSON.parse(await fs.readFile(path.join(profile, "Bookmarks"), "utf8"));
+      const walk = (node) => {
+        if (!node || typeof node !== "object") return;
+        if (node.type === "url" && typeof node.url === "string") {
+          try { const u = new URL(node.url); if (["http:", "https:"].includes(u.protocol)) result.bookmarks.push({ title: String(node.name || u.href).slice(0, 300), url: u.href }); } catch {}
+        }
+        if (Array.isArray(node.children)) node.children.forEach(walk);
+      };
+      walk(data.roots);
+    } catch { result.notes.push("Bookmarks file could not be read. Close Opera GX and try again."); }
+  }
+  if (selected.history) {
+    let tempFile;
+    try {
+      const source = path.join(profile, "History");
+      await fs.access(source);
+      tempFile = path.join(app.getPath("temp"), "neofind-history-" + Date.now() + ".sqlite");
+      await fs.copyFile(source, tempFile);
+      const { DatabaseSync } = require("node:sqlite");
+      const db = new DatabaseSync(tempFile, { readOnly: true });
+      try {
+        const rows = db.prepare("SELECT url, title, last_visit_time, visit_count FROM urls WHERE url LIKE 'http://%' OR url LIKE 'https://%' ORDER BY last_visit_time DESC LIMIT 20000").all();
+        result.history = rows.map((row) => ({ url: String(row.url || ""), title: String(row.title || row.url || "").slice(0, 300), visitCount: Number(row.visit_count || 1), lastVisitTime: Number(row.last_visit_time || 0) }));
+      } finally { db.close(); }
+    } catch {
+      result.notes.push("History could not be read. Close Opera GX and try again; this feature needs a compatible SQLite runtime.");
+    } finally { if (tempFile) await fs.rm(tempFile, { force: true }).catch(() => {}); }
+  }
+  if (selected.settings) { try { await fs.access(path.join(profile, "Preferences")); result.settingsFound = true; } catch {} }
+  if (selected.extensions) { try { result.extensionsFound = (await fs.readdir(path.join(profile, "Extensions"), { withFileTypes: true })).filter((entry) => entry.isDirectory()).length; } catch {} }
+  if (selected.cookies) {
+    try { await fs.access(path.join(profile, "Network", "Cookies")); result.cookiesFound = true; }
+    catch { try { await fs.access(path.join(profile, "Cookies")); result.cookiesFound = true; } catch {} }
+    if (result.cookiesFound) result.notes.push("Cookies were detected but not copied: their encryption and session format are browser-specific.");
+  }
+  if (selected.passwords) result.notes.push("Saved passwords are not copied directly because Opera GX protects them with OS/browser encryption. Use Opera GX's password export and a trusted password manager or a supported browser-import flow.");
+  if (selected.autofill) result.notes.push("Autofill data is not copied in this version because it is stored in the encrypted browser profile database.");
+  if (selected.settings && result.settingsFound) result.notes.push("Opera GX preferences were detected but not applied because NeoFind Browser uses different settings.");
+  if (selected.extensions && result.extensionsFound) result.notes.push("Found " + result.extensionsFound + " extension folder(s); review and install compatible extensions individually.");
+  return result;
+});
+
 ipcMain.handle("import:choose-bookmarks", async () => {
   if (!mainWindow || mainWindow.isDestroyed()) return { canceled: true };
   const result = await dialog.showOpenDialog(mainWindow, {
