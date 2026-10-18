@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("neoBrowser", {
   createTab: (url) => ipcRenderer.invoke("tabs:create", url),
+  openNeoAI: () => ipcRenderer.invoke("sidebar:open-neoai"),
   switchTab: (id) => ipcRenderer.send("tabs:switch", id),
   closeTab: (id) => ipcRenderer.send("tabs:close", id),
   reorderTabs: (fromId, toId) => ipcRenderer.send("tabs:reorder", fromId, toId),
