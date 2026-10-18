@@ -9,6 +9,7 @@ let mainWindow;
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
+function isRestorableUrl(value) { return isHttpUrl(value) || value === "about:home" || value === "about:blank"; }
 let pendingExternalUrl = process.argv.find(isHttpUrl) || null;
 const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
@@ -20,19 +21,19 @@ function getSessionSnapshot() {
   const savedTabs = [];
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
-    let currentUrl = tab.url || HOME_URL;
+    let currentUrl = tab.isHomeTab ? "about:home" : (tab.url || HOME_URL);
     let currentTitle = tab.title || "New Tab";
     try {
       if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
-        currentUrl = tab.view.webContents.getURL() || currentUrl;
-        currentTitle = tab.view.webContents.getTitle() || currentTitle;
+        if (!tab.isHomeTab) currentUrl = tab.view.webContents.getURL() || currentUrl;
+        currentTitle = tab.isHomeTab ? "New Tab" : (tab.view.webContents.getTitle() || currentTitle);
       }
     } catch (error) {
       // Use the last URL/title recorded by navigation events if the view is closing.
     }
-    if (isHttpUrl(currentUrl)) {
+    if (isRestorableUrl(currentUrl)) {
       if (tab.id === activeTabId) activeIndex = savedTabs.length;
-      savedTabs.push({ url: currentUrl, title: currentTitle });
+      savedTabs.push({ url: currentUrl, title: currentTitle, isHomeTab: tab.isHomeTab === true });
     }
   });
   return { tabs: savedTabs, activeIndex };
@@ -68,7 +69,7 @@ async function loadSavedSession() {
     const data = JSON.parse(await fs.readFile(file, "utf8"));
     if (data && Array.isArray(data.tabs)) {
       restoredSession = {
-        tabs: data.tabs.filter((tab) => tab && isHttpUrl(tab.url)).slice(0, 100),
+        tabs: data.tabs.filter((tab) => tab && isRestorableUrl(tab.url)).slice(0, 100),
         activeIndex: Number.isInteger(data.activeIndex) ? data.activeIndex : 0
       };
     }
@@ -82,7 +83,7 @@ function restoreSessionOrHome() {
   restoredSession = null;
   if (saved && saved.tabs.length) {
     const activeIndex = Math.max(0, Math.min(saved.activeIndex, saved.tabs.length - 1));
-    saved.tabs.forEach((tab, index) => openTab(tab.url, index === activeIndex));
+    saved.tabs.forEach((tab, index) => openTab(tab.isHomeTab ? "about:home" : tab.url, index === activeIndex));
     return;
   }
   openTab(HOME_URL, true);
@@ -90,7 +91,7 @@ function restoreSessionOrHome() {
 
 function normalizeAddress(input) {
   const value = String(input || "").trim();
-  if (!value || /^about:(blank|home)$/i.test(value)) return HOME_URL;
+  if (!value || /^about:(blank|home)$/i.test(value)) return "about:blank";
   if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
 
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
@@ -156,7 +157,8 @@ function openTab(address = HOME_URL, activate = true) {
       webSecurity: true
     }
   });
-  const tab = { id, view, title: "New Tab", url: "", loading: true };
+  const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
+  const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab };
   tabs.set(id, tab);
   const wc = view.webContents;
 
@@ -165,7 +167,7 @@ function openTab(address = HOME_URL, activate = true) {
     return { action: "deny" };
   });
   wc.on("page-title-updated", (_event, title) => {
-    tab.title = title || "New Tab";
+    tab.title = tab.isHomeTab ? "New Tab" : (title || "New Tab");
     sendState();
   });
   wc.on("did-start-loading", () => {
@@ -176,16 +178,18 @@ function openTab(address = HOME_URL, activate = true) {
     tab.loading = false;
     tab.url = wc.getURL();
     tab.title = wc.getTitle() || tab.title || "New Tab";
-    tab.url = wc.getURL() || tab.url || HOME_URL;
+    if (!tab.isHomeTab) tab.url = wc.getURL() || tab.url || HOME_URL;
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate", (_event, url) => {
+    tab.isHomeTab = false;
     tab.url = url;
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate-in-page", (_event, url) => {
+    tab.isHomeTab = false;
     tab.url = url;
     sendState();
     saveSessionSync();
@@ -203,7 +207,8 @@ function openTab(address = HOME_URL, activate = true) {
     sendState();
   }
 
-  wc.loadURL(normalizeAddress(address)).catch(() => {
+  const targetUrl = isHomeTab ? "about:blank" : normalizeAddress(address);
+  wc.loadURL(targetUrl).catch(() => {
     tab.loading = false;
     tab.title = "Unable to load page";
     sendState();
@@ -491,6 +496,6 @@ app.on("second-instance", (_event, commandLine) => {
     mainWindow.focus();
   }
 });
-app.on("before-quit", () => { if (sessionSaveTimer) clearTimeout(sessionSaveTimer); saveSessionSync(); });
+app.on("before-quit", () => { if (sessionSaveTimer) clearTimeout(sessionSaveTimer); if (tabs.size > 0) saveSessionSync(); });
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
