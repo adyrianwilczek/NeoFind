@@ -195,6 +195,19 @@ ipcMain.on("tabs:switch", (_event, id) => {
   showActiveTab();
 });
 ipcMain.on("tabs:close", (_event, id) => closeTab(id));
+ipcMain.on("tabs:reorder", (_event, fromId, toId) => {
+  const from = Number(fromId), to = Number(toId);
+  const ids = Array.from(tabs.keys());
+  const fromIndex = ids.indexOf(from), toIndex = ids.indexOf(to);
+  if (fromIndex < 0 || toIndex < 0 || from === to) return;
+  ids.splice(fromIndex, 1);
+  ids.splice(toIndex, 0, from);
+  const ordered = new Map();
+  ids.forEach((id) => { if (tabs.has(id)) ordered.set(id, tabs.get(id)); });
+  tabs.clear();
+  ordered.forEach((tab, id) => tabs.set(id, tab));
+  sendState();
+});
 ipcMain.on("tabs:navigate", (_event, address) => {
   const wc = activeContents();
   if (wc) wc.loadURL(normalizeAddress(address)).catch(() => {});
