@@ -71,7 +71,13 @@ const bookmarkStoreKey = "neofind.importedBookmarks";
 const historyStoreKey = "neofind.importedHistory";
 const browserThemeKey = "neofind.browserTheme";
 const themeSelect = document.getElementById("browserTheme");
-function applyBrowserTheme(theme) { const allowed = ["midnight", "ocean", "purple", "light"]; const value = allowed.includes(theme) ? theme : "midnight"; document.body.dataset.theme = value === "midnight" ? "" : value; themeSelect.value = value; try { localStorage.setItem(browserThemeKey, value); } catch {} }
+function applyBrowserTheme(theme) {
+  const allowed = ["midnight","ocean","purple","light","aurora","nord","lavender","rose","sunset","ember","forest","sakura","paper","cyber","space","matrix"];
+  const value = allowed.includes(theme) ? theme : "midnight";
+  document.body.dataset.theme = value;
+  themeSelect.value = value;
+  try { localStorage.setItem(browserThemeKey, value); } catch {}
+}
 applyBrowserTheme(localStorage.getItem(browserThemeKey) || "midnight");
 themeSelect.addEventListener("change", () => applyBrowserTheme(themeSelect.value));
 
