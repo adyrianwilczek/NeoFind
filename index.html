@@ -17056,6 +17056,7 @@ placeFindables();refreshDisplay();
       controls.style.cssText="display:flex;align-items:center;gap:7px;padding:8px 5px;";
       viewport.style.cssText="display:none;position:relative;width:100%;height:min(72vh,760px);min-height:300px;overflow:hidden;border:1px solid #ffffff22;border-radius:12px;background:transparent;";
     }
+    applyBetaTheme($("neoBetaTheme")?.value||localStorage.getItem(betaThemeKey)||"classic");
   }
   const themeSelect=$("neoBetaTheme");
   if(themeSelect){themeSelect.addEventListener("change",()=>applyBetaTheme(themeSelect.value));applyBetaTheme(localStorage.getItem(betaThemeKey)||"classic");}
@@ -17081,7 +17082,7 @@ placeFindables();refreshDisplay();
     const brand=document.createElement("button");brand.type="button";brand.id="neoBetaBrandHome";brand.title="NeoFind home";brand.setAttribute("aria-label","NeoFind home");
     brand.style.cssText="display:flex;align-items:center;gap:7px;flex:0 0 auto;min-width:108px;padding:5px 10px;margin-right:4px;border:1px solid var(--neo-beta-line,#34445b);border-bottom:0;border-radius:9px 9px 0 0;background:var(--neo-beta-panel2,#192235);color:var(--neo-beta-text,#edf7ff);font-weight:800;cursor:pointer;";
     const logo=document.createElement("img");logo.src="https://raw.githubusercontent.com/adyrianwilczek/NeoFind/main/icon_round.png";logo.alt="";logo.style.cssText="width:25px;height:25px;object-fit:contain;flex:0 0 auto;";
-    const brandText=document.createElement("span");brandText.textContent="NeoFind";brand.append(logo,brandText);brand.onclick=()=>{const t=active();if(t)loadUrl(t,"about:blank");};bar.append(brand);
+    const brandText=document.createElement("span");brandText.textContent="NeoFind";brand.append(logo,brandText);brand.onclick=()=>{const t=active();if(t)loadUrl(t,"https://neofind.pl/");};bar.append(brand);
     tabs.forEach(t=>{
       const w=document.createElement("div");w.dataset.tabId=String(t.id);w.draggable=true;
       w.style.cssText="display:flex;align-items:center;gap:7px;flex:0 1 210px;min-width:100px;max-width:210px;padding:7px 9px;border:1px solid var(--neo-beta-line,#ffffff18);border-bottom:0;border-radius:9px 9px 0 0;background:"+(t.id===activeId?"var(--neo-beta-panel2,#192235)":"var(--neo-beta-panel,#101521)")+";color:var(--neo-beta-text,#edf7ff);cursor:grab;";
