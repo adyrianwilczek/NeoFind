@@ -85,7 +85,50 @@ function setSettingsTab(tab) {
   document.querySelectorAll(".settings-tab").forEach((button) => button.classList.toggle("selected", button.dataset.settingsTab === tab));
   document.getElementById("settingsGeneral").classList.toggle("hidden", tab !== "general");
   document.getElementById("settingsImport").classList.toggle("hidden", tab !== "import");
+  document.getElementById("settingsIntegrations").classList.toggle("hidden", tab !== "integrations");
 }
+
+const sidebarApps = {
+  spotify: {label:"Spotify",icon:"♫",url:"https://open.spotify.com/"},
+  x: {label:"X",icon:"𝕏",url:"https://x.com/"},
+  discord: {label:"Discord",icon:"◉",url:"https://discord.com/app"},
+  cyrber: {label:"Cyrber",icon:"C",url:"https://cyrber.com/"},
+  github: {label:"GitHub",icon:"⌘",url:"https://github.com/"}
+};
+const sidebarAppsKey = "neofind.sidebarApps";
+function getEnabledSidebarApps() {
+  try { const value=JSON.parse(localStorage.getItem(sidebarAppsKey)||"null"); if(value&&typeof value==="object") return value; } catch {}
+  return {spotify:true,x:true,discord:true,cyrber:true,github:true};
+}
+function renderSidebarApps() {
+  const host=document.getElementById("sidebarLinks"), enabled=getEnabledSidebarApps();
+  host.replaceChildren();
+  Object.entries(sidebarApps).forEach(([key,app])=>{
+    if(!enabled[key]) return;
+    const button=document.createElement("button"); button.type="button"; button.className="side-icon";
+    button.title=app.label; button.setAttribute("aria-label","Open "+app.label);
+    const icon=document.createElement("span"); icon.textContent=app.icon; button.append(icon);
+    button.addEventListener("click",()=>window.neoBrowser.createTab(app.url)); host.append(button);
+  });
+}
+document.querySelectorAll("[data-sidebar-app]").forEach(input=>{
+  input.checked=!!getEnabledSidebarApps()[input.dataset.sidebarApp];
+  input.addEventListener("change",()=>{
+    const enabled=getEnabledSidebarApps(); enabled[input.dataset.sidebarApp]=input.checked;
+    localStorage.setItem(sidebarAppsKey,JSON.stringify(enabled)); renderSidebarApps();
+  });
+});
+renderSidebarApps();
+document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/"));
+document.getElementById("sideHistory").addEventListener("click",()=>{
+  const saved=localStorage.getItem("neofind.importedHistory");
+  let history=[]; try{history=JSON.parse(saved||"[]")}catch{}
+  window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("import");
+  importStatus.textContent=history.length ? "Imported browsing history is available below. This list shows imported entries only." : "No imported browsing history yet. Use Settings → Import to bring history from another browser.";
+  renderImportedHistory();
+});
+document.getElementById("sideAccount").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/"));
+
 function setImportPreset(preset) {
   document.getElementById("importEverything").classList.toggle("selected", preset === "everything");
   document.getElementById("importNoCookies").classList.toggle("selected", preset === "no-cookies");
@@ -96,7 +139,7 @@ function setImportPreset(preset) {
     ? "All categories selected, including cookies. Selected data will be imported only where supported."
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
-document.getElementById("settingsButton").addEventListener("click", () => { window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); });
+document.getElementById("sideSettings").addEventListener("click", () => { window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); });
 function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.neoBrowser.showContent(); }
 document.getElementById("closeSettings").addEventListener("click", closeSettingsPanel);
 settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
