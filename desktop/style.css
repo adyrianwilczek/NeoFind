@@ -133,15 +133,4 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 #pinTab, #privateTab, #duplicateTab, #reopenTab { min-width: 34px; padding: 0 8px; }
 #settingsPrivacy .privacy-note { margin-top: 14px; }
 
-
-/* NeoFind Browser 0.1.8: tab context menu and privacy controls */
-.tab-context-menu { position: fixed; z-index: 10000; min-width: 178px; padding: 5px; border: 1px solid var(--border, #334155); border-radius: 9px; background: var(--panel, #111827); box-shadow: 0 12px 32px rgba(0,0,0,.38); }
-.tab-context-menu button { display: block; width: 100%; border: 0; border-radius: 6px; padding: 9px 12px; text-align: left; color: var(--text, #e5e7eb); background: transparent; cursor: pointer; }
-.tab-context-menu button:hover { background: var(--panel2, #1f2937); }
-.switch-control { display: inline-flex; align-items: center; gap: 9px; color: var(--text, #e5e7eb); }
-.switch-control input { width: 18px; height: 18px; accent-color: var(--cyan, #00f2fe); }
-.tab.pinned { border-bottom: 2px solid var(--cyan, #00f2fe); }
-
-
-/* NeoFind Browser 0.1.9 */
-#browserLanguage { min-width: 130px; }
+.language-select { min-width: 132px; }
