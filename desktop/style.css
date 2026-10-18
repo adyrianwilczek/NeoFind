@@ -119,3 +119,16 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 /* Keep the page viewport beside the sidebar rather than underneath it. */
 #pageViewport{left:58px;right:0;margin-left:0}
 @media(max-width:680px){#pageViewport{left:50px;margin-left:0}}
+
+
+/* NeoFind Browser 0.1.7: privacy and tab controls */
+.tab { min-width: 0; }
+.tab.pinned { max-width: 76px; min-width: 52px; }
+.tab.pinned .tab-title { max-width: 38px; }
+.tab-pin { flex: 0 0 auto; border: 0; padding: 1px 3px; border-radius: 5px; color: var(--muted); background: transparent; cursor: pointer; font-size: 11px; }
+.tab-pin:hover { color: var(--cyan); background: var(--panel2); }
+.tab.private-tab { border-color: #8b5cf6; }
+.tab.private-tab .tab-title::before { content: "◉ "; color: #c4b5fd; }
+#privateTab.private-active { color: #e9d5ff; border-color: #a78bfa; background: #39245b; }
+#pinTab, #privateTab, #duplicateTab, #reopenTab { min-width: 34px; padding: 0 8px; }
+#settingsPrivacy .privacy-note { margin-top: 14px; }
