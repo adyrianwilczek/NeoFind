@@ -1,4 +1,4 @@
-
+const browserLanguageKey = "neofind.browserLanguage";
 // Browser interface translations. User-generated page content is intentionally not translated.
 const browserTranslations = {
 en: {},
@@ -55,9 +55,18 @@ browserLanguageSelect.value=localStorage.getItem(browserLanguageKey)||"en";
 translateBrowserText(browserLanguageSelect.value);
 browserLanguageSelect.addEventListener("change",()=>{localStorage.setItem(browserLanguageKey,browserLanguageSelect.value);translateBrowserText(browserLanguageSelect.value);});
 
+const browserLanguageSelect = document.getElementById("browserLanguage");
+if (browserLanguageSelect) {
+  browserLanguageSelect.value = localStorage.getItem(browserLanguageKey) || "en";
+  translateBrowserText(browserLanguageSelect.value);
+  browserLanguageSelect.addEventListener("change", () => {
+    localStorage.setItem(browserLanguageKey, browserLanguageSelect.value);
+    translateBrowserText(browserLanguageSelect.value);
+  });
+}
+
 const tabsElement = document.getElementById("tabs");
 const addressInput = document.getElementById("address");
-const browserLanguageKey = "neofind.browserLanguage";
 const viewport = document.getElementById("pageViewport");
 
 function renderTabs(state) {
@@ -69,7 +78,6 @@ function renderTabs(state) {
     item.draggable = true;
     item.dataset.tabId = String(tab.id);
     item.addEventListener("click", () => window.neoBrowser.switchTab(tab.id));
-    item.addEventListener("contextmenu", (event) => { event.preventDefault(); showTabContextMenu(event.clientX, event.clientY, tab); });
     item.addEventListener("dragstart", (event) => { event.dataTransfer.setData("text/plain", String(tab.id)); event.dataTransfer.effectAllowed = "move"; item.classList.add("dragging"); });
     item.addEventListener("dragend", () => { item.classList.remove("dragging"); tabsElement.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over")); });
     item.addEventListener("dragover", (event) => { event.preventDefault(); item.classList.add("drag-over"); });
@@ -90,7 +98,10 @@ function renderTabs(state) {
       event.stopPropagation();
       window.neoBrowser.closeTab(tab.id);
     });
-    item.append(title, close);
+    const pin = document.createElement("button");
+    pin.className = "tab-pin"; pin.type = "button"; pin.textContent = tab.pinned ? "📌" : "⌁"; pin.title = tab.pinned ? "Unpin tab" : "Pin tab"; pin.setAttribute("aria-label", pin.title);
+    pin.addEventListener("click", async (event) => { event.stopPropagation(); await window.neoBrowser.togglePinTab(tab.id); });
+    item.append(title, pin, close);
     tabsElement.append(item);
   }
 
@@ -98,42 +109,9 @@ function renderTabs(state) {
   if (active && document.activeElement !== addressInput) addressInput.value = active.url || "";
   document.getElementById("back").disabled = !active || !active.canGoBack;
   document.getElementById("forward").disabled = !active || !active.canGoForward;
+  const pinButton = document.getElementById("pinTab"); if (pinButton) { pinButton.textContent = active && active.pinned ? "📌" : "⌁"; pinButton.title = active && active.pinned ? "Unpin active tab" : "Pin active tab"; }
+  const privateButton = document.getElementById("privateTab"); if (privateButton) privateButton.classList.toggle("private-active", !!(active && active.isPrivate));
 }
-
-
-// Tab context menu: duplicate and pin actions live on right-click.
-let tabContextTarget = null;
-let tabContextMenu = document.getElementById("tabContextMenu");
-if (!tabContextMenu) {
-  tabContextMenu = document.createElement("div");
-  tabContextMenu.id = "tabContextMenu";
-  tabContextMenu.className = "tab-context-menu hidden";
-  tabContextMenu.setAttribute("role", "menu");
-  tabContextMenu.innerHTML = '<button type="button" data-tab-action="duplicate" role="menuitem">Duplicate tab</button><button type="button" data-tab-action="pin" role="menuitem">Pin tab</button>';
-  document.body.append(tabContextMenu);
-}
-function showTabContextMenu(x, y, tab) {
-  tabContextTarget = tab;
-  const pinAction = tabContextMenu.querySelector('[data-tab-action="pin"]');
-  pinAction.dataset.pinned = tab.pinned ? "true" : "false";
-  pinAction.textContent = tr(tab.pinned ? "Unpin tab" : "Pin tab");
-  tabContextMenu.querySelector('[data-tab-action="duplicate"]').textContent = tr("Duplicate tab");
-  tabContextMenu.classList.remove("hidden");
-  const width = tabContextMenu.offsetWidth || 180, height = tabContextMenu.offsetHeight || 80;
-  tabContextMenu.style.left = Math.max(6, Math.min(x, window.innerWidth - width - 6)) + "px";
-  tabContextMenu.style.top = Math.max(6, Math.min(y, window.innerHeight - height - 6)) + "px";
-}
-tabContextMenu.addEventListener("click", async (event) => {
-  const button = event.target.closest("[data-tab-action]");
-  if (!button || !tabContextTarget) return;
-  const target = tabContextTarget;
-  tabContextMenu.classList.add("hidden");
-  if (button.dataset.tabAction === "duplicate") await window.neoBrowser.duplicateTab(target.id);
-  if (button.dataset.tabAction === "pin") await window.neoBrowser.togglePinTab(target.id);
-});
-document.addEventListener("click", (event) => { if (!tabContextMenu.contains(event.target)) tabContextMenu.classList.add("hidden"); });
-document.addEventListener("keydown", (event) => { if (event.key === "Escape") tabContextMenu.classList.add("hidden"); });
-window.addEventListener("blur", () => tabContextMenu.classList.add("hidden"));
 
 function updateViewportBounds() {
   const rect = viewport.getBoundingClientRect();
@@ -147,6 +125,10 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
 document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "https://neofind.pl/" : "about:home"); });
+document.getElementById("privateTab").addEventListener("click", () => window.neoBrowser.createTab("about:home", { private: true }));
+document.getElementById("duplicateTab").addEventListener("click", () => window.neoBrowser.duplicateTab());
+document.getElementById("reopenTab").addEventListener("click", () => window.neoBrowser.reopenClosedTab());
+document.getElementById("pinTab").addEventListener("click", async () => { const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) await window.neoBrowser.togglePinTab(active.id); });
 let lastTabsState = null;
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
 document.getElementById("forward").addEventListener("click", () => window.neoBrowser.forward());
@@ -158,10 +140,8 @@ window.neoBrowser.onTabsState((state)=>{
   lastTabsState = state;
   renderTabs(state);
   const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
-  if (!isHistorySavingDisabled()) {
-    (state.tabs||[]).forEach(tab=>{if(!tab.isPrivate&&tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
-    if(history.length)localStorage.setItem(browserHistoryKey,JSON.stringify(history.slice(0,1000)));
-  }
+  (state.tabs||[]).forEach(tab=>{if(tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
+  if(history.length)localStorage.setItem(browserHistoryKey,JSON.stringify(history.slice(0,1000)));
 });
 window.addEventListener("resize", updateViewportBounds);
 requestAnimationFrame(updateViewportBounds);
@@ -195,8 +175,6 @@ function setSettingsTab(tab) {
 
 
 const browserHistoryKey = "neofind.browserHistory";
-const disableHistorySavingKey = "neofind.disableHistorySaving";
-function isHistorySavingDisabled() { return localStorage.getItem(disableHistorySavingKey) === "true"; }
 function getBrowserHistory() { try { const value=JSON.parse(localStorage.getItem(browserHistoryKey)||"[]"); return Array.isArray(value)?value:[]; } catch { return []; } }
 function renderBrowserHistory() {
   const host=document.getElementById("browserHistoryList"); if(!host)return; host.replaceChildren();
@@ -208,20 +186,6 @@ function renderBrowserHistory() {
   });
 }
 document.getElementById("clearBrowserHistory").addEventListener("click",()=>{localStorage.removeItem(browserHistoryKey);localStorage.removeItem(historyStoreKey);renderBrowserHistory();});
-const disableHistorySavingToggle = document.getElementById("disableHistorySaving");
-disableHistorySavingToggle.checked = isHistorySavingDisabled();
-disableHistorySavingToggle.addEventListener("change", () => {
-  localStorage.setItem(disableHistorySavingKey, disableHistorySavingToggle.checked ? "true" : "false");
-  if (disableHistorySavingToggle.checked) { localStorage.removeItem(browserHistoryKey); renderBrowserHistory(); }
-  document.getElementById("privacyStatus").textContent = disableHistorySavingToggle.checked
-    ? "Browsing history saving is off. Existing local browsing history was cleared."
-    : "Browsing history saving is on for regular tabs.";
-});
-document.getElementById("openIncognito").addEventListener("click", () => {
-  window.neoBrowser.createTab("about:home", { private: true });
-  document.getElementById("privacyStatus").textContent = "An incognito tab was opened. Close that tab when finished to clear its temporary site data.";
-  closeSettingsPanel();
-});
 document.getElementById("clearBrowserData").addEventListener("click", async () => {
   const status = document.getElementById("privacyStatus"); status.textContent = "Clearing website storage and cache…";
   try { const result = await window.neoBrowser.clearBrowserData(); if (result.ok) { localStorage.removeItem(browserHistoryKey); localStorage.removeItem(historyStoreKey); status.textContent = "Cookies, cache, website storage and local browsing history cleared."; renderBrowserHistory(); } else status.textContent = "Could not clear all data: " + (result.message || "unknown error"); }
@@ -291,14 +255,18 @@ document.addEventListener("keydown", (event) => {
     if (!typing && key === "arrowright") { event.preventDefault(); window.neoBrowser.forward(); return; }
   }
   if (!(event.ctrlKey || event.metaKey)) return;
-  if (key === "t" && !event.shiftKey) { event.preventDefault(); document.getElementById("newTab").click(); }
-  else if (key === "w" || key === "x") { event.preventDefault(); window.neoBrowser.closeActiveTab(); }
-  else if (key === "l" || key === "c") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
-  else if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); }
+  if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); }
+  else if (key === "c") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
   else if (key === "r" && event.shiftKey) { event.preventDefault(); window.neoBrowser.reloadIgnoringCache(); }
   else if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); }
   else if (key === "f5") { event.preventDefault(); window.neoBrowser.reloadIgnoringCache(); }
-  else if (key === "d") { event.preventDefault(); const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) window.neoBrowser.duplicateTab(active.id); }
+  else if (key === "x" || key === "w") { event.preventDefault(); window.neoBrowser.closeActiveTab(); }
+  else if (key === "t" && !event.shiftKey) { event.preventDefault(); document.getElementById("newTab").click(); }
+  else if (key === "l") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
+  else if (key === "d") { event.preventDefault(); window.neoBrowser.duplicateTab(); }
+  else if (key === "t" && event.shiftKey) { event.preventDefault(); window.neoBrowser.reopenClosedTab(); }
+  else if (key === "n" && event.shiftKey) { event.preventDefault(); window.neoBrowser.createTab("about:home", { private: true }); }
+  else if (key === "p" && event.shiftKey) { event.preventDefault(); document.getElementById("pinTab").click(); }
 });
 window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
 document.querySelectorAll(".settings-tab").forEach((button) => button.addEventListener("click", () => { setSettingsTab(button.dataset.settingsTab); if (button.dataset.settingsTab === "history") renderBrowserHistory(); }));
