@@ -262,7 +262,7 @@ ipcMain.handle("import:choose-source-profile", async (_event, sourceBrowser) => 
 
 ipcMain.handle("import:source-profile", async (_event, sourceBrowser, profilePath, selected) => {
   if (typeof profilePath !== "string" || !path.isAbsolute(profilePath) || !selected || typeof selected !== "object") {
-    throw new Error("Invalid Opera GX import selection.");
+    throw new Error("Invalid browser import selection.");
   }
   const profile = path.resolve(profilePath);
   const firefox = sourceBrowser === "Mozilla Firefox";
@@ -310,7 +310,7 @@ ipcMain.handle("import:source-profile", async (_event, sourceBrowser, profilePat
         result.history = rows.map((row) => ({ url: String(row.url || ""), title: String(row.title || row.url || "").slice(0, 300), visitCount: Number(row.visit_count || 1), lastVisitTime: Number(row.last_visit_time || 0) }));
       } finally { db.close(); }
     } catch {
-      result.notes.push("History could not be read. Close Opera GX and try again; this feature needs a compatible SQLite runtime.");
+      result.notes.push("History could not be read. Close the source browser and try again; this feature needs a compatible SQLite runtime.");
     } finally { if (tempFile) await fs.rm(tempFile, { force: true }).catch(() => {}); }
   }
   if (selected.settings) { try { await fs.access(path.join(profile, firefox ? "prefs.js" : "Preferences")); result.settingsFound = true; } catch {} }
@@ -320,9 +320,9 @@ ipcMain.handle("import:source-profile", async (_event, sourceBrowser, profilePat
     catch { try { await fs.access(path.join(profile, "Cookies")); result.cookiesFound = true; } catch {} }
     if (result.cookiesFound) result.notes.push("Cookies were detected but not copied: their encryption and session format are browser-specific.");
   }
-  if (selected.passwords) result.notes.push("Saved passwords are not copied directly because Opera GX protects them with OS/browser encryption. Use Opera GX's password export and a trusted password manager or a supported browser-import flow.");
+  if (selected.passwords) result.notes.push("Saved passwords are not copied directly because the source browser protects them with OS/browser encryption. Use its password export and a trusted password manager or a supported browser-import flow.");
   if (selected.autofill) result.notes.push("Autofill data is not copied in this version because it is stored in the encrypted browser profile database.");
-  if (selected.settings && result.settingsFound) result.notes.push("Opera GX preferences were detected but not applied because NeoFind Browser uses different settings.");
+  if (selected.settings && result.settingsFound) result.notes.push("Browser preferences were detected but not applied because NeoFind Browser uses different settings.");
   if (selected.extensions && result.extensionsFound) result.notes.push("Found " + result.extensionsFound + " extension folder(s); review and install compatible extensions individually.");
   return result;
 });
