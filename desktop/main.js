@@ -222,6 +222,11 @@ ipcMain.on("browser:forward", () => {
 });
 ipcMain.on("browser:reload", () => activeContents()?.reload());
 ipcMain.on("browser:home", () => activeContents()?.loadURL(HOME_URL));
+ipcMain.on("browser:hide-content", () => {
+  const tab = tabs.get(activeTabId);
+  if (tab && mainWindow) { try { mainWindow.contentView.removeChildView(tab.view); } catch {} }
+});
+ipcMain.on("browser:show-content", () => showActiveTab());
 ipcMain.on("browser:set-bounds", (_event, bounds) => {
   if (!bounds || !["x", "y", "width", "height"].every((key) => Number.isFinite(bounds[key]))) return;
   viewportBounds = bounds;
