@@ -11,6 +11,10 @@ on:
       - "neofind-browser-v*"
   workflow_dispatch:
 
+concurrency:
+  group: neofind-browser-build
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
