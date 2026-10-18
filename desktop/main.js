@@ -188,12 +188,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     } else if (control && key === "x") {
       event.preventDefault();
       if (activeTabId !== null) closeTab(activeTabId);
-    } else if (!control && !input.alt && key === "arrowleft") {
-      const current = activeContents();
-      if (current && current.navigationHistory.canGoBack()) { event.preventDefault(); current.navigationHistory.goBack(); }
-    } else if (!control && !input.alt && key === "arrowright") {
-      const current = activeContents();
-      if (current && current.navigationHistory.canGoForward()) { event.preventDefault(); current.navigationHistory.goForward(); }
     }
   });
 
