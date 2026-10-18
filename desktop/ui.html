@@ -10,6 +10,7 @@
 <body>
   <header class="chrome">
     <div class="tab-strip">
+      <button id="brandHome" class="brand-home" title="Open NeoFind home" aria-label="Open NeoFind home"><img src="https://raw.githubusercontent.com/adyrianwilczek/NeoFind/main/icon_round.png" alt=""><span>NeoFind</span></button>
       <div id="tabs" class="tabs"></div>
       <button id="newTab" class="new-tab" title="New tab" aria-label="New tab">+</button>
     </div>
@@ -23,6 +24,7 @@
         <input id="address" autocomplete="off" spellcheck="false" placeholder="Search NeoFind or enter an address">
       </form>
       <button id="go" class="go-button">Go</button>
+      <button id="downloadNeoFind" class="download-button" title="Download NeoFind">Download NeoFind</button>
       <button id="settingsButton" class="tool settings-button" title="Settings" aria-label="Settings">⚙</button>
     </div>
   </header>
@@ -36,6 +38,7 @@
         <div class="setting-row"><div><strong>Browser updates</strong><small id="appVersion">Checking installed version...</small><small id="updateStatus" role="status">Updates are checked automatically when the app starts.</small></div><button id="checkUpdatesButton" class="primary-button">Check for updates</button></div>
         <div class="setting-row"><div><strong>Default browser</strong><small>Set NeoFind Browser as the app that opens web links in Windows.</small></div><button id="setDefaultBrowser" class="primary-button">Set as default</button></div>
         <p id="defaultBrowserStatus" class="import-status" role="status">Windows may ask you to confirm NeoFind Browser in Default apps.</p>
+        <div class="setting-row"><div><strong>Browser theme</strong><small>Choose a theme for the browser chrome and tabs.</small></div><select id="browserTheme" class="settings-select theme-select" aria-label="Browser theme"><option value="midnight">Midnight</option><option value="ocean">Ocean</option><option value="purple">Purple</option><option value="light">Light</option></select></div>
         <div class="setting-row"><div><strong>Start page</strong><small>Open NeoFind when a new browser window starts.</small></div><span class="setting-pill">NeoFind</span></div>
       </section>
       <section id="settingsImport" class="settings-section hidden">
