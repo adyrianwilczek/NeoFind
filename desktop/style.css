@@ -1,13 +1,11 @@
 * { box-sizing: border-box; }
 :root { color-scheme: dark; --bg:#080d18; --panel:#101827; --panel2:#172235; --line:#26354b; --text:#edf6ff; --muted:#94a7bf; --cyan:#00f2fe; --blue:#4facfe; --purple:#9b51e0; }
 html,body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:Inter,"Segoe UI",Arial,sans-serif; }
-.chrome { position:relative; z-index:2; height:92px; background:linear-gradient(110deg,#0a1322,#10152a 65%,#17132c); border-bottom:1px solid var(--line); box-shadow:0 5px 22px #0005; }
+.chrome { position:relative; z-index:2; height:92px; background:linear-gradient(110deg,var(--bg),var(--panel) 65%,var(--panel2)); border-bottom:1px solid var(--line); box-shadow:0 5px 22px #0005; }
 .tab-strip { height:42px; display:flex; align-items:stretch; gap:7px; padding:6px 9px 0; }
 .brand-home { display:flex; flex:0 0 auto; align-items:center; gap:6px; padding:0 8px; border:1px solid transparent; border-radius:8px 8px 0 0; background:transparent; color:var(--text); font-size:12px; font-weight:800; cursor:pointer; }
 .brand-home img { width:24px; height:24px; object-fit:contain; }
 .brand-home:hover { border-color:var(--line); background:var(--panel2); }
-.download-button { flex:0 0 auto; height:32px; padding:0 10px; border:1px solid #2b6686; border-radius:8px; color:var(--text); background:#12304a; font-size:11px; font-weight:700; cursor:pointer; }
-.download-button:hover { border-color:var(--cyan); }
 .tabs { display:flex; align-items:stretch; min-width:0; gap:5px; overflow-x:auto; flex:1; scrollbar-width:thin; }
 .tab { display:flex; align-items:center; gap:9px; min-width:100px; max-width:220px; padding:0 10px; border:1px solid transparent; border-radius:9px 9px 0 0; background:var(--panel); color:var(--muted); cursor:grab; user-select:none; }
 .tab:active { cursor:grabbing; }
@@ -83,6 +81,6 @@ body[data-theme="light"] .tab { background:#e3eaf4; }
 body[data-theme="light"] .tab.active { background:#fff; border-color:#c2cede; border-bottom-color:#fff; }
 body[data-theme="light"] .address-form { background:#fff; border-color:#c2cede; }
 body[data-theme="light"] #address { color:#182438; }
-body[data-theme="light"] .new-tab, body[data-theme="light"] .tool, body[data-theme="light"] .download-button { color:#182438; background:#e3eaf4; border-color:#c2cede; }
+body[data-theme="light"] .new-tab, body[data-theme="light"] .tool { color:#182438; background:#e3eaf4; border-color:#c2cede; }
 body[data-theme="light"] .settings-card { background:linear-gradient(145deg,#fff,#edf3fa); border-color:#c2cede; }
 body[data-theme="light"] .settings-select, body[data-theme="light"] .preset-button { color:#182438; background:#fff; }
