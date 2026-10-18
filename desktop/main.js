@@ -238,23 +238,35 @@ ipcMain.handle("browser:open-default-apps", async () => {
   try { await shell.openExternal("ms-settings:defaultapps"); return { ok: true }; }
   catch { return { ok: false }; }
 });
-ipcMain.handle("import:choose-opera-profile", async () => {
+ipcMain.handle("import:choose-source-profile", async (_event, sourceBrowser) => {
   if (!mainWindow || mainWindow.isDestroyed()) return { canceled: true };
+  const local = process.env.LOCALAPPDATA || path.join(require("node:os").homedir(), "AppData", "Local");
+  const roaming = app.getPath("appData");
+  const defaults = {
+    "Google Chrome": path.join(local, "Google", "Chrome", "User Data", "Default"),
+    "Microsoft Edge": path.join(local, "Microsoft", "Edge", "User Data", "Default"),
+    "Brave": path.join(local, "BraveSoftware", "Brave-Browser", "User Data", "Default"),
+    "Opera": path.join(roaming, "Opera Software", "Opera Stable"),
+    "Opera GX": path.join(roaming, "Opera Software", "Opera GX Stable"),
+    "Mozilla Firefox": path.join(roaming, "Mozilla", "Firefox", "Profiles")
+  };
   const result = await dialog.showOpenDialog(mainWindow, {
-    title: "Choose Opera GX profile folder",
+    title: "Choose " + String(sourceBrowser || "browser") + " profile folder",
     properties: ["openDirectory"],
-    defaultPath: path.join(app.getPath("appData"), "Opera Software", "Opera GX Stable")
+    ...(defaults[sourceBrowser] ? { defaultPath: defaults[sourceBrowser] } : {})
   });
   if (result.canceled || !result.filePaths[0]) return { canceled: true };
   return { canceled: false, profilePath: result.filePaths[0] };
 });
 
-ipcMain.handle("import:opera-profile", async (_event, profilePath, selected) => {
+ipcMain.handle("import:source-profile", async (_event, sourceBrowser, profilePath, selected) => {
   if (typeof profilePath !== "string" || !path.isAbsolute(profilePath) || !selected || typeof selected !== "object") {
     throw new Error("Invalid Opera GX import selection.");
   }
   const profile = path.resolve(profilePath);
+  const firefox = sourceBrowser === "Mozilla Firefox";
   const result = { bookmarks: [], history: [], settingsFound: false, extensionsFound: 0, cookiesFound: false, notes: [] };
+  if (firefox) result.notes.push("Firefox profile selected. Firefox uses a different database format; bookmarks and history need a dedicated Firefox importer and are not copied by this Chromium importer.");
   if (selected.bookmarks) {
     try {
       const data = JSON.parse(await fs.readFile(path.join(profile, "Bookmarks"), "utf8"));
