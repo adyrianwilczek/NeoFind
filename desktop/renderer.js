@@ -139,7 +139,7 @@ document.querySelectorAll("[data-sidebar-app]").forEach(input=>{
   });
 });
 renderSidebarApps();
-document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/"));
+document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.openNeoAI());
 document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("history"); });
 document.getElementById("sideAccount").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/"));
 
