@@ -30,10 +30,10 @@
   <main id="pageViewport" aria-label="Web page area"></main>
   <section id="settingsPanel" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="settings-card">
-      <div class="settings-heading"><div><p class="eyebrow">NEOFIND BROWSER</p><h1 id="settingsTitle">Settings</h1></div><button id="closeSettings" class="tool" aria-label="Close settings">×</button></div>
+      <div class="settings-heading"><div><p class="eyebrow">NEOFIND BROWSER</p><h1 id="settingsTitle">Settings</h1></div><button id="closeSettings" class="tool" aria-label="Close settings" title="Close settings">×</button></div>
       <nav class="settings-tabs"><button class="settings-tab selected" data-settings-tab="general">General</button><button class="settings-tab" data-settings-tab="import">Import</button><button class="settings-tab" data-settings-tab="integrations">Sidebar apps</button><button class="settings-tab" data-settings-tab="history">History</button><button class="settings-tab" data-settings-tab="privacy">Privacy &amp; security</button></nav>
       <section id="settingsGeneral" class="settings-section">
-        <h2>General</h2><p>Manage your NeoFind Browser preferences.</p>
+        <h2>General</h2><p>Manage your NeoFind Browser preferences.</p><div class="setting-row"><div><strong>Language</strong><small>Choose the language used throughout the browser interface.</small></div><select id="browserLanguage" class="settings-select" aria-label="Browser language"><option value="en">English</option><option value="pl">Polski</option><option value="es">Español</option><option value="fr">Français</option></select></div>
         <div class="setting-row"><div><strong>Browser updates</strong><small id="appVersion">Checking installed version...</small><small id="updateStatus" role="status">Updates are checked automatically when the app starts.</small></div><button id="checkUpdatesButton" class="primary-button">Check for updates</button></div>
         <div class="setting-row"><div><strong>Default browser</strong><small>Set NeoFind Browser as the app that opens web links in Windows.</small></div><button id="setDefaultBrowser" class="primary-button">Set as default</button></div>
         <p id="defaultBrowserStatus" class="import-status" role="status">Windows may ask you to confirm NeoFind Browser in Default apps.</p>
