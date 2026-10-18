@@ -190,6 +190,19 @@ function createWindow() {
 }
 
 ipcMain.handle("tabs:create", (_event, url) => openTab(url || HOME_URL, true));
+ipcMain.handle("sidebar:open-neoai", () => {
+  const id = openTab(HOME_URL, true);
+  const tab = tabs.get(id);
+  if (tab) {
+    const wc = tab.view.webContents;
+    wc.once("did-finish-load", () => {
+      setTimeout(() => {
+        if (!wc.isDestroyed()) wc.executeJavaScript("document.getElementById('neoAiFloatBtn')?.click()").catch(() => {});
+      }, 500);
+    });
+  }
+  return { ok: true };
+});
 ipcMain.on("tabs:switch", (_event, id) => {
   if (!tabs.has(Number(id))) return;
   activeTabId = Number(id);
