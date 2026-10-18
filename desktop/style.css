@@ -141,3 +141,7 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 .switch-control { display: inline-flex; align-items: center; gap: 9px; color: var(--text, #e5e7eb); }
 .switch-control input { width: 18px; height: 18px; accent-color: var(--cyan, #00f2fe); }
 .tab.pinned { border-bottom: 2px solid var(--cyan, #00f2fe); }
+
+
+/* NeoFind Browser 0.1.9 */
+#browserLanguage { min-width: 130px; }
