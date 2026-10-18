@@ -84,3 +84,24 @@ body[data-theme="light"] #address { color:#182438; }
 body[data-theme="light"] .new-tab, body[data-theme="light"] .tool { color:#182438; background:#e3eaf4; border-color:#c2cede; }
 body[data-theme="light"] .settings-card { background:linear-gradient(145deg,#fff,#edf3fa); border-color:#c2cede; }
 body[data-theme="light"] .settings-select, body[data-theme="light"] .preset-button { color:#182438; background:#fff; }
+
+/* Additional full-chrome themes. The website content itself is intentionally unchanged. */
+body[data-theme="midnight"] { color-scheme:dark; --bg:#080d18; --panel:#101827; --panel2:#172235; --line:#26354b; --text:#edf6ff; --muted:#94a7bf; }
+body[data-theme="aurora"] { color-scheme:dark; --bg:#071b25; --panel:#0a2531; --panel2:#103849; --line:#1a6172; --text:#e8fcff; --muted:#91c7d4; }
+body[data-theme="nord"] { color-scheme:dark; --bg:#2e3440; --panel:#3b4252; --panel2:#434c5e; --line:#616e82; --text:#eceff4; --muted:#c0c8d6; }
+body[data-theme="lavender"] { color-scheme:dark; --bg:#21172f; --panel:#2b1d3d; --panel2:#3a2850; --line:#674d83; --text:#fbf3ff; --muted:#cbb6dc; }
+body[data-theme="rose"] { color-scheme:dark; --bg:#301923; --panel:#3d202d; --panel2:#512b3a; --line:#85485e; --text:#fff0f5; --muted:#d8aaba; }
+body[data-theme="sunset"] { color-scheme:dark; --bg:#321c2a; --panel:#452337; --panel2:#613044; --line:#a14c59; --text:#fff3e8; --muted:#e2b7a9; }
+body[data-theme="ember"] { color-scheme:dark; --bg:#241710; --panel:#352016; --panel2:#4a2a18; --line:#84502b; --text:#fff2df; --muted:#d7b49a; }
+body[data-theme="forest"] { color-scheme:dark; --bg:#10231b; --panel:#183326; --panel2:#224633; --line:#386c4d; --text:#edfff2; --muted:#a7cfb2; }
+body[data-theme="sakura"] { color-scheme:dark; --bg:#2b1b2a; --panel:#3b2439; --panel2:#54324e; --line:#8e547c; --text:#fff1fa; --muted:#d7b2cd; }
+body[data-theme="paper"] { color-scheme:light; --bg:#f4f0e6; --panel:#fffdf7; --panel2:#e8e1d2; --line:#c9beaa; --text:#302c27; --muted:#736a5d; }
+body[data-theme="cyber"] { color-scheme:dark; --bg:#100d27; --panel:#1b1640; --panel2:#29205c; --line:#5d4db8; --text:#f4f0ff; --muted:#b8aceb; }
+body[data-theme="space"] { color-scheme:dark; --bg:#0a1024; --panel:#131b36; --panel2:#1d2a4a; --line:#394c7b; --text:#edf1ff; --muted:#aebbe4; }
+body[data-theme="matrix"] { color-scheme:dark; --bg:#020d08; --panel:#06180d; --panel2:#0b2815; --line:#1a6630; --text:#d6ffdf; --muted:#8bc99b; }
+body[data-theme="paper"] .chrome, body[data-theme="paper"] .settings-card { background:linear-gradient(110deg,#fffdf7,#f4f0e6 65%,#e8e1d2); }
+body[data-theme="paper"] .tab { background:#e8e1d2; color:#736a5d; }
+body[data-theme="paper"] .tab.active { background:#fffdf7; color:#302c27; border-color:#c9beaa; border-bottom-color:#fffdf7; }
+body[data-theme="paper"] .address-form, body[data-theme="paper"] .settings-select, body[data-theme="paper"] .preset-button { background:#fffdf7; color:#302c27; border-color:#c9beaa; }
+body[data-theme="paper"] #address { color:#302c27; }
+body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c27; background:#e8e1d2; border-color:#c9beaa; }
