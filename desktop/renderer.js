@@ -1,69 +1,205 @@
-const browserLanguageKey = "neofind.browserLanguage";
-// Browser interface translations. User-generated page content is intentionally not translated.
-const browserTranslations = {
-en: {},
-pl: {
-"Open NeoFind home":"Otwórz stronę główną NeoFind","New tab":"Nowa karta","Back":"Wstecz","Forward":"Dalej","Reload":"Odśwież","Search NeoFind or enter an address":"Szukaj w NeoFind lub wpisz adres","Go":"Przejdź","NeoFind sidebar":"Panel boczny NeoFind","History":"Historia","Account":"Konto","Settings":"Ustawienia","Close settings":"Zamknij ustawienia","General":"Ogólne","Import":"Importuj","Sidebar apps":"Aplikacje na pasku bocznym","Privacy & security":"Prywatność i bezpieczeństwo","Manage your NeoFind Browser preferences.":"Zarządzaj ustawieniami NeoFind Browser.","Language":"Język","Choose the language used throughout the browser interface.":"Wybierz język całego interfejsu przeglądarki.","Browser updates":"Aktualizacje przeglądarki","Checking installed version...":"Sprawdzanie zainstalowanej wersji...","Updates are checked automatically when the app starts.":"Aktualizacje są sprawdzane automatycznie przy uruchomieniu.","Check for updates":"Sprawdź aktualizacje","Default browser":"Domyślna przeglądarka","Set NeoFind Browser as the app that opens web links in Windows.":"Ustaw NeoFind Browser jako aplikację otwierającą linki w Windows.","Set as default":"Ustaw jako domyślną","Browser theme":"Motyw przeglądarki","Choose a theme for the browser chrome and tabs.":"Wybierz motyw interfejsu i kart.","New tab":"Nowa karta","Blank tab (about:home)":"Pusta karta (about:home)","NeoFind (neofind.pl)":"NeoFind (neofind.pl)","Choose which icons appear on the left. Clicking an icon opens that website in a new tab.":"Wybierz ikony wyświetlane po lewej. Kliknięcie otwiera stronę w nowej karcie.","Control what NeoFind Browser stores on this device.":"Wybierz, co NeoFind Browser zapisuje na tym urządzeniu.","Do not save browsing history":"Nie zapisuj historii przeglądania","When enabled, new visits are not added to NeoFind Browser history. This does not erase history imported from another browser.":"Po włączeniu nowe strony nie są dodawane do historii NeoFind Browser. Nie usuwa to historii zaimportowanej z innej przeglądarki.","Enabled":"Włączone","Incognito mode":"Tryb incognito","Open a private tab. Its browsing history, cookies and site data are not kept after you close the tab. Websites, your network administrator and your internet provider may still see activity.":"Otwórz kartę prywatną. Po jej zamknięciu historia, pliki cookie i dane witryn nie są zachowywane. Witryny, administrator sieci i dostawca internetu nadal mogą widzieć aktywność.","Open incognito tab":"Otwórz kartę incognito","Clear browsing data":"Wyczyść dane przeglądania","Clear cookies, cache and website storage for the regular browser session.":"Wyczyść pliki cookie, pamięć podręczną i dane witryn zwykłej sesji.","Clear data":"Wyczyść dane","Permission requests from supported websites are shown for approval.":"Prośby obsługiwanych witryn o uprawnienia wymagają zatwierdzenia.","Connection safety":"Bezpieczeństwo połączenia","Use HTTPS for websites that support it. A secure connection does not guarantee that a website itself is trustworthy.":"Używaj HTTPS, jeśli witryna go obsługuje. Bezpieczne połączenie nie gwarantuje, że witryna jest godna zaufania.","Browsing history":"Historia przeglądania","Pages visited in NeoFind Browser on this device.":"Strony odwiedzone w NeoFind Browser na tym urządzeniu.","Clear history":"Wyczyść historię","Import browser data":"Importuj dane przeglądarki","Move selected information from another browser into NeoFind Browser.":"Przenieś wybrane dane z innej przeglądarki do NeoFind Browser.","Source browser":"Przeglądarka źródłowa","Everything":"Wszystko","Select all categories, including cookies.":"Zaznacz wszystkie kategorie, w tym pliki cookie.","Everything except cookies":"Wszystko oprócz plików cookie","Select all categories except cookies.":"Zaznacz wszystkie kategorie oprócz plików cookie.","Bookmarks":"Zakładki","Saved websites and folders":"Zapisane strony i foldery","Browsing history":"Historia przeglądania","Previously visited pages":"Wcześniej odwiedzone strony","Saved passwords":"Zapisane hasła","Sensitive login information":"Wrażliwe dane logowania","Autofill data":"Dane autouzupełniania","Addresses and form details":"Adresy i dane formularzy","Browser settings":"Ustawienia przeglądarki","Preferences, where supported":"Preferencje, jeśli obsługiwane","Extensions":"Rozszerzenia","May need to be installed again":"Może być konieczna ponowna instalacja","Cookies and website sessions":"Pliki cookie i sesje witryn","Can transfer active sign-in sessions. Only select if you trust this device.":"Mogą przenieść aktywne sesje logowania. Wybierz tylko na zaufanym urządzeniu.","Import availability in this version":"Dostępność importu w tej wersji","Choose bookmarks HTML…":"Wybierz plik HTML zakładek…","View imported bookmarks":"Pokaż zaimportowane zakładki","Choose a preset or customize the categories.":"Wybierz zestaw lub dostosuj kategorie.","Duplicate tab":"Duplikuj kartę","Pin tab":"Przypnij kartę","Unpin tab":"Odepnij kartę","Close tab":"Zamknij kartę","No browsing history yet.":"Brak historii przeglądania."
-},
-es: {
-"Open NeoFind home":"Abrir inicio de NeoFind","New tab":"Nueva pestaña","Back":"Atrás","Forward":"Adelante","Reload":"Recargar","Search NeoFind or enter an address":"Busca en NeoFind o escribe una dirección","Go":"Ir","History":"Historial","Account":"Cuenta","Settings":"Configuración","Close settings":"Cerrar configuración","General":"General","Import":"Importar","Sidebar apps":"Aplicaciones de la barra lateral","Privacy & security":"Privacidad y seguridad","Manage your NeoFind Browser preferences.":"Administra las preferencias de NeoFind Browser.","Language":"Idioma","Choose the language used throughout the browser interface.":"Elige el idioma de toda la interfaz del navegador.","Browser updates":"Actualizaciones del navegador","Check for updates":"Buscar actualizaciones","Default browser":"Navegador predeterminado","Set as default":"Establecer como predeterminado","Browser theme":"Tema del navegador","Choose a theme for the browser chrome and tabs.":"Elige un tema para la interfaz y las pestañas.","New tab":"Nueva pestaña","Blank tab (about:home)":"Pestaña en blanco (about:home)","NeoFind (neofind.pl)":"NeoFind (neofind.pl)","Control what NeoFind Browser stores on this device.":"Controla lo que NeoFind Browser guarda en este dispositivo.","Do not save browsing history":"No guardar el historial","Incognito mode":"Modo incógnito","Open incognito tab":"Abrir pestaña de incógnito","Clear browsing data":"Borrar datos de navegación","Clear data":"Borrar datos","Connection safety":"Seguridad de conexión","Browsing history":"Historial de navegación","Pages visited in NeoFind Browser on this device.":"Páginas visitadas en este dispositivo.","Clear history":"Borrar historial","Import browser data":"Importar datos del navegador","Source browser":"Navegador de origen","Everything":"Todo","Everything except cookies":"Todo excepto las cookies","Bookmarks":"Marcadores","Saved passwords":"Contraseñas guardadas","Autofill data":"Autocompletado","Browser settings":"Configuración del navegador","Extensions":"Extensiones","Cookies and website sessions":"Cookies y sesiones de sitios","Duplicate tab":"Duplicar pestaña","Pin tab":"Fijar pestaña","Unpin tab":"Desfijar pestaña","Close tab":"Cerrar pestaña","No browsing history yet.":"Todavía no hay historial."
-},
-fr: {
-"Open NeoFind home":"Ouvrir l’accueil NeoFind","New tab":"Nouvel onglet","Back":"Précédent","Forward":"Suivant","Reload":"Actualiser","Search NeoFind or enter an address":"Rechercher avec NeoFind ou saisir une adresse","Go":"Aller","History":"Historique","Account":"Compte","Settings":"Paramètres","Close settings":"Fermer les paramètres","General":"Général","Import":"Importer","Sidebar apps":"Applications de la barre latérale","Privacy & security":"Confidentialité et sécurité","Manage your NeoFind Browser preferences.":"Gérez les préférences de NeoFind Browser.","Language":"Langue","Choose the language used throughout the browser interface.":"Choisissez la langue de toute l’interface du navigateur.","Browser updates":"Mises à jour du navigateur","Check for updates":"Rechercher des mises à jour","Default browser":"Navigateur par défaut","Set as default":"Définir par défaut","Browser theme":"Thème du navigateur","Choose a theme for the browser chrome and tabs.":"Choisissez un thème pour l’interface et les onglets.","New tab":"Nouvel onglet","Blank tab (about:home)":"Onglet vierge (about:home)","NeoFind (neofind.pl)":"NeoFind (neofind.pl)","Control what NeoFind Browser stores on this device.":"Contrôlez les données enregistrées par NeoFind Browser sur cet appareil.","Do not save browsing history":"Ne pas enregistrer l’historique","Incognito mode":"Mode navigation privée","Open incognito tab":"Ouvrir un onglet privé","Clear browsing data":"Effacer les données de navigation","Clear data":"Effacer les données","Connection safety":"Sécurité de la connexion","Browsing history":"Historique de navigation","Pages visited in NeoFind Browser on this device.":"Pages visitées sur cet appareil.","Clear history":"Effacer l’historique","Import browser data":"Importer les données du navigateur","Source browser":"Navigateur source","Everything":"Tout","Everything except cookies":"Tout sauf les cookies","Bookmarks":"Favoris","Saved passwords":"Mots de passe enregistrés","Autofill data":"Saisie automatique","Browser settings":"Paramètres du navigateur","Extensions":"Extensions","Cookies and website sessions":"Cookies et sessions des sites","Duplicate tab":"Dupliquer l’onglet","Pin tab":"Épingler l’onglet","Unpin tab":"Désépingler l’onglet","Close tab":"Fermer l’onglet","No browsing history yet.":"Aucun historique de navigation."
-}
-};
-function translateBrowserText(lang) {
-  const dict = browserTranslations[lang] || browserTranslations.en;
-  document.documentElement.lang = lang;
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-  const nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
-  nodes.forEach(node => {
-    if (!node.__neoOriginalText) node.__neoOriginalText = node.nodeValue;
-    const original=node.__neoOriginalText.trim();
-    if (!original) return;
-    const translated=dict[original];
-    if (translated) node.nodeValue=node.nodeValue.replace(original,translated);
-    else node.nodeValue=node.__neoOriginalText;
-  });
-  document.querySelectorAll("[title],[aria-label],[placeholder]").forEach(el=>{
-    for(const attr of ["title","aria-label","placeholder"]){
-      if(!el.hasAttribute(attr)) continue;
-      const key="__neoOriginal_"+attr;
-      if(!el.dataset[key]) el.dataset[key]=el.getAttribute(attr);
-      el.setAttribute(attr,dict[el.dataset[key]]||el.dataset[key]);
-    }
-  });
-  const pin=document.querySelector('#tabContextMenu [data-tab-action="pin"]');
-  if(pin && !pin.dataset.neoDynamicPin) pin.dataset.neoDynamicPin="1";
-  document.querySelectorAll("#tabContextMenu [data-tab-action]").forEach(btn=>{const original=btn.dataset.tabAction==="duplicate"?"Duplicate tab":(btn.dataset.pinned==="true"?"Unpin tab":"Pin tab");btn.textContent=dict[original]||original;});
-}
-function tr(key) { const lang=localStorage.getItem(browserLanguageKey)||"en"; return (browserTranslations[lang]||browserTranslations.en)[key]||key; }
-const dynamicTranslationObserver = new MutationObserver((mutations) => {
-  const lang=localStorage.getItem(browserLanguageKey)||"en", dict=browserTranslations[lang]||browserTranslations.en;
-  for (const mutation of mutations) if (mutation.type==="childList") mutation.addedNodes.forEach(node=>{
-    if(node.nodeType===Node.TEXT_NODE){const key=node.nodeValue.trim();if(dict[key])node.nodeValue=node.nodeValue.replace(key,dict[key]);}
-    else if(node.nodeType===Node.ELEMENT_NODE){
-      const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
-      nodes.forEach(textNode=>{const key=textNode.nodeValue.trim();if(dict[key])textNode.nodeValue=textNode.nodeValue.replace(key,dict[key]);});
-      node.querySelectorAll?.("[title],[aria-label],[placeholder]").forEach(el=>{for(const attr of ["title","aria-label","placeholder"]){const key=el.getAttribute(attr);if(key&&dict[key])el.setAttribute(attr,dict[key]);}});
-    }
-  });
-});
-dynamicTranslationObserver.observe(document.body,{childList:true,subtree:true});
-const browserLanguageSelect=document.getElementById("browserLanguage");
-browserLanguageSelect.value=localStorage.getItem(browserLanguageKey)||"en";
-translateBrowserText(browserLanguageSelect.value);
-browserLanguageSelect.addEventListener("change",()=>{localStorage.setItem(browserLanguageKey,browserLanguageSelect.value);translateBrowserText(browserLanguageSelect.value);});
 
+// NEOFIND_I18N_LAYER: browser chrome text, status messages, accessibility labels and tooltips.
+const browserLanguageKey = "neofind.browserLanguage";
 const browserLanguageSelect = document.getElementById("browserLanguage");
+const browserTranslations = {
+  "Open NeoFind home": ["Otwórz stronę główną NeoFind", "Abrir la página de inicio de NeoFind", "Ouvrir la page d’accueil NeoFind"],
+  "NeoFind logo": ["Logo NeoFind", "Logotipo de NeoFind", "Logo NeoFind"],
+  "New tab": ["Nowa karta", "Nueva pestaña", "Nouvel onglet"],
+  "Back": ["Wstecz", "Atrás", "Précédent"],
+  "Forward": ["Dalej", "Adelante", "Suivant"],
+  "Reload": ["Odśwież", "Actualizar", "Actualiser"],
+  "NeoFind home": ["Strona główna NeoFind", "Inicio de NeoFind", "Accueil NeoFind"],
+  "Search NeoFind or enter an address": ["Szukaj w NeoFind lub wpisz adres", "Busca en NeoFind o introduce una dirección", "Rechercher avec NeoFind ou saisir une adresse"],
+  "Go": ["Przejdź", "Ir", "Aller"],
+  "NeoFind sidebar": ["Panel boczny NeoFind", "Barra lateral de NeoFind", "Barre latérale NeoFind"],
+  "Web page area": ["Obszar strony internetowej", "Área de la página web", "Zone de la page web"],
+  "Settings": ["Ustawienia", "Configuración", "Paramètres"],
+  "Close settings": ["Zamknij ustawienia", "Cerrar configuración", "Fermer les paramètres"],
+  "General": ["Ogólne", "General", "Général"],
+  "Import": ["Importuj", "Importar", "Importer"],
+  "Sidebar apps": ["Aplikacje panelu bocznego", "Aplicaciones de la barra lateral", "Applications de la barre latérale"],
+  "History": ["Historia", "Historial", "Historique"],
+  "Privacy & security": ["Prywatność i bezpieczeństwo", "Privacidad y seguridad", "Confidentialité et sécurité"],
+  "Manage your NeoFind Browser preferences.": ["Zarządzaj ustawieniami NeoFind Browser.", "Administra las preferencias de NeoFind Browser.", "Gérez les préférences de NeoFind Browser."],
+  "Browser updates": ["Aktualizacje przeglądarki", "Actualizaciones del navegador", "Mises à jour du navigateur"],
+  "Checking installed version...": ["Sprawdzanie zainstalowanej wersji...", "Comprobando la versión instalada...", "Vérification de la version installée..."],
+  "Updates are checked automatically when the app starts.": ["Aktualizacje są sprawdzane automatycznie po uruchomieniu aplikacji.", "Las actualizaciones se comprueban automáticamente al iniciar la aplicación.", "Les mises à jour sont vérifiées automatiquement au démarrage de l’application."],
+  "Check for updates": ["Sprawdź aktualizacje", "Buscar actualizaciones", "Rechercher des mises à jour"],
+  "Default browser": ["Domyślna przeglądarka", "Navegador predeterminado", "Navigateur par défaut"],
+  "Set NeoFind Browser as the app that opens web links in Windows.": ["Ustaw NeoFind Browser jako aplikację otwierającą linki w Windows.", "Establece NeoFind Browser como aplicación para abrir enlaces en Windows.", "Définir NeoFind Browser comme application ouvrant les liens dans Windows."],
+  "Set as default": ["Ustaw jako domyślną", "Establecer como predeterminado", "Définir par défaut"],
+  "Windows may ask you to confirm NeoFind Browser in Default apps.": ["Windows może poprosić o potwierdzenie NeoFind Browser w aplikacjach domyślnych.", "Windows puede pedirte que confirmes NeoFind Browser en Aplicaciones predeterminadas.", "Windows peut demander de confirmer NeoFind Browser dans les applications par défaut."],
+  "Browser theme": ["Motyw przeglądarki", "Tema del navegador", "Thème du navigateur"],
+  "Choose a theme for the browser chrome and tabs.": ["Wybierz motyw interfejsu i kart przeglądarki.", "Elige un tema para la interfaz y las pestañas del navegador.", "Choisissez un thème pour l’interface et les onglets du navigateur."],
+  "New tab destination": ["Miejsce docelowe nowej karty", "Destino de nueva pestaña", "Destination du nouvel onglet"],
+  "New tab": ["Nowa karta", "Nueva pestaña", "Nouvel onglet"],
+  "Choose whether a new tab stays blank (tooltip: about:home) or opens NeoFind.": ["Wybierz, czy nowa karta ma być pusta (about:home), czy otwierać NeoFind.", "Elige si una pestaña nueva queda en blanco (about:home) o abre NeoFind.", "Choisissez si un nouvel onglet reste vide (about:home) ou ouvre NeoFind."],
+  "Blank tab (about:home)": ["Pusta karta (about:home)", "Pestaña en blanco (about:home)", "Onglet vierge (about:home)"],
+  "NeoFind (neofind.pl)": ["NeoFind (neofind.pl)", "NeoFind (neofind.pl)", "NeoFind (neofind.pl)"],
+  "Choose the language used across the browser, including hover tooltips.": ["Wybierz język całej przeglądarki, w tym podpowiedzi po najechaniu.", "Elige el idioma de todo el navegador, incluidas las ayudas al pasar el cursor.", "Choisissez la langue de tout le navigateur, y compris les infobulles au survol."],
+  "Language": ["Język", "Idioma", "Langue"],
+  "Browser language": ["Język przeglądarki", "Idioma del navegador", "Langue du navigateur"],
+  "Privacy & security": ["Prywatność i bezpieczeństwo", "Privacidad y seguridad", "Confidentialité et sécurité"],
+  "Control what NeoFind Browser stores on this device.": ["Kontroluj, co NeoFind Browser zapisuje na tym urządzeniu.", "Controla lo que NeoFind Browser guarda en este dispositivo.", "Contrôlez ce que NeoFind Browser enregistre sur cet appareil."],
+  "Do not save browsing history": ["Nie zapisuj historii przeglądania", "No guardar el historial de navegación", "Ne pas enregistrer l’historique de navigation"],
+  "When enabled, new visits are not added to NeoFind Browser history. This does not erase history imported from another browser.": ["Po włączeniu nowe odwiedziny nie będą dodawane do historii NeoFind Browser. Nie usuwa to historii zaimportowanej z innej przeglądarki.", "Al activarlo, las nuevas visitas no se añaden al historial de NeoFind Browser. No elimina el historial importado de otro navegador.", "Lorsque cette option est activée, les nouvelles visites ne sont pas ajoutées à l’historique NeoFind Browser. Cela n’efface pas l’historique importé d’un autre navigateur."],
+  "Enabled": ["Włączone", "Activado", "Activé"],
+  "Incognito mode": ["Tryb incognito", "Modo incógnito", "Mode navigation privée"],
+  "Open a private tab. Its browsing history, cookies and site data are not kept after you close the tab. Websites, your network administrator and your internet provider may still see activity.": ["Otwórz kartę prywatną. Po jej zamknięciu historia, pliki cookie i dane witryn nie zostaną zachowane. Witryny, administrator sieci i dostawca internetu nadal mogą widzieć aktywność.", "Abre una pestaña privada. Su historial, cookies y datos del sitio no se conservan al cerrarla. Los sitios, el administrador de red y el proveedor de internet aún pueden ver la actividad.", "Ouvrez un onglet privé. Son historique, ses cookies et ses données de site ne sont pas conservés après fermeture. Les sites, l’administrateur réseau et le fournisseur Internet peuvent toujours voir l’activité."],
+  "Open incognito tab": ["Otwórz kartę incognito", "Abrir pestaña de incógnito", "Ouvrir un onglet privé"],
+  "Clear browsing data": ["Wyczyść dane przeglądania", "Borrar datos de navegación", "Effacer les données de navigation"],
+  "Clear cookies, cache and website storage for the regular browser session.": ["Wyczyść pliki cookie, pamięć podręczną i dane witryn zwykłej sesji.", "Borra cookies, caché y almacenamiento de sitios de la sesión normal.", "Effacez les cookies, le cache et le stockage des sites de la session normale."],
+  "Clear data": ["Wyczyść dane", "Borrar datos", "Effacer les données"],
+  "Permission requests from supported websites are shown for approval.": ["Prośby o uprawnienia obsługiwanych witryn są wyświetlane do zatwierdzenia.", "Las solicitudes de permisos de sitios compatibles se muestran para su aprobación.", "Les demandes d’autorisation des sites compatibles sont affichées pour approbation."],
+  "Connection safety": ["Bezpieczeństwo połączenia", "Seguridad de la conexión", "Sécurité de la connexion"],
+  "Use HTTPS for websites that support it. A secure connection does not guarantee that a website itself is trustworthy.": ["Używaj HTTPS na stronach, które go obsługują. Bezpieczne połączenie nie gwarantuje wiarygodności samej witryny.", "Usa HTTPS en los sitios que lo admitan. Una conexión segura no garantiza que el sitio sea fiable.", "Utilisez HTTPS sur les sites compatibles. Une connexion sécurisée ne garantit pas que le site soit fiable."],
+  "Browsing history": ["Historia przeglądania", "Historial de navegación", "Historique de navigation"],
+  "Pages visited in NeoFind Browser on this device.": ["Strony odwiedzone w NeoFind Browser na tym urządzeniu.", "Páginas visitadas en NeoFind Browser en este dispositivo.", "Pages visitées dans NeoFind Browser sur cet appareil."],
+  "Clear history": ["Wyczyść historię", "Borrar historial", "Effacer l’historique"],
+  "Import browser data": ["Importuj dane przeglądarki", "Importar datos del navegador", "Importer les données du navigateur"],
+  "Move selected information from another browser into NeoFind Browser.": ["Przenieś wybrane informacje z innej przeglądarki do NeoFind Browser.", "Transfiere información seleccionada de otro navegador a NeoFind Browser.", "Transférez les informations sélectionnées d’un autre navigateur vers NeoFind Browser."],
+  "Source browser": ["Przeglądarka źródłowa", "Navegador de origen", "Navigateur source"],
+  "Everything": ["Wszystko", "Todo", "Tout"],
+  "Select all categories, including cookies.": ["Zaznacz wszystkie kategorie, w tym pliki cookie.", "Selecciona todas las categorías, incluidas las cookies.", "Sélectionnez toutes les catégories, y compris les cookies."],
+  "Everything except cookies": ["Wszystko oprócz plików cookie", "Todo excepto las cookies", "Tout sauf les cookies"],
+  "Select all categories except cookies.": ["Zaznacz wszystkie kategorie oprócz plików cookie.", "Selecciona todas las categorías excepto las cookies.", "Sélectionnez toutes les catégories sauf les cookies."],
+  "Bookmarks": ["Zakładki", "Marcadores", "Favoris"],
+  "Saved websites and folders": ["Zapisane strony i foldery", "Sitios y carpetas guardados", "Sites et dossiers enregistrés"],
+  "Previously visited pages": ["Wcześniej odwiedzone strony", "Páginas visitadas anteriormente", "Pages visitées précédemment"],
+  "Saved passwords": ["Zapisane hasła", "Contraseñas guardadas", "Mots de passe enregistrés"],
+  "Sensitive login information": ["Wrażliwe informacje logowania", "Información de inicio de sesión sensible", "Informations de connexion sensibles"],
+  "Autofill data": ["Dane autouzupełniania", "Datos de autocompletado", "Données de saisie automatique"],
+  "Addresses and form details": ["Adresy i dane formularzy", "Direcciones y datos de formularios", "Adresses et détails des formulaires"],
+  "Browser settings": ["Ustawienia przeglądarki", "Configuración del navegador", "Paramètres du navigateur"],
+  "Preferences, where supported": ["Preferencje, jeśli obsługiwane", "Preferencias, si son compatibles", "Préférences, si prises en charge"],
+  "Extensions": ["Rozszerzenia", "Extensiones", "Extensions"],
+  "May need to be installed again": ["Może być konieczna ponowna instalacja", "Puede que deban instalarse de nuevo", "Peuvent devoir être réinstallées"],
+  "Cookies and website sessions": ["Pliki cookie i sesje witryn", "Cookies y sesiones de sitios web", "Cookies et sessions des sites web"],
+  "Can transfer active sign-in sessions. Only select if you trust this device.": ["Może przenieść aktywne sesje logowania. Zaznacz tylko na zaufanym urządzeniu.", "Puede transferir sesiones activas. Selecciona solo si confías en este dispositivo.", "Peut transférer des sessions actives. Sélectionnez uniquement si vous faites confiance à cet appareil."],
+  "Import availability in this version": ["Dostępność importu w tej wersji", "Disponibilidad de importación en esta versión", "Disponibilité de l’importation dans cette version"],
+  "Chrome, Edge, Brave, Opera, Opera GX and Firefox profiles can import bookmarks and history. Passwords, autofill, browser preferences, extensions and active cookies are detected where possible but are not automatically migrated.": ["Profile Chrome, Edge, Brave, Opera, Opera GX i Firefox mogą importować zakładki i historię. Hasła, autouzupełnianie, ustawienia, rozszerzenia i aktywne pliki cookie są wykrywane, jeśli to możliwe, ale nie są automatycznie przenoszone.", "Los perfiles de Chrome, Edge, Brave, Opera, Opera GX y Firefox pueden importar marcadores e historial. Las contraseñas, el autocompletado, las preferencias, las extensiones y las cookies activas se detectan cuando es posible, pero no se migran automáticamente.", "Les profils Chrome, Edge, Brave, Opera, Opera GX et Firefox peuvent importer les favoris et l’historique. Les mots de passe, la saisie automatique, les préférences, les extensions et les cookies actifs sont détectés si possible, mais ne sont pas migrés automatiquement."],
+  "Import selected browser profile…": ["Importuj wybrany profil przeglądarki…", "Importar perfil de navegador seleccionado…", "Importer le profil de navigateur sélectionné…"],
+  "Choose bookmarks HTML…": ["Wybierz plik zakładek HTML…", "Elegir archivo HTML de marcadores…", "Choisir un fichier HTML de favoris…"],
+  "View imported bookmarks": ["Pokaż zaimportowane zakładki", "Ver marcadores importados", "Afficher les favoris importés"],
+  "Choose a preset or customize the categories.": ["Wybierz zestaw lub dostosuj kategorie.", "Elige una opción predefinida o personaliza las categorías.", "Choisissez un préréglage ou personnalisez les catégories."],
+  "Spotify": ["Spotify", "Spotify", "Spotify"],
+  "X (Twitter)": ["X (Twitter)", "X (Twitter)", "X (Twitter)"],
+  "Discord": ["Discord", "Discord", "Discord"],
+  "Cyrber": ["Cyrber", "Cyrber", "Cyrber"],
+  "GitHub": ["GitHub", "GitHub", "GitHub"],
+  "Duplicate tab": ["Duplikuj kartę", "Duplicar pestaña", "Dupliquer l’onglet"],
+  "Pin tab": ["Przypnij kartę", "Fijar pestaña", "Épingler l’onglet"],
+  "Unpin tab": ["Odepnij kartę", "Desfijar pestaña", "Désépingler l’onglet"],
+  "Close tab": ["Zamknij kartę", "Cerrar pestaña", "Fermer l’onglet"],
+  "No browsing history yet.": ["Brak historii przeglądania.", "Aún no hay historial de navegación.", "Aucun historique de navigation pour le moment."],
+  "Browsing history saving is off. Existing local browsing history was cleared.": ["Zapisywanie historii jest wyłączone. Lokalna historia została wyczyszczona.", "El guardado del historial está desactivado. Se borró el historial local existente.", "L’enregistrement de l’historique est désactivé. L’historique local existant a été effacé."],
+  "Browsing history saving is on for regular tabs.": ["Historia jest zapisywana na zwykłych kartach.", "El historial se guarda en las pestañas normales.", "L’historique est enregistré dans les onglets normaux."],
+  "An incognito tab was opened. Close that tab when finished to clear its temporary site data.": ["Otwarto kartę incognito. Zamknij ją po zakończeniu, aby usunąć tymczasowe dane witryn.", "Se abrió una pestaña de incógnito. Ciérrala al terminar para borrar los datos temporales del sitio.", "Un onglet privé a été ouvert. Fermez-le pour effacer les données temporaires des sites."],
+  "Clearing website storage and cache…": ["Czyszczenie pamięci witryn i pamięci podręcznej…", "Borrando almacenamiento de sitios y caché…", "Effacement du stockage des sites et du cache…"],
+  "Cookies, cache, website storage and local browsing history cleared.": ["Wyczyszczono pliki cookie, pamięć podręczną, dane witryn i lokalną historię.", "Se borraron las cookies, la caché, los datos de sitios y el historial local.", "Cookies, cache, stockage des sites et historique local effacés."],
+  "Could not clear all data: ": ["Nie udało się wyczyścić wszystkich danych: ", "No se pudieron borrar todos los datos: ", "Impossible d’effacer toutes les données : "],
+  "Could not clear browsing data: ": ["Nie udało się wyczyścić danych przeglądania: ", "No se pudieron borrar los datos de navegación: ", "Impossible d’effacer les données de navigation : "],
+  "Custom selection updated. Only supported data types will be imported.": ["Zmieniono wybór. Zaimportowane zostaną tylko obsługiwane typy danych.", "Selección actualizada. Solo se importarán los tipos de datos compatibles.", "Sélection mise à jour. Seuls les types de données pris en charge seront importés."],
+  "Opening Windows Default apps settings…": ["Otwieranie ustawień aplikacji domyślnych Windows…", "Abriendo la configuración de aplicaciones predeterminadas de Windows…", "Ouverture des paramètres des applications par défaut de Windows…"],
+  "Windows Settings opened. Find NeoFind Browser and select it as the default for HTTP and HTTPS.": ["Otwarto ustawienia Windows. Znajdź NeoFind Browser i ustaw go jako domyślną aplikację dla HTTP i HTTPS.", "Se abrió Configuración de Windows. Busca NeoFind Browser y selecciónalo como predeterminado para HTTP y HTTPS.", "Les paramètres Windows sont ouverts. Trouvez NeoFind Browser et définissez-le par défaut pour HTTP et HTTPS."],
+  "Could not open Windows Settings. Open Settings → Apps → Default apps and search for NeoFind Browser.": ["Nie udało się otworzyć ustawień Windows. Otwórz Ustawienia → Aplikacje → Aplikacje domyślne i wyszukaj NeoFind Browser.", "No se pudo abrir Configuración de Windows. Abre Configuración → Aplicaciones → Aplicaciones predeterminadas y busca NeoFind Browser.", "Impossible d’ouvrir les paramètres Windows. Ouvrez Paramètres → Applications → Applications par défaut et recherchez NeoFind Browser."],
+  "Open Windows Settings → Apps → Default apps and search for NeoFind Browser.": ["Otwórz Ustawienia Windows → Aplikacje → Aplikacje domyślne i wyszukaj NeoFind Browser.", "Abre Configuración de Windows → Aplicaciones → Aplicaciones predeterminadas y busca NeoFind Browser.", "Ouvrez Paramètres Windows → Applications → Applications par défaut et recherchez NeoFind Browser."],
+  "No imported bookmarks yet.": ["Brak zaimportowanych zakładek.", "Aún no hay marcadores importados.", "Aucun favori importé pour le moment."],
+  "No valid bookmarks found. Export bookmarks as HTML from your source browser and try again.": ["Nie znaleziono prawidłowych zakładek. Wyeksportuj zakładki jako HTML z przeglądarki źródłowej i spróbuj ponownie.", "No se encontraron marcadores válidos. Exporta los marcadores como HTML desde el navegador de origen e inténtalo de nuevo.", "Aucun favori valide trouvé. Exportez les favoris en HTML depuis le navigateur source et réessayez."],
+  "Imported ": ["Zaimportowano ", "Importados ", "Importé(s) "],
+  " bookmarks from ": [" zakładek z ", " marcadores de ", " favoris depuis "],
+  ". Total saved: ": ". Łącznie zapisano: ",
+  "Could not import bookmarks: ": ["Nie udało się zaimportować zakładek: ", "No se pudieron importar los marcadores: ", "Impossible d’importer les favoris : "],
+  "Reading ": ["Odczytywanie ", "Leyendo ", "Lecture de "],
+  " profile…": [" profilu…", " perfil…", " du profil…"],
+  "No imported history yet.": ["Brak zaimportowanej historii.", "Aún no hay historial importado.", "Aucun historique importé pour le moment."],
+  "Update status changed.": ["Zmieniono stan aktualizacji.", "El estado de actualización ha cambiado.", "L’état de la mise à jour a changé."],
+  "Version ": ["Wersja ", "Versión ", "Version "],
+  " is already installed.": [" jest już zainstalowana.", " ya está instalada.", " est déjà installée."],
+  "Downloading...": ["Pobieranie...", "Descargando...", "Téléchargement..."],
+  "Checking...": ["Sprawdzanie...", "Comprobando...", "Vérification..."],
+  "Checking GitHub Releases...": ["Sprawdzanie wydań GitHub...", "Comprobando las versiones de GitHub...", "Vérification des versions GitHub..."],
+  "Could not check for updates: ": ["Nie udało się sprawdzić aktualizacji: ", "No se pudieron comprobar las actualizaciones: ", "Impossible de vérifier les mises à jour : "],
+  "Installed version: ": ["Zainstalowana wersja: ", "Versión instalada: ", "Version installée : "],
+  "Private tab · ": ["Karta prywatna · ", "Pestaña privada · ", "Onglet privé · "],
+  "Loading": ["Ładowanie", "Cargando", "Chargement"],
+  "Close ": ["Zamknij ", "Cerrar ", "Fermer "],
+  "tab": ["kartę", "pestaña", "onglet"]
+};
+const browserTranslationReverse = {};
+for (const [english, values] of Object.entries(browserTranslations)) {
+  browserTranslationReverse[english] = english;
+  values.forEach(value => { browserTranslationReverse[value] = english; });
+}
+function translateBrowserString(value, language) {
+  if (typeof value !== "string" || !value) return value;
+  const original = browserTranslationReverse[value] || value;
+  const index = ({ en: -1, pl: 0, es: 1, fr: 2 })[language] ?? -1;
+  if (index < 0) return original;
+  if (browserTranslations[original]) return browserTranslations[original][index];
+  for (const [key, values] of Object.entries(browserTranslations)) {
+    if (value.startsWith(key) && key.length > 6) {
+      const suffix = value.slice(key.length);
+      const translatedPrefix = values[index];
+      if (typeof translatedPrefix === "string") return translatedPrefix + suffix;
+    }
+  }
+  return value;
+}
+function applyBrowserLanguage(language) {
+  const chosen = ["en", "pl", "es", "fr"].includes(language) ? language : "en";
+  document.documentElement.lang = chosen;
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const translated = translateBrowserString(node.nodeValue, chosen);
+    if (translated !== node.nodeValue) node.nodeValue = translated;
+  }
+  document.querySelectorAll("*").forEach(element => {
+    for (const attr of ["title", "placeholder", "aria-label"]) {
+      const value = element.getAttribute(attr);
+      if (value) {
+        const translated = translateBrowserString(value, chosen);
+        if (translated !== value) element.setAttribute(attr, translated);
+      }
+    }
+  });
+  if (browserLanguageSelect && browserLanguageSelect.value !== chosen) browserLanguageSelect.value = chosen;
+  window.neoBrowser.setLanguage(chosen);
+}
 if (browserLanguageSelect) {
   browserLanguageSelect.value = localStorage.getItem(browserLanguageKey) || "en";
-  translateBrowserText(browserLanguageSelect.value);
   browserLanguageSelect.addEventListener("change", () => {
     localStorage.setItem(browserLanguageKey, browserLanguageSelect.value);
-    translateBrowserText(browserLanguageSelect.value);
+    applyBrowserLanguage(browserLanguageSelect.value);
   });
 }
+applyBrowserLanguage(localStorage.getItem(browserLanguageKey) || "en");
+const browserLanguageObserver = new MutationObserver(() => {
+  if (browserLanguageObserver._running) return;
+  browserLanguageObserver._running = true;
+  try {
+    const language = localStorage.getItem(browserLanguageKey) || "en";
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const node = walker.currentNode;
+      const translated = translateBrowserString(node.nodeValue, language);
+      if (translated !== node.nodeValue) node.nodeValue = translated;
+    }
+    document.querySelectorAll("*").forEach(element => {
+      for (const attr of ["title", "placeholder", "aria-label"]) {
+        const value = element.getAttribute(attr);
+        if (value) {
+          const translated = translateBrowserString(value, language);
+          if (translated !== value) element.setAttribute(attr, translated);
+        }
+      }
+    });
+  } finally { browserLanguageObserver._running = false; }
+});
+browserLanguageObserver.observe(document.body, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["title", "placeholder", "aria-label"] });
 
 const tabsElement = document.getElementById("tabs");
 const addressInput = document.getElementById("address");
@@ -78,6 +214,7 @@ function renderTabs(state) {
     item.draggable = true;
     item.dataset.tabId = String(tab.id);
     item.addEventListener("click", () => window.neoBrowser.switchTab(tab.id));
+    item.addEventListener("contextmenu", (event) => { event.preventDefault(); showTabContextMenu(event.clientX, event.clientY, tab); });
     item.addEventListener("dragstart", (event) => { event.dataTransfer.setData("text/plain", String(tab.id)); event.dataTransfer.effectAllowed = "move"; item.classList.add("dragging"); });
     item.addEventListener("dragend", () => { item.classList.remove("dragging"); tabsElement.querySelectorAll(".drag-over").forEach((el) => el.classList.remove("drag-over")); });
     item.addEventListener("dragover", (event) => { event.preventDefault(); item.classList.add("drag-over"); });
@@ -98,10 +235,7 @@ function renderTabs(state) {
       event.stopPropagation();
       window.neoBrowser.closeTab(tab.id);
     });
-    const pin = document.createElement("button");
-    pin.className = "tab-pin"; pin.type = "button"; pin.textContent = tab.pinned ? "📌" : "⌁"; pin.title = tab.pinned ? "Unpin tab" : "Pin tab"; pin.setAttribute("aria-label", pin.title);
-    pin.addEventListener("click", async (event) => { event.stopPropagation(); await window.neoBrowser.togglePinTab(tab.id); });
-    item.append(title, pin, close);
+    item.append(title, close);
     tabsElement.append(item);
   }
 
@@ -109,9 +243,40 @@ function renderTabs(state) {
   if (active && document.activeElement !== addressInput) addressInput.value = active.url || "";
   document.getElementById("back").disabled = !active || !active.canGoBack;
   document.getElementById("forward").disabled = !active || !active.canGoForward;
-  const pinButton = document.getElementById("pinTab"); if (pinButton) { pinButton.textContent = active && active.pinned ? "📌" : "⌁"; pinButton.title = active && active.pinned ? "Unpin active tab" : "Pin active tab"; }
-  const privateButton = document.getElementById("privateTab"); if (privateButton) privateButton.classList.toggle("private-active", !!(active && active.isPrivate));
 }
+
+
+// Tab context menu: duplicate and pin actions live on right-click.
+let tabContextTarget = null;
+let tabContextMenu = document.getElementById("tabContextMenu");
+if (!tabContextMenu) {
+  tabContextMenu = document.createElement("div");
+  tabContextMenu.id = "tabContextMenu";
+  tabContextMenu.className = "tab-context-menu hidden";
+  tabContextMenu.setAttribute("role", "menu");
+  tabContextMenu.innerHTML = '<button type="button" data-tab-action="duplicate" role="menuitem">Duplicate tab</button><button type="button" data-tab-action="pin" role="menuitem">Pin tab</button>';
+  document.body.append(tabContextMenu);
+}
+function showTabContextMenu(x, y, tab) {
+  tabContextTarget = tab;
+  const pinAction = tabContextMenu.querySelector('[data-tab-action="pin"]');
+  pinAction.textContent = tab.pinned ? "Unpin tab" : "Pin tab";
+  tabContextMenu.classList.remove("hidden");
+  const width = tabContextMenu.offsetWidth || 180, height = tabContextMenu.offsetHeight || 80;
+  tabContextMenu.style.left = Math.max(6, Math.min(x, window.innerWidth - width - 6)) + "px";
+  tabContextMenu.style.top = Math.max(6, Math.min(y, window.innerHeight - height - 6)) + "px";
+}
+tabContextMenu.addEventListener("click", async (event) => {
+  const button = event.target.closest("[data-tab-action]");
+  if (!button || !tabContextTarget) return;
+  const target = tabContextTarget;
+  tabContextMenu.classList.add("hidden");
+  if (button.dataset.tabAction === "duplicate") await window.neoBrowser.duplicateTab(target.id);
+  if (button.dataset.tabAction === "pin") await window.neoBrowser.togglePinTab(target.id);
+});
+document.addEventListener("click", (event) => { if (!tabContextMenu.contains(event.target)) tabContextMenu.classList.add("hidden"); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape") tabContextMenu.classList.add("hidden"); });
+window.addEventListener("blur", () => tabContextMenu.classList.add("hidden"));
 
 function updateViewportBounds() {
   const rect = viewport.getBoundingClientRect();
@@ -125,10 +290,6 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
 document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "https://neofind.pl/" : "about:home"); });
-document.getElementById("privateTab").addEventListener("click", () => window.neoBrowser.createTab("about:home", { private: true }));
-document.getElementById("duplicateTab").addEventListener("click", () => window.neoBrowser.duplicateTab());
-document.getElementById("reopenTab").addEventListener("click", () => window.neoBrowser.reopenClosedTab());
-document.getElementById("pinTab").addEventListener("click", async () => { const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) await window.neoBrowser.togglePinTab(active.id); });
 let lastTabsState = null;
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
 document.getElementById("forward").addEventListener("click", () => window.neoBrowser.forward());
@@ -140,8 +301,10 @@ window.neoBrowser.onTabsState((state)=>{
   lastTabsState = state;
   renderTabs(state);
   const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
-  (state.tabs||[]).forEach(tab=>{if(tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
-  if(history.length)localStorage.setItem(browserHistoryKey,JSON.stringify(history.slice(0,1000)));
+  if (!isHistorySavingDisabled()) {
+    (state.tabs||[]).forEach(tab=>{if(!tab.isPrivate&&tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
+    if(history.length)localStorage.setItem(browserHistoryKey,JSON.stringify(history.slice(0,1000)));
+  }
 });
 window.addEventListener("resize", updateViewportBounds);
 requestAnimationFrame(updateViewportBounds);
@@ -175,6 +338,8 @@ function setSettingsTab(tab) {
 
 
 const browserHistoryKey = "neofind.browserHistory";
+const disableHistorySavingKey = "neofind.disableHistorySaving";
+function isHistorySavingDisabled() { return localStorage.getItem(disableHistorySavingKey) === "true"; }
 function getBrowserHistory() { try { const value=JSON.parse(localStorage.getItem(browserHistoryKey)||"[]"); return Array.isArray(value)?value:[]; } catch { return []; } }
 function renderBrowserHistory() {
   const host=document.getElementById("browserHistoryList"); if(!host)return; host.replaceChildren();
@@ -186,6 +351,20 @@ function renderBrowserHistory() {
   });
 }
 document.getElementById("clearBrowserHistory").addEventListener("click",()=>{localStorage.removeItem(browserHistoryKey);localStorage.removeItem(historyStoreKey);renderBrowserHistory();});
+const disableHistorySavingToggle = document.getElementById("disableHistorySaving");
+disableHistorySavingToggle.checked = isHistorySavingDisabled();
+disableHistorySavingToggle.addEventListener("change", () => {
+  localStorage.setItem(disableHistorySavingKey, disableHistorySavingToggle.checked ? "true" : "false");
+  if (disableHistorySavingToggle.checked) { localStorage.removeItem(browserHistoryKey); renderBrowserHistory(); }
+  document.getElementById("privacyStatus").textContent = disableHistorySavingToggle.checked
+    ? "Browsing history saving is off. Existing local browsing history was cleared."
+    : "Browsing history saving is on for regular tabs.";
+});
+document.getElementById("openIncognito").addEventListener("click", () => {
+  window.neoBrowser.createTab("about:home", { private: true });
+  document.getElementById("privacyStatus").textContent = "An incognito tab was opened. Close that tab when finished to clear its temporary site data.";
+  closeSettingsPanel();
+});
 document.getElementById("clearBrowserData").addEventListener("click", async () => {
   const status = document.getElementById("privacyStatus"); status.textContent = "Clearing website storage and cache…";
   try { const result = await window.neoBrowser.clearBrowserData(); if (result.ok) { localStorage.removeItem(browserHistoryKey); localStorage.removeItem(historyStoreKey); status.textContent = "Cookies, cache, website storage and local browsing history cleared."; renderBrowserHistory(); } else status.textContent = "Could not clear all data: " + (result.message || "unknown error"); }
@@ -248,25 +427,24 @@ document.getElementById("closeSettings").addEventListener("click", closeSettings
 settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !settingsPanel.classList.contains("hidden")) { closeSettingsPanel(); return; }
-  const key = event.key.toLowerCase();
   if (!event.ctrlKey && !event.metaKey && !event.altKey) {
     const typing = event.target && (event.target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName));
     if (!typing && key === "arrowleft") { event.preventDefault(); window.neoBrowser.back(); return; }
     if (!typing && key === "arrowright") { event.preventDefault(); window.neoBrowser.forward(); return; }
   }
+  if (event.ctrlKey || event.metaKey) {
+    if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); return; }
+    if (key === "c") { event.preventDefault(); addressInput.focus(); addressInput.select(); return; }
+    if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); return; }
+    if (key === "f5") { event.preventDefault(); window.neoBrowser.reloadIgnoringCache(); return; }
+    if (key === "x") { event.preventDefault(); window.neoBrowser.closeActiveTab(); return; }
+  }
   if (!(event.ctrlKey || event.metaKey)) return;
-  if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); }
-  else if (key === "c") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
-  else if (key === "r" && event.shiftKey) { event.preventDefault(); window.neoBrowser.reloadIgnoringCache(); }
-  else if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); }
-  else if (key === "f5") { event.preventDefault(); window.neoBrowser.reloadIgnoringCache(); }
-  else if (key === "x" || key === "w") { event.preventDefault(); window.neoBrowser.closeActiveTab(); }
-  else if (key === "t" && !event.shiftKey) { event.preventDefault(); document.getElementById("newTab").click(); }
+  const key = event.key.toLowerCase();
+  if (key === "t" && !event.shiftKey) { event.preventDefault(); document.getElementById("newTab").click(); }
+  else if (key === "w") { event.preventDefault(); window.neoBrowser.closeActiveTab(); }
   else if (key === "l") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
-  else if (key === "d") { event.preventDefault(); window.neoBrowser.duplicateTab(); }
-  else if (key === "t" && event.shiftKey) { event.preventDefault(); window.neoBrowser.reopenClosedTab(); }
-  else if (key === "n" && event.shiftKey) { event.preventDefault(); window.neoBrowser.createTab("about:home", { private: true }); }
-  else if (key === "p" && event.shiftKey) { event.preventDefault(); document.getElementById("pinTab").click(); }
+  else if (key === "d") { event.preventDefault(); const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) window.neoBrowser.duplicateTab(active.id); }
 });
 window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
 document.querySelectorAll(".settings-tab").forEach((button) => button.addEventListener("click", () => { setSettingsTab(button.dataset.settingsTab); if (button.dataset.settingsTab === "history") renderBrowserHistory(); }));
