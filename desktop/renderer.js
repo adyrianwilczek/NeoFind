@@ -59,6 +59,7 @@ setTimeout(updateViewportBounds, 250);
 const settingsPanel = document.getElementById("settingsPanel");
 const importStatus = document.getElementById("importStatus");
 const bookmarkStoreKey = "neofind.importedBookmarks";
+const historyStoreKey = "neofind.importedHistory";
 
 function setSettingsTab(tab) {
   document.querySelectorAll(".settings-tab").forEach((button) => button.classList.toggle("selected", button.dataset.settingsTab === tab));
@@ -135,6 +136,62 @@ document.getElementById("chooseBookmarksFile").addEventListener("click", async (
   } catch (error) { importStatus.textContent = "Could not import bookmarks: " + String(error.message || error); }
 });
 document.getElementById("showImportedBookmarks").addEventListener("click", renderImportedBookmarks);
+document.getElementById("chooseOperaProfile").addEventListener("click", async () => {
+  try {
+    const picked = await window.neoBrowser.chooseOperaProfile();
+    if (picked.canceled) return;
+    const selected = {};
+    document.querySelectorAll('input[name="importData"]').forEach((input) => { selected[input.value] = input.checked; });
+    importStatus.textContent = "Reading Opera GX profile…";
+    const result = await window.neoBrowser.importOperaProfile(picked.profilePath, selected);
+    if (selected.bookmarks && result.bookmarks.length) {
+      const merged = new Map(getImportedBookmarks().map((bookmark) => [bookmark.url, bookmark]));
+      result.bookmarks.forEach((bookmark) => merged.set(bookmark.url, bookmark));
+      localStorage.setItem(bookmarkStoreKey, JSON.stringify(Array.from(merged.values())));
+    }
+    if (selected.history && result.history.length) {
+      let existing = [];
+      try { existing = JSON.parse(localStorage.getItem(historyStoreKey) || "[]"); } catch {}
+      const merged = new Map(existing.map((item) => [item.url, item]));
+      result.history.forEach((item) => merged.set(item.url, item));
+      localStorage.setItem(historyStoreKey, JSON.stringify(Array.from(merged.values())).slice(0, 20000));
+    }
+    const summary = [];
+    if (selected.bookmarks) summary.push("bookmarks: " + result.bookmarks.length);
+    if (selected.history) summary.push("history: " + result.history.length);
+    if (selected.settings && result.settingsFound) summary.push("settings detected, not applied");
+    if (selected.extensions && result.extensionsFound) summary.push("extensions found: " + result.extensionsFound + " (not installed)");
+    if (selected.cookies && result.cookiesFound) summary.push("cookies detected but not copied");
+    importStatus.textContent = "Opera GX import finished. " + summary.join(" · ") + (result.notes.length ? " | " + result.notes.join(" ") : "");
+    renderImportedBookmarks();
+    renderImportedHistory();
+  } catch (error) { importStatus.textContent = "Opera GX import failed: " + String(error.message || error); }
+});
+function renderImportedHistory() {
+  const container = document.getElementById("importedHistoryList");
+  if (!container) return;
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(historyStoreKey) || "[]"); } catch {}
+  container.replaceChildren();
+  container.classList.remove("hidden");
+  const heading = document.createElement("h3");
+  heading.textContent = "Imported browsing history (" + history.length + ")";
+  container.append(heading);
+  if (!history.length) { container.append(document.createTextNode("No imported history yet.")); return; }
+  history.slice(0, 100).forEach((entry) => {
+    const link = document.createElement("a");
+    link.href = entry.url;
+    link.textContent = entry.title || entry.url;
+    link.title = entry.url;
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      window.neoBrowser.navigate(entry.url);
+      settingsPanel.classList.add("hidden");
+    });
+    container.append(link);
+  });
+}
+
 setImportPreset("no-cookies");
 
 
