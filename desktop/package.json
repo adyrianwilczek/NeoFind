@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win nsis",
+    "build:win": "electron-builder --win nsis --publish never",
     "release:win": "electron-builder --win nsis --publish always",
     "prebuild:win": "node -e \"require('png-to-ico')('../icon_round.png').then(icon => require('fs').writeFileSync('icon.ico', icon))\""
   },
