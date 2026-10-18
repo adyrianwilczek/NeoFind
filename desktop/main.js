@@ -1,6 +1,7 @@
 const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell } = require("electron");
 const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
+const fsSync = require("node:fs");
 const path = require("node:path");
 
 const HOME_URL = "https://neofind.pl/";
@@ -13,6 +14,23 @@ const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
+
+function saveSessionSync() {
+  try {
+    const session = {
+      tabs: Array.from(tabs.values()).map((tab) => ({
+        url: tab.view.webContents.getURL() || tab.url || HOME_URL,
+        title: tab.title || "New Tab"
+      })).filter((tab) => isHttpUrl(tab.url)),
+      activeIndex: Math.max(0, Array.from(tabs.keys()).indexOf(activeTabId))
+    };
+    const file = path.join(app.getPath("userData"), "browser-session.json");
+    fsSync.mkdirSync(path.dirname(file), { recursive: true });
+    fsSync.writeFileSync(file, JSON.stringify(session, null, 2), "utf8");
+  } catch (error) {
+    console.error("Could not synchronously save NeoFind Browser session:", error);
+  }
+}
 
 function queueSessionSave() {
   if (sessionSaveTimer) clearTimeout(sessionSaveTimer);
@@ -238,6 +256,7 @@ function createWindow() {
     }
   });
   mainWindow.on("resize", updateActiveBounds);
+  mainWindow.on("close", saveSessionSync);
   mainWindow.on("closed", () => {
     mainWindow = null;
     for (const tab of tabs.values()) {
@@ -461,6 +480,6 @@ app.on("second-instance", (_event, commandLine) => {
     mainWindow.focus();
   }
 });
-app.on("before-quit", () => { if (sessionSaveTimer) clearTimeout(sessionSaveTimer); queueSessionSave(); });
+app.on("before-quit", () => { if (sessionSaveTimer) clearTimeout(sessionSaveTimer); saveSessionSync(); });
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
