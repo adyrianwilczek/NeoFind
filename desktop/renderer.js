@@ -59,7 +59,12 @@ document.getElementById("reload").addEventListener("click", () => window.neoBrow
 document.getElementById("home").addEventListener("click", () => window.neoBrowser.home());
 document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
 
-window.neoBrowser.onTabsState(renderTabs);
+window.neoBrowser.onTabsState((state)=>{
+  renderTabs(state);
+  const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
+  (state.tabs||[]).forEach(tab=>{if(tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
+  if(history.length)localStorage.setItem(browserHistoryKey,JSON.stringify(history.slice(0,1000)));
+});
 window.addEventListener("resize", updateViewportBounds);
 requestAnimationFrame(updateViewportBounds);
 setTimeout(updateViewportBounds, 250);
@@ -86,7 +91,22 @@ function setSettingsTab(tab) {
   document.getElementById("settingsGeneral").classList.toggle("hidden", tab !== "general");
   document.getElementById("settingsImport").classList.toggle("hidden", tab !== "import");
   document.getElementById("settingsIntegrations").classList.toggle("hidden", tab !== "integrations");
+  document.getElementById("settingsHistory").classList.toggle("hidden", tab !== "history");
 }
+
+
+const browserHistoryKey = "neofind.browserHistory";
+function getBrowserHistory() { try { const value=JSON.parse(localStorage.getItem(browserHistoryKey)||"[]"); return Array.isArray(value)?value:[]; } catch { return []; } }
+function renderBrowserHistory() {
+  const host=document.getElementById("browserHistoryList"); if(!host)return; host.replaceChildren();
+  const items=getBrowserHistory();
+  if(!items.length){host.textContent="No browsing history yet.";return;}
+  items.slice(0,300).forEach(entry=>{
+    const link=document.createElement("a"); link.href=entry.url; link.textContent=entry.title||entry.url; link.title=entry.url;
+    link.addEventListener("click",event=>{event.preventDefault();window.neoBrowser.createTab(entry.url);closeSettingsPanel();}); host.append(link);
+  });
+}
+document.getElementById("clearBrowserHistory").addEventListener("click",()=>{localStorage.removeItem(browserHistoryKey);renderBrowserHistory();});
 
 const sidebarApps = {
   spotify: {label:"Spotify",icon:"♫",url:"https://open.spotify.com/"},
@@ -120,13 +140,7 @@ document.querySelectorAll("[data-sidebar-app]").forEach(input=>{
 });
 renderSidebarApps();
 document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/"));
-document.getElementById("sideHistory").addEventListener("click",()=>{
-  const saved=localStorage.getItem("neofind.importedHistory");
-  let history=[]; try{history=JSON.parse(saved||"[]")}catch{}
-  window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("import");
-  importStatus.textContent=history.length ? "Imported browsing history is available below. This list shows imported entries only." : "No imported browsing history yet. Use Settings → Import to bring history from another browser.";
-  renderImportedHistory();
-});
+document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("history"); });
 document.getElementById("sideAccount").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/"));
 
 function setImportPreset(preset) {
