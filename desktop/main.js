@@ -162,6 +162,7 @@ function createWindow() {
     minWidth: 760,
     minHeight: 520,
     title: "NeoFind Browser",
+    icon: path.join(__dirname, "icon.ico"),
     backgroundColor: "#080d18",
     autoHideMenuBar: true,
     webPreferences: {
@@ -315,7 +316,7 @@ ipcMain.handle("import:source-profile", async (_event, sourceBrowser, profilePat
   if (selected.settings) { try { await fs.access(path.join(profile, firefox ? "prefs.js" : "Preferences")); result.settingsFound = true; } catch {} }
   if (selected.extensions) { try { result.extensionsFound = (await fs.readdir(path.join(profile, firefox ? "extensions" : "Extensions"), { withFileTypes: true })).filter((entry) => entry.isDirectory() || entry.isFile()).length; } catch {} }
   if (selected.cookies) {
-    try { await fs.access(path.join(profile, firefox ? "cookies.sqlite" : "Network", "Cookies")); result.cookiesFound = true; }
+    try { await fs.access(firefox ? path.join(profile, "cookies.sqlite") : path.join(profile, "Network", "Cookies")); result.cookiesFound = true; }
     catch { try { await fs.access(path.join(profile, "Cookies")); result.cookiesFound = true; } catch {} }
     if (result.cookiesFound) result.notes.push("Cookies were detected but not copied: their encryption and session format are browser-specific.");
   }
