@@ -11,6 +11,55 @@ function isHttpUrl(value) { return typeof value === "string" && (value.startsWit
 let pendingExternalUrl = process.argv.find(isHttpUrl) || null;
 const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
+let restoredSession = null;
+let sessionSaveTimer = null;
+
+function queueSessionSave() {
+  if (sessionSaveTimer) clearTimeout(sessionSaveTimer);
+  sessionSaveTimer = setTimeout(async () => {
+    sessionSaveTimer = null;
+    try {
+      const session = {
+        tabs: Array.from(tabs.values()).map((tab) => ({
+          url: tab.view.webContents.getURL() || tab.url || HOME_URL,
+          title: tab.title || "New Tab"
+        })).filter((tab) => isHttpUrl(tab.url)),
+        activeIndex: Math.max(0, Array.from(tabs.keys()).indexOf(activeTabId))
+      };
+      const file = path.join(app.getPath("userData"), "browser-session.json");
+      await fs.mkdir(path.dirname(file), { recursive: true });
+      await fs.writeFile(file, JSON.stringify(session, null, 2), "utf8");
+    } catch (error) {
+      console.error("Could not save NeoFind Browser session:", error);
+    }
+  }, 250);
+}
+
+async function loadSavedSession() {
+  try {
+    const file = path.join(app.getPath("userData"), "browser-session.json");
+    const data = JSON.parse(await fs.readFile(file, "utf8"));
+    if (data && Array.isArray(data.tabs)) {
+      restoredSession = {
+        tabs: data.tabs.filter((tab) => tab && isHttpUrl(tab.url)).slice(0, 100),
+        activeIndex: Number.isInteger(data.activeIndex) ? data.activeIndex : 0
+      };
+    }
+  } catch {
+    restoredSession = null;
+  }
+}
+
+function restoreSessionOrHome() {
+  const saved = restoredSession;
+  restoredSession = null;
+  if (saved && saved.tabs.length) {
+    const activeIndex = Math.max(0, Math.min(saved.activeIndex, saved.tabs.length - 1));
+    saved.tabs.forEach((tab, index) => openTab(tab.url, index === activeIndex));
+    return;
+  }
+  openTab(HOME_URL, true);
+}
 
 function normalizeAddress(input) {
   const value = String(input || "").trim();
@@ -101,14 +150,17 @@ function openTab(address = HOME_URL, activate = true) {
     tab.url = wc.getURL();
     tab.title = wc.getTitle() || tab.title || "New Tab";
     sendState();
+    queueSessionSave();
   });
   wc.on("did-navigate", (_event, url) => {
     tab.url = url;
     sendState();
+    queueSessionSave();
   });
   wc.on("did-navigate-in-page", (_event, url) => {
     tab.url = url;
     sendState();
+    queueSessionSave();
   });
   wc.on("render-process-gone", () => {
     tab.title = "Page crashed";
@@ -149,6 +201,7 @@ function closeTab(id) {
   } else {
     sendState();
   }
+  queueSessionSave();
 }
 
 function activeContents() {
@@ -175,9 +228,14 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, "ui.html"));
   mainWindow.webContents.once("did-finish-load", () => {
-    const target = pendingExternalUrl || HOME_URL;
-    pendingExternalUrl = null;
-    openTab(target, true);
+    if (pendingExternalUrl) {
+      const target = pendingExternalUrl;
+      pendingExternalUrl = null;
+      restoredSession = null;
+      openTab(target, true);
+    } else {
+      restoreSessionOrHome();
+    }
   });
   mainWindow.on("resize", updateActiveBounds);
   mainWindow.on("closed", () => {
@@ -207,6 +265,7 @@ ipcMain.on("tabs:switch", (_event, id) => {
   if (!tabs.has(Number(id))) return;
   activeTabId = Number(id);
   showActiveTab();
+  queueSessionSave();
 });
 ipcMain.on("tabs:close", (_event, id) => closeTab(id));
 ipcMain.on("tabs:reorder", (_event, fromId, toId) => {
@@ -221,6 +280,7 @@ ipcMain.on("tabs:reorder", (_event, fromId, toId) => {
   tabs.clear();
   ordered.forEach((tab, id) => tabs.set(id, tab));
   sendState();
+  queueSessionSave();
 });
 ipcMain.on("tabs:navigate", (_event, address) => {
   const wc = activeContents();
@@ -380,7 +440,8 @@ ipcMain.handle("updater:check", async () => {
   catch (error) { return { status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }; }
 });
 ipcMain.handle("updater:version", () => app.getVersion());
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await loadSavedSession();
   createWindow();
   if (app.isPackaged) setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 5000);
 });
@@ -400,5 +461,6 @@ app.on("second-instance", (_event, commandLine) => {
     mainWindow.focus();
   }
 });
+app.on("before-quit", () => { if (sessionSaveTimer) clearTimeout(sessionSaveTimer); queueSessionSave(); });
 app.on("window-all-closed", () => { if (process.platform !== "darwin") app.quit(); });
 app.on("activate", () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
