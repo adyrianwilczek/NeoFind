@@ -224,14 +224,34 @@ document.getElementById("closeSettings").addEventListener("click", closeSettings
 settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape" && !settingsPanel.classList.contains("hidden")) { closeSettingsPanel(); return; }
-  if (!(event.ctrlKey || event.metaKey)) return;
   const key = event.key.toLowerCase();
+  // NEOFIND_011_KEYBOARD_SHORTCUTS: shortcuts while the browser toolbar has focus.
+  if (!event.ctrlKey && !event.metaKey && !event.altKey) {
+    const typing = event.target && (event.target.isContentEditable || /INPUT|TEXTAREA|SELECT/.test(event.target.tagName));
+    if (!typing && key === "arrowleft") { event.preventDefault(); window.neoBrowser.back(); return; }
+    if (!typing && key === "arrowright") { event.preventDefault(); window.neoBrowser.forward(); return; }
+  }
+  if (event.ctrlKey || event.metaKey) {
+    if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); return; }
+    if (key === "c") { event.preventDefault(); addressInput.focus(); addressInput.select(); return; }
+    if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); return; }
+    if (key === "f5") { event.preventDefault(); window.neoBrowser.reload(); return; }
+    if (key === "x") { event.preventDefault(); window.neoBrowser.closeActiveTab(); return; }
+  }
+  if (!(event.ctrlKey || event.metaKey)) return;
   if (key === "t" && !event.shiftKey) { event.preventDefault(); document.getElementById("newTab").click(); }
   else if (key === "w") { event.preventDefault(); window.neoBrowser.closeActiveTab(); }
   else if (key === "l") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
   else if (key === "d") { event.preventDefault(); const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) window.neoBrowser.duplicateTab(active.id); }
 });
 window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
+window.neoBrowser.onShortcut((action) => {
+  if (action === "settings") {
+    window.neoBrowser.hideContent();
+    settingsPanel.classList.remove("hidden");
+    setSettingsTab("general");
+  }
+});
 document.querySelectorAll(".settings-tab").forEach((button) => button.addEventListener("click", () => { setSettingsTab(button.dataset.settingsTab); if (button.dataset.settingsTab === "history") renderBrowserHistory(); }));
 document.getElementById("importEverything").addEventListener("click", () => setImportPreset("everything"));
 document.getElementById("importNoCookies").addEventListener("click", () => setImportPreset("no-cookies"));
