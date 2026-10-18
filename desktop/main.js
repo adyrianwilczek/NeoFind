@@ -15,18 +15,40 @@ let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
 
+function getSessionSnapshot() {
+  const orderedTabs = Array.from(tabs.values());
+  const savedTabs = [];
+  let activeIndex = 0;
+  orderedTabs.forEach((tab, index) => {
+    let currentUrl = tab.url || HOME_URL;
+    let currentTitle = tab.title || "New Tab";
+    try {
+      if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
+        currentUrl = tab.view.webContents.getURL() || currentUrl;
+        currentTitle = tab.view.webContents.getTitle() || currentTitle;
+      }
+    } catch (error) {
+      // Use the last URL/title recorded by navigation events if the view is closing.
+    }
+    if (isHttpUrl(currentUrl)) {
+      if (tab.id === activeTabId) activeIndex = savedTabs.length;
+      savedTabs.push({ url: currentUrl, title: currentTitle });
+    }
+  });
+  return { tabs: savedTabs, activeIndex };
+}
+
+function sessionFilePath() {
+  return path.join(app.getPath("userData"), "browser-session.json");
+}
+
 function saveSessionSync() {
   try {
-    const session = {
-      tabs: Array.from(tabs.values()).map((tab) => ({
-        url: tab.view.webContents.getURL() || tab.url || HOME_URL,
-        title: tab.title || "New Tab"
-      })).filter((tab) => isHttpUrl(tab.url)),
-      activeIndex: Math.max(0, Array.from(tabs.keys()).indexOf(activeTabId))
-    };
-    const file = path.join(app.getPath("userData"), "browser-session.json");
+    const file = sessionFilePath();
     fsSync.mkdirSync(path.dirname(file), { recursive: true });
-    fsSync.writeFileSync(file, JSON.stringify(session, null, 2), "utf8");
+    const tempFile = file + ".tmp";
+    fsSync.writeFileSync(tempFile, JSON.stringify(getSessionSnapshot(), null, 2), "utf8");
+    fsSync.renameSync(tempFile, file);
   } catch (error) {
     console.error("Could not synchronously save NeoFind Browser session:", error);
   }
@@ -34,28 +56,15 @@ function saveSessionSync() {
 
 function queueSessionSave() {
   if (sessionSaveTimer) clearTimeout(sessionSaveTimer);
-  sessionSaveTimer = setTimeout(async () => {
+  sessionSaveTimer = setTimeout(() => {
     sessionSaveTimer = null;
-    try {
-      const session = {
-        tabs: Array.from(tabs.values()).map((tab) => ({
-          url: tab.view.webContents.getURL() || tab.url || HOME_URL,
-          title: tab.title || "New Tab"
-        })).filter((tab) => isHttpUrl(tab.url)),
-        activeIndex: Math.max(0, Array.from(tabs.keys()).indexOf(activeTabId))
-      };
-      const file = path.join(app.getPath("userData"), "browser-session.json");
-      await fs.mkdir(path.dirname(file), { recursive: true });
-      await fs.writeFile(file, JSON.stringify(session, null, 2), "utf8");
-    } catch (error) {
-      console.error("Could not save NeoFind Browser session:", error);
-    }
-  }, 250);
+    saveSessionSync();
+  }, 200);
 }
 
 async function loadSavedSession() {
   try {
-    const file = path.join(app.getPath("userData"), "browser-session.json");
+    const file = sessionFilePath();
     const data = JSON.parse(await fs.readFile(file, "utf8"));
     if (data && Array.isArray(data.tabs)) {
       restoredSession = {
@@ -167,18 +176,19 @@ function openTab(address = HOME_URL, activate = true) {
     tab.loading = false;
     tab.url = wc.getURL();
     tab.title = wc.getTitle() || tab.title || "New Tab";
+    tab.url = wc.getURL() || tab.url || HOME_URL;
     sendState();
-    queueSessionSave();
+    saveSessionSync();
   });
   wc.on("did-navigate", (_event, url) => {
     tab.url = url;
     sendState();
-    queueSessionSave();
+    saveSessionSync();
   });
   wc.on("did-navigate-in-page", (_event, url) => {
     tab.url = url;
     sendState();
-    queueSessionSave();
+    saveSessionSync();
   });
   wc.on("render-process-gone", () => {
     tab.title = "Page crashed";
@@ -207,6 +217,7 @@ function closeTab(id) {
   try { mainWindow.contentView.removeChildView(tab.view); } catch {}
   try { tab.view.webContents.close(); } catch {}
   tabs.delete(tab.id);
+  saveSessionSync();
 
   if (activeTabId === tab.id) {
     const ids = Array.from(tabs.keys());
@@ -256,7 +267,7 @@ function createWindow() {
     }
   });
   mainWindow.on("resize", updateActiveBounds);
-  mainWindow.on("close", saveSessionSync);
+  mainWindow.on("close", () => { saveSessionSync(); });
   mainWindow.on("closed", () => {
     mainWindow = null;
     for (const tab of tabs.values()) {
