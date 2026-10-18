@@ -17078,13 +17078,17 @@ placeFindables();refreshDisplay();
   window.neoBetaSelectTab=function(id){activeId=id;renderTabs();renderActive();};
   function renderTabs(){
     const bar=$("neoBetaTabBar");bar.innerHTML="";
+    const brand=document.createElement("button");brand.type="button";brand.id="neoBetaBrandHome";brand.title="NeoFind home";brand.setAttribute("aria-label","NeoFind home");
+    brand.style.cssText="display:flex;align-items:center;gap:7px;flex:0 0 auto;min-width:108px;padding:5px 10px;margin-right:4px;border:1px solid var(--neo-beta-line,#34445b);border-bottom:0;border-radius:9px 9px 0 0;background:var(--neo-beta-panel2,#192235);color:var(--neo-beta-text,#edf7ff);font-weight:800;cursor:pointer;";
+    const logo=document.createElement("img");logo.src="https://raw.githubusercontent.com/adyrianwilczek/NeoFind/main/icon_round.png";logo.alt="";logo.style.cssText="width:25px;height:25px;object-fit:contain;flex:0 0 auto;";
+    const brandText=document.createElement("span");brandText.textContent="NeoFind";brand.append(logo,brandText);brand.onclick=()=>{const t=active();if(t)loadUrl(t,"about:blank");};bar.append(brand);
     tabs.forEach(t=>{
       const w=document.createElement("div");w.dataset.tabId=String(t.id);w.draggable=true;
       w.style.cssText="display:flex;align-items:center;gap:7px;flex:0 1 210px;min-width:100px;max-width:210px;padding:7px 9px;border:1px solid var(--neo-beta-line,#ffffff18);border-bottom:0;border-radius:9px 9px 0 0;background:"+(t.id===activeId?"var(--neo-beta-panel2,#192235)":"var(--neo-beta-panel,#101521)")+";color:var(--neo-beta-text,#edf7ff);cursor:grab;";
       w.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",String(t.id));e.dataTransfer.effectAllowed="move";w.style.opacity=".45";});
       w.addEventListener("dragend",()=>{w.style.opacity="1";bar.querySelectorAll("[data-drop-target]").forEach(el=>el.removeAttribute("data-drop-target"));});
-      w.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="move";w.setAttribute("data-drop-target","true");});
-      w.addEventListener("dragleave",()=>w.removeAttribute("data-drop-target"));
+      w.addEventListener("dragover",e=>{e.preventDefault();e.dataTransfer.dropEffect="move";w.setAttribute("data-drop-target","true");w.style.outline="2px dashed var(--neo-beta-text,#edf7ff)";});
+      w.addEventListener("dragleave",()=>w.removeAttribute("data-drop-target");el.style.outline="none";);
       w.addEventListener("drop",e=>{e.preventDefault();w.removeAttribute("data-drop-target");const from=Number(e.dataTransfer.getData("text/plain")),to=t.id;const fi=tabs.findIndex(x=>x.id===from),ti=tabs.findIndex(x=>x.id===to);if(fi<0||ti<0||fi===ti)return;const moved=tabs.splice(fi,1)[0];tabs.splice(ti,0,moved);renderTabs();applyBetaTheme($("neoBetaTheme")?.value||"classic");});
       const btn=document.createElement("button");btn.type="button";btn.setAttribute("role","tab");btn.setAttribute("aria-selected",String(t.id===activeId));btn.title=t.tooltip||t.title;btn.textContent=t.title;btn.style.cssText="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;border:0;background:transparent;color:inherit;cursor:pointer;padding:2px;";btn.onclick=()=>window.neoBetaSelectTab(t.id);
       const x=document.createElement("button");x.type="button";x.textContent="×";x.title="Close tab";x.setAttribute("aria-label","Close "+t.title);x.style.cssText="flex:0 0 23px;padding:1px;border:0;border-radius:6px;background:transparent;color:inherit;font-size:18px;cursor:pointer;";x.onclick=()=>window.neoBetaCloseTab(t.id);
