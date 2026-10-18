@@ -1,7 +1,12 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("neoBrowser", {
-  createTab: (url) => ipcRenderer.invoke("tabs:create", url),
+  createTab: (url, options) => ipcRenderer.invoke("tabs:create", url, options),
+  duplicateTab: () => ipcRenderer.invoke("tabs:duplicate"),
+  reopenClosedTab: () => ipcRenderer.invoke("tabs:reopen"),
+  togglePinTab: (id) => ipcRenderer.invoke("tabs:toggle-pin", id),
+  clearBrowserData: () => ipcRenderer.invoke("browser:clear-data"),
+  closeActiveTab: () => ipcRenderer.send("browser:close-active-tab"),
   openNeoAI: () => ipcRenderer.invoke("sidebar:open-neoai"),
   switchTab: (id) => ipcRenderer.send("tabs:switch", id),
   closeTab: (id) => ipcRenderer.send("tabs:close", id),
@@ -24,6 +29,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
     ipcRenderer.removeAllListeners("updater:state");
     ipcRenderer.on("updater:state", (_event, state) => callback(state));
   },
+  onFocusAddress: (callback) => { ipcRenderer.removeAllListeners("browser:focus-address"); ipcRenderer.on("browser:focus-address", () => callback()); },
   onTabsState: (callback) => {
     ipcRenderer.removeAllListeners("tabs:state");
     ipcRenderer.on("tabs:state", (_event, state) => callback(state));
