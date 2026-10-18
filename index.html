@@ -2237,8 +2237,11 @@ body.neo-theme-premium-gradient::before {
         <button type="button" onclick="neoBetaNavigate(-1)" title="Back" aria-label="Back">←</button>
         <button type="button" onclick="neoBetaNavigate(1)" title="Forward" aria-label="Forward">→</button>
         <button type="button" onclick="neoBetaReload()" title="Reload" aria-label="Reload">↻</button>
-        <input id="neoBetaAddress" type="text" placeholder="Search or enter a website address" aria-label="Test tab address" style="flex:1;min-width:0;padding:10px 13px;border:1px solid #ffffff24;border-radius:10px;background:rgba(10,16,28,.75);color:inherit;outline:none;" onkeydown="if(event.key==='Enter')neoBetaGo()">
+        <input id="neoBetaAddress" type="text" placeholder="Search or enter a website address" aria-label="Test tab address" style="flex:1;min-width:0;padding:10px 13px;border:1px solid var(--neo-beta-line,#ffffff24);border-radius:10px;background:var(--neo-beta-address-bg,rgba(10,16,28,.75));color:var(--neo-beta-text,#edf7ff);outline:none;" onkeydown="if(event.key==='Enter')neoBetaGo()">
         <button type="button" onclick="neoBetaGo()">Go</button>
+        <select id="neoBetaTheme" aria-label="Browser theme" title="Browser theme" style="max-width:125px;min-width:92px;padding:8px;border:1px solid var(--neo-beta-line,#ffffff24);border-radius:9px;background:var(--neo-beta-panel,#101521);color:var(--neo-beta-text,#edf7ff);">
+          <option value="classic">Classic</option><option value="aurora">Aurora</option><option value="midnight">Midnight</option><option value="nord">Nord</option><option value="lavender">Lavender</option><option value="rose">Rose</option><option value="sunset">Sunset</option><option value="ember">Ember</option><option value="forest">Forest</option><option value="sakura">Sakura</option><option value="paper">Paper</option><option value="cyber">Cyber</option><option value="ocean">Ocean</option><option value="space">Space</option><option value="matrix">Matrix</option>
+        </select>
         <button type="button" onclick="closeBetaFunctions()" title="Disable test tabs" aria-label="Disable test tabs">×</button>
       </div>
       <div id="neoBetaViewport" style="display:none;position:relative;width:100%;height:min(72vh,760px);min-height:320px;overflow:hidden;border:1px solid #ffffff22;border-radius:12px;background:transparent;"></div>
@@ -4575,7 +4578,17 @@ document.addEventListener("keydown", function(event){
 }, true);
 function neoProfileOpenDefaultBrowserHelp(){
     const status = document.getElementById("neoProfileBrowserStatus");
-    if(status) status.textContent = "Open NeoFind Browser on Windows, then go to Settings → Set as default. A website cannot change Windows default-app settings directly.";
+    if(status) status.textContent = "Trying to open Windows Default apps settings. If Windows does not open, launch NeoFind Browser and use Settings → Set as default, then choose NeoFind Browser for HTTP and HTTPS.";
+    try {
+        const link = document.createElement("a");
+        link.href = "ms-settings:defaultapps";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    } catch (error) {
+        if(status) status.textContent = "Open Windows Settings → Apps → Default apps. For automatic setup, use the installed NeoFind Browser app and its Settings → Set as default button.";
+    }
 }
 function openSettings(pushUrl = true){
     if (typeof updateMissionProgress === "function") updateMissionProgress("settings");
