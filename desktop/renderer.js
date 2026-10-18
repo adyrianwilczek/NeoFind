@@ -155,12 +155,13 @@ document.getElementById("chooseBookmarksFile").addEventListener("click", async (
 document.getElementById("showImportedBookmarks").addEventListener("click", renderImportedBookmarks);
 document.getElementById("chooseOperaProfile").addEventListener("click", async () => {
   try {
-    const picked = await window.neoBrowser.chooseOperaProfile();
+    const sourceBrowser = document.getElementById("sourceBrowser").value;
+    const picked = await window.neoBrowser.chooseSourceProfile(sourceBrowser);
     if (picked.canceled) return;
     const selected = {};
     document.querySelectorAll('input[name="importData"]').forEach((input) => { selected[input.value] = input.checked; });
-    importStatus.textContent = "Reading Opera GX profile…";
-    const result = await window.neoBrowser.importOperaProfile(picked.profilePath, selected);
+    importStatus.textContent = "Reading " + sourceBrowser + " profile…";
+    const result = await window.neoBrowser.importSourceProfile(sourceBrowser, picked.profilePath, selected);
     if (selected.bookmarks && result.bookmarks.length) {
       const merged = new Map(getImportedBookmarks().map((bookmark) => [bookmark.url, bookmark]));
       result.bookmarks.forEach((bookmark) => merged.set(bookmark.url, bookmark));
@@ -171,7 +172,7 @@ document.getElementById("chooseOperaProfile").addEventListener("click", async ()
       try { existing = JSON.parse(localStorage.getItem(historyStoreKey) || "[]"); } catch {}
       const merged = new Map(existing.map((item) => [item.url, item]));
       result.history.forEach((item) => merged.set(item.url, item));
-      localStorage.setItem(historyStoreKey, JSON.stringify(Array.from(merged.values())).slice(0, 20000));
+      localStorage.setItem(historyStoreKey, JSON.stringify(Array.from(merged.values()).slice(0, 20000)));
     }
     const summary = [];
     if (selected.bookmarks) summary.push("bookmarks: " + result.bookmarks.length);
@@ -179,10 +180,10 @@ document.getElementById("chooseOperaProfile").addEventListener("click", async ()
     if (selected.settings && result.settingsFound) summary.push("settings detected, not applied");
     if (selected.extensions && result.extensionsFound) summary.push("extensions found: " + result.extensionsFound + " (not installed)");
     if (selected.cookies && result.cookiesFound) summary.push("cookies detected but not copied");
-    importStatus.textContent = "Opera GX import finished. " + summary.join(" · ") + (result.notes.length ? " | " + result.notes.join(" ") : "");
+    importStatus.textContent = sourceBrowser + " import finished. " + summary.join(" · ") + (result.notes.length ? " | " + result.notes.join(" ") : "");
     renderImportedBookmarks();
     renderImportedHistory();
-  } catch (error) { importStatus.textContent = "Opera GX import failed: " + String(error.message || error); }
+  } catch (error) { importStatus.textContent = sourceBrowser + " import failed: " + String(error.message || error); }
 });
 function renderImportedHistory() {
   const container = document.getElementById("importedHistoryList");
