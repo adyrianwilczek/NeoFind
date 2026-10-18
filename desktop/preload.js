@@ -15,8 +15,8 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   showContent: () => ipcRenderer.send("browser:show-content"),
   openDefaultApps: () => ipcRenderer.invoke("browser:open-default-apps"),
   chooseBookmarksFile: () => ipcRenderer.invoke("import:choose-bookmarks"),
-  chooseOperaProfile: () => ipcRenderer.invoke("import:choose-opera-profile"),
-  importOperaProfile: (profilePath, selected) => ipcRenderer.invoke("import:opera-profile", profilePath, selected),
+  chooseSourceProfile: (sourceBrowser) => ipcRenderer.invoke("import:choose-source-profile", sourceBrowser),
+  importSourceProfile: (sourceBrowser, profilePath, selected) => ipcRenderer.invoke("import:source-profile", sourceBrowser, profilePath, selected),
   checkForUpdates: () => ipcRenderer.invoke("updater:check"),
   getVersion: () => ipcRenderer.invoke("updater:version"),
   onUpdaterState: (callback) => {
