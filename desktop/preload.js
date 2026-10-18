@@ -2,8 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("neoBrowser", {
   createTab: (url, options) => ipcRenderer.invoke("tabs:create", url, options),
-  duplicateTab: () => ipcRenderer.invoke("tabs:duplicate"),
-  reopenClosedTab: () => ipcRenderer.invoke("tabs:reopen"),
+  duplicateTab: (id) => ipcRenderer.invoke("tabs:duplicate", id),
   togglePinTab: (id) => ipcRenderer.invoke("tabs:toggle-pin", id),
   clearBrowserData: () => ipcRenderer.invoke("browser:clear-data"),
   closeActiveTab: () => ipcRenderer.send("browser:close-active-tab"),
@@ -15,7 +14,9 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   back: () => ipcRenderer.send("browser:back"),
   forward: () => ipcRenderer.send("browser:forward"),
   reload: () => ipcRenderer.send("browser:reload"),
-  reloadIgnoringCache: () => ipcRenderer.invoke("browser:reload-ignoring-cache"),
+  reloadIgnoringCache: () => ipcRenderer.send("browser:reload-ignoring-cache"),
+  setLanguage: (language) => ipcRenderer.send("browser:set-language", language),
+  onShortcut: (callback) => { ipcRenderer.removeAllListeners("browser:shortcut"); ipcRenderer.on("browser:shortcut", (_event, action) => callback(action)); },
   home: () => ipcRenderer.send("browser:home"),
   setBounds: (bounds) => ipcRenderer.send("browser:set-bounds", bounds),
   hideContent: () => ipcRenderer.send("browser:hide-content"),
