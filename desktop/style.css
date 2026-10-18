@@ -108,3 +108,10 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 
 /* NeoFind Browser 0.1.4 sidebar foundation */
 #pageViewport{margin-left:58px}
+
+.sidebar{position:fixed;z-index:5;left:0;top:92px;bottom:0;width:58px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 6px;box-sizing:border-box;background:linear-gradient(180deg,var(--panel),var(--bg));border-right:1px solid var(--line)}
+.side-icon{width:42px;height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--text);cursor:pointer;font-size:20px}
+.side-icon:hover,.side-icon:focus-visible{background:var(--panel2);border-color:var(--blue);outline:none}
+.sidebar-links{display:flex;flex-direction:column;align-items:center;gap:8px;width:100%;flex:1;overflow-y:auto;scrollbar-width:thin}
+#pageViewport{margin-left:58px}
+@media(max-width:680px){.sidebar{width:50px;padding-left:4px;padding-right:4px}#pageViewport{margin-left:50px}.side-icon{width:38px;height:38px}}
