@@ -7,6 +7,7 @@ const path = require("node:path");
 const HOME_URL = "https://neofind.pl/";
 let mainWindow;
 const blockedDialogOrigins = new Set();
+let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
@@ -167,38 +168,63 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   });
   const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
   const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
+  // NEOFIND_SITE_DIALOG_GUARD: add a per-origin opt-out for JavaScript dialogs.
+  const getDialogPrompt = () => ({
+    en: "Block messages from this website?",
+    pl: "Zablokować komunikaty tej strony?",
+    es: "¿Bloquear los mensajes de este sitio web?",
+    fr: "Bloquer les messages de ce site web ?"
+  }[browserLanguage] || "Block messages from this website?");
   view.webContents.on("did-finish-load", () => {
     const wc = view.webContents;
     if (wc.isDestroyed()) return;
-    const origin = (() => { try { return new URL(wc.getURL()).origin; } catch { return ""; } })();
+    let origin = "";
+    try { origin = new URL(wc.getURL()).origin; } catch {}
     if (!origin || origin === "null") return;
-    const blocked = blockedDialogOrigins.has(origin);
-    const bridge = `window.addEventListener("message", event => { if (event.source === window && event.data && event.data.__neoBlockMessages && typeof event.data.origin === "string") console.error("__NEOFIND_BLOCK_DIALOGS__:" + event.data.origin); });`;
+    const alreadyBlocked = blockedDialogOrigins.has(origin);
+    const promptText = getDialogPrompt();
+    const bridge = `window.addEventListener("message", event => { if (event.source === window && event.data && event.data.__neoFindBlockDialogs && typeof event.data.origin === "string") console.warn("__NEOFIND_BLOCK_DIALOGS__:" + event.data.origin); });`;
     const script = `(() => {
-      if (window.__neoDialogGuardInstalled) return;
-      window.__neoDialogGuardInstalled = true;
+      if (window.__neoFindDialogGuard) return;
+      window.__neoFindDialogGuard = true;
       const origin = ${JSON.stringify(origin)};
-      let isBlocked = ${JSON.stringify(blocked)};
+      const promptText = ${JSON.stringify(promptText)};
+      let blocked = ${JSON.stringify(alreadyBlocked)};
       const nativeAlert = window.alert.bind(window);
       const nativeConfirm = window.confirm.bind(window);
       const nativePrompt = window.prompt.bind(window);
-      const askToBlock = () => {
-        if (isBlocked) return;
-        if (nativeConfirm("Block future messages from this website?")) {
-          isBlocked = true;
-          window.postMessage({ __neoBlockMessages: true, origin }, "*");
+      const offerBlock = () => {
+        if (blocked) return;
+        if (nativeConfirm(promptText)) {
+          blocked = true;
+          window.postMessage({ __neoFindBlockDialogs: true, origin }, "*");
         }
       };
-      window.alert = (message) => { if (isBlocked) return; nativeAlert(String(message)); askToBlock(); };
-      window.confirm = (message) => { if (isBlocked) return false; const result = nativeConfirm(String(message)); askToBlock(); return result; };
-      window.prompt = (message, defaultValue) => { if (isBlocked) return null; const result = nativePrompt(String(message), defaultValue); askToBlock(); return result; };
+      window.alert = (message) => { if (blocked) return; nativeAlert(String(message)); offerBlock(); };
+      window.confirm = (message) => { if (blocked) return false; const answer = nativeConfirm(String(message)); offerBlock(); return answer; };
+      window.prompt = (message, defaultValue) => { if (blocked) return null; const answer = nativePrompt(String(message), defaultValue); offerBlock(); return answer; };
     })();`;
     wc.executeJavaScript(bridge).then(() => wc.executeJavaScript(script)).catch(() => {});
   });
   view.webContents.on("console-message", (_event, detailsOrLevel, legacyMessage) => {
     const level = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.level : detailsOrLevel;
     const message = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.message : legacyMessage;
-    if (level > 2 && typeof message === "string" && message.startsWith("__NEOFIND_BLOCK_DIALOGS__:")) blockedDialogOrigins.add(message.slice("__NEOFIND_BLOCK_DIALOGS__:".length));
+    if (typeof message === "string" && message.startsWith("__NEOFIND_BLOCK_DIALOGS__:")) {
+      const origin = message.slice("__NEOFIND_BLOCK_DIALOGS__:".length);
+      try { if (new URL(origin).origin === origin) blockedDialogOrigins.add(origin); } catch {}
+    }
+  });
+  wc.on("before-input-event", (event, input) => {
+    if (input.type !== "keyDown") return;
+    const key = String(input.key || "").toLowerCase();
+    const control = input.control || input.meta;
+    if (control && key === "u") { event.preventDefault(); mainWindow?.webContents.send("browser:shortcut", "settings"); }
+    else if (control && key === "c") { event.preventDefault(); mainWindow?.webContents.send("browser:shortcut", "focus-address"); }
+    else if (control && key === "r") { event.preventDefault(); wc.reload(); }
+    else if (control && key === "f5") { event.preventDefault(); wc.reloadIgnoringCache(); }
+    else if (control && key === "x") { event.preventDefault(); if (tab.id === activeTabId) closeTab(tab.id); }
+    else if (!control && !input.alt && key === "arrowleft") { event.preventDefault(); if (wc.navigationHistory.canGoBack()) wc.navigationHistory.goBack(); }
+    else if (!control && !input.alt && key === "arrowright") { event.preventDefault(); if (wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward(); }
   });
   tabs.set(id, tab);
   const wc = view.webContents;
@@ -335,8 +361,7 @@ function createWindow() {
 }
 
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
-ipcMain.handle("tabs:duplicate", () => { const tab = tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
-ipcMain.handle("tabs:reopen", () => { const tab = recentlyClosedTabs.shift(); if (!tab) return null; const id = openTab(tab.isHomeTab ? "about:home" : tab.url, true, { pinned: tab.pinned }); return id; });
+ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
 ipcMain.handle("sidebar:open-neoai", () => {
@@ -387,7 +412,8 @@ ipcMain.on("browser:forward", () => {
   if (wc && wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward();
 });
 ipcMain.on("browser:reload", () => activeContents()?.reload());
-ipcMain.handle("browser:reload-ignoring-cache", () => { const contents = activeContents(); if (contents) contents.reloadIgnoringCache(); return { ok: true }; });
+ipcMain.on("browser:reload-ignoring-cache", () => activeContents()?.reloadIgnoringCache());
+ipcMain.on("browser:set-language", (_event, language) => { if (["en", "pl", "es", "fr"].includes(language)) browserLanguage = language; });
 ipcMain.on("browser:focus-address", () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:focus-address"); });
 ipcMain.on("browser:close-active-tab", () => { if (activeTabId !== null) closeTab(activeTabId); });
 ipcMain.on("browser:home", () => activeContents()?.loadURL(HOME_URL));
