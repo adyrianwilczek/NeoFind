@@ -7,7 +7,7 @@ function renderTabs(state) {
   for (const tab of state.tabs) {
     const item = document.createElement("div");
     item.className = "tab" + (tab.id === state.activeTabId ? " active" : "");
-    item.title = tab.url || "about:blank";
+    item.title = tab.isHomeTab ? "about:home" : (tab.url || "about:blank");
     item.draggable = true;
     item.dataset.tabId = String(tab.id);
     item.addEventListener("click", () => window.neoBrowser.switchTab(tab.id));
@@ -19,7 +19,7 @@ function renderTabs(state) {
 
     const title = document.createElement("span");
     title.className = "tab-title";
-    title.textContent = tab.loading ? (tab.title || "Loading") + " ·" : (tab.title || "New Tab");
+    title.textContent = tab.isHomeTab ? "New Tab" : (tab.loading ? (tab.title || "Loading") + " ·" : (tab.title || "New Tab"));
 
     const close = document.createElement("button");
     close.className = "tab-close";
@@ -52,7 +52,7 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
   addressInput.blur();
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
-document.getElementById("newTab").addEventListener("click", () => window.neoBrowser.createTab("https://neofind.pl/"));
+document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "https://neofind.pl/" : "about:home"); });
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
 document.getElementById("forward").addEventListener("click", () => window.neoBrowser.forward());
 document.getElementById("reload").addEventListener("click", () => window.neoBrowser.reload());
@@ -136,6 +136,11 @@ document.querySelectorAll("[data-sidebar-app]").forEach(input=>{
   input.addEventListener("change",()=>{
     const enabled=getEnabledSidebarApps(); enabled[input.dataset.sidebarApp]=input.checked;
     localStorage.setItem(sidebarAppsKey,JSON.stringify(enabled)); renderSidebarApps();
+const newTabDestination = document.getElementById("newTabDestination");
+if (newTabDestination) {
+  newTabDestination.value = localStorage.getItem("neofind.newTabOpensNeoFind") === "true" ? "neofind" : "blank";
+  newTabDestination.addEventListener("change", () => localStorage.setItem("neofind.newTabOpensNeoFind", newTabDestination.value === "neofind" ? "true" : "false"));
+}
   });
 });
 renderSidebarApps();
