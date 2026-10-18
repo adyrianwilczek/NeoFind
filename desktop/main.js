@@ -114,6 +114,7 @@ function sendState() {
     id: tab.id,
     title: tab.title || "New Tab",
     url: tab.url || "",
+    isHomeTab: tab.isHomeTab === true,
     loading: tab.loading,
     canGoBack: tab.view.webContents.navigationHistory.canGoBack(),
     canGoForward: tab.view.webContents.navigationHistory.canGoForward()
