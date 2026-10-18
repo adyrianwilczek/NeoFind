@@ -6,6 +6,7 @@ const path = require("node:path");
 
 const HOME_URL = "https://neofind.pl/";
 let mainWindow;
+const blockedDialogOrigins = new Set();
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
@@ -16,7 +17,6 @@ let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
 const recentlyClosedTabs = [];
-const blockedDialogOrigins = new Set();
 
 function getSessionSnapshot() {
   const orderedTabs = Array.from(tabs.values());
@@ -169,28 +169,31 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
   view.webContents.on("did-finish-load", () => {
     const wc = view.webContents;
-    wc.executeJavaScript(`window.addEventListener("message", event => { if (event.source === window && event.data && event.data.__neoBlockMessages && typeof event.data.origin === "string") console.error("__NEOFIND_BLOCK_DIALOGS__:" + event.data.origin); });`).catch(() => {});
     if (wc.isDestroyed()) return;
     const origin = (() => { try { return new URL(wc.getURL()).origin; } catch { return ""; } })();
     if (!origin || origin === "null") return;
-    const isBlocked = blockedDialogOrigins.has(origin);
+    const blocked = blockedDialogOrigins.has(origin);
+    const bridge = `window.addEventListener("message", event => { if (event.source === window && event.data && event.data.__neoBlockMessages && typeof event.data.origin === "string") console.error("__NEOFIND_BLOCK_DIALOGS__:" + event.data.origin); });`;
     const script = `(() => {
       if (window.__neoDialogGuardInstalled) return;
       window.__neoDialogGuardInstalled = true;
       const origin = ${JSON.stringify(origin)};
-      let blocked = ${JSON.stringify(isBlocked)};
+      let isBlocked = ${JSON.stringify(blocked)};
       const nativeAlert = window.alert.bind(window);
       const nativeConfirm = window.confirm.bind(window);
       const nativePrompt = window.prompt.bind(window);
-      const blockFutureMessages = () => {
-        const shouldBlock = nativeConfirm("Block future messages from this website?\\n\\nChoose OK to block alerts, confirmations and prompts from this site, or Cancel to keep them enabled.");
-        if (shouldBlock) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); }
+      const askToBlock = () => {
+        if (isBlocked) return;
+        if (nativeConfirm("Block future messages from this website?")) {
+          isBlocked = true;
+          window.postMessage({ __neoBlockMessages: true, origin }, "*");
+        }
       };
-      window.alert = (message) => { if (blocked) return; nativeAlert(String(message)); blockFutureMessages(); };
-      window.confirm = (message) => { if (blocked) return false; const result = nativeConfirm(String(message)); blockFutureMessages(); return result; };
-      window.prompt = (message, defaultValue) => { if (blocked) return null; const result = nativePrompt(String(message), defaultValue); blockFutureMessages(); return result; };
+      window.alert = (message) => { if (isBlocked) return; nativeAlert(String(message)); askToBlock(); };
+      window.confirm = (message) => { if (isBlocked) return false; const result = nativeConfirm(String(message)); askToBlock(); return result; };
+      window.prompt = (message, defaultValue) => { if (isBlocked) return null; const result = nativePrompt(String(message), defaultValue); askToBlock(); return result; };
     })();`;
-    wc.executeJavaScript(script).catch(() => {});
+    wc.executeJavaScript(bridge).then(() => wc.executeJavaScript(script)).catch(() => {});
   });
   view.webContents.on("console-message", (_event, detailsOrLevel, legacyMessage) => {
     const level = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.level : detailsOrLevel;
@@ -332,9 +335,9 @@ function createWindow() {
 }
 
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
-ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
+ipcMain.handle("tabs:duplicate", () => { const tab = tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
+ipcMain.handle("tabs:reopen", () => { const tab = recentlyClosedTabs.shift(); if (!tab) return null; const id = openTab(tab.isHomeTab ? "about:home" : tab.url, true, { pinned: tab.pinned }); return id; });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
-ipcMain.handle("browser:reload-ignoring-cache", () => { const tab = tabs.get(activeTabId); if (tab && !tab.isHomeTab) tab.view.webContents.reloadIgnoringCache(); });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
 ipcMain.handle("sidebar:open-neoai", () => {
   const id = openTab(HOME_URL, true);
@@ -384,6 +387,7 @@ ipcMain.on("browser:forward", () => {
   if (wc && wc.navigationHistory.canGoForward()) wc.navigationHistory.goForward();
 });
 ipcMain.on("browser:reload", () => activeContents()?.reload());
+ipcMain.handle("browser:reload-ignoring-cache", () => { const contents = activeContents(); if (contents) contents.reloadIgnoringCache(); return { ok: true }; });
 ipcMain.on("browser:focus-address", () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:focus-address"); });
 ipcMain.on("browser:close-active-tab", () => { if (activeTabId !== null) closeTab(activeTabId); });
 ipcMain.on("browser:home", () => activeContents()?.loadURL(HOME_URL));
