@@ -2,7 +2,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("neoBrowser", {
   createTab: (url, options) => ipcRenderer.invoke("tabs:create", url, options),
-  duplicateTab: (id) => ipcRenderer.invoke("tabs:duplicate", id),
+  duplicateTab: () => ipcRenderer.invoke("tabs:duplicate"),
+  reopenClosedTab: () => ipcRenderer.invoke("tabs:reopen"),
   togglePinTab: (id) => ipcRenderer.invoke("tabs:toggle-pin", id),
   clearBrowserData: () => ipcRenderer.invoke("browser:clear-data"),
   closeActiveTab: () => ipcRenderer.send("browser:close-active-tab"),
