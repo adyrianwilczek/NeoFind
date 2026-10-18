@@ -58,7 +58,6 @@ document.getElementById("forward").addEventListener("click", () => window.neoBro
 document.getElementById("reload").addEventListener("click", () => window.neoBrowser.reload());
 document.getElementById("home").addEventListener("click", () => window.neoBrowser.home());
 document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
-document.getElementById("downloadNeoFind").addEventListener("click", () => window.neoBrowser.navigate("https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe"));
 
 window.neoBrowser.onTabsState(renderTabs);
 window.addEventListener("resize", updateViewportBounds);
