@@ -6,8 +6,8 @@ function renderTabs(state) {
   tabsElement.replaceChildren();
   for (const tab of state.tabs) {
     const item = document.createElement("div");
-    item.className = "tab" + (tab.id === state.activeTabId ? " active" : "");
-    item.title = tab.isHomeTab ? "about:home" : (tab.url || "about:blank");
+    item.className = "tab" + (tab.id === state.activeTabId ? " active" : "") + (tab.pinned ? " pinned" : "") + (tab.isPrivate ? " private-tab" : "");
+    item.title = (tab.isPrivate ? "Private tab · " : "") + (tab.isHomeTab ? "about:home" : (tab.url || "about:blank"));
     item.draggable = true;
     item.dataset.tabId = String(tab.id);
     item.addEventListener("click", () => window.neoBrowser.switchTab(tab.id));
@@ -31,7 +31,10 @@ function renderTabs(state) {
       event.stopPropagation();
       window.neoBrowser.closeTab(tab.id);
     });
-    item.append(title, close);
+    const pin = document.createElement("button");
+    pin.className = "tab-pin"; pin.type = "button"; pin.textContent = tab.pinned ? "📌" : "⌁"; pin.title = tab.pinned ? "Unpin tab" : "Pin tab"; pin.setAttribute("aria-label", pin.title);
+    pin.addEventListener("click", async (event) => { event.stopPropagation(); await window.neoBrowser.togglePinTab(tab.id); });
+    item.append(title, pin, close);
     tabsElement.append(item);
   }
 
@@ -39,6 +42,8 @@ function renderTabs(state) {
   if (active && document.activeElement !== addressInput) addressInput.value = active.url || "";
   document.getElementById("back").disabled = !active || !active.canGoBack;
   document.getElementById("forward").disabled = !active || !active.canGoForward;
+  const pinButton = document.getElementById("pinTab"); if (pinButton) { pinButton.textContent = active && active.pinned ? "📌" : "⌁"; pinButton.title = active && active.pinned ? "Unpin active tab" : "Pin active tab"; }
+  const privateButton = document.getElementById("privateTab"); if (privateButton) privateButton.classList.toggle("private-active", !!(active && active.isPrivate));
 }
 
 function updateViewportBounds() {
@@ -53,6 +58,11 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
 document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "https://neofind.pl/" : "about:home"); });
+document.getElementById("privateTab").addEventListener("click", () => window.neoBrowser.createTab("about:home", { private: true }));
+document.getElementById("duplicateTab").addEventListener("click", () => window.neoBrowser.duplicateTab());
+document.getElementById("reopenTab").addEventListener("click", () => window.neoBrowser.reopenClosedTab());
+document.getElementById("pinTab").addEventListener("click", async () => { const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) await window.neoBrowser.togglePinTab(active.id); });
+let lastTabsState = null;
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
 document.getElementById("forward").addEventListener("click", () => window.neoBrowser.forward());
 document.getElementById("reload").addEventListener("click", () => window.neoBrowser.reload());
@@ -60,6 +70,7 @@ document.getElementById("home").addEventListener("click", () => window.neoBrowse
 document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
 
 window.neoBrowser.onTabsState((state)=>{
+  lastTabsState = state;
   renderTabs(state);
   const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
   (state.tabs||[]).forEach(tab=>{if(tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
@@ -92,6 +103,7 @@ function setSettingsTab(tab) {
   document.getElementById("settingsImport").classList.toggle("hidden", tab !== "import");
   document.getElementById("settingsIntegrations").classList.toggle("hidden", tab !== "integrations");
   document.getElementById("settingsHistory").classList.toggle("hidden", tab !== "history");
+  document.getElementById("settingsPrivacy").classList.toggle("hidden", tab !== "privacy");
 }
 
 
@@ -106,7 +118,12 @@ function renderBrowserHistory() {
     link.addEventListener("click",event=>{event.preventDefault();window.neoBrowser.createTab(entry.url);closeSettingsPanel();}); host.append(link);
   });
 }
-document.getElementById("clearBrowserHistory").addEventListener("click",()=>{localStorage.removeItem(browserHistoryKey);renderBrowserHistory();});
+document.getElementById("clearBrowserHistory").addEventListener("click",()=>{localStorage.removeItem(browserHistoryKey);localStorage.removeItem(historyStoreKey);renderBrowserHistory();});
+document.getElementById("clearBrowserData").addEventListener("click", async () => {
+  const status = document.getElementById("privacyStatus"); status.textContent = "Clearing website storage and cache…";
+  try { const result = await window.neoBrowser.clearBrowserData(); if (result.ok) { localStorage.removeItem(browserHistoryKey); localStorage.removeItem(historyStoreKey); status.textContent = "Cookies, cache, website storage and local browsing history cleared."; renderBrowserHistory(); } else status.textContent = "Could not clear all data: " + (result.message || "unknown error"); }
+  catch (error) { status.textContent = "Could not clear browsing data: " + String(error.message || error); }
+});
 
 const sidebarApps = {
   spotify: {label:"Spotify",icon:"♫",url:"https://open.spotify.com/"},
@@ -162,8 +179,20 @@ document.getElementById("sideSettings").addEventListener("click", () => { window
 function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.neoBrowser.showContent(); }
 document.getElementById("closeSettings").addEventListener("click", closeSettingsPanel);
 settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
-document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !settingsPanel.classList.contains("hidden")) closeSettingsPanel(); });
-document.querySelectorAll(".settings-tab").forEach((button) => button.addEventListener("click", () => setSettingsTab(button.dataset.settingsTab)));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !settingsPanel.classList.contains("hidden")) { closeSettingsPanel(); return; }
+  if (!(event.ctrlKey || event.metaKey)) return;
+  const key = event.key.toLowerCase();
+  if (key === "t" && !event.shiftKey) { event.preventDefault(); document.getElementById("newTab").click(); }
+  else if (key === "w") { event.preventDefault(); window.neoBrowser.closeActiveTab(); }
+  else if (key === "l") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
+  else if (key === "d") { event.preventDefault(); window.neoBrowser.duplicateTab(); }
+  else if (key === "t" && event.shiftKey) { event.preventDefault(); window.neoBrowser.reopenClosedTab(); }
+  else if (key === "n" && event.shiftKey) { event.preventDefault(); window.neoBrowser.createTab("about:home", { private: true }); }
+  else if (key === "p" && event.shiftKey) { event.preventDefault(); document.getElementById("pinTab").click(); }
+});
+window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
+document.querySelectorAll(".settings-tab").forEach((button) => button.addEventListener("click", () => { setSettingsTab(button.dataset.settingsTab); if (button.dataset.settingsTab === "history") renderBrowserHistory(); }));
 document.getElementById("importEverything").addEventListener("click", () => setImportPreset("everything"));
 document.getElementById("importNoCookies").addEventListener("click", () => setImportPreset("no-cookies"));
 document.querySelectorAll('input[name="importData"]').forEach((input) => input.addEventListener("change", () => {
