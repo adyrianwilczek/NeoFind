@@ -59,8 +59,7 @@ document.getElementById("reload").addEventListener("click", () => window.neoBrow
 document.getElementById("home").addEventListener("click", () => window.neoBrowser.home());
 document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
 document.getElementById("downloadNeoFind").addEventListener("click", () => window.neoBrowser.navigate("https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe"));
-document.getElementById("brandHome").addEventListener("click", () => window.neoBrowser.home());
-document.getElementById("downloadNeoFind").addEventListener("click", () => window.neoBrowser.navigate("https://neofind.pl/"));
+
 window.neoBrowser.onTabsState(renderTabs);
 window.addEventListener("resize", updateViewportBounds);
 requestAnimationFrame(updateViewportBounds);
@@ -103,7 +102,7 @@ document.getElementById("importNoCookies").addEventListener("click", () => setIm
 document.querySelectorAll('input[name="importData"]').forEach((input) => input.addEventListener("change", () => {
   document.getElementById("importEverything").classList.remove("selected");
   document.getElementById("importNoCookies").classList.remove("selected");
-  importStatus.textContent = "Custom selection updated. This version currently imports bookmarks only.";
+  importStatus.textContent = "Custom selection updated. Only supported data types will be imported.";
 }));
 document.getElementById("setDefaultBrowser").addEventListener("click", async () => {
   const status = document.getElementById("defaultBrowserStatus");
@@ -154,8 +153,8 @@ document.getElementById("chooseBookmarksFile").addEventListener("click", async (
 });
 document.getElementById("showImportedBookmarks").addEventListener("click", renderImportedBookmarks);
 document.getElementById("chooseOperaProfile").addEventListener("click", async () => {
+  const sourceBrowser = document.getElementById("sourceBrowser").value;
   try {
-    const sourceBrowser = document.getElementById("sourceBrowser").value;
     const picked = await window.neoBrowser.chooseSourceProfile(sourceBrowser);
     if (picked.canceled) return;
     const selected = {};
