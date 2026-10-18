@@ -31,7 +31,7 @@
   <section id="settingsPanel" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="settings-card">
       <div class="settings-heading"><div><p class="eyebrow">NEOFIND BROWSER</p><h1 id="settingsTitle">Settings</h1></div><button id="closeSettings" class="tool" aria-label="Close settings">×</button></div>
-      <nav class="settings-tabs"><button class="settings-tab selected" data-settings-tab="general">General</button><button class="settings-tab" data-settings-tab="import">Import</button><button class="settings-tab" data-settings-tab="integrations">Sidebar apps</button></nav>
+      <nav class="settings-tabs"><button class="settings-tab selected" data-settings-tab="general">General</button><button class="settings-tab" data-settings-tab="import">Import</button><button class="settings-tab" data-settings-tab="integrations">Sidebar apps</button><button class="settings-tab" data-settings-tab="history">History</button></nav>
       <section id="settingsGeneral" class="settings-section">
         <h2>General</h2><p>Manage your NeoFind Browser preferences.</p>
         <div class="setting-row"><div><strong>Browser updates</strong><small id="appVersion">Checking installed version...</small><small id="updateStatus" role="status">Updates are checked automatically when the app starts.</small></div><button id="checkUpdatesButton" class="primary-button">Check for updates</button></div>
@@ -41,6 +41,7 @@
         <div class="setting-row"><div><strong>Start page</strong><small>Open NeoFind when a new browser window starts.</small></div><span class="setting-pill">NeoFind</span></div>
       </section>
       <section id="settingsIntegrations" class="settings-section hidden"><h2>Sidebar apps</h2><p>Choose which icons appear on the left. Clicking an icon opens that website in a new tab.</p><div class="data-options"><label><input type="checkbox" data-sidebar-app="spotify" checked><span><strong>Spotify</strong><small>open.spotify.com</small></span></label><label><input type="checkbox" data-sidebar-app="x" checked><span><strong>X (Twitter)</strong><small>x.com</small></span></label><label><input type="checkbox" data-sidebar-app="discord" checked><span><strong>Discord</strong><small>discord.com</small></span></label><label><input type="checkbox" data-sidebar-app="cyrber" checked><span><strong>Cyrber</strong><small>cyrber.com</small></span></label><label><input type="checkbox" data-sidebar-app="github" checked><span><strong>GitHub</strong><small>github.com</small></span></label></div></section>
+      <section id="settingsHistory" class="settings-section hidden"><h2>Browsing history</h2><p>Pages visited in NeoFind Browser on this device.</p><div id="browserHistoryList" class="imported-bookmarks"></div><button id="clearBrowserHistory" class="secondary-button" type="button">Clear history</button></section>
       <section id="settingsImport" class="settings-section hidden">
         <h2>Import browser data</h2><p>Move selected information from another browser into NeoFind Browser.</p>
         <label class="field-label" for="sourceBrowser">Source browser</label>
