@@ -182,14 +182,21 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       const nativeAlert = window.alert.bind(window);
       const nativeConfirm = window.confirm.bind(window);
       const nativePrompt = window.prompt.bind(window);
-      const askBlock = (message) => nativeConfirm(String(message) + "\\n\\nOK: dismiss this message.\\nCancel: block future messages from this website.");
-      window.alert = (message) => { if (blocked) return; if (!askBlock(message)) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); } };
-      window.confirm = (message) => { if (blocked) return false; const result = askBlock(message); if (!result) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); return false; } return nativeConfirm(message); };
-      window.prompt = (message, defaultValue) => { if (blocked) return null; if (!askBlock(message)) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); return null; } return nativePrompt(message, defaultValue); };
+      const blockFutureMessages = () => {
+        const shouldBlock = nativeConfirm("Block future messages from this website?\\n\\nChoose OK to block alerts, confirmations and prompts from this site, or Cancel to keep them enabled.");
+        if (shouldBlock) { blocked = true; window.postMessage({ __neoBlockMessages: true, origin }, "*"); }
+      };
+      window.alert = (message) => { if (blocked) return; nativeAlert(String(message)); blockFutureMessages(); };
+      window.confirm = (message) => { if (blocked) return false; const result = nativeConfirm(String(message)); blockFutureMessages(); return result; };
+      window.prompt = (message, defaultValue) => { if (blocked) return null; const result = nativePrompt(String(message), defaultValue); blockFutureMessages(); return result; };
     })();`;
     wc.executeJavaScript(script).catch(() => {});
   });
-  view.webContents.on("console-message", (_event, level, message) => { if (level > 2 && typeof message === "string" && message.startsWith("__NEOFIND_BLOCK_DIALOGS__:")) blockedDialogOrigins.add(message.slice("__NEOFIND_BLOCK_DIALOGS__:".length)); });
+  view.webContents.on("console-message", (_event, detailsOrLevel, legacyMessage) => {
+    const level = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.level : detailsOrLevel;
+    const message = typeof detailsOrLevel === "object" && detailsOrLevel ? detailsOrLevel.message : legacyMessage;
+    if (level > 2 && typeof message === "string" && message.startsWith("__NEOFIND_BLOCK_DIALOGS__:")) blockedDialogOrigins.add(message.slice("__NEOFIND_BLOCK_DIALOGS__:".length));
+  });
   tabs.set(id, tab);
   const wc = view.webContents;
 
