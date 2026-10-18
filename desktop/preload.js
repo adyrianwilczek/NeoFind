@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   createTab: (url) => ipcRenderer.invoke("tabs:create", url),
   switchTab: (id) => ipcRenderer.send("tabs:switch", id),
   closeTab: (id) => ipcRenderer.send("tabs:close", id),
+  reorderTabs: (fromId, toId) => ipcRenderer.send("tabs:reorder", fromId, toId),
   navigate: (url) => ipcRenderer.send("tabs:navigate", url),
   back: () => ipcRenderer.send("browser:back"),
   forward: () => ipcRenderer.send("browser:forward"),
