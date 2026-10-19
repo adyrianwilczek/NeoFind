@@ -527,7 +527,25 @@ const languageText = {
   "No websites are blocked from showing notifications.": ["Żadna strona nie ma zablokowanych komunikatów.", "Ningún sitio tiene bloqueadas las notificaciones."],
   "Unblock": ["Odblokuj", "Desbloquear"],
   "Blocked websites cannot show notification prompts until unblocked here.": ["Zablokowane strony nie mogą wyświetlać próśb o komunikaty, dopóki nie zostaną tutaj odblokowane.", "Los sitios bloqueados no pueden mostrar solicitudes de notificaciones hasta que se desbloqueen aquí."],
-  "Could not unblock this website.": ["Nie udało się odblokować tej strony.", "No se pudo desbloquear este sitio."]
+  "Could not unblock this website.": ["Nie udało się odblokować tej strony.", "No se pudo desbloquear este sitio."],
+  "Downloads": ["Pobrane pliki", "Descargas"],
+  "Password Manager": ["Menedżer haseł", "Gestor de contraseñas"],
+  "Files downloaded in NeoFind Browser, including the website they came from.": ["Pliki pobrane w NeoFind Browser wraz ze stroną, z której pochodzą.", "Archivos descargados en NeoFind Browser, incluido el sitio de origen."],
+  "Clear download history": ["Wyczyść historię pobierania", "Borrar historial de descargas"],
+  "Passwords are encrypted locally. Create a separate Password Manager PIN. Do not use your Windows sign-in PIN here.": ["Hasła są szyfrowane lokalnie. Utwórz osobny PIN Menedżera haseł. Nie używaj tutaj PIN-u logowania Windows.", "Las contraseñas se cifran localmente. Crea un PIN independiente para el gestor de contraseñas. No uses aquí tu PIN de Windows."],
+  "Create PIN (4–12 digits)": ["Utwórz PIN (4–12 cyfr)", "Crear PIN (4–12 dígitos)"],
+  "Password Manager PIN": ["PIN Menedżera haseł", "PIN del gestor de contraseñas"],
+  "Update ready": ["Aktualizacja gotowa", "Actualización lista"],
+  "A new update is available.": ["Dostępna jest nowa aktualizacja.", "Hay una nueva actualización disponible."],
+  "Not now": ["Nie teraz", "Ahora no"],
+  "Update": ["Aktualizuj", "Actualizar"],
+  "Open": ["Otwórz", "Abrir"],
+  "Show in folder": ["Pokaż w folderze", "Mostrar en carpeta"],
+  "Show password": ["Pokaż hasło", "Mostrar contraseña"],
+  "Hide password": ["Ukryj hasło", "Ocultar contraseña"],
+  "Copy password": ["Kopiuj hasło", "Copiar contraseña"],
+  "Open website": ["Otwórz stronę", "Abrir sitio web"],
+  "Delete": ["Usuń", "Eliminar"]
 };
 const languageAttributeRecords = new WeakMap();
 const languageTextRecords = new WeakMap();
