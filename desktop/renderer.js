@@ -7,7 +7,7 @@ function renderTabs(state) {
   for (const tab of state.tabs) {
     const item = document.createElement("div");
     item.className = "tab" + (tab.id === state.activeTabId ? " active" : "") + (tab.pinned ? " pinned" : "") + (tab.isPrivate ? " private-tab" : "");
-    item.title = (tab.isPrivate ? "Private tab · " : "") + (tab.isHomeTab ? "about:home" : (tab.url || "about:blank"));
+    item.title = (tab.isPrivate ? "Private tab · " : "") + (tab.url || "about:blank");
     item.draggable = true;
     item.dataset.tabId = String(tab.id);
     item.addEventListener("click", () => window.neoBrowser.switchTab(tab.id));
@@ -86,7 +86,7 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
   addressInput.blur();
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
-document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "https://neofind.pl/" : "about:home"); });
+document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "about:home" : "about:blank"); });
 let lastTabsState = null;
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
 document.getElementById("forward").addEventListener("click", () => window.neoBrowser.forward());
@@ -124,6 +124,29 @@ function applyBrowserTheme(theme) {
 applyBrowserTheme(localStorage.getItem(browserThemeKey) || "midnight");
 themeSelect.addEventListener("change", () => applyBrowserTheme(themeSelect.value));
 
+async function renderBlockedNotifications() {
+  const host = document.getElementById("blockedNotificationsList");
+  const status = document.getElementById("blockedNotificationsStatus");
+  if (!host) return;
+  host.replaceChildren();
+  let origins = [];
+  try { origins = await window.neoBrowser.getBlockedNotificationOrigins(); } catch {}
+  if (!Array.isArray(origins) || origins.length === 0) {
+    const empty = document.createElement("p"); empty.className = "empty-list";
+    empty.textContent = "No websites are blocked from showing notifications."; host.append(empty);
+    if (status) status.textContent = ""; return;
+  }
+  origins.forEach((origin) => {
+    const row = document.createElement("div"); row.className = "blocked-notification-row";
+    const label = document.createElement("span"); label.textContent = origin;
+    const button = document.createElement("button"); button.type = "button"; button.className = "secondary-button"; button.textContent = "Unblock";
+    button.addEventListener("click", async () => { button.disabled = true; const result = await window.neoBrowser.unblockNotificationOrigin(origin); if (result && result.ok) await renderBlockedNotifications(); else { button.disabled = false; if (status) status.textContent = "Could not unblock this website."; } });
+    row.append(label, button); host.append(row);
+  });
+  if (status) status.textContent = "Blocked websites cannot show notification prompts until unblocked here.";
+}
+window.neoBrowser.onBlockedNotificationsChanged(() => renderBlockedNotifications());
+
 function setSettingsTab(tab) {
   document.querySelectorAll(".settings-tab").forEach((button) => button.classList.toggle("selected", button.dataset.settingsTab === tab));
   document.getElementById("settingsGeneral").classList.toggle("hidden", tab !== "general");
@@ -131,6 +154,7 @@ function setSettingsTab(tab) {
   document.getElementById("settingsIntegrations").classList.toggle("hidden", tab !== "integrations");
   document.getElementById("settingsHistory").classList.toggle("hidden", tab !== "history");
   document.getElementById("settingsPrivacy").classList.toggle("hidden", tab !== "privacy");
+  if (tab === "general") renderBlockedNotifications();
 }
 
 
