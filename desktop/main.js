@@ -1,4 +1,5 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session } = require("electron");
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session, safeStorage, clipboard } = require("electron");
+const crypto = require("node:crypto");
 const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
@@ -16,6 +17,80 @@ let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
 const recentlyClosedTabs = [];
+const downloadHistoryPath = path.join(app.getPath("userData"), "download-history.json");
+const passwordVaultPath = path.join(app.getPath("userData"), "password-vault.json");
+let pendingPasswordCandidate = null;
+function readDownloadHistory() {
+  try { const value = JSON.parse(fsSync.readFileSync(downloadHistoryPath, "utf8")); return Array.isArray(value) ? value : []; }
+  catch { return []; }
+}
+function writeDownloadHistory(items) {
+  try { fsSync.mkdirSync(path.dirname(downloadHistoryPath), { recursive: true }); fsSync.writeFileSync(downloadHistoryPath, JSON.stringify(items.slice(0, 1000), null, 2), "utf8"); return true; }
+  catch (error) { console.error("Could not save download history:", error); return false; }
+}
+function sendDownloadHistory() { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("downloads:state", readDownloadHistory()); }
+function readPasswordVault() { try { return JSON.parse(fsSync.readFileSync(passwordVaultPath, "utf8")); } catch { return null; } }
+function writePasswordVault(vault) {
+  try { fsSync.mkdirSync(path.dirname(passwordVaultPath), { recursive: true }); fsSync.writeFileSync(passwordVaultPath, JSON.stringify(vault, null, 2), { mode: 0o600 }); return true; }
+  catch (error) { console.error("Could not save password vault:", error); return false; }
+}
+function verifyVaultPin(pin, vault = readPasswordVault()) {
+  if (!vault || !vault.pinSalt || !vault.pinHash || typeof pin !== "string") return false;
+  const actual = crypto.scryptSync(pin, vault.pinSalt, 32);
+  const expected = Buffer.from(vault.pinHash, "hex");
+  return expected.length === actual.length && crypto.timingSafeEqual(actual, expected);
+}
+function readVaultEntries(vault = readPasswordVault()) {
+  if (!vault || !vault.encryptedEntries || !safeStorage.isEncryptionAvailable()) return [];
+  try { return JSON.parse(safeStorage.decryptString(Buffer.from(vault.encryptedEntries, "base64"))); } catch { return []; }
+}
+function writeVaultEntries(entries, vault = readPasswordVault()) {
+  if (!vault || !safeStorage.isEncryptionAvailable()) return false;
+  try { vault.encryptedEntries = safeStorage.encryptString(JSON.stringify(entries)).toString("base64"); return writePasswordVault(vault); } catch { return false; }
+}
+function saveCredentialEntry(candidate) {
+  const vault = readPasswordVault();
+  if (!vault || !safeStorage.isEncryptionAvailable()) return false;
+  const entries = readVaultEntries(vault);
+  const origin = String(candidate.origin || "");
+  const username = String(candidate.username || "");
+  const existing = entries.findIndex(entry => entry.origin === origin && entry.username === username);
+  const entry = { id: crypto.randomUUID(), origin, url: String(candidate.url || origin), title: String(candidate.title || origin), username, password: String(candidate.password || ""), savedAt: new Date().toISOString() };
+  if (existing >= 0) { entry.id = entries[existing].id; entries[existing] = entry; } else entries.unshift(entry);
+  return writeVaultEntries(entries, vault);
+}
+function sendPasswordVaultChanged() { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("passwords:changed"); }
+function handleCredentialCandidate(candidate) {
+  if (!candidate || typeof candidate.origin !== "string" || !/^https?:\/\//i.test(candidate.origin) || typeof candidate.password !== "string" || !candidate.password || typeof candidate.username !== "string" || !mainWindow || mainWindow.isDestroyed()) return;
+  if (!readPasswordVault()) {
+    pendingPasswordCandidate = candidate;
+    dialog.showMessageBox(mainWindow, { type: "info", title: "Password Manager", message: "Set up Password Manager before saving this login.", detail: "Create a separate NeoFind Password Manager PIN in Settings. This is not your Windows PIN.", buttons: ["Open Password Manager", "Not now"], defaultId: 0, cancelId: 1 }).then(({ response }) => {
+      if (response === 0 && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("passwords:open-settings");
+      else pendingPasswordCandidate = null;
+    }).catch(() => { pendingPasswordCandidate = null; });
+    return;
+  }
+  dialog.showMessageBox(mainWindow, { type: "question", title: "Save password?", message: "Save login for " + candidate.origin + "?", detail: "Username: " + (candidate.username || "(not detected)") + "\nThe password will be encrypted in your local vault.", buttons: ["Don't save", "Save password"], defaultId: 1, cancelId: 0 }).then(({ response }) => {
+    if (response === 1 && saveCredentialEntry(candidate)) sendPasswordVaultChanged();
+  }).catch(() => {});
+}
+function installCredentialCapture(wc) {
+  if (!wc || wc.isDestroyed()) return;
+  wc.executeJavaScript(`(() => {
+    if (window.__neoFindCredentialCaptureInstalled) return;
+    window.__neoFindCredentialCaptureInstalled = true;
+    document.addEventListener("submit", (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const passwordInput = form.querySelector('input[type="password"]');
+      if (!passwordInput || !passwordInput.value) return;
+      const userInput = form.querySelector('input[autocomplete="username"], input[type="email"], input[name*="user" i], input[name*="email" i], input[name*="login" i], input[type="text"]');
+      const candidate = { origin: location.origin, url: location.href, title: document.title, username: userInput ? userInput.value : "", password: passwordInput.value };
+      console.info("__NEOFIND_PASSWORD_CANDIDATE__" + JSON.stringify(candidate));
+    }, true);
+  })()`).catch(() => {});
+}
+
 const blockedNotificationsPath = path.join(app.getPath("userData"), "blocked-notifications.json");
 function getBlockedNotificationOrigins() {
   try { const data = JSON.parse(fsSync.readFileSync(blockedNotificationsPath, "utf8")); return Array.isArray(data) ? Array.from(new Set(data.filter(value => typeof value === "string"))) : []; }
@@ -186,9 +261,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (control && key === "u") {
       event.preventDefault();
       if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:shortcut", "settings");
-    } else if (control && key === "c") {
-      event.preventDefault();
-      if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:focus-address");
     } else if (control && key === "r") {
       event.preventDefault();
       activeContents()?.reload();
@@ -205,6 +277,12 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     openTab(url, true);
     return { action: "deny" };
   });
+  wc.on("console-message", (_event, details) => {
+    const message = typeof details === "string" ? details : details && details.message;
+    if (typeof message !== "string" || !message.startsWith("__NEOFIND_PASSWORD_CANDIDATE__")) return;
+    try { handleCredentialCandidate(JSON.parse(message.slice("__NEOFIND_PASSWORD_CANDIDATE__".length))); } catch {}
+  });
+  wc.on("dom-ready", () => installCredentialCapture(wc));
   wc.on("page-title-updated", (_event, title) => {
     tab.title = tab.isHomeTab ? "New Tab" : (title || "New Tab");
     sendState();
@@ -305,6 +383,30 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, "ui.html"));
+  session.defaultSession.on("will-download", (_event, item) => {
+    const sourceUrl = item.getURL();
+    const originalName = item.getFilename() || "download";
+    const downloadsDir = app.getPath("downloads");
+    let targetPath = item.getSavePath();
+    if (!targetPath) {
+      const parsed = path.parse(originalName);
+      let candidatePath = path.join(downloadsDir, originalName);
+      let suffix = 1;
+      while (fsSync.existsSync(candidatePath)) candidatePath = path.join(downloadsDir, parsed.name + " (" + suffix++ + ")" + parsed.ext);
+      targetPath = candidatePath;
+      item.setSavePath(targetPath);
+    }
+    const entry = { id: crypto.randomUUID(), filename: path.basename(targetPath), url: sourceUrl, path: targetPath, startedAt: new Date().toISOString(), finishedAt: null, state: "downloading", receivedBytes: 0, totalBytes: item.getTotalBytes() };
+    const history = readDownloadHistory(); history.unshift(entry); writeDownloadHistory(history); sendDownloadHistory();
+    item.on("updated", (_updateEvent, state) => {
+      const list = readDownloadHistory(); const current = list.find(row => row.id === entry.id);
+      if (current) { current.state = state === "interrupted" ? "interrupted" : "downloading"; current.receivedBytes = item.getReceivedBytes(); current.totalBytes = item.getTotalBytes(); writeDownloadHistory(list); sendDownloadHistory(); }
+    });
+    item.once("done", (_doneEvent, state) => {
+      const list = readDownloadHistory(); const current = list.find(row => row.id === entry.id);
+      if (current) { current.state = state === "completed" ? "completed" : state === "cancelled" ? "cancelled" : "interrupted"; current.receivedBytes = item.getReceivedBytes(); current.totalBytes = item.getTotalBytes(); current.finishedAt = new Date().toISOString(); current.path = item.getSavePath() || current.path; current.filename = path.basename(current.path); writeDownloadHistory(list); sendDownloadHistory(); }
+    });
+  });
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
     const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return "this website"; } })() : "this website";
     const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
@@ -348,6 +450,45 @@ ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL,
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
+ipcMain.handle("downloads:get", () => readDownloadHistory());
+ipcMain.handle("downloads:open", async (_event, id) => {
+  const entry = readDownloadHistory().find(row => row.id === id);
+  if (!entry || entry.state !== "completed" || !entry.path) return { ok: false, message: "File is not available." };
+  const error = await shell.openPath(entry.path); return error ? { ok: false, message: error } : { ok: true };
+});
+ipcMain.handle("downloads:show-in-folder", (_event, id) => {
+  const entry = readDownloadHistory().find(row => row.id === id); if (!entry || !entry.path) return { ok: false };
+  shell.showItemInFolder(entry.path); return { ok: true };
+});
+ipcMain.handle("downloads:clear-history", () => { const ok = writeDownloadHistory([]); sendDownloadHistory(); return { ok }; });
+ipcMain.handle("passwords:has-pin", () => !!readPasswordVault());
+ipcMain.handle("passwords:set-pin", (_event, pin) => {
+  if (typeof pin !== "string" || !/^\d{4,12}$/.test(pin)) return { ok: false, message: "Use a separate 4–12 digit Password Manager PIN." };
+  if (!safeStorage.isEncryptionAvailable()) return { ok: false, message: "Windows secure storage is not available." };
+  if (readPasswordVault()) return { ok: false, message: "The Password Manager is already set up." };
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(pin, salt, 32).toString("hex");
+  const ok = writePasswordVault({ version: 1, pinSalt: salt, pinHash: hash, encryptedEntries: safeStorage.encryptString("[]").toString("base64") });
+  if (ok) { if (pendingPasswordCandidate) { const candidate = pendingPasswordCandidate; pendingPasswordCandidate = null; setTimeout(() => handleCredentialCandidate(candidate), 150); } return { ok: true }; }
+  return { ok: false, message: "Could not create the encrypted password vault." };
+});
+ipcMain.handle("passwords:get", (_event, pin) => {
+  const vault = readPasswordVault(); if (!verifyVaultPin(pin, vault)) return { ok: false, message: "Incorrect Password Manager PIN." };
+  return { ok: true, entries: readVaultEntries(vault) };
+});
+ipcMain.handle("passwords:delete", (_event, pin, id) => {
+  const vault = readPasswordVault(); if (!verifyVaultPin(pin, vault)) return { ok: false, message: "Incorrect Password Manager PIN." };
+  const ok = writeVaultEntries(readVaultEntries(vault).filter(entry => entry.id !== id), vault); if (ok) sendPasswordVaultChanged(); return { ok };
+});
+ipcMain.handle("passwords:copy", (_event, pin, id) => {
+  const vault = readPasswordVault(); if (!verifyVaultPin(pin, vault)) return { ok: false, message: "Incorrect Password Manager PIN." };
+  const entry = readVaultEntries(vault).find(row => row.id === id); if (!entry) return { ok: false, message: "Password not found." };
+  clipboard.writeText(entry.password); return { ok: true };
+});
+ipcMain.handle("passwords:open-url", async (_event, url) => {
+  try { const parsed = new URL(url); if (!["http:", "https:"].includes(parsed.protocol)) return { ok: false }; return { ok: true, tabId: openTab(parsed.href, true) }; }
+  catch { return { ok: false }; }
+});
 ipcMain.handle("browser:blocked-notifications:get", () => getBlockedNotificationOrigins());
 ipcMain.handle("browser:blocked-notifications:unblock", (_event, origin) => {
   if (typeof origin !== "string") return { ok: false };
@@ -533,14 +674,12 @@ autoUpdater.on("update-available", (info) => sendUpdaterState({ status: "availab
 autoUpdater.on("update-not-available", (info) => sendUpdaterState({ status: "current", version: info.version, message: "NeoFind Browser is up to date." }));
 autoUpdater.on("download-progress", (progress) => sendUpdaterState({ status: "downloading", percent: Math.round(progress.percent), message: "Downloading update: " + Math.round(progress.percent) + "%" }));
 autoUpdater.on("update-downloaded", (info) => {
-  sendUpdaterState({ status: "downloaded", version: info.version, message: "Update downloaded. Restart to install it." });
-  if (!mainWindow || mainWindow.isDestroyed()) return;
-  dialog.showMessageBox(mainWindow, {
-    type: "info", title: "NeoFind Browser update ready",
-    message: "NeoFind Browser " + info.version + " has been downloaded.",
-    detail: "Restart the browser now to install the update. Your browser data should remain in place.",
-    buttons: ["Restart and install", "Later"], defaultId: 0, cancelId: 1
-  }).then(({ response }) => { if (response === 0) autoUpdater.quitAndInstall(); });
+  sendUpdaterState({ status: "downloaded", version: info.version, message: "Update downloaded. Ready to install." });
+});
+ipcMain.handle("updater:install", () => {
+  if (!app.isPackaged) return { ok: false, message: "Updates can be installed from the packaged app." };
+  setTimeout(() => autoUpdater.quitAndInstall(), 150);
+  return { ok: true };
 });
 autoUpdater.on("error", (error) => sendUpdaterState({ status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }));
 
