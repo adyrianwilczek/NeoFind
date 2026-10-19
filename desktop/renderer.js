@@ -545,7 +545,24 @@ const languageText = {
   "Hide password": ["Ukryj hasło", "Ocultar contraseña"],
   "Copy password": ["Kopiuj hasło", "Copiar contraseña"],
   "Open website": ["Otwórz stronę", "Abrir sitio web"],
-  "Delete": ["Usuń", "Eliminar"]
+  "Delete": ["Usuń", "Eliminar"],
+  "Site permissions": ["Uprawnienia witryn", "Permisos de sitios"],
+  "Review remembered Allow and Deny choices for location, notifications and other supported permissions.": ["Sprawdź zapamiętane zgody i odmowy dotyczące lokalizacji, komunikatów i innych uprawnień.", "Revisa las decisiones guardadas de permitir y denegar ubicación, notificaciones y otros permisos."],
+  "No remembered site permission choices.": ["Brak zapamiętanych uprawnień witryn.", "No hay decisiones de permisos guardadas."],
+  "Remembered site permissions. Remove a choice to make NeoFind ask again.": ["Zapamiętane uprawnienia witryn. Usuń decyzję, aby NeoFind zapytał ponownie.", "Permisos de sitios guardados. Elimina una decisión para que NeoFind vuelva a preguntar."],
+  "Forget": ["Zapomnij", "Olvidar"],
+  "Always allow": ["Zawsze zezwalaj", "Permitir siempre"],
+  "Always deny": ["Zawsze odmawiaj", "Denegar siempre"],
+  "Always allow this site for this permission": ["Zawsze zezwalaj tej stronie na to uprawnienie", "Permitir siempre este permiso a este sitio"],
+  "Website permission": ["Uprawnienie witryny", "Permiso del sitio"],
+  "Deny": ["Odmów", "Denegar"],
+  "Allow": ["Zezwól", "Permitir"],
+  "Open page !HIGH RISK!": ["Otwórz stronę !WYSOKIE RYZYKO!", "Abrir página ¡ALTO RIESGO!"],
+  "This site is blocked": ["Ta strona jest zablokowana", "Este sitio está bloqueado"],
+  "Neo cannot find this page": ["Neo nie może odnaleźć tej strony", "Neo no puede encontrar esta página"],
+  "Check whether there is a mistake in this address:": ["Sprawdź, czy w tym adresie nie ma błędu:", "Comprueba si hay un error en esta dirección:"],
+  "Go back": ["Wróć", "Volver"],
+  "Try again": ["Spróbuj ponownie", "Intentar de nuevo"]
 };
 const languageAttributeRecords = new WeakMap();
 const languageTextRecords = new WeakMap();
