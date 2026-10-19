@@ -117,6 +117,18 @@ function makeBlockedPage(target, reason) {
   const safeReason = String(reason || "NeoFind Browser could not verify this page.").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   return "data:text/html;charset=utf-8," + encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Page blocked by NeoFind</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:660px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30;box-shadow:0 20px 70px #0008}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#273c55;color:white}.danger{background:#a92f39;color:white}</style></head><body><main class='card'><p>NEOFIND BROWSER · SAFETY CHECK</p><h1>Ta strona jest zablokowana</h1><p>" + safeReason + "</p><p><b>Adres:</b> " + safeTarget + "</p><p>NeoFind Browser nie może zagwarantować bezpieczeństwa tej strony. Otwieraj ją tylko wtedy, gdy ufasz jej źródłu.</p><div class='buttons'><button onclick='history.back()'>OK</button><button class='danger' id='openRisk'>Open page !HIGH RISK!</button></div></main><script>document.getElementById('openRisk').addEventListener('click',()=>{location.href=" + JSON.stringify(String(target)) + "})</script></body></html>");
 }
+function loadAddressInTab(tab, address) {
+  const targetUrl = normalizeAddress(address);
+  if (isHttpUrl(targetUrl)) {
+    const reason = getRiskReason(targetUrl);
+    if (reason) {
+      tab.pendingRiskUrl = targetUrl; tab.errorUrl = null; tab.title = "Page blocked by NeoFind"; tab.url = targetUrl;
+      return tab.view.webContents.loadURL(makeBlockedPage(targetUrl, reason));
+    }
+  }
+  tab.pendingRiskUrl = null; tab.errorUrl = null;
+  return tab.view.webContents.loadURL(targetUrl);
+}
 function makeNavigationErrorPage(target) {
   const safeTarget = String(target).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   return "data:text/html;charset=utf-8," + encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>NeoFind: page not found</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:680px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;background:#273c55;color:white;cursor:pointer}</style></head><body><main class='card'><p>NEOFIND BROWSER</p><h1>Neo nie może odnaleźć strony</h1><p>Sprawdź, czy w <b>" + safeTarget + "</b> nie ma błędu.</p><p>Sprawdź pisownię adresu, połączenie z internetem albo spróbuj ponownie.</p><button onclick='history.back()'>Go back</button></main></body></html>");
@@ -345,19 +357,28 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   });
   wc.on("did-stop-loading", () => {
     tab.loading = false;
-    tab.url = tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
-    tab.title = wc.getTitle() || tab.title || "New Tab";
-    if (!tab.isHomeTab) tab.url = wc.getURL() || tab.url || HOME_URL;
+    if (tab.pendingRiskUrl || tab.errorUrl) {
+      tab.url = tab.pendingRiskUrl || tab.errorUrl;
+      tab.title = tab.pendingRiskUrl ? "Page blocked by NeoFind" : "NeoFind: page not found";
+    } else {
+      tab.url = tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
+      tab.title = wc.getTitle() || tab.title || "New Tab";
+      if (!tab.isHomeTab) tab.url = wc.getURL() || tab.url || HOME_URL;
+    }
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate", (_event, url) => {
+    if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
+    tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
     else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate-in-page", (_event, url) => {
+    if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
+    tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
     else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
     sendState();
@@ -377,7 +398,8 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   }
 
   const targetUrl = homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
-  wc.loadURL(targetUrl).catch(() => {
+  loadAddressInTab(tab, targetUrl).catch(() => {
+    if (tab.pendingRiskUrl || tab.errorUrl) return;
     tab.loading = false;
     tab.title = "Unable to load page";
     sendState();
@@ -604,8 +626,8 @@ ipcMain.on("tabs:reorder", (_event, fromId, toId) => {
   queueSessionSave();
 });
 ipcMain.on("tabs:navigate", (_event, address) => {
-  const wc = activeContents();
-  if (wc) wc.loadURL(normalizeAddress(address)).catch(() => {});
+  const tab = tabs.get(activeTabId);
+  if (tab) loadAddressInTab(tab, address).catch(() => {});
 });
 ipcMain.on("browser:back", () => {
   const wc = activeContents();
