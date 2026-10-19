@@ -305,6 +305,10 @@ function createWindow() {
   });
 
   mainWindow.loadFile(path.join(__dirname, "ui.html"));
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+    if (permission === "notifications" && getBlockedNotificationOrigins().includes(requestingOrigin)) return false;
+    return undefined;
+  });
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
     const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return "this website"; } })() : "this website";
     const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
