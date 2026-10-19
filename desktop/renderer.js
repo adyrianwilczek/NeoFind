@@ -622,8 +622,10 @@ function applyBrowserLanguage(language) {
 }
 if (languageSelect) {
   languageSelect.value = getBrowserLanguage();
+  window.neoBrowser.setBrowserLanguage(getBrowserLanguage()).catch(() => {});
   languageSelect.addEventListener("change", () => {
     localStorage.setItem(browserLanguageKey, languageSelect.value);
+    window.neoBrowser.setBrowserLanguage(languageSelect.value).catch(() => {});
     applyBrowserLanguage(languageSelect.value);
   });
 }
