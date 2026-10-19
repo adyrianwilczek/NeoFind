@@ -4,6 +4,7 @@ const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
 const path = require("node:path");
+const { pathToFileURL } = require("node:url");
 
 const HOME_URL = "https://neofind.pl/";
 let mainWindow;
@@ -92,6 +93,34 @@ function installCredentialCapture(wc) {
 }
 
 const blockedNotificationsPath = path.join(app.getPath("userData"), "blocked-notifications.json");
+const permissionDecisionsPath = path.join(app.getPath("userData"), "permission-decisions.json");
+function readPermissionDecisions() { try { const value = JSON.parse(fsSync.readFileSync(permissionDecisionsPath, "utf8")); return value && typeof value === "object" && !Array.isArray(value) ? value : {}; } catch { return {}; } }
+function savePermissionDecision(origin, permission, decision) {
+  const decisions = readPermissionDecisions(); decisions[origin + "|" + permission] = decision;
+  try { fsSync.mkdirSync(path.dirname(permissionDecisionsPath), { recursive: true }); fsSync.writeFileSync(permissionDecisionsPath, JSON.stringify(decisions, null, 2), "utf8"); return true; }
+  catch (error) { console.error("Could not save website permission:", error); return false; }
+}
+function getPermissionDecision(origin, permission) { return readPermissionDecisions()[origin + "|" + permission] || null; }
+function getRiskReason(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.toLowerCase();
+    if (url.username || url.password) return "The address contains hidden login credentials.";
+    if (host.startsWith("xn--") || host.split(".").some(part => part.startsWith("xn--"))) return "The domain uses encoded characters that can disguise its real name.";
+    if (url.protocol === "http:" && /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return "This page uses an unencrypted connection to a numeric IP address.";
+    if (/(^|\.)neofind\.pl\./i.test(host) || /(^|\.)(paypa[l1]|micros0ft|g[o0]{2}gle|app1e)\./i.test(host)) return "The domain resembles a well-known site but may be a look-alike.";
+  } catch {}
+  return "";
+}
+function makeBlockedPage(target, reason) {
+  const safeTarget = String(target).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const safeReason = String(reason || "NeoFind Browser could not verify this page.").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  return "data:text/html;charset=utf-8," + encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Page blocked by NeoFind</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:660px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30;box-shadow:0 20px 70px #0008}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#273c55;color:white}.danger{background:#a92f39;color:white}</style></head><body><main class='card'><p>NEOFIND BROWSER · SAFETY CHECK</p><h1>Ta strona jest zablokowana</h1><p>" + safeReason + "</p><p><b>Adres:</b> " + safeTarget + "</p><p>NeoFind Browser nie może zagwarantować bezpieczeństwa tej strony. Otwieraj ją tylko wtedy, gdy ufasz jej źródłu.</p><div class='buttons'><button onclick='history.back()'>OK</button><button class='danger' id='openRisk'>Open page !HIGH RISK!</button></div></main><script>document.getElementById('openRisk').addEventListener('click',()=>{if(window.neoBrowser)window.neoBrowser.openRiskPage(" + JSON.stringify(String(target)) + ")})</script></body></html>");
+}
+function makeNavigationErrorPage(target) {
+  const safeTarget = String(target).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  return "data:text/html;charset=utf-8," + encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>NeoFind: page not found</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:680px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;background:#273c55;color:white;cursor:pointer}</style></head><body><main class='card'><p>NEOFIND BROWSER</p><h1>Neo nie może odnaleźć strony</h1><p>Sprawdź, czy w <b>" + safeTarget + "</b> nie ma błędu.</p><p>Sprawdź pisownię adresu, połączenie z internetem albo spróbuj ponownie.</p><button onclick='history.back()'>Go back</button></main></body></html>");
+}
 function getBlockedNotificationOrigins() {
   try { const data = JSON.parse(fsSync.readFileSync(blockedNotificationsPath, "utf8")); return Array.isArray(data) ? Array.from(new Set(data.filter(value => typeof value === "string"))) : []; }
   catch { return []; }
@@ -179,11 +208,15 @@ function normalizeAddress(input) {
   const value = String(input || "").trim();
   if (!value || /^about:(blank|home)$/i.test(value)) return "about:blank";
   if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
-
+  if (/^file:/i.test(value)) { try { const url = new URL(value); if (url.protocol === "file:") return url.href; } catch {} }
+  if (/^(?:[a-zA-Z]:[\\/]|\\\\)/.test(value) || /^\.\.?[\\/]/.test(value)) {
+    try { return pathToFileURL(path.resolve(value)).href; } catch {}
+  }
   if (/^[a-zA-Z][a-zA-Z\d+.-]*:/.test(value)) {
     try {
       const url = new URL(value);
       if (url.protocol === "http:" || url.protocol === "https:") return url.href;
+      if (url.protocol === "file:") return url.href;
     } catch {}
     return "https://www.google.com/search?q=" + encodeURIComponent(value);
   }
@@ -276,6 +309,24 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   wc.setWindowOpenHandler(({ url }) => {
     openTab(url, true);
     return { action: "deny" };
+  });
+  wc.on("will-navigate", (event, targetUrl) => {
+    if (!isHttpUrl(targetUrl)) return;
+    const reason = getRiskReason(targetUrl);
+    if (!reason) return;
+    event.preventDefault();
+    tab.pendingRiskUrl = targetUrl;
+    tab.title = "Page blocked by NeoFind";
+    tab.url = targetUrl;
+    wc.loadURL(makeBlockedPage(targetUrl, reason)).catch(() => {});
+  });
+  wc.on("did-fail-load", (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (!isMainFrame || errorCode === -3 || !validatedURL || !isHttpUrl(validatedURL)) return;
+    tab.loading = false;
+    tab.errorUrl = validatedURL;
+    tab.title = "NeoFind: page not found";
+    tab.url = validatedURL;
+    wc.loadURL(makeNavigationErrorPage(validatedURL)).catch(() => {});
   });
   wc.on("console-message", (_event, details) => {
     const message = typeof details === "string" ? details : details && details.message;
@@ -407,22 +458,34 @@ function createWindow() {
       if (current) { current.state = state === "completed" ? "completed" : state === "cancelled" ? "cancelled" : "interrupted"; current.receivedBytes = item.getReceivedBytes(); current.totalBytes = item.getTotalBytes(); current.finishedAt = new Date().toISOString(); current.path = item.getSavePath() || current.path; current.filename = path.basename(current.path); writeDownloadHistory(list); sendDownloadHistory(); }
     });
   });
+  const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
+  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+    if (!allowedPermissions.has(permission)) return false;
+    const origin = (() => { try { return new URL(requestingOrigin).origin; } catch { return ""; } })();
+    if (!origin) return false;
+    if (permission === "notifications" && getBlockedNotificationOrigins().includes(origin)) return false;
+    return getPermissionDecision(origin, permission) === "allow";
+  });
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
-    const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return "this website"; } })() : "this website";
-    const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
-    if (!allowedPermissions.has(permission) || !mainWindow || mainWindow.isDestroyed()) { callback(false); return; }
+    const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return ""; } })() : "";
+    if (!allowedPermissions.has(permission) || !origin || !mainWindow || mainWindow.isDestroyed()) { callback(false); return; }
     if (permission === "notifications" && getBlockedNotificationOrigins().includes(origin)) { callback(false); return; }
+    const previous = getPermissionDecision(origin, permission);
+    if (previous === "allow") { callback(true); return; }
+    if (previous === "deny") { callback(false); return; }
     const isNotificationRequest = permission === "notifications";
     const buttons = isNotificationRequest ? ["Deny", "Allow", "Block notifications for this site"] : ["Deny", "Allow"];
-    const detail = isNotificationRequest ? "Allow notifications only if you trust this website. You can block this site's notifications now and undo that choice in Settings → General." : "Allow only if you trust this website. You can deny the request.";
-    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants permission: " + permission, detail, buttons, defaultId: 0, cancelId: 0 }).then(({ response }) => {
+    const detail = isNotificationRequest ? "Allow notifications only if you trust this website. Blocked sites can be unblocked in Settings → General." : "Allow only if you trust this website.";
+    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants access to " + permission + ".", detail, buttons, defaultId: 0, cancelId: 0, checkboxLabel: "Always allow for this site", checkboxChecked: false }).then(({ response, checkboxChecked }) => {
       if (isNotificationRequest && response === 2) {
         const origins = getBlockedNotificationOrigins(); if (!origins.includes(origin)) origins.push(origin);
-        saveBlockedNotificationOrigins(origins); callback(false);
+        saveBlockedNotificationOrigins(origins); savePermissionDecision(origin, permission, "deny"); callback(false);
         if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:blocked-notifications-changed");
         return;
       }
-      callback(response === 1);
+      const allow = response === 1;
+      if (checkboxChecked && allow) savePermissionDecision(origin, permission, "allow");
+      callback(allow);
     }).catch(() => callback(false));
   });
   mainWindow.webContents.once("did-finish-load", () => {
@@ -461,6 +524,14 @@ ipcMain.handle("downloads:show-in-folder", (_event, id) => {
   shell.showItemInFolder(entry.path); return { ok: true };
 });
 ipcMain.handle("downloads:clear-history", () => { const ok = writeDownloadHistory([]); sendDownloadHistory(); return { ok }; });
+ipcMain.handle("browser:open-risk-page", async (event, targetUrl) => {
+  if (!isHttpUrl(targetUrl)) return { ok: false };
+  const tab = Array.from(tabs.values()).find(item => item.view.webContents === event.sender);
+  if (!tab) return { ok: false };
+  tab.pendingRiskUrl = null; tab.errorUrl = null;
+  await tab.view.webContents.loadURL(targetUrl).catch(() => {});
+  return { ok: true };
+});
 ipcMain.handle("passwords:has-pin", () => !!readPasswordVault());
 ipcMain.handle("passwords:set-pin", (_event, pin) => {
   if (typeof pin !== "string" || !/^\d{4,12}$/.test(pin)) return { ok: false, message: "Use a separate 4–12 digit Password Manager PIN." };
