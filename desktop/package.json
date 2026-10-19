@@ -29,7 +29,8 @@
       "style.css",
       "package.json",
       "icon.ico",
-      "icon_round.png"
+      "icon_round.png",
+      "features-014.js"
     ],
     "win": {
       "target": "nsis",
