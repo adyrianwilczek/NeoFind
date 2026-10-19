@@ -134,3 +134,10 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 #settingsPrivacy .privacy-note { margin-top: 14px; }
 
 .language-select { min-width: 132px; }
+
+/* NeoFind Browser 0.1.13: blocked notification sites in General settings. */
+.blocked-notifications-list { display: grid; gap: 8px; min-width: 0; width: 100%; }
+.blocked-notification-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 10px; border: 1px solid var(--line, rgba(255,255,255,.14)); border-radius: 10px; overflow-wrap: anywhere; }
+.blocked-notification-row span { min-width: 0; overflow-wrap: anywhere; }
+.blocked-notification-row button { flex: 0 0 auto; }
+.blocked-notifications-list .empty-list { margin: 0; opacity: .75; font-size: 13px; }
