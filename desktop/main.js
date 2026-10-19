@@ -8,6 +8,7 @@ const { pathToFileURL } = require("node:url");
 
 const HOME_URL = "https://neofind.pl/";
 let mainWindow;
+let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
@@ -105,17 +106,31 @@ function getRiskReason(rawUrl) {
   try {
     const url = new URL(rawUrl);
     const host = url.hostname.toLowerCase();
-    if (url.username || url.password) return "The address contains hidden login credentials.";
-    if (host.startsWith("xn--") || host.split(".").some(part => part.startsWith("xn--"))) return "The domain uses encoded characters that can disguise its real name.";
-    if (url.protocol === "http:" && /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return "This page uses an unencrypted connection to a numeric IP address.";
-    if (/(^|\.)neofind\.pl\./i.test(host) || /(^|\.)(paypa[l1]|micros0ft|g[o0]{2}gle|app1e)\./i.test(host)) return "The domain resembles a well-known site but may be a look-alike.";
+    if (url.username || url.password) return "credentials";
+    if (host.startsWith("xn--") || host.split(".").some(part => part.startsWith("xn--"))) return "encoded-domain";
+    if (url.protocol === "http:" && /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return "http-ip";
+    const officialGoogle = host === "google.com" || host.endsWith(".google.com") || /(^|\.)google\.(co\.[a-z]{2}|[a-z]{2})$/.test(host);
+    const lookalike = /(^|\.)(paypa[l1]|micros0ft|g[o0]{2}gle|app1e)\./i.test(host);
+    if (lookalike && !(officialGoogle && /(^|\.)google\./i.test(host))) {
+      if (/(^|\.)paypal\.com$/i.test(host) || /(^|\.)microsoft\.com$/i.test(host) || /(^|\.)apple\.com$/i.test(host)) return "";
+      return "lookalike";
+    }
   } catch {}
   return "";
 }
 function makeBlockedPage(target, reason) {
-  const safeTarget = String(target).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const safeReason = String(reason || "NeoFind Browser could not verify this page.").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  return "data:text/html;charset=utf-8," + encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>Page blocked by NeoFind</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:660px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30;box-shadow:0 20px 70px #0008}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#273c55;color:white}.danger{background:#a92f39;color:white}</style></head><body><main class='card'><p>NEOFIND BROWSER · SAFETY CHECK</p><h1>Ta strona jest zablokowana</h1><p>" + safeReason + "</p><p><b>Adres:</b> " + safeTarget + "</p><p>NeoFind Browser nie może zagwarantować bezpieczeństwa tej strony. Otwieraj ją tylko wtedy, gdy ufasz jej źródłu.</p><div class='buttons'><button onclick='history.back()'>OK</button><button class='danger' id='openRisk'>Open page !HIGH RISK!</button></div></main><script>document.getElementById('openRisk').addEventListener('click',()=>{location.href=" + JSON.stringify(String(target)).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") + "})</script></body></html>");
+  const lang = ["en", "pl", "es"].includes(browserLanguage) ? browserLanguage : "en";
+  const words = {
+    en: { title:"This site is blocked", credentials:"The address contains hidden login credentials.", encoded:"The domain uses encoded characters that can disguise its real name.", ip:"This page uses an unencrypted connection to a numeric IP address.", lookalike:"The domain resembles a well-known site but may be a look-alike.", generic:"NeoFind Browser could not verify this page.", detail:"NeoFind Browser cannot guarantee that this page is safe. Open it only if you trust its source.", address:"Address:", ok:"OK", open:"Open page !HIGH RISK!", eyebrow:"NEOFIND BROWSER · SAFETY CHECK" },
+    pl: { title:"Ta strona jest zablokowana", credentials:"Adres zawiera ukryte dane logowania.", encoded:"Domena używa zakodowanych znaków, które mogą ukrywać jej prawdziwą nazwę.", ip:"Ta strona używa nieszyfrowanego połączenia z adresem IP.", lookalike:"Domena przypomina znaną stronę, ale może być jej podróbką.", generic:"NeoFind Browser nie może zweryfikować tej strony.", detail:"NeoFind Browser nie może zagwarantować bezpieczeństwa tej strony. Otwieraj ją tylko wtedy, gdy ufasz jej źródłu.", address:"Adres:", ok:"OK", open:"Otwórz stronę !WYSOKIE RYZYKO!", eyebrow:"NEOFIND BROWSER · KONTROLA BEZPIECZEŃSTWA" },
+    es: { title:"Este sitio está bloqueado", credentials:"La dirección contiene credenciales de inicio de sesión ocultas.", encoded:"El dominio usa caracteres codificados que pueden ocultar su nombre real.", ip:"Esta página usa una conexión sin cifrar a una dirección IP.", lookalike:"El dominio se parece a un sitio conocido, pero podría ser una imitación.", generic:"NeoFind Browser no pudo verificar esta página.", detail:"NeoFind Browser no puede garantizar que esta página sea segura. Ábrela solo si confías en su origen.", address:"Dirección:", ok:"Aceptar", open:"Abrir página ¡ALTO RIESGO!", eyebrow:"NEOFIND BROWSER · COMPROBACIÓN DE SEGURIDAD" }
+  }[lang];
+  const esc = value => String(value).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+  const targetText = esc(target);
+  const reasonText = esc(words[reason] || words.generic);
+  const targetScript = JSON.stringify(String(target)).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+  const html = "<!doctype html><html lang='" + lang + "'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>" + words.title + "</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:660px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30;box-shadow:0 20px 70px #0008}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#273c55;color:white}.danger{background:#a92f39;color:white}</style></head><body><main class='card'><p>" + words.eyebrow + "</p><h1>" + words.title + "</h1><p>" + reasonText + "</p><p><b>" + words.address + "</b> " + targetText + "</p><p>" + words.detail + "</p><div class='buttons'><button onclick='history.back()'>" + words.ok + "</button><button class='danger' id='openRisk'>" + words.open + "</button></div></main><script>document.getElementById('openRisk').addEventListener('click',()=>{location.href=" + targetScript + "})</script></body></html>";
+  return "data:text/html;charset=utf-8," + encodeURIComponent(html);
 }
 function loadAddressInTab(tab, address) {
   const targetUrl = normalizeAddress(address);
@@ -130,8 +145,15 @@ function loadAddressInTab(tab, address) {
   return tab.view.webContents.loadURL(targetUrl);
 }
 function makeNavigationErrorPage(target) {
-  const safeTarget = String(target).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  return "data:text/html;charset=utf-8," + encodeURIComponent("<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>NeoFind: page not found</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:680px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;background:#273c55;color:white;cursor:pointer}</style></head><body><main class='card'><p>NEOFIND BROWSER</p><h1>Neo nie może odnaleźć strony</h1><p>Sprawdź, czy w <b>" + safeTarget + "</b> nie ma błędu.</p><p>Sprawdź pisownię adresu, połączenie z internetem albo spróbuj ponownie.</p><button onclick='history.back()'>Go back</button></main></body></html>");
+  const lang = ["en", "pl", "es"].includes(browserLanguage) ? browserLanguage : "en";
+  const words = {
+    en: { title:"NeoFind: page not found", heading:"NeoFind can't find that page", intro:"Check whether there is a typo in", suffix:".", detail:"Check the address spelling and your internet connection, or try again.", back:"Go back" },
+    pl: { title:"NeoFind: nie znaleziono strony", heading:"Neo nie może odnaleźć strony", intro:"Sprawdź, czy w adresie", suffix:" nie ma błędu.", detail:"Sprawdź pisownię adresu i połączenie z internetem albo spróbuj ponownie.", back:"Wstecz" },
+    es: { title:"NeoFind: página no encontrada", heading:"NeoFind no encuentra esta página", intro:"Comprueba si hay un error en", suffix:".", detail:"Comprueba la dirección y tu conexión a internet, o inténtalo de nuevo.", back:"Volver" }
+  }[lang];
+  const safeTarget = String(target).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+  const html = "<!doctype html><html lang='" + lang + "'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>" + words.title + "</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:680px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;background:#273c55;color:white;cursor:pointer}</style></head><body><main class='card'><p>NEOFIND BROWSER</p><h1>" + words.heading + "</h1><p>" + words.intro + " <b>" + safeTarget + "</b>" + words.suffix + "</p><p>" + words.detail + "</p><button onclick='history.back()'>" + words.back + "</button></main></body></html>";
+  return "data:text/html;charset=utf-8," + encodeURIComponent(html);
 }
 function getBlockedNotificationOrigins() {
   try { const data = JSON.parse(fsSync.readFileSync(blockedNotificationsPath, "utf8")); return Array.isArray(data) ? Array.from(new Set(data.filter(value => typeof value === "string"))) : []; }
@@ -777,6 +799,7 @@ ipcMain.handle("updater:install", () => {
 });
 autoUpdater.on("error", (error) => sendUpdaterState({ status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }));
 
+ipcMain.handle("browser:set-language", (_event, language) => { browserLanguage = ["en", "pl", "es"].includes(language) ? language : "en"; return true; });
 ipcMain.handle("updater:check", async () => {
   if (!app.isPackaged) return { status: "development", message: "Updates are available in the installed version." };
   try { await autoUpdater.checkForUpdates(); return { status: "checking", message: "Checking GitHub Releases..." }; }
