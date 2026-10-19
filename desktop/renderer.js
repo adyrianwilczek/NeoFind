@@ -252,7 +252,6 @@ document.addEventListener("keydown", (event) => {
   // NEOFIND_011_KEYBOARD_SHORTCUTS: shortcuts while the browser toolbar has focus.
   if (event.ctrlKey || event.metaKey) {
     if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); return; }
-    if (key === "c") { event.preventDefault(); addressInput.focus(); addressInput.select(); return; }
     if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); return; }
     if (key === "f5") { event.preventDefault(); window.neoBrowser.reload(); return; }
     if (key === "x") { event.preventDefault(); window.neoBrowser.closeActiveTab(); return; }
