@@ -393,7 +393,8 @@ window.neoBrowser.onUpdaterState((state) => {
   updateStatusElement.textContent = state.message || "Update status changed.";
   if (state.status === "current" && state.version) updateStatusElement.textContent = "Version " + state.version + " is already installed.";
   checkUpdatesButton.disabled = ["checking", "downloading"].includes(state.status);
-  checkUpdatesButton.textContent = state.status === "downloading" ? "Downloading..." : state.status === "checking" ? "Checking..." : "Check for updates";
+  checkUpdatesButton.textContent = state.status === "downloaded" ? "Install update" : state.status === "downloading" ? "Downloading..." : state.status === "checking" ? "Checking..." : "Check for updates";
+  window.dispatchEvent(new CustomEvent("neo-updater-state", { detail: state }));
 });
 checkUpdatesButton.addEventListener("click", async () => {
   checkUpdatesButton.disabled = true;
