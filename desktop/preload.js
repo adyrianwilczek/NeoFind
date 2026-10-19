@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   duplicateTab: (id) => ipcRenderer.invoke("tabs:duplicate", id),
   togglePinTab: (id) => ipcRenderer.invoke("tabs:toggle-pin", id),
   clearBrowserData: () => ipcRenderer.invoke("browser:clear-data"),
+  openRiskPage: (url) => ipcRenderer.invoke("browser:open-risk-page", url),
   getDownloadHistory: () => ipcRenderer.invoke("downloads:get"),
   openDownloadedFile: (id) => ipcRenderer.invoke("downloads:open", id),
   showDownloadedFile: (id) => ipcRenderer.invoke("downloads:show-in-folder", id),
