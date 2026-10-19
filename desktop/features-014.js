@@ -92,8 +92,7 @@ $("updateNotNow").addEventListener("click", () => {
 });
 $("updateNow").addEventListener("click", async () => {
   $("updateReadyModal").classList.add("hidden");
-  window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); window.setSettingsTab("general");
-  $("updateStatus").textContent = downloadedVersion ? "Installing update " + downloadedVersion + "…" : "The update is downloading automatically in the background.";
+  if (downloadedVersion) await window.neoBrowser.installUpdate();
   if (downloadedVersion) await window.neoBrowser.installUpdate();
 });
 /* Listen to state updates emitted by the existing updater listener. */
