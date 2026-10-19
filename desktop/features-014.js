@@ -93,7 +93,6 @@ $("updateNotNow").addEventListener("click", () => {
 $("updateNow").addEventListener("click", async () => {
   $("updateReadyModal").classList.add("hidden");
   if (downloadedVersion) await window.neoBrowser.installUpdate();
-  if (downloadedVersion) await window.neoBrowser.installUpdate();
 });
 /* Listen to state updates emitted by the existing updater listener. */
 window.addEventListener("neo-updater-state", (event) => {
