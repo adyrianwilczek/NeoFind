@@ -220,14 +220,14 @@ document.querySelectorAll("[data-sidebar-app]").forEach(input=>{
   input.addEventListener("change",()=>{
     const enabled=getEnabledSidebarApps(); enabled[input.dataset.sidebarApp]=input.checked;
     localStorage.setItem(sidebarAppsKey,JSON.stringify(enabled)); renderSidebarApps();
+  });
+});
+renderSidebarApps();
 const newTabDestination = document.getElementById("newTabDestination");
 if (newTabDestination) {
   newTabDestination.value = localStorage.getItem("neofind.newTabOpensNeoFind") === "true" ? "neofind" : "blank";
   newTabDestination.addEventListener("change", () => localStorage.setItem("neofind.newTabOpensNeoFind", newTabDestination.value === "neofind" ? "true" : "false"));
 }
-  });
-});
-renderSidebarApps();
 document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.openNeoAI());
 document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("history"); });
 document.getElementById("sideAccount").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/?p=profile"));
@@ -518,7 +518,16 @@ const languageText = {
   "Version ": ["Wersja ", "Versión "],
   " is already installed.": [" jest już zainstalowana.", " ya está instalada."],
   "Private tab · ": ["Karta prywatna · ", "Pestaña privada · "],
-  "Open ": ["Otwórz ", "Abrir "]
+  "Open ": ["Otwórz ", "Abrir "],
+  "Choose between a completely empty tab and NeoFind as your new-tab page. NeoFind home tabs keep the internal name “New Tab” and address “about:home”.": ["Wybierz całkowicie pustą kartę albo NeoFind jako stronę nowej karty. Karty NeoFind mają wewnętrzną nazwę „New Tab” i adres „about:home”.", "Elige una pestaña completamente vacía o NeoFind como página de nueva pestaña. Las pestañas de inicio de NeoFind mantienen el nombre interno “New Tab” y la dirección “about:home”."],
+  "Completely empty tab (about:blank)": ["Całkowicie pusta karta (about:blank)", "Pestaña completamente vacía (about:blank)"],
+  "NeoFind home (about:home)": ["Strona główna NeoFind (about:home)", "Inicio de NeoFind (about:home)"],
+  "Blocked notifications": ["Zablokowane komunikaty", "Notificaciones bloqueadas"],
+  "Websites listed here cannot show notification prompts. You can undo the block at any time.": ["Wymienione strony nie mogą wyświetlać próśb o zgodę na komunikaty. Możesz cofnąć blokadę w dowolnym momencie.", "Los sitios de esta lista no pueden mostrar solicitudes de notificaciones. Puedes quitar el bloqueo cuando quieras."],
+  "No websites are blocked from showing notifications.": ["Żadna strona nie ma zablokowanych komunikatów.", "Ningún sitio tiene bloqueadas las notificaciones."],
+  "Unblock": ["Odblokuj", "Desbloquear"],
+  "Blocked websites cannot show notification prompts until unblocked here.": ["Zablokowane strony nie mogą wyświetlać próśb o komunikaty, dopóki nie zostaną tutaj odblokowane.", "Los sitios bloqueados no pueden mostrar solicitudes de notificaciones hasta que se desbloqueen aquí."],
+  "Could not unblock this website.": ["Nie udało się odblokować tej strony.", "No se pudo desbloquear este sitio."]
 };
 const languageAttributeRecords = new WeakMap();
 const languageTextRecords = new WeakMap();
