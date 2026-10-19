@@ -91,18 +91,15 @@ $("updateNow").addEventListener("click", async () => {
   $("updateStatus").textContent = downloadedVersion ? "Installing update " + downloadedVersion + "…" : "The update is downloading automatically in the background.";
   if (downloadedVersion) await window.neoBrowser.installUpdate();
 });
-/* Observe the existing updater UI without replacing its listener. */
-const updaterEvents = window.neoBrowser.onUpdaterState;
-window.neoBrowser.onUpdaterState = function(callback) {
-  updaterEvents.call(window.neoBrowser, (state) => {
-    callback(state);
-    if (state.status === "downloaded") downloadedVersion = state.version || "new version";
-    if (state.status === "available" || state.status === "downloaded") {
-      $("updateReadyMessage").textContent = state.status === "downloaded"
-        ? "Version " + (state.version || "new version") + " has downloaded and is ready to install."
-        : "Version " + (state.version || "new version") + " is available and downloading automatically.";
-      $("updateReadyModal").classList.remove("hidden");
-    }
-  });
-};
+/* Listen to state updates emitted by the existing updater listener. */
+window.addEventListener("neo-updater-state", (event) => {
+  const state = event.detail || {};
+  if (state.status === "downloaded") downloadedVersion = state.version || "new version";
+  if (state.status === "available" || state.status === "downloaded") {
+    $("updateReadyMessage").textContent = state.status === "downloaded"
+      ? "Version " + (state.version || "new version") + " has downloaded and is ready to install."
+      : "Version " + (state.version || "new version") + " is available and downloading automatically.";
+    $("updateReadyModal").classList.remove("hidden");
+  }
+});
 })();
