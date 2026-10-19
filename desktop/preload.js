@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   chooseBookmarksFile: () => ipcRenderer.invoke("import:choose-bookmarks"),
   chooseSourceProfile: (sourceBrowser) => ipcRenderer.invoke("import:choose-source-profile", sourceBrowser),
   importSourceProfile: (sourceBrowser, profilePath, selected) => ipcRenderer.invoke("import:source-profile", sourceBrowser, profilePath, selected),
+  setBrowserLanguage: (language) => ipcRenderer.invoke("browser:set-language", language),
   checkForUpdates: () => ipcRenderer.invoke("updater:check"),
   getVersion: () => ipcRenderer.invoke("updater:version"),
   onUpdaterState: (callback) => {
