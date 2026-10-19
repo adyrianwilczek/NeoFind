@@ -16,6 +16,15 @@ let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
 let sessionSaveTimer = null;
 const recentlyClosedTabs = [];
+const blockedNotificationsPath = path.join(app.getPath("userData"), "blocked-notifications.json");
+function getBlockedNotificationOrigins() {
+  try { const data = JSON.parse(fsSync.readFileSync(blockedNotificationsPath, "utf8")); return Array.isArray(data) ? Array.from(new Set(data.filter(value => typeof value === "string"))) : []; }
+  catch { return []; }
+}
+function saveBlockedNotificationOrigins(origins) {
+  try { fsSync.writeFileSync(blockedNotificationsPath, JSON.stringify(Array.from(new Set(origins)), null, 2), "utf8"); return true; }
+  catch (error) { console.error("Could not save blocked notification sites:", error); return false; }
+}
 
 function getSessionSnapshot() {
   const orderedTabs = Array.from(tabs.values());
@@ -23,7 +32,7 @@ function getSessionSnapshot() {
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
     if (tab.isPrivate) return;
-    let currentUrl = tab.isHomeTab ? "about:home" : (tab.url || HOME_URL);
+    let currentUrl = tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
     let currentTitle = tab.title || "New Tab";
     try {
       if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
@@ -85,7 +94,7 @@ function restoreSessionOrHome() {
   restoredSession = null;
   if (saved && saved.tabs.length) {
     const activeIndex = Math.max(0, Math.min(saved.activeIndex, saved.tabs.length - 1));
-    saved.tabs.forEach((tab, index) => openTab(tab.isHomeTab ? "about:home" : tab.url, index === activeIndex, { pinned: tab.pinned === true }));
+    saved.tabs.forEach((tab, index) => openTab(tab.url || (tab.isHomeTab ? "about:home" : HOME_URL), index === activeIndex, { pinned: tab.pinned === true }));
     return;
   }
   openTab(HOME_URL, true);
@@ -165,7 +174,8 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     }
   });
   const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
-  const tab = { id, view, title: "New Tab", url: isHomeTab ? "about:home" : "", loading: true, isHomeTab, isPrivate, pinned: options.pinned === true };
+  const homePage = options.homePage === true || String(address || "").toLowerCase() === "about:home";
+  const tab = { id, view, title: "New Tab", url: isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, isPrivate, pinned: options.pinned === true };
   tabs.set(id, tab);
   const wc = view.webContents;
   // NEOFIND_011_KEYBOARD_SHORTCUTS: keep browser shortcuts active while a web page has focus.
@@ -205,21 +215,21 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   });
   wc.on("did-stop-loading", () => {
     tab.loading = false;
-    tab.url = wc.getURL();
+    tab.url = tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
     tab.title = wc.getTitle() || tab.title || "New Tab";
     if (!tab.isHomeTab) tab.url = wc.getURL() || tab.url || HOME_URL;
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate", (_event, url) => {
-    tab.isHomeTab = false;
-    tab.url = url;
+    if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
+    else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate-in-page", (_event, url) => {
-    tab.isHomeTab = false;
-    tab.url = url;
+    if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
+    else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
     sendState();
     saveSessionSync();
   });
@@ -236,7 +246,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     sendState();
   }
 
-  const targetUrl = isHomeTab ? "about:blank" : normalizeAddress(address);
+  const targetUrl = homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
   wc.loadURL(targetUrl).catch(() => {
     tab.loading = false;
     tab.title = "Unable to load page";
@@ -249,7 +259,7 @@ function closeTab(id) {
   const tab = tabs.get(Number(id));
   if (!tab) return;
   if (!tab.isPrivate && tab.url && isRestorableUrl(tab.url)) {
-    recentlyClosedTabs.unshift({ url: tab.isHomeTab ? "about:home" : tab.url, title: tab.title || "New Tab", isHomeTab: tab.isHomeTab === true, pinned: tab.pinned === true });
+    recentlyClosedTabs.unshift({ url: tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : tab.url, title: tab.title || "New Tab", isHomeTab: tab.isHomeTab === true, pinned: tab.pinned === true });
     if (recentlyClosedTabs.length > 10) recentlyClosedTabs.length = 10;
   }
   try { mainWindow.contentView.removeChildView(tab.view); } catch {}
@@ -299,7 +309,19 @@ function createWindow() {
     const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return "this website"; } })() : "this website";
     const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
     if (!allowedPermissions.has(permission) || !mainWindow || mainWindow.isDestroyed()) { callback(false); return; }
-    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants permission: " + permission, detail: "Allow only if you trust this website. You can deny the request.", buttons: ["Deny", "Allow"], defaultId: 0, cancelId: 0 }).then(({ response }) => callback(response === 1)).catch(() => callback(false));
+    if (permission === "notifications" && getBlockedNotificationOrigins().includes(origin)) { callback(false); return; }
+    const isNotificationRequest = permission === "notifications";
+    const buttons = isNotificationRequest ? ["Deny", "Allow", "Block notifications for this site"] : ["Deny", "Allow"];
+    const detail = isNotificationRequest ? "Allow notifications only if you trust this website. You can block this site's notifications now and undo that choice in Settings → General." : "Allow only if you trust this website. You can deny the request.";
+    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants permission: " + permission, detail, buttons, defaultId: 0, cancelId: 0 }).then(({ response }) => {
+      if (isNotificationRequest && response === 2) {
+        const origins = getBlockedNotificationOrigins(); if (!origins.includes(origin)) origins.push(origin);
+        saveBlockedNotificationOrigins(origins); callback(false);
+        if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:blocked-notifications-changed");
+        return;
+      }
+      callback(response === 1);
+    }).catch(() => callback(false));
   });
   mainWindow.webContents.once("did-finish-load", () => {
     if (pendingExternalUrl) {
@@ -323,9 +345,16 @@ function createWindow() {
 }
 
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
-ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? "about:home" : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
+ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
+ipcMain.handle("browser:blocked-notifications:get", () => getBlockedNotificationOrigins());
+ipcMain.handle("browser:blocked-notifications:unblock", (_event, origin) => {
+  if (typeof origin !== "string") return { ok: false };
+  const ok = saveBlockedNotificationOrigins(getBlockedNotificationOrigins().filter(value => value !== origin));
+  if (ok && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:blocked-notifications-changed");
+  return { ok };
+});
 ipcMain.handle("sidebar:open-neoai", () => {
   const id = openTab(HOME_URL, true);
   const tab = tabs.get(id);
