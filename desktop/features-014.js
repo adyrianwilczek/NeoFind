@@ -84,7 +84,12 @@ $("unlockPasswordVault").addEventListener("click", async () => {
 });
 window.neoBrowser.onPasswordsChanged(() => { if (activePin && !$("settingsPasswords").classList.contains("hidden")) $("unlockPasswordVault").click(); });
 let downloadedVersion = "";
-$("updateNotNow").addEventListener("click", () => $("updateReadyModal").classList.add("hidden"));
+let shownUpdateVersion = "";
+let dismissedUpdateVersion = "";
+$("updateNotNow").addEventListener("click", () => {
+  dismissedUpdateVersion = shownUpdateVersion || downloadedVersion || "pending";
+  $("updateReadyModal").classList.add("hidden");
+});
 $("updateNow").addEventListener("click", async () => {
   $("updateReadyModal").classList.add("hidden");
   window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); window.setSettingsTab("general");
@@ -96,6 +101,8 @@ window.addEventListener("neo-updater-state", (event) => {
   const state = event.detail || {};
   if (state.status === "downloaded") downloadedVersion = state.version || "new version";
   if (state.status === "available" || state.status === "downloaded") {
+    shownUpdateVersion = state.version || "new version";
+    if (dismissedUpdateVersion === shownUpdateVersion || dismissedUpdateVersion === "pending") return;
     $("updateReadyMessage").textContent = state.status === "downloaded"
       ? "Version " + (state.version || "new version") + " has downloaded and is ready to install."
       : "Version " + (state.version || "new version") + " is available and downloading automatically.";
