@@ -151,3 +151,10 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 
 /* NeoFind Browser 0.1.15 */
 .permission-help{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--muted)}
+
+
+/* NeoFind Browser 0.1.16: compact update notification pinned to the top-right. */
+.update-modal{inset:12px 12px auto auto;display:flex;align-items:flex-start;justify-content:flex-end;padding:0;background:transparent;backdrop-filter:none;pointer-events:none}
+.update-modal-card{width:min(420px,calc(100vw - 24px));padding:20px;text-align:left;pointer-events:auto}
+.update-modal-card h2{font-size:21px}
+.update-modal-actions{justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
