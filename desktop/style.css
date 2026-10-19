@@ -148,3 +148,6 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 .download-row-actions,.password-entry-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.download-row-actions button,.password-entry-actions button{padding:7px 9px;font-size:11px}
 .password-vault-setup,.password-vault-unlock{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px;align-items:end;margin:14px 0}.password-vault-setup .field-label,.password-vault-unlock .field-label{grid-column:1/-1;margin:0}.password-entry{grid-template-columns:minmax(0,1fr)}.password-reveal{display:block;margin-top:8px;overflow-wrap:anywhere}
 .update-modal{position:fixed;z-index:1000;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:#020611d9;backdrop-filter:blur(10px)}.update-modal-card{width:min(420px,100%);padding:28px;border:1px solid #31506d;border-radius:20px;background:linear-gradient(145deg,#15263a,#0a1120);box-shadow:0 26px 90px #000b;text-align:center}.update-modal-card h2{margin:6px 0 10px;font-size:26px}.update-modal-card>p:not(.eyebrow){color:var(--muted);line-height:1.5}.update-modal-actions{display:flex;justify-content:center;gap:10px;margin-top:22px}
+
+/* NeoFind Browser 0.1.15 */
+.permission-help{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--muted)}
