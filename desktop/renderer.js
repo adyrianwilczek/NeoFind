@@ -568,10 +568,14 @@ const languageAttributeRecords = new WeakMap();
 const languageTextRecords = new WeakMap();
 function getBrowserLanguage() {
   const saved = localStorage.getItem(browserLanguageKey);
-  return ["en", "pl", "es"].includes(saved) ? saved : "en";
+  return ["en", "pl", "es", "fr"].includes(saved) ? saved : "en";
 }
+const frenchUiText = {
+"Open NeoFind home":"Ouvrir l’accueil NeoFind","New tab":"Nouvel onglet","Back":"Précédent","Forward":"Suivant","Reload":"Actualiser","NeoFind home":"Accueil NeoFind","Search NeoFind or enter an address":"Rechercher avec NeoFind ou saisir une adresse","Go":"Aller","History":"Historique","Account":"Compte","Settings":"Paramètres","General":"Général","Downloads":"Téléchargements","Password Manager":"Gestionnaire de mots de passe","Import":"Importer","Sidebar apps":"Applications latérales","Privacy & security":"Confidentialité et sécurité","Interface language":"Langue de l’interface","Browser theme":"Thème du navigateur","Update ready":"Mise à jour prête","A new update is available.":"Une nouvelle mise à jour est disponible.","Not now":"Plus tard","Update":"Mettre à jour","Open":"Ouvrir","Show in folder":"Afficher dans le dossier","Show password":"Afficher le mot de passe","Hide password":"Masquer le mot de passe","Copy password":"Copier le mot de passe","Delete":"Supprimer","Allow":"Autoriser","Deny":"Refuser","Blocked notifications":"Notifications bloquées","Site permissions":"Autorisations des sites","This site is blocked":"Ce site est bloqué","Neo cannot find this page":"Neo ne trouve pas cette page","Check whether there is a mistake in this address:":"Vérifiez si cette adresse contient une erreur :","Go back":"Retour"
+};
 function translateUiText(value, language) {
   if (language === "en") return value;
+  if (language === "fr") { const trimmed = value.trim(); return frenchUiText[trimmed] ? value.replace(trimmed, frenchUiText[trimmed]) : value; }
   const trimmed = value.trim();
   if (languageText[trimmed]) {
     const translated = languageText[trimmed][language === "pl" ? 0 : 1];
@@ -584,7 +588,7 @@ function translateUiText(value, language) {
   return value;
 }
 function applyBrowserLanguage(language) {
-  const chosen = ["en", "pl", "es"].includes(language) ? language : "en";
+  const chosen = ["en", "pl", "es", "fr"].includes(language) ? language : "en";
   document.documentElement.lang = chosen;
   document.querySelectorAll("body *").forEach((element) => {
     for (const attribute of ["title", "placeholder", "aria-label"]) {
