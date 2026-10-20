@@ -158,3 +158,17 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 .update-modal-card{width:min(420px,calc(100vw - 24px));padding:20px;text-align:left;pointer-events:auto}
 .update-modal-card h2{font-size:21px}
 .update-modal-actions{justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+
+/* NeoFind Browser 0.1.17 premium themes and rainbow mod */
+body[data-theme="prism"]{--bg:#171126;--panel:#24183b;--panel2:#392457;--line:#7148a4;--text:#fff2ff;--muted:#d2aee9}
+body[data-theme="neon"]{--bg:#071d19;--panel:#0b3027;--panel2:#124b3c;--line:#1ddc9b;--text:#eafff8;--muted:#8bd9bd}
+body[data-theme="candy"]{--bg:#321b38;--panel:#48234d;--panel2:#61305f;--line:#d86ebc;--text:#fff0ff;--muted:#e7b8dc}
+body[data-theme="galaxy"]{--bg:#10132e;--panel:#1a2048;--panel2:#292e66;--line:#6d70d9;--text:#f1f0ff;--muted:#b9b9ed}
+body[data-theme="lava"]{--bg:#290e12;--panel:#42161b;--panel2:#632020;--line:#d34b2d;--text:#fff0e8;--muted:#e7a58c}
+body[data-theme="ice"]{--bg:#102433;--panel:#183747;--panel2:#245168;--line:#68c9ed;--text:#edfbff;--muted:#a8d6e7}
+body[data-theme="gold"]{--bg:#251d0b;--panel:#392b0c;--panel2:#544014;--line:#c49a2d;--text:#fff8df;--muted:#dfc77e}
+body[data-theme="oceanic"]{--bg:#061c2a;--panel:#0a2c40;--panel2:#10435b;--line:#2f9bbd;--text:#e8faff;--muted:#9bcbd9}
+body[data-theme="dream"]{--bg:#21162e;--panel:#302044;--panel2:#45305f;--line:#9b7bd5;--text:#fbf3ff;--muted:#d1bce8}
+body[data-theme="hologram"]{--bg:#111b2b;--panel:#192b40;--panel2:#24425a;--line:#54d6dc;--text:#efffff;--muted:#a9dfe2}
+body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(120deg,#ff4e50,#fc913a,#f9d423,#8de969,#32d6d6,#4f7cff,#b45cff,#ff4e9b);background-size:300% 300%;animation:neoRainbowBackground 10s linear infinite;color:#fff}
+@keyframes neoRainbowBackground{0%{background-position:0% 50%}100%{background-position:100% 50%}}
