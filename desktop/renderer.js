@@ -115,7 +115,7 @@ const historyStoreKey = "neofind.importedHistory";
 const browserThemeKey = "neofind.browserTheme";
 const themeSelect = document.getElementById("browserTheme");
 function applyBrowserTheme(theme) {
-  const allowed = ["midnight","ocean","purple","light","aurora","nord","lavender","rose","sunset","ember","forest","sakura","paper","cyber","space","matrix"];
+  const allowed = ["midnight","ocean","purple","light","aurora","nord","lavender","rose","sunset","ember","forest","sakura","paper","cyber","space","matrix","prism","neon","candy","galaxy","lava","ice","gold","oceanic","dream","hologram"];
   const value = allowed.includes(theme) ? theme : "midnight";
   document.body.dataset.theme = value;
   themeSelect.value = value;
