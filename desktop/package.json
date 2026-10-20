@@ -1,6 +1,6 @@
 {
   "name": "neofind-browser",
-  "version": "0.1.16",
+  "version": "0.1.17",
   "description": "NeoFind Browser for Windows",
   "main": "main.js",
   "private": true,
@@ -31,7 +31,8 @@
       "icon.ico",
       "icon_round.png",
       "features-014.js",
-      "features-015.js"
+      "features-015.js",
+      "features-017.js"
     ],
     "win": {
       "target": "nsis",
