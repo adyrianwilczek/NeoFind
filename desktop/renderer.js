@@ -390,6 +390,7 @@ const updateStatusElement = document.getElementById("updateStatus");
 const checkUpdatesButton = document.getElementById("checkUpdatesButton");
 window.neoBrowser.getVersion().then((version) => { document.getElementById("appVersion").textContent = "Installed version: " + version; }).catch(() => {});
 window.neoBrowser.onUpdaterState((state) => {
+  window.__neoLastUpdaterState = state;
   updateStatusElement.textContent = state.message || "Update status changed.";
   if (state.status === "current" && state.version) updateStatusElement.textContent = "Version " + state.version + " is already installed.";
   checkUpdatesButton.disabled = ["checking", "downloading"].includes(state.status);
