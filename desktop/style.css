@@ -153,11 +153,12 @@ body[data-theme="paper"] .new-tab, body[data-theme="paper"] .tool { color:#302c2
 .permission-help{margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:12px;color:var(--muted)}
 
 
-/* NeoFind Browser 0.1.16: compact update notification pinned to the top-right. */
-.update-modal{inset:12px 12px auto auto;display:flex;align-items:flex-start;justify-content:flex-end;padding:0;background:transparent;backdrop-filter:none;pointer-events:none}
-.update-modal-card{width:min(420px,calc(100vw - 24px));padding:20px;text-align:left;pointer-events:auto}
-.update-modal-card h2{font-size:21px}
-.update-modal-actions{justify-content:flex-end;flex-wrap:wrap;margin-top:16px}
+/* NeoFind Browser 0.1.21: centered update dialog with blurred background. */
+.update-modal{position:fixed;z-index:2147483600;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,7,18,.48);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);pointer-events:auto}
+.update-modal-card{width:min(440px,calc(100vw - 32px));padding:28px;text-align:center;pointer-events:auto;border-radius:20px;animation:neoUpdateModalIn .16s ease-out}
+.update-modal-card h2{font-size:25px}
+.update-modal-actions{justify-content:center;flex-wrap:wrap;margin-top:20px}
+@keyframes neoUpdateModalIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 /* NeoFind Browser 0.1.17 premium themes and rainbow mod */
 body[data-theme="prism"]{--bg:#171126;--panel:#24183b;--panel2:#392457;--line:#7148a4;--text:#fff2ff;--muted:#d2aee9}
