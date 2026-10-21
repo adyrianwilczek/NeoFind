@@ -98,13 +98,14 @@ $("updateNow").addEventListener("click", async () => {
 window.addEventListener("neo-updater-state", (event) => {
   const state = event.detail || {};
   if (state.status === "downloaded") downloadedVersion = state.version || "new version";
-  if (state.status === "available" || state.status === "downloaded") {
+  if (state.status === "available" || state.status === "downloading" || state.status === "downloaded") {
     shownUpdateVersion = state.version || "new version";
-    if (dismissedUpdateVersion === shownUpdateVersion || dismissedUpdateVersion === "pending") return;
+    if (dismissedUpdateVersion === shownUpdateVersion) return;
     $("updateReadyMessage").textContent = state.status === "downloaded"
       ? "Version " + (state.version || "new version") + " has downloaded and is ready to install."
-      : "Version " + (state.version || "new version") + " is available and downloading automatically.";
+      : "Version " + (state.version || "new version") + " is available. The download starts automatically.";
     $("updateReadyModal").classList.remove("hidden");
   }
 });
+if (window.__neoLastUpdaterState) window.dispatchEvent(new CustomEvent("neo-updater-state",{detail:window.__neoLastUpdaterState}));
 })();
