@@ -18,7 +18,7 @@ const premium=()=>{try{return Object.keys(localStorage).some(k=>/premium|plus/i.
 const css=document.createElement("style");
 css.textContent=`
 .neo-tool-backdrop{position:fixed;inset:0;z-index:2147482000;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(3,7,18,.48);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
-.neo-tool-panel{position:relative;z-index:2147483001;width:min(440px,calc(100vw - 32px));max-height:calc(100vh - 40px);overflow:auto;padding:22px;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--text);box-shadow:0 28px 90px #000b}
+.neo-tool-panel{position:relative;z-index:2147483001;width:min(760px,100%);max-height:min(780px,94vh);overflow:auto;padding:24px;border:1px solid #30415b;border-radius:18px;background:linear-gradient(145deg,#111c2d,#0a1120);color:var(--text);box-shadow:0 24px 80px #0009}
 .neo-tool-panel h2{font-size:22px}
 .neo-tool-backdrop .neo-tool-panel{animation:neoModalIn .16s ease-out}
 @keyframes neoModalIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
