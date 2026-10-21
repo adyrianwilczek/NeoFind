@@ -1,6 +1,6 @@
 {
   "name": "neofind-browser",
-  "version": "1.0.21",
+  "version": "0.1.23",
   "description": "NeoFind Browser for Windows",
   "main": "main.js",
   "private": true,
