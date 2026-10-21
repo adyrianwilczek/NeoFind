@@ -173,3 +173,15 @@ body[data-theme="dream"]{--bg:#21162e;--panel:#302044;--panel2:#45305f;--line:#9
 body[data-theme="hologram"]{--bg:#111b2b;--panel:#192b40;--panel2:#24425a;--line:#54d6dc;--text:#efffff;--muted:#a9dfe2}
 body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(120deg,#ff4e50,#fc913a,#f9d423,#8de969,#32d6d6,#4f7cff,#b45cff,#ff4e9b);background-size:300% 300%;animation:neoRainbowBackground 10s linear infinite;color:#fff}
 @keyframes neoRainbowBackground{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+
+/* NeoFind Browser 0.1.22: full-size tool workspaces matching Settings. */
+.neo-tool-backdrop.settings-overlay{z-index:2147483000;padding:24px;background:#020611c9;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.neo-tool-panel.settings-card{position:relative;width:min(920px,100%);height:min(780px,calc(100vh - 48px));max-height:calc(100vh - 48px);display:flex;flex-direction:column;gap:0;padding:24px;overflow:hidden;border:1px solid var(--line);border-radius:20px;background:var(--panel);color:var(--text);box-shadow:0 26px 90px #000b;animation:neoModalIn .16s ease-out}
+.neo-tool-panel .settings-heading{flex:0 0 auto;margin-bottom:20px}
+.neo-tool-panel .settings-heading h1{margin:0;font-size:28px}
+.neo-tool-panel .settings-heading .eyebrow{margin:0 0 5px}
+.neo-tool-content{flex:1;min-height:0;overflow:auto;padding:2px 4px 12px 0;display:flex;flex-direction:column;gap:14px}
+.neo-tool-content input,.neo-tool-content textarea,.neo-tool-content select{max-width:100%;width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text)}
+.neo-tool-content textarea{resize:vertical;min-height:120px}
+.neo-tool-content button{align-self:flex-start}
+@media(max-width:640px){.neo-tool-backdrop.settings-overlay{padding:10px}.neo-tool-panel.settings-card{height:calc(100vh - 20px);max-height:calc(100vh - 20px);padding:16px;border-radius:14px}.neo-tool-panel .settings-heading h1{font-size:23px}}
