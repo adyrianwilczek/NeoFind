@@ -554,6 +554,32 @@ function createWindow() {
   });
 }
 
+ipcMain.handle("browser:allow-media-for-active-site", async () => {
+  const tab = tabs.get(activeTabId);
+  if (!tab || tab.view.webContents.isDestroyed()) return { ok: false, message: "Open a website first." };
+  let currentUrl = "";
+  try { currentUrl = tab.view.webContents.getURL(); } catch {}
+  let parsed;
+  try { parsed = new URL(currentUrl); } catch { return { ok: false, message: "Open a website first." }; }
+  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
+    return { ok: false, message: "Camera and microphone permissions require a secure HTTPS website." };
+  }
+  if (!mainWindow || mainWindow.isDestroyed()) return { ok: false, message: "Browser window is unavailable." };
+  const { response } = await dialog.showMessageBox(mainWindow, {
+    type: "question",
+    title: "Camera and microphone permission",
+    message: parsed.origin + " wants to use your camera and microphone.",
+    detail: "Allow this only for a website you trust. You can change this by clicking the camera icon again.",
+    buttons: ["Not now", "Allow camera and microphone"],
+    defaultId: 0,
+    cancelId: 0
+  });
+  if (response !== 1) return { ok: false, cancelled: true, message: "Permission was not changed." };
+  savePermissionDecision(parsed.origin, "media", "allow");
+  try { await tab.view.webContents.reload(); } catch {}
+  return { ok: true, origin: parsed.origin };
+});
+
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
