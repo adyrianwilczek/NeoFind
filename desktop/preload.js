@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   openPasswordSite: (url) => ipcRenderer.invoke("passwords:open-url", url),
   onPasswordsChanged: (callback) => { ipcRenderer.removeAllListeners("passwords:changed"); ipcRenderer.on("passwords:changed", () => callback()); },
   onOpenPasswordSettings: (callback) => { ipcRenderer.removeAllListeners("passwords:open-settings"); ipcRenderer.on("passwords:open-settings", () => callback()); },
+  allowMediaForActiveSite: () => ipcRenderer.invoke("browser:allow-media-for-active-site"),
   installUpdate: () => ipcRenderer.invoke("updater:install"),
   getBlockedNotificationOrigins: () => ipcRenderer.invoke("browser:blocked-notifications:get"),
   unblockNotificationOrigin: (origin) => ipcRenderer.invoke("browser:blocked-notifications:unblock", origin),
