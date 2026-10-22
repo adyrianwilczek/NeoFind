@@ -85,6 +85,27 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
   window.neoBrowser.navigate(addressInput.value);
   addressInput.blur();
 });
+const mediaPermissionButton = document.getElementById("mediaPermissionButton");
+mediaPermissionButton.addEventListener("click", async () => {
+  const oldTitle = mediaPermissionButton.title;
+  mediaPermissionButton.disabled = true;
+  mediaPermissionButton.title = "Requesting camera and microphone permission…";
+  try {
+    const result = await window.neoBrowser.allowMediaForActiveSite();
+    if (result && result.ok) {
+      mediaPermissionButton.title = "Camera and microphone allowed for " + result.origin + ". The page is reloading.";
+      mediaPermissionButton.classList.add("media-permission-allowed");
+    } else {
+      mediaPermissionButton.title = result && result.message ? result.message : oldTitle;
+      if (!(result && result.cancelled)) window.alert(result && result.message ? result.message : "Could not change camera and microphone permission.");
+    }
+  } catch (error) {
+    mediaPermissionButton.title = oldTitle;
+    window.alert("Could not change camera and microphone permission: " + String(error.message || error));
+  } finally {
+    mediaPermissionButton.disabled = false;
+  }
+});
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
 document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "about:home" : "about:blank"); });
 let lastTabsState = null;
