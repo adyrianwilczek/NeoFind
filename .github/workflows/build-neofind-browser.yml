@@ -47,7 +47,7 @@ jobs:
       - name: Upload installer as workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: NeoFind-Windows-Installer
+          name: NeoFind-Windows-Installer-v${{ steps.app-version.outputs.version }}
           path: desktop/dist/NeoFind-Setup.exe
           if-no-files-found: error
           retention-days: 14
