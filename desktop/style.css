@@ -210,3 +210,15 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 /* NeoFind Browser 0.1.25: context-menu and permission affordances. */
 .site-permissions-button{width:24px;height:28px;margin-left:-4px}
 .site-permissions-button svg{width:19px;height:19px}
+
+
+/* NeoFind Connect · shared account and NeoAI entry points */
+.connect-card { width: min(760px, calc(100vw - 36px)); }
+.connect-intro { color: var(--muted, #aab6ca); line-height: 1.6; margin: 0 0 20px; }
+.connect-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.connect-tile { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border: 1px solid var(--border, rgba(255,255,255,.12)); border-radius: 16px; background: rgba(255,255,255,.035); }
+.connect-icon { display: grid; place-items: center; flex: 0 0 42px; height: 42px; border-radius: 12px; color: #00f2fe; background: rgba(0,242,254,.10); font-size: 22px; }
+.connect-tile strong { display: block; margin: 2px 0 6px; }
+.connect-tile p { color: var(--muted, #aab6ca); line-height: 1.5; font-size: 13px; margin: 0 0 14px; }
+.connect-footnote { margin: 18px 0 0; color: var(--muted, #aab6ca); font-size: 12px; line-height: 1.5; }
+@media (max-width: 620px) { .connect-grid { grid-template-columns: 1fr; } }
