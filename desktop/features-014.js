@@ -17,7 +17,7 @@ document.querySelectorAll(".settings-tab").forEach(button => button.addEventList
   if (button.dataset.settingsTab === "passwords") openPasswordManager();
 }));
 window.neoBrowser.onOpenPasswordSettings(() => {
-  window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); window.setSettingsTab("passwords");
+  settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); window.setSettingsTab("passwords");
 });
 function formatDate(value) { try { return value ? new Date(value).toLocaleString() : ""; } catch { return ""; } }
 async function renderDownloads(provided) {
@@ -89,9 +89,11 @@ let dismissedUpdateVersion = "";
 $("updateNotNow").addEventListener("click", () => {
   dismissedUpdateVersion = shownUpdateVersion || downloadedVersion || "pending";
   $("updateReadyModal").classList.add("hidden");
+  window.neoSetModalOpen("update-ready", false);
 });
 $("updateNow").addEventListener("click", async () => {
   $("updateReadyModal").classList.add("hidden");
+  window.neoSetModalOpen("update-ready", false);
   if (downloadedVersion) await window.neoBrowser.installUpdate();
 });
 /* Listen to state updates emitted by the existing updater listener. */
@@ -105,6 +107,7 @@ window.addEventListener("neo-updater-state", (event) => {
       ? "Version " + (state.version || "new version") + " has downloaded and is ready to install."
       : "Version " + (state.version || "new version") + " is available. The download starts automatically.";
     $("updateReadyModal").classList.remove("hidden");
+    window.neoSetModalOpen("update-ready", true);
   }
 });
 if (window.__neoLastUpdaterState) window.dispatchEvent(new CustomEvent("neo-updater-state",{detail:window.__neoLastUpdaterState}));
