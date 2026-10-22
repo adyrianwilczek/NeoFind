@@ -315,7 +315,17 @@ function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.ne
 document.getElementById("closeSettings").addEventListener("click", closeSettingsPanel);
 settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !settingsPanel.classList.contains("hidden")) { closeSettingsPanel(); return; }
+  if (event.key === "Escape") {
+    const sitePermissions = document.getElementById("sitePermissionsOverlay");
+    if (sitePermissions && !sitePermissions.classList.contains("hidden")) { closeSitePermissions(); return; }
+    const toolClose = document.querySelector(".neo-tool-backdrop .settings-heading .tool");
+    if (toolClose) { toolClose.click(); return; }
+    const updateModal = document.getElementById("updateReadyModal");
+    if (updateModal && !updateModal.classList.contains("hidden")) { document.getElementById("updateNotNow")?.click(); return; }
+    const permissionModal = document.getElementById("sitePermissionModal");
+    if (permissionModal && !permissionModal.classList.contains("hidden")) { document.getElementById("sitePermissionDeny")?.click(); return; }
+    if (!settingsPanel.classList.contains("hidden")) { closeSettingsPanel(); return; }
+  }
   const key = event.key.toLowerCase();
   // NEOFIND_011_KEYBOARD_SHORTCUTS: shortcuts while the browser toolbar has focus.
   if (event.ctrlKey || event.metaKey) {
