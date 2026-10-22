@@ -205,3 +205,8 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .site-permission-toggle select{width:100%;padding:9px}
 .site-permission-toggle select:disabled{opacity:.45}
 @media(max-width:560px){.site-permission-toggle{grid-template-columns:1fr;gap:9px}}
+
+
+/* NeoFind Browser 0.1.25: context-menu and permission affordances. */
+.site-permissions-button{width:24px;height:28px;margin-left:-4px}
+.site-permissions-button svg{width:19px;height:19px}
