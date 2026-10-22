@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session, safeStorage, clipboard } = require("electron");
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session, safeStorage, clipboard, Menu } = require("electron");
 const crypto = require("node:crypto");
 const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
@@ -325,7 +325,17 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (input.type !== "keyDown") return;
     const key = String(input.key || "").toLowerCase();
     const control = input.control || input.meta;
-    if (control && key === "u") {
+    if (key === "f12") {
+      event.preventDefault();
+      if (!wc.isDestroyed()) wc.openDevTools({ mode: "detach" });
+    } else if (control && input.shift && key === "c") {
+      event.preventDefault();
+      const point = wc.__neoLastContextPoint || { x: 0, y: 0 };
+      if (!wc.isDestroyed()) {
+        wc.openDevTools({ mode: "detach" });
+        setTimeout(() => { if (!wc.isDestroyed() && wc.isDevToolsOpened()) wc.inspectElement(point.x, point.y); }, 300);
+      }
+    } else if (control && key === "u") {
       event.preventDefault();
       if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:shortcut", "settings");
     } else if (control && key === "r") {
@@ -338,6 +348,43 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       event.preventDefault();
       if (activeTabId !== null) closeTab(activeTabId);
     }
+  });
+
+  wc.on("context-menu", (_event, params) => {
+    if (!mainWindow || mainWindow.isDestroyed() || wc.isDestroyed()) return;
+    const point = { x: Number(params.x) || 0, y: Number(params.y) || 0 };
+    wc.__neoLastContextPoint = point;
+    const pageUrl = wc.getURL();
+    const selectedText = String(params.selectionText || "").trim();
+    const imageContext = params.mediaType === "image" || Boolean(params.srcURL);
+    const items = [];
+    if (imageContext) {
+      items.push(
+        { label: "Copy image", click: () => { try { wc.copyImageAt(point.x, point.y); } catch {} } },
+        { label: "Copy image address", click: () => { if (params.srcURL) clipboard.writeText(params.srcURL); } }
+      );
+      if (params.linkURL) items.push({ label: "Copy link", click: () => clipboard.writeText(params.linkURL) });
+      items.push({ label: "Save image", click: () => { if (params.srcURL && /^https?:\\/\\//i.test(params.srcURL)) wc.downloadURL(params.srcURL); } });
+      items.push({ type: "separator" });
+    }
+    if (selectedText) {
+      items.push(
+        { label: "Copy", click: () => clipboard.writeText(selectedText) },
+        { label: "Ask NeoAI", click: () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("context:ask-neoai", selectedText); } },
+        { label: "Search", click: () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("context:search-selection", selectedText); } },
+        { type: "separator" }
+      );
+    }
+    items.push(
+      { label: "Select all", click: () => { if (!wc.isDestroyed()) wc.selectAll(); } },
+      { label: "Copy address", click: () => { if (pageUrl) clipboard.writeText(pageUrl); } },
+      { label: "Inspect element", click: () => {
+        if (wc.isDestroyed()) return;
+        wc.openDevTools({ mode: "detach" });
+        setTimeout(() => { if (!wc.isDestroyed() && wc.isDevToolsOpened()) wc.inspectElement(point.x, point.y); }, 300);
+      } }
+    );
+    Menu.buildFromTemplate(items).popup({ window: mainWindow });
   });
 
   wc.setWindowOpenHandler(({ url }) => {
@@ -674,19 +721,37 @@ ipcMain.handle("browser:blocked-notifications:unblock", (_event, origin) => {
   if (ok && mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("browser:blocked-notifications-changed");
   return { ok };
 });
-ipcMain.handle("sidebar:open-neoai", () => {
+function openNeoAIWithPrompt(promptText = "") {
   const id = openTab(HOME_URL, true);
   const tab = tabs.get(id);
   if (tab) {
     const wc = tab.view.webContents;
     wc.once("did-finish-load", () => {
       setTimeout(() => {
-        if (!wc.isDestroyed()) wc.executeJavaScript("document.getElementById('neoAiFloatBtn')?.click()").catch(() => {});
+        if (wc.isDestroyed()) return;
+        const prompt = String(promptText || "").slice(0, 12000);
+        wc.executeJavaScript(`(() => {
+          document.getElementById("neoAiFloatBtn")?.click();
+          const promptText = ${JSON.stringify(prompt)};
+          if (!promptText) return;
+          setTimeout(() => {
+            const candidates = Array.from(document.querySelectorAll("textarea, [contenteditable='true'], input:not([type='password']):not([type='hidden'])"))
+              .filter(el => el.getClientRects().length && !["search","url"].includes(String(el.type || "").toLowerCase()));
+            const target = candidates[candidates.length - 1];
+            if (!target) return;
+            if (target.isContentEditable) target.textContent = promptText;
+            else { const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), "value")?.set; if (setter) setter.call(target, promptText); else target.value = promptText; }
+            target.dispatchEvent(new InputEvent("input", { bubbles: true, inputType: "insertText", data: promptText }));
+            target.focus();
+          }, 450);
+        })()`).catch(() => {});
       }, 500);
     });
   }
   return { ok: true };
-});
+}
+ipcMain.handle("sidebar:open-neoai", () => openNeoAIWithPrompt(""));
+ipcMain.handle("sidebar:open-neoai-prompt", (_event, prompt) => openNeoAIWithPrompt(typeof prompt === "string" ? prompt : ""));
 ipcMain.on("tabs:switch", (_event, id) => {
   if (!tabs.has(Number(id))) return;
   activeTabId = Number(id);
@@ -867,6 +932,12 @@ ipcMain.handle("updater:check", async () => {
   if (!app.isPackaged) return { status: "development", message: "Updates are available in the installed version." };
   try { await autoUpdater.checkForUpdates(); return { status: "checking", message: "Checking GitHub Releases..." }; }
   catch (error) { return { status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }; }
+});
+ipcMain.handle("browser:open-devtools", () => {
+  const wc = activeContents();
+  if (!wc || wc.isDestroyed()) return { ok: false };
+  wc.openDevTools({ mode: "detach" });
+  return { ok: true };
 });
 ipcMain.handle("updater:version", () => app.getVersion());
 app.whenReady().then(async () => {
