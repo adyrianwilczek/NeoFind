@@ -364,7 +364,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
         { label: "Copy image address", click: () => { if (params.srcURL) clipboard.writeText(params.srcURL); } }
       );
       if (params.linkURL) items.push({ label: "Copy link", click: () => clipboard.writeText(params.linkURL) });
-      items.push({ label: "Save image", click: () => { if (params.srcURL && /^https?:\\/\\//i.test(params.srcURL)) wc.downloadURL(params.srcURL); } });
+      items.push({ label: "Save image", click: () => { if (params.srcURL && /^https?:\/\//i.test(params.srcURL)) wc.downloadURL(params.srcURL); } });
       items.push({ type: "separator" });
     }
     if (selectedText) {
