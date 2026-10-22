@@ -598,8 +598,20 @@ ipcMain.handle("browser:set-site-permissions", async (_event, values) => {
       return { ok: false, message: "Camera and microphone require HTTPS (or localhost)." };
     }
   }
+  const decisions = readPermissionDecisions();
   for (const key of keys) {
-    if (typeof values[key] === "boolean") savePermissionDecision(origin, key, values[key] ? "allow" : "deny");
+    if (values[key] === true || values[key] === false) {
+      decisions[origin + "|" + key] = values[key] ? "allow" : "deny";
+    } else if (values[key] === null || values[key] === "ask") {
+      delete decisions[origin + "|" + key];
+    }
+  }
+  try {
+    fsSync.mkdirSync(path.dirname(permissionDecisionsPath), { recursive: true });
+    fsSync.writeFileSync(permissionDecisionsPath, JSON.stringify(decisions, null, 2), "utf8");
+  } catch (error) {
+    console.error("Could not save website permissions:", error);
+    return { ok: false, message: "Could not save permissions to disk." };
   }
   try { await tab.view.webContents.reload(); } catch {}
   return { ok: true, origin, permissions: Object.fromEntries(keys.map(key => [key, getPermissionDecision(origin, key) || "ask"])) };
