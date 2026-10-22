@@ -308,6 +308,7 @@ document.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
   // NEOFIND_011_KEYBOARD_SHORTCUTS: shortcuts while the browser toolbar has focus.
   if (event.ctrlKey || event.metaKey) {
+    if (event.shiftKey && key === "c") { event.preventDefault(); window.neoBrowser.openDevTools(); return; }
     if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); return; }
     if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); return; }
     if (key === "f5") { event.preventDefault(); window.neoBrowser.reload(); return; }
@@ -319,6 +320,12 @@ document.addEventListener("keydown", (event) => {
   else if (key === "l") { event.preventDefault(); addressInput.focus(); addressInput.select(); }
   else if (key === "d") { event.preventDefault(); const active = lastTabsState && lastTabsState.tabs.find(tab => tab.id === lastTabsState.activeTabId); if (active) window.neoBrowser.duplicateTab(active.id); }
 });
+window.neoBrowser.onContextSearchSelection((text) => {
+  addressInput.value = String(text || "");
+  addressInput.focus();
+  addressInput.select();
+});
+window.neoBrowser.onContextAskNeoAI((text) => { window.neoBrowser.openNeoAIWithPrompt(String(text || "")); });
 window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
 window.neoBrowser.onShortcut((action) => {
   if (action === "settings") {
