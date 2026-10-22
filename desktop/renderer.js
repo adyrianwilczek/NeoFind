@@ -298,7 +298,27 @@ if (newTabDestination) {
 }
 document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.openNeoAI());
 document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("history"); });
-document.getElementById("sideAccount").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/?p=profile"));
+const neoFindConnectOverlay = document.getElementById("neoFindConnectOverlay");
+function openNeoFindConnect() {
+  neoFindConnectOverlay.classList.remove("hidden");
+  window.neoSetModalOpen("neofind-connect", true);
+}
+function closeNeoFindConnect() {
+  neoFindConnectOverlay.classList.add("hidden");
+  window.neoSetModalOpen("neofind-connect", false);
+}
+document.getElementById("sideAccount").addEventListener("click", openNeoFindConnect);
+document.getElementById("closeNeoFindConnect").addEventListener("click", closeNeoFindConnect);
+neoFindConnectOverlay.addEventListener("click", (event) => { if (event.target === neoFindConnectOverlay) closeNeoFindConnect(); });
+document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !neoFindConnectOverlay.classList.contains("hidden")) closeNeoFindConnect(); });
+document.getElementById("connectOpenProfile").addEventListener("click", async () => {
+  closeNeoFindConnect();
+  await window.neoBrowser.createTab("https://neofind.pl/?p=profile");
+});
+document.getElementById("connectOpenNeoAI").addEventListener("click", async () => {
+  closeNeoFindConnect();
+  await window.neoBrowser.createTab("https://neofind.pl/?p=neoai");
+});
 
 function setImportPreset(preset) {
   document.getElementById("importEverything").classList.toggle("selected", preset === "everything");
