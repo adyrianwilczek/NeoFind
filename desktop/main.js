@@ -504,24 +504,40 @@ function createWindow() {
     });
   });
   const allowedPermissions = new Set(["notifications", "geolocation", "media", "clipboard-read", "midi", "fullscreen", "pointerLock"]);
-  session.defaultSession.setPermissionCheckHandler((webContents, permission, requestingOrigin) => {
+  function permissionKeysForRequest(permission, details) {
+    if (permission !== "media") return [permission];
+    const mediaTypes = details && Array.isArray(details.mediaTypes) ? details.mediaTypes : [];
+    const keys = [];
+    if (mediaTypes.includes("video")) keys.push("camera");
+    if (mediaTypes.includes("audio")) keys.push("microphone");
+    return keys.length ? keys : ["camera", "microphone"];
+  }
+  session.defaultSession.setPermissionCheckHandler((_webContents, permission, requestingOrigin, details) => {
     if (!allowedPermissions.has(permission)) return false;
     const origin = (() => { try { return new URL(requestingOrigin).origin; } catch { return ""; } })();
     if (!origin) return false;
     if (permission === "notifications" && getBlockedNotificationOrigins().includes(origin)) return false;
-    return getPermissionDecision(origin, permission) === "allow";
+    const keys = permissionKeysForRequest(permission, details);
+    return keys.every(key => getPermissionDecision(origin, key) === "allow");
   });
   session.defaultSession.setPermissionRequestHandler((webContents, permission, callback, details) => {
     const origin = details && details.requestingUrl ? (() => { try { return new URL(details.requestingUrl).origin; } catch { return ""; } })() : "";
     if (!allowedPermissions.has(permission) || !origin || !mainWindow || mainWindow.isDestroyed()) { callback(false); return; }
     if (permission === "notifications" && getBlockedNotificationOrigins().includes(origin)) { callback(false); return; }
-    const previous = getPermissionDecision(origin, permission);
-    if (previous === "allow") { callback(true); return; }
-    if (previous === "deny") { callback(false); return; }
+    const permissionKeys = permissionKeysForRequest(permission, details);
+    const previous = permissionKeys.map(key => getPermissionDecision(origin, key));
+    if (previous.every(value => value === "allow")) { callback(true); return; }
+    if (previous.some(value => value === "deny")) { callback(false); return; }
     const isNotificationRequest = permission === "notifications";
+    const isMediaRequest = permission === "media";
+    const requestedLabel = isMediaRequest
+      ? permissionKeys.map(key => key === "camera" ? "camera" : "microphone").join(" and ")
+      : permission === "geolocation" ? "your location" : permission;
     const buttons = isNotificationRequest ? ["Deny", "Allow", "Block notifications for this site"] : ["Deny", "Allow"];
-    const detail = isNotificationRequest ? "Allow notifications only if you trust this website. Blocked sites can be unblocked in Settings → General." : "Allow only if you trust this website.";
-    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants access to " + permission + ".", detail, buttons, defaultId: 0, cancelId: 0, checkboxLabel: "Always allow for this site", checkboxChecked: false }).then(({ response, checkboxChecked }) => {
+    const detail = isNotificationRequest
+      ? "Allow notifications only if you trust this website. Blocked sites can be unblocked in Settings → General."
+      : "Allow only if you trust this website. You can change saved permissions using the site-permissions button beside the address.";
+    dialog.showMessageBox(mainWindow, { type: "question", title: "Website permission", message: origin + " wants to access " + requestedLabel + ".", detail, buttons, defaultId: 0, cancelId: 0, checkboxLabel: "Always remember for this site", checkboxChecked: false }).then(({ response, checkboxChecked }) => {
       if (isNotificationRequest && response === 2) {
         const origins = getBlockedNotificationOrigins(); if (!origins.includes(origin)) origins.push(origin);
         saveBlockedNotificationOrigins(origins); savePermissionDecision(origin, permission, "deny"); callback(false);
@@ -529,7 +545,7 @@ function createWindow() {
         return;
       }
       const allow = response === 1;
-      if (checkboxChecked && allow) savePermissionDecision(origin, permission, "allow");
+      if (checkboxChecked) permissionKeys.forEach(key => savePermissionDecision(origin, key, allow ? "allow" : "deny"));
       callback(allow);
     }).catch(() => callback(false));
   });
@@ -554,32 +570,40 @@ function createWindow() {
   });
 }
 
-ipcMain.handle("browser:allow-media-for-active-site", async () => {
+function getActivePermissionOrigin() {
   const tab = tabs.get(activeTabId);
-  if (!tab || tab.view.webContents.isDestroyed()) return { ok: false, message: "Open a website first." };
-  let currentUrl = "";
-  try { currentUrl = tab.view.webContents.getURL(); } catch {}
-  let parsed;
-  try { parsed = new URL(currentUrl); } catch { return { ok: false, message: "Open a website first." }; }
-  if (parsed.protocol !== "https:" && parsed.hostname !== "localhost" && parsed.hostname !== "127.0.0.1") {
-    return { ok: false, message: "Camera and microphone permissions require a secure HTTPS website." };
+  if (!tab || !tab.view || tab.view.webContents.isDestroyed()) return { tab: null, origin: "", url: "" };
+  let url = "";
+  try { url = tab.view.webContents.getURL(); } catch {}
+  try { return { tab, origin: new URL(url).origin, url }; } catch { return { tab, origin: "", url }; }
+}
+ipcMain.handle("browser:get-site-permissions", () => {
+  const { origin, url } = getActivePermissionOrigin();
+  if (!origin || origin === "null") return { ok: false, message: "Open a website first." };
+  const permissions = {};
+  for (const key of ["camera", "microphone", "geolocation", "notifications"]) {
+    permissions[key] = getPermissionDecision(origin, key) || "ask";
   }
-  if (!mainWindow || mainWindow.isDestroyed()) return { ok: false, message: "Browser window is unavailable." };
-  const { response } = await dialog.showMessageBox(mainWindow, {
-    type: "question",
-    title: "Camera and microphone permission",
-    message: parsed.origin + " wants to use your camera and microphone.",
-    detail: "Allow this only for a website you trust. You can change this by clicking the camera icon again.",
-    buttons: ["Not now", "Allow camera and microphone"],
-    defaultId: 0,
-    cancelId: 0
-  });
-  if (response !== 1) return { ok: false, cancelled: true, message: "Permission was not changed." };
-  savePermissionDecision(parsed.origin, "media", "allow");
-  try { await tab.view.webContents.reload(); } catch {}
-  return { ok: true, origin: parsed.origin };
+  return { ok: true, origin, url, secure: url.startsWith("https://") || url.startsWith("http://localhost") || url.startsWith("http://127.0.0.1"), permissions };
 });
-
+ipcMain.handle("browser:set-site-permissions", async (_event, values) => {
+  const { tab, origin, url } = getActivePermissionOrigin();
+  if (!tab || !origin || origin === "null") return { ok: false, message: "Open a website first." };
+  if (!values || typeof values !== "object") return { ok: false, message: "Invalid permission settings." };
+  const secure = url.startsWith("https://") || url.startsWith("http://localhost") || url.startsWith("http://127.0.0.1");
+  const keys = ["camera", "microphone", "geolocation", "notifications"];
+  for (const key of keys) {
+    if (typeof values[key] !== "boolean") continue;
+    if ((key === "camera" || key === "microphone") && values[key] && !secure) {
+      return { ok: false, message: "Camera and microphone require HTTPS (or localhost)." };
+    }
+  }
+  for (const key of keys) {
+    if (typeof values[key] === "boolean") savePermissionDecision(origin, key, values[key] ? "allow" : "deny");
+  }
+  try { await tab.view.webContents.reload(); } catch {}
+  return { ok: true, origin, permissions: Object.fromEntries(keys.map(key => [key, getPermissionDecision(origin, key) || "ask"])) };
+});
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
@@ -811,6 +835,7 @@ function sendUpdaterState(state) {
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 autoUpdater.allowPrerelease = true;
+autoUpdater.allowDowngrade = true; // Allow the required 0.1.x release to replace legacy 1.0.21 installs.
 autoUpdater.on("checking-for-update", () => sendUpdaterState({ status: "checking", message: "Checking for updates..." }));
 autoUpdater.on("update-available", (info) => sendUpdaterState({ status: "available", version: info.version, message: "Update found. Downloading in the background..." }));
 autoUpdater.on("update-not-available", (info) => sendUpdaterState({ status: "current", version: info.version, message: "NeoFind Browser is up to date." }));
