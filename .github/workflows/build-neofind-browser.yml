@@ -34,6 +34,13 @@ jobs:
       - name: Copy NeoFind logo into the packaged app
         shell: pwsh
         run: Copy-Item icon_round.png desktop/icon_round.png -Force
+      - name: Read app version
+        id: app-version
+        working-directory: desktop
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          "version=$version" >> $env:GITHUB_OUTPUT
       - name: Build Windows installer
         working-directory: desktop
         run: npm run build:win
@@ -48,7 +55,7 @@ jobs:
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          name: NeoFind Browser ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
+          name: NeoFind Browser v${{ steps.app-version.outputs.version }}
           tag_name: ${{ github.ref == 'refs/heads/main' && 'main' || github.ref_name }}
           overwrite_files: true
           files: |
