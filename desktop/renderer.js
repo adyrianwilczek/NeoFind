@@ -315,9 +315,9 @@ document.getElementById("connectOpenProfile").addEventListener("click", async ()
   closeNeoFindConnect();
   await window.neoBrowser.createTab("https://neofind.pl/?p=profile");
 });
-document.getElementById("connectOpenNeoAI").addEventListener("click", async () => {
+document.getElementById("connectOpenNeoAI").addEventListener("click", () => {
   closeNeoFindConnect();
-  await window.neoBrowser.createTab("https://neofind.pl/?p=neoai");
+  window.neoBrowser.openNeoAI();
 });
 
 function setImportPreset(preset) {
