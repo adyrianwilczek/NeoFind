@@ -2,6 +2,17 @@ const tabsElement = document.getElementById("tabs");
 const addressInput = document.getElementById("address");
 const viewport = document.getElementById("pageViewport");
 
+// Native page content is a separate Electron WebContentsView. CSS overlays cannot cover it,
+// so every app-owned modal must hide that view while open.
+const neoOpenOverlays = new Set();
+window.neoSetModalOpen = (key, isOpen) => {
+  if (isOpen) neoOpenOverlays.add(key);
+  else neoOpenOverlays.delete(key);
+  if (neoOpenOverlays.size) window.neoBrowser.hideContent();
+  else window.neoBrowser.showContent();
+};
+
+
 function renderTabs(state) {
   tabsElement.replaceChildren();
   for (const tab of state.tabs) {
@@ -94,11 +105,11 @@ const sitePermissionFields = {
   notifications: document.getElementById("permissionNotifications")
 };
 let activeSitePermissionOrigin = "";
-function closeSitePermissions() { sitePermissionsOverlay.classList.add("hidden"); }
+function closeSitePermissions() { sitePermissionsOverlay.classList.add("hidden"); window.neoSetModalOpen("site-permissions", false); }
 async function openSitePermissions() {
   const status = document.getElementById("sitePermissionsStatus");
   status.textContent = "Loading permissions…";
-  sitePermissionsOverlay.classList.remove("hidden");
+  sitePermissionsOverlay.classList.remove("hidden"); window.neoSetModalOpen("site-permissions", true);
   try {
     const result = await window.neoBrowser.getSitePermissionsForActiveSite();
     if (!result || !result.ok) {
@@ -286,7 +297,7 @@ if (newTabDestination) {
   newTabDestination.addEventListener("change", () => localStorage.setItem("neofind.newTabOpensNeoFind", newTabDestination.value === "neofind" ? "true" : "false"));
 }
 document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.openNeoAI());
-document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("history"); });
+document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("history"); });
 document.getElementById("sideAccount").addEventListener("click",()=>window.neoBrowser.createTab("https://neofind.pl/?p=profile"));
 
 function setImportPreset(preset) {
@@ -299,8 +310,8 @@ function setImportPreset(preset) {
     ? "All categories selected, including cookies. Selected data will be imported only where supported."
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
-document.getElementById("sideSettings").addEventListener("click", () => { window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); });
-function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.neoBrowser.showContent(); }
+document.getElementById("sideSettings").addEventListener("click", () => { settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("general"); });
+function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.neoSetModalOpen("settings", false); }
 document.getElementById("closeSettings").addEventListener("click", closeSettingsPanel);
 settingsPanel.addEventListener("click", (event) => { if (event.target === settingsPanel) closeSettingsPanel(); });
 document.addEventListener("keydown", (event) => {
@@ -309,7 +320,7 @@ document.addEventListener("keydown", (event) => {
   // NEOFIND_011_KEYBOARD_SHORTCUTS: shortcuts while the browser toolbar has focus.
   if (event.ctrlKey || event.metaKey) {
     if (event.shiftKey && key === "c") { event.preventDefault(); window.neoBrowser.openDevTools(); return; }
-    if (key === "u") { event.preventDefault(); window.neoBrowser.hideContent(); settingsPanel.classList.remove("hidden"); setSettingsTab("general"); return; }
+    if (key === "u") { event.preventDefault(); settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("general"); return; }
     if (key === "r") { event.preventDefault(); window.neoBrowser.reload(); return; }
     if (key === "f5") { event.preventDefault(); window.neoBrowser.reload(); return; }
     if (key === "x") { event.preventDefault(); window.neoBrowser.closeActiveTab(); return; }
@@ -329,8 +340,8 @@ window.neoBrowser.onContextAskNeoAI((text) => { window.neoBrowser.openNeoAIWithP
 window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
 window.neoBrowser.onShortcut((action) => {
   if (action === "settings") {
-    window.neoBrowser.hideContent();
     settingsPanel.classList.remove("hidden");
+    window.neoSetModalOpen("settings", true);
     setSettingsTab("general");
   }
 });
