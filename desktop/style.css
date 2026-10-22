@@ -190,3 +190,18 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .neo-tool-content textarea{resize:vertical;min-height:120px}
 .neo-tool-content button{align-self:flex-start}
 @media(max-width:640px){.neo-tool-backdrop.settings-overlay{padding:10px}.neo-tool-panel.settings-card{height:calc(100vh - 20px);max-height:calc(100vh - 20px);padding:16px;border-radius:14px}.neo-tool-panel .settings-heading h1{font-size:23px}}
+
+
+/* NeoFind Browser 0.1.24: per-site permission controls anchored where the address security dot used to be. */
+.site-permissions-button{display:flex;align-items:center;justify-content:center;flex:0 0 24px;width:24px;height:28px;margin-left:-4px;padding:2px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer}
+.site-permissions-button:hover,.site-permissions-button:focus-visible{color:var(--cyan);background:var(--panel2);outline:none}
+.site-permissions-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.site-permissions-card{width:min(620px,100%)}
+.site-permissions-origin{margin:8px 0 18px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--cyan);font-size:13px;overflow-wrap:anywhere}
+.site-permission-controls{display:grid;gap:9px}
+.site-permission-toggle{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,190px);align-items:center;gap:18px;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--panel2)}
+.site-permission-toggle strong{display:block;font-size:14px}
+.site-permission-toggle small{display:block;margin-top:4px;color:var(--muted);font-size:12px;line-height:1.4}
+.site-permission-toggle select{width:100%;padding:9px}
+.site-permission-toggle select:disabled{opacity:.45}
+@media(max-width:560px){.site-permission-toggle{grid-template-columns:1fr;gap:9px}}
