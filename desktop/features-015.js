@@ -15,6 +15,7 @@ function showNextPermission() {
   $("sitePermissionDetail").textContent = currentPermission.detail || "Allow only if you trust this website.";
   $("sitePermissionAlways").checked = false;
   permissionModal.classList.remove("hidden");
+  window.neoSetModalOpen("permission-request", true);
 }
 async function answerPermission(decision) {
   if (!currentPermission) return;
@@ -22,6 +23,7 @@ async function answerPermission(decision) {
   const always = $("sitePermissionAlways").checked;
   currentPermission = null;
   permissionModal.classList.add("hidden");
+  window.neoSetModalOpen("permission-request", false);
   await window.neoBrowser.respondSitePermission(request.id, decision, always);
   showNextPermission();
 }
