@@ -24,6 +24,11 @@ html,body { margin:0; width:100%; height:100%; overflow:hidden; background:var(-
 .address-form { display:flex; align-items:center; gap:9px; height:35px; flex:1; min-width:0; padding:0 12px; border:1px solid #2b3c55; border-radius:10px; background:#080f1c; }
 .address-form:focus-within { border-color:var(--cyan); box-shadow:0 0 0 2px #00f2fe20; }
 .secure-dot { width:8px; height:8px; border-radius:50%; background:linear-gradient(135deg,var(--cyan),var(--purple)); box-shadow:0 0 9px #00f2fe70; flex:0 0 auto; }
+.media-permission-button { display:flex; align-items:center; justify-content:center; width:29px; height:29px; padding:4px; flex:0 0 auto; border:0; border-radius:7px; color:var(--muted); background:transparent; cursor:pointer; }
+.media-permission-button:hover,.media-permission-button:focus-visible { color:var(--cyan); background:#1d3049; outline:none; }
+.media-permission-button svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.media-permission-button:disabled { opacity:.5; cursor:wait; }
+.media-permission-button.media-permission-allowed { color:#35d49a; }
 #address { border:0; outline:0; background:transparent; color:var(--text); width:100%; min-width:0; font-size:13px; }
 #address::placeholder { color:#71839d; }
 .go-button { height:34px; padding:0 15px; font-weight:600; border-color:transparent; background:linear-gradient(100deg,#087dba,#5652c8); }
