@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   onBlockedNotificationsChanged: (callback) => { ipcRenderer.removeAllListeners("browser:blocked-notifications-changed"); ipcRenderer.on("browser:blocked-notifications-changed", () => callback()); },
   closeActiveTab: () => ipcRenderer.send("browser:close-active-tab"),
   openNeoAI: () => ipcRenderer.invoke("sidebar:open-neoai"),
+  openNeoAIWithPrompt: (text) => ipcRenderer.invoke("sidebar:open-neoai-prompt", text),
+  onContextSearchSelection: (callback) => { ipcRenderer.removeAllListeners("context:search-selection"); ipcRenderer.on("context:search-selection", (_event, text) => callback(text)); },
+  onContextAskNeoAI: (callback) => { ipcRenderer.removeAllListeners("context:ask-neoai"); ipcRenderer.on("context:ask-neoai", (_event, text) => callback(text)); },
   switchTab: (id) => ipcRenderer.send("tabs:switch", id),
   closeTab: (id) => ipcRenderer.send("tabs:close", id),
   reorderTabs: (fromId, toId) => ipcRenderer.send("tabs:reorder", fromId, toId),
@@ -45,6 +48,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   setBrowserLanguage: (language) => ipcRenderer.invoke("browser:set-language", language),
   checkForUpdates: () => ipcRenderer.invoke("updater:check"),
   getVersion: () => ipcRenderer.invoke("updater:version"),
+  openDevTools: () => ipcRenderer.invoke("browser:open-devtools"),
   onUpdaterState: (callback) => {
     ipcRenderer.removeAllListeners("updater:state");
     ipcRenderer.on("updater:state", (_event, state) => callback(state));
