@@ -735,9 +735,10 @@ function openNeoAIWithPrompt(promptText = "") {
           const promptText = ${JSON.stringify(prompt)};
           if (!promptText) return;
           setTimeout(() => {
+            const exactInput = document.getElementById("neoAiInput");
             const candidates = Array.from(document.querySelectorAll("textarea, [contenteditable='true'], input:not([type='password']):not([type='hidden'])"))
               .filter(el => el.getClientRects().length && !["search","url"].includes(String(el.type || "").toLowerCase()));
-            const target = candidates[candidates.length - 1];
+            const target = exactInput && exactInput.getClientRects().length ? exactInput : candidates[candidates.length - 1];
             if (!target) return;
             if (target.isContentEditable) target.textContent = promptText;
             else { const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target), "value")?.set; if (setter) setter.call(target, promptText); else target.value = promptText; }
@@ -912,7 +913,7 @@ function sendUpdaterState(state) {
 autoUpdater.autoDownload = true;
 autoUpdater.autoInstallOnAppQuit = true;
 autoUpdater.allowPrerelease = true;
-autoUpdater.allowDowngrade = true; // Allow the required 0.1.x release to replace legacy 1.0.21 installs.
+autoUpdater.allowDowngrade = true;
 autoUpdater.on("checking-for-update", () => sendUpdaterState({ status: "checking", message: "Checking for updates..." }));
 autoUpdater.on("update-available", (info) => sendUpdaterState({ status: "available", version: info.version, message: "Update found. Downloading in the background..." }));
 autoUpdater.on("update-not-available", (info) => sendUpdaterState({ status: "current", version: info.version, message: "NeoFind Browser is up to date." }));
