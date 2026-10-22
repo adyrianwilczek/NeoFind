@@ -85,26 +85,62 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
   window.neoBrowser.navigate(addressInput.value);
   addressInput.blur();
 });
-const mediaPermissionButton = document.getElementById("mediaPermissionButton");
-mediaPermissionButton.addEventListener("click", async () => {
-  const oldTitle = mediaPermissionButton.title;
-  mediaPermissionButton.disabled = true;
-  mediaPermissionButton.title = "Requesting camera and microphone permission…";
+const sitePermissionsButton = document.getElementById("sitePermissionsButton");
+const sitePermissionsOverlay = document.getElementById("sitePermissionsOverlay");
+const sitePermissionFields = {
+  camera: document.getElementById("permissionCamera"),
+  microphone: document.getElementById("permissionMicrophone"),
+  geolocation: document.getElementById("permissionGeolocation"),
+  notifications: document.getElementById("permissionNotifications")
+};
+let activeSitePermissionOrigin = "";
+function closeSitePermissions() { sitePermissionsOverlay.classList.add("hidden"); }
+async function openSitePermissions() {
+  const status = document.getElementById("sitePermissionsStatus");
+  status.textContent = "Loading permissions…";
+  sitePermissionsOverlay.classList.remove("hidden");
   try {
-    const result = await window.neoBrowser.allowMediaForActiveSite();
-    if (result && result.ok) {
-      mediaPermissionButton.title = "Camera and microphone allowed for " + result.origin + ". The page is reloading.";
-      mediaPermissionButton.classList.add("media-permission-allowed");
-    } else {
-      mediaPermissionButton.title = result && result.message ? result.message : oldTitle;
-      if (!(result && result.cancelled)) window.alert(result && result.message ? result.message : "Could not change camera and microphone permission.");
+    const result = await window.neoBrowser.getSitePermissionsForActiveSite();
+    if (!result || !result.ok) {
+      activeSitePermissionOrigin = "";
+      document.getElementById("sitePermissionsOrigin").textContent = result && result.message ? result.message : "Open a website first.";
+      Object.values(sitePermissionFields).forEach(field => { field.value = "ask"; });
+      status.textContent = "Navigate to a website to manage its permissions.";
+      document.getElementById("saveSitePermissions").disabled = true;
+      return;
     }
+    activeSitePermissionOrigin = result.origin;
+    document.getElementById("sitePermissionsOrigin").textContent = result.origin;
+    for (const [key, field] of Object.entries(sitePermissionFields)) field.value = result.permissions[key] || "ask";
+    const secure = result.secure;
+    sitePermissionFields.camera.disabled = !secure;
+    sitePermissionFields.microphone.disabled = !secure;
+    status.textContent = secure ? "Changes apply only to this site and reload the current page." : "Camera and microphone can only be allowed on HTTPS or localhost.";
+    document.getElementById("saveSitePermissions").disabled = false;
   } catch (error) {
-    mediaPermissionButton.title = oldTitle;
-    window.alert("Could not change camera and microphone permission: " + String(error.message || error));
-  } finally {
-    mediaPermissionButton.disabled = false;
+    status.textContent = "Could not load permissions: " + String(error.message || error);
   }
+}
+sitePermissionsButton.addEventListener("click", openSitePermissions);
+document.getElementById("closeSitePermissions").addEventListener("click", closeSitePermissions);
+sitePermissionsOverlay.addEventListener("click", event => { if (event.target === sitePermissionsOverlay) closeSitePermissions(); });
+document.getElementById("saveSitePermissions").addEventListener("click", async () => {
+  const status = document.getElementById("sitePermissionsStatus");
+  if (!activeSitePermissionOrigin) return;
+  const values = Object.fromEntries(Object.entries(sitePermissionFields).map(([key, field]) => [key, field.value === "ask" ? null : field.value === "allow"]));
+  status.textContent = "Saving permissions…";
+  const result = await window.neoBrowser.setSitePermissionsForActiveSite(values);
+  if (!result || !result.ok) { status.textContent = result && result.message ? result.message : "Could not save permissions."; return; }
+  status.textContent = "Saved for " + result.origin + ". Reloading the page…";
+  closeSitePermissions();
+});
+document.getElementById("resetSitePermissions").addEventListener("click", async () => {
+  Object.values(sitePermissionFields).forEach(field => { field.value = "ask"; });
+  const status = document.getElementById("sitePermissionsStatus");
+  if (!activeSitePermissionOrigin) { status.textContent = "Open a website first."; return; }
+  const result = await window.neoBrowser.setSitePermissionsForActiveSite({ camera: null, microphone: null, geolocation: null, notifications: null });
+  if (!result || !result.ok) status.textContent = result && result.message ? result.message : "Could not reset permissions.";
+  else { status.textContent = "Reset to ask."; closeSitePermissions(); }
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
 document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "about:home" : "about:blank"); });
