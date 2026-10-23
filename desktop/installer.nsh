@@ -5,6 +5,11 @@
   WriteRegStr HKCU "Software\Clients\StartMenuInternet\NeoFind Browser\Capabilities" "ApplicationIcon" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
   WriteRegStr HKCU "Software\Clients\StartMenuInternet\NeoFind Browser\Capabilities\URLAssociations" "http" "NeoFindURL"
   WriteRegStr HKCU "Software\Clients\StartMenuInternet\NeoFind Browser\Capabilities\URLAssociations" "https" "NeoFindURL"
+  WriteRegStr HKCU "Software\Clients\StartMenuInternet\NeoFind Browser\Capabilities\FileAssociations" ".html" "NeoFindHTML"
+  WriteRegStr HKCU "Software\Clients\StartMenuInternet\NeoFind Browser\Capabilities\FileAssociations" ".htm" "NeoFindHTML"
+  WriteRegStr HKCU "Software\Classes\NeoFindHTML" "" "HTML Document"
+  WriteRegStr HKCU "Software\Classes\NeoFindHTML\DefaultIcon" "" "$INSTDIR\${APP_EXECUTABLE_FILENAME},0"
+  WriteRegStr HKCU "Software\Classes\NeoFindHTML\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}" "%1"'
   WriteRegStr HKCU "Software\Clients\StartMenuInternet\NeoFind Browser\shell\open\command" "" '"$INSTDIR\${APP_EXECUTABLE_FILENAME}"'
   WriteRegStr HKCU "Software\Classes\NeoFindURL" "" "NeoFind Browser URL"
   WriteRegStr HKCU "Software\Classes\NeoFindURL" "URL Protocol" ""
@@ -16,5 +21,6 @@
 !macro customUnInstall
   DeleteRegKey HKCU "Software\Clients\StartMenuInternet\NeoFind Browser"
   DeleteRegKey HKCU "Software\Classes\NeoFindURL"
+  DeleteRegKey HKCU "Software\Classes\NeoFindHTML"
   DeleteRegValue HKCU "Software\RegisteredApplications" "NeoFind Browser"
 !macroend
