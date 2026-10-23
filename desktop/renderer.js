@@ -106,10 +106,69 @@ const sitePermissionFields = {
 };
 let activeSitePermissionOrigin = "";
 function closeSitePermissions() { sitePermissionsOverlay.classList.add("hidden"); window.neoSetModalOpen("site-permissions", false); }
+
+async function refreshSiteSecurityStatus() {
+  const connection = document.getElementById("siteSecurityConnection");
+  const message = document.getElementById("siteSecurityMessage");
+  const certificate = document.getElementById("siteSecurityCertificate");
+  const subject = document.getElementById("siteSecuritySubject");
+  const expiry = document.getElementById("siteSecurityExpiry");
+  connection.className = "security-pill unknown";
+  connection.textContent = "Checking…";
+  message.textContent = "Checking HTTPS and certificate status…";
+  certificate.textContent = "Checking…";
+  subject.textContent = "Not checked";
+  expiry.textContent = "Not checked";
+  try {
+    const result = await window.neoBrowser.getSiteSecurityForActiveSite();
+    if (!result || !result.ok) {
+      connection.className = "security-pill unknown";
+      connection.textContent = "Unknown";
+      message.textContent = result && result.message ? result.message : "Open a website to inspect its connection.";
+      certificate.textContent = "Not checked";
+      return;
+    }
+    if (result.certificate === "not-applicable") {
+      connection.className = "security-pill warning";
+      connection.textContent = "Not secure";
+      certificate.textContent = "Not applicable";
+      message.textContent = result.message;
+      subject.textContent = "No HTTPS certificate";
+      expiry.textContent = "Not applicable";
+      return;
+    }
+    const details = result.details || {};
+    if (result.certificate === "valid") {
+      connection.className = "security-pill secure";
+      connection.textContent = "Secure";
+      certificate.textContent = "Valid";
+      message.textContent = "HTTPS is active and the certificate passed the browser's trust and date checks.";
+    } else if (result.certificate === "invalid") {
+      connection.className = "security-pill warning";
+      connection.textContent = "Check needed";
+      certificate.textContent = "INVALID";
+      message.textContent = "The certificate did not pass trust or validity-date checks. Avoid entering sensitive information.";
+    } else {
+      connection.className = "security-pill unknown";
+      connection.textContent = "Unknown";
+      certificate.textContent = "Could not verify";
+      message.textContent = details.message || "The certificate could not be checked right now.";
+    }
+    subject.textContent = details.subject || "Unknown";
+    expiry.textContent = details.validTo ? new Date(details.validTo).toLocaleDateString() : "Unknown";
+  } catch (error) {
+    connection.className = "security-pill unknown";
+    connection.textContent = "Unknown";
+    message.textContent = "Could not check the certificate: " + String(error.message || error);
+    certificate.textContent = "Could not verify";
+  }
+}
+
 async function openSitePermissions() {
   const status = document.getElementById("sitePermissionsStatus");
   status.textContent = "Loading permissions…";
   sitePermissionsOverlay.classList.remove("hidden"); window.neoSetModalOpen("site-permissions", true);
+  refreshSiteSecurityStatus();
   try {
     const result = await window.neoBrowser.getSitePermissionsForActiveSite();
     if (!result || !result.ok) {
