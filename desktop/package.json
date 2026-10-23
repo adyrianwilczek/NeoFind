@@ -57,5 +57,19 @@
   },
   "dependencies": {
     "electron-updater": "^6.6.2"
-  }
+  },
+  "fileAssociations": [
+    {
+      "ext": "html",
+      "name": "NeoFindHTML",
+      "description": "HTML document",
+      "role": "Viewer"
+    },
+    {
+      "ext": "htm",
+      "name": "NeoFindHTML",
+      "description": "HTML document",
+      "role": "Viewer"
+    }
+  ]
 }
