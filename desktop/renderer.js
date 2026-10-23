@@ -96,6 +96,67 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
   window.neoBrowser.navigate(addressInput.value);
   addressInput.blur();
 });
+
+const adBlockCounterButton = document.getElementById("adBlockCounter");
+const adBlockCounterValue = document.getElementById("adBlockCounterValue");
+const adBlockStatsOverlay = document.getElementById("adBlockStatsOverlay");
+function renderAdBlockStats(stats) {
+  const value = stats && Number.isFinite(Number(stats.total)) ? Math.max(0, Number(stats.total)) : 0;
+  adBlockCounterValue.textContent = value > 999 ? "999+" : String(value);
+  adBlockCounterButton.title = value + " ad and tracker requests blocked this session. Click to view details.";
+  document.getElementById("adBlockTotal").textContent = value.toLocaleString();
+  const list = document.getElementById("adBlockRecentList");
+  list.replaceChildren();
+  const recent = stats && Array.isArray(stats.recent) ? stats.recent : [];
+  if (!recent.length) {
+    const empty = document.createElement("p");
+    empty.className = "empty-list";
+    empty.textContent = "No blocked requests yet. Visit a page that loads known ad or tracker services.";
+    list.append(empty);
+    return;
+  }
+  for (const item of recent) {
+    const row = document.createElement("div");
+    row.className = "adblock-recent-row";
+    const details = document.createElement("div");
+    const host = document.createElement("strong");
+    host.textContent = item.host || item.url || "Unknown request";
+    const path = document.createElement("small");
+    path.textContent = item.url || "";
+    details.append(host, path);
+    const time = document.createElement("time");
+    time.dateTime = new Date(Number(item.time) || Date.now()).toISOString();
+    time.textContent = new Date(Number(item.time) || Date.now()).toLocaleTimeString();
+    row.append(details, time);
+    list.append(row);
+  }
+}
+async function refreshAdBlockStats() {
+  try { renderAdBlockStats(await window.neoBrowser.getAdBlockStats()); }
+  catch { renderAdBlockStats({ total: 0, recent: [] }); }
+}
+function openAdBlockStats() {
+  adBlockStatsOverlay.classList.remove("hidden");
+  window.neoSetModalOpen("adblock-stats", true);
+  refreshAdBlockStats();
+}
+function closeAdBlockStats() {
+  adBlockStatsOverlay.classList.add("hidden");
+  window.neoSetModalOpen("adblock-stats", false);
+}
+adBlockCounterButton.addEventListener("click", openAdBlockStats);
+document.getElementById("closeAdBlockStats").addEventListener("click", closeAdBlockStats);
+adBlockStatsOverlay.addEventListener("click", event => { if (event.target === adBlockStatsOverlay) closeAdBlockStats(); });
+window.neoBrowser.onAdBlockState(renderAdBlockStats);
+window.neoBrowser.onAdBlockCount(stats => {
+  if (lastTabsState && stats && stats.tabId === lastTabsState.activeTabId) {
+    const count = Number(stats.tabCount) || 0;
+    adBlockCounterValue.dataset.tabCount = String(count);
+  }
+  adBlockCounterValue.textContent = Number(stats.total) > 999 ? "999+" : String(Number(stats.total) || 0);
+});
+refreshAdBlockStats();
+
 const sitePermissionsButton = document.getElementById("sitePermissionsButton");
 const sitePermissionsOverlay = document.getElementById("sitePermissionsOverlay");
 const sitePermissionFields = {
@@ -224,6 +285,10 @@ document.getElementById("brandHome").addEventListener("click", () => window.neoB
 window.neoBrowser.onTabsState((state)=>{
   lastTabsState = state;
   renderTabs(state);
+  const activeForAdCount = (state.tabs || []).find(tab => tab.id === state.activeTabId);
+  if (activeForAdCount && activeForAdCount.blockedAdCount !== undefined) {
+    adBlockCounterValue.dataset.tabCount = String(activeForAdCount.blockedAdCount || 0);
+  }
   const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
   if (!isHistorySavingDisabled()) {
     (state.tabs||[]).forEach(tab=>{if(!tab.isPrivate&&tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
