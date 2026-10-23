@@ -21,7 +21,7 @@ const adBlockHostRules = [
   /(^|\.)adroll\.com$/i, /(^|\.)amazon-adsystem\.com$/i,
   /(^|\.)moatads\.com$/i, /(^|\.)adsafeprotected\.com$/i
 ];
-const adBlockPathRules = /\/(?:pagead|ads|advertising|adserver|adservice|banner-ads?)(?:[\/_?.-]|$)/i;
+const adBlockPathRules = /(?:\/pagead\/|\/ads\/(?:ads|banner|track)(?:\/|$)|\/adservice\/|\/adserver\/|\/banner-ads?(?:\/|$)|\/adsbygoogle(?:\/|$))/i;
 const installedAdBlockSessions = new WeakSet();
 function isBlockedAdRequest(rawUrl) {
   try {
