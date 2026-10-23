@@ -23,6 +23,14 @@ const adBlockHostRules = [
 ];
 const adBlockPathRules = /(?:\/pagead\/|\/ads\/(?:ads|banner|track)(?:\/|$)|\/adservice\/|\/adserver\/|\/banner-ads?(?:\/|$)|\/adsbygoogle(?:\/|$))/i;
 const installedAdBlockSessions = new WeakSet();
+let blockedAdRequestCount = 0;
+const recentBlockedAdRequests = [];
+function getAdBlockStats() {
+  return {
+    total: blockedAdRequestCount,
+    recent: recentBlockedAdRequests.slice(0, 100)
+  };
+}
 function isBlockedAdRequest(rawUrl) {
   try {
     const url = new URL(rawUrl);
@@ -35,7 +43,31 @@ function installAlwaysOnAdBlocker(targetSession) {
   if (!targetSession || installedAdBlockSessions.has(targetSession)) return;
   installedAdBlockSessions.add(targetSession);
   targetSession.webRequest.onBeforeRequest({ urls: ["<all_urls>"] }, (details, callback) => {
-    callback({ cancel: isBlockedAdRequest(details.url) });
+    const blocked = isBlockedAdRequest(details.url);
+    if (blocked) {
+      blockedAdRequestCount += 1;
+      let host = "";
+      let pathname = "";
+      try { const parsed = new URL(details.url); host = parsed.hostname; pathname = parsed.pathname; } catch {}
+      const matchingTab = Array.from(tabs.values()).find(item => item.view && item.view.webContents && item.view.webContents.id === details.webContentsId);
+      if (matchingTab) matchingTab.blockedAdCount = (matchingTab.blockedAdCount || 0) + 1;
+      recentBlockedAdRequests.unshift({
+        url: host + pathname,
+        host,
+        tabId: matchingTab ? matchingTab.id : null,
+        time: Date.now()
+      });
+      if (recentBlockedAdRequests.length > 100) recentBlockedAdRequests.length = 100;
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("adblock:state", getAdBlockStats());
+        mainWindow.webContents.send("adblock:count", {
+          total: blockedAdRequestCount,
+          tabId: matchingTab ? matchingTab.id : null,
+          tabCount: matchingTab ? matchingTab.blockedAdCount : 0
+        });
+      }
+    }
+    callback({ cancel: blocked });
   });
 }
 function inspectHttpsCertificate(hostname, port = 443) {
@@ -80,7 +112,7 @@ let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
-function isRestorableUrl(value) { return isHttpUrl(value) || value === "about:home" || value === "about:blank"; }
+function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank"; }
 let pendingExternalUrl = process.argv.find(isHttpUrl) || null;
 const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
@@ -338,6 +370,7 @@ function sendState() {
     isHomeTab: tab.isHomeTab === true,
     isPrivate: tab.isPrivate === true,
     pinned: tab.pinned === true,
+    blockedAdCount: tab.blockedAdCount || 0,
     loading: tab.loading,
     canGoBack: tab.view.webContents.navigationHistory.canGoBack(),
     canGoForward: tab.view.webContents.navigationHistory.canGoForward()
@@ -385,7 +418,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   });
   const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
   const homePage = options.homePage === true || String(address || "").toLowerCase() === "about:home";
-  const tab = { id, view, title: "New Tab", url: isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, isPrivate, pinned: options.pinned === true };
+  const tab = { id, view, title: "New Tab", url: isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
   tabs.set(id, tab);
   const wc = view.webContents;
   installAlwaysOnAdBlocker(wc.session);
@@ -472,7 +505,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     wc.loadURL(makeBlockedPage(targetUrl, reason)).catch(() => {});
   });
   wc.on("did-fail-load", (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
-    if (!isMainFrame || errorCode === -3 || !validatedURL || !isHttpUrl(validatedURL)) return;
+    if (!isMainFrame || errorCode === -3 || !validatedURL || (!isHttpUrl(validatedURL) && !validatedURL.startsWith("file://"))) return;
     tab.loading = false;
     tab.errorUrl = validatedURL;
     tab.title = "NeoFind: page not found";
@@ -703,6 +736,7 @@ ipcMain.handle("browser:get-site-permissions", () => {
   return { ok: true, origin, url, secure: url.startsWith("https://") || url.startsWith("http://localhost") || url.startsWith("http://127.0.0.1"), permissions };
 });
 
+ipcMain.handle("browser:get-adblock-stats", () => getAdBlockStats());
 ipcMain.handle("browser:get-site-security", async () => {
   const { url } = getActivePermissionOrigin();
   let parsed;
