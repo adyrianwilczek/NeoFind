@@ -6,6 +6,8 @@ const fsSync = require("node:fs");
 const path = require("node:path");
 const tls = require("node:tls");
 const { pathToFileURL } = require("node:url");
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) app.quit();
 
 
 /* NEOFIND_AD_BLOCKER_0127: always-on request filtering; intentionally no user toggle. */
@@ -1078,6 +1080,7 @@ ipcMain.handle("browser:open-devtools", () => {
 });
 ipcMain.handle("updater:version", () => app.getVersion());
 app.whenReady().then(async () => {
+  if (!gotSingleInstanceLock) return;
   await loadSavedSession();
   createWindow();
   if (app.isPackaged) setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 5000);
