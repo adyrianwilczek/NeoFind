@@ -4,7 +4,75 @@ const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
 const fsSync = require("node:fs");
 const path = require("node:path");
+const tls = require("node:tls");
 const { pathToFileURL } = require("node:url");
+
+
+/* NEOFIND_AD_BLOCKER_0127: always-on request filtering; intentionally no user toggle. */
+const adBlockHostRules = [
+  /(^|\\.)doubleclick\\.net$/i, /(^|\\.)googlesyndication\\.com$/i,
+  /(^|\\.)googleadservices\\.com$/i, /(^|\\.)adservice\\.google\\.com$/i,
+  /(^|\\.)adnxs\\.com$/i, /(^|\\.)adsrvr\\.org$/i,
+  /(^|\\.)adform\\.net$/i, /(^|\\.)taboola\\.com$/i,
+  /(^|\\.)outbrain\\.com$/i, /(^|\\.)criteo\\.com$/i,
+  /(^|\\.)casalemedia\\.com$/i, /(^|\\.)pubmatic\\.com$/i,
+  /(^|\\.)rubiconproject\\.com$/i, /(^|\\.)openx\\.net$/i,
+  /(^|\\.)scorecardresearch\\.com$/i, /(^|\\.)zedo\\.com$/i,
+  /(^|\\.)adroll\\.com$/i, /(^|\\.)amazon-adsystem\\.com$/i,
+  /(^|\\.)moatads\\.com$/i, /(^|\\.)adsafeprotected\\.com$/i
+];
+const adBlockPathRules = /\\/(?:pagead|ads|advertising|adserver|adservice|banner-ads?)(?:[\\/_?.-]|$)/i;
+const installedAdBlockSessions = new WeakSet();
+function isBlockedAdRequest(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    if (!/^https?:$/.test(url.protocol)) return false;
+    if (adBlockHostRules.some(rule => rule.test(url.hostname))) return true;
+    return adBlockPathRules.test(url.pathname);
+  } catch { return false; }
+}
+function installAlwaysOnAdBlocker(targetSession) {
+  if (!targetSession || installedAdBlockSessions.has(targetSession)) return;
+  installedAdBlockSessions.add(targetSession);
+  targetSession.webRequest.onBeforeRequest({ urls: ["<all_urls>"] }, (details, callback) => {
+    callback({ cancel: isBlockedAdRequest(details.url) });
+  });
+}
+function inspectHttpsCertificate(hostname, port = 443) {
+  return new Promise(resolve => {
+    let settled = false;
+    const finish = result => { if (settled) return; settled = true; try { socket.destroy(); } catch {} resolve(result); };
+    let socket;
+    const timer = setTimeout(() => finish({ status: "unknown", message: "Certificate check timed out." }), 5000);
+    try {
+      socket = tls.connect({ host: hostname, port, servername: hostname, rejectUnauthorized: false, timeout: 5000 });
+      socket.once("secureConnect", () => {
+        clearTimeout(timer);
+        const cert = socket.getPeerCertificate();
+        const now = Date.now();
+        const from = cert && cert.valid_from ? Date.parse(cert.valid_from) : NaN;
+        const to = cert && cert.valid_to ? Date.parse(cert.valid_to) : NaN;
+        const datesValid = Number.isFinite(from) && Number.isFinite(to) && now >= from && now <= to;
+        const valid = socket.authorized === true && datesValid;
+        finish({
+          status: valid ? "valid" : "invalid",
+          valid,
+          authorized: socket.authorized === true,
+          authorizationError: socket.authorizationError ? String(socket.authorizationError) : "",
+          subject: cert && cert.subject ? String(cert.subject.CN || cert.subject.O || hostname) : hostname,
+          issuer: cert && cert.issuer ? String(cert.issuer.O || cert.issuer.CN || "Unknown issuer") : "Unknown issuer",
+          validFrom: Number.isFinite(from) ? new Date(from).toISOString() : null,
+          validTo: Number.isFinite(to) ? new Date(to).toISOString() : null
+        });
+      });
+      socket.once("error", error => { clearTimeout(timer); finish({ status: "unknown", message: String(error.message || error) }); });
+      socket.once("timeout", () => { clearTimeout(timer); finish({ status: "unknown", message: "Certificate check timed out." }); });
+    } catch (error) {
+      clearTimeout(timer);
+      finish({ status: "unknown", message: String(error.message || error) });
+    }
+  });
+}
 
 const HOME_URL = "https://neofind.pl/";
 let mainWindow;
@@ -320,6 +388,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   const tab = { id, view, title: "New Tab", url: isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, isPrivate, pinned: options.pinned === true };
   tabs.set(id, tab);
   const wc = view.webContents;
+  installAlwaysOnAdBlocker(wc.session);
   // NEOFIND_011_KEYBOARD_SHORTCUTS: keep browser shortcuts active while a web page has focus.
   wc.on("before-input-event", (event, input) => {
     if (input.type !== "keyDown") return;
@@ -632,6 +701,22 @@ ipcMain.handle("browser:get-site-permissions", () => {
     permissions[key] = getPermissionDecision(origin, key) || "ask";
   }
   return { ok: true, origin, url, secure: url.startsWith("https://") || url.startsWith("http://localhost") || url.startsWith("http://127.0.0.1"), permissions };
+});
+
+ipcMain.handle("browser:get-site-security", async () => {
+  const { url } = getActivePermissionOrigin();
+  let parsed;
+  try { parsed = new URL(url); } catch { return { ok: false, message: "Open a website first." }; }
+  if (parsed.protocol !== "https:") {
+    return { ok: true, url, secure: false, connection: "not-secure", certificate: "not-applicable", message: "This page does not use HTTPS. A trusted HTTPS certificate is not present for this connection." };
+  }
+  const certificate = await inspectHttpsCertificate(parsed.hostname, Number(parsed.port || 443));
+  return {
+    ok: true, url, secure: certificate.valid === true,
+    connection: certificate.valid === true ? "secure" : certificate.valid === false ? "warning" : "unknown",
+    certificate: certificate.status,
+    details: certificate
+  };
 });
 ipcMain.handle("browser:set-site-permissions", async (_event, values) => {
   const { tab, origin, url } = getActivePermissionOrigin();
