@@ -222,3 +222,20 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .connect-tile p { color: var(--muted, #aab6ca); line-height: 1.5; font-size: 13px; margin: 0 0 14px; }
 .connect-footnote { margin: 18px 0 0; color: var(--muted, #aab6ca); font-size: 12px; line-height: 1.5; }
 @media (max-width: 620px) { .connect-grid { grid-template-columns: 1fr; } }
+
+/* NeoFind 0.1.27: connection security and always-on ad blocker status */
+.site-security-card, .adblock-status-card { border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(135deg, rgba(79,172,254,.08), rgba(155,81,224,.06)); padding: 13px 15px; margin: 12px 0; }
+.site-security-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:7px; }
+.site-security-card p, .adblock-status-card p { color:var(--muted); font-size:12px; line-height:1.45; margin:5px 0 10px; }
+.site-security-details { display:flex; justify-content:space-between; gap:12px; padding-top:7px; margin-top:7px; border-top:1px solid var(--line); font-size:12px; }
+.site-security-details span { color:var(--muted); }
+.site-security-details strong { text-align:right; overflow-wrap:anywhere; }
+.security-pill { flex:0 0 auto; display:inline-flex; align-items:center; padding:4px 8px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.02em; background:rgba(148,167,191,.12); color:var(--muted); }
+.security-pill.secure { color:#68f0bd; background:rgba(104,240,189,.12); }
+.security-pill.warning { color:#ffbf69; background:rgba(255,191,105,.13); }
+.security-pill.unknown { color:#b8c8dc; background:rgba(148,167,191,.12); }
+.adblock-status-card { display:flex; align-items:center; gap:11px; background:rgba(104,240,189,.06); }
+.adblock-status-card > div { flex:1; min-width:0; }
+.adblock-status-card p { margin-bottom:0; }
+.adblock-status-icon { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(104,240,189,.14); color:#68f0bd; font-weight:900; }
+.site-permissions-card { max-height:calc(100vh - 30px); overflow:auto; }
