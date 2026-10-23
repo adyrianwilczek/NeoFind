@@ -113,7 +113,23 @@ let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
 function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank"; }
+function normalizeExternalFileArgument(value) {
+  if (typeof value !== "string" || !value.trim() || value.startsWith("-")) return null;
+  const input = value.trim();
+  try {
+    if (/^file:/i.test(input)) {
+      const parsed = new URL(input);
+      if (parsed.protocol !== "file:") return null;
+      const localPath = require("node:url").fileURLToPath(parsed);
+      return fsSync.existsSync(localPath) ? pathToFileURL(localPath).href : null;
+    }
+    if (isHttpUrl(input) || /^[a-zA-Z][a-zA-Z\\d+.-]*:/.test(input)) return null;
+    const localPath = path.resolve(input.replace(/^"|"$/g, ""));
+    return fsSync.existsSync(localPath) && fsSync.statSync(localPath).isFile() ? pathToFileURL(localPath).href : null;
+  } catch { return null; }
+}
 let pendingExternalUrl = process.argv.find(isHttpUrl) || null;
+let pendingExternalFile = process.argv.map(normalizeExternalFileArgument).find(Boolean) || null;
 const tabs = new Map();
 let viewportBounds = { x: 0, y: 92, width: 1100, height: 650 };
 let restoredSession = null;
@@ -699,11 +715,12 @@ function createWindow() {
     }).catch(() => callback(false));
   });
   mainWindow.webContents.once("did-finish-load", () => {
-    if (pendingExternalUrl) {
-      const target = pendingExternalUrl;
+    const externalTarget = pendingExternalUrl || pendingExternalFile;
+    if (externalTarget) {
       pendingExternalUrl = null;
+      pendingExternalFile = null;
       restoredSession = null;
-      openTab(target, true);
+      openTab(externalTarget, true);
     } else {
       restoreSessionOrHome();
     }
@@ -1065,15 +1082,25 @@ app.whenReady().then(async () => {
   createWindow();
   if (app.isPackaged) setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 5000);
 });
+app.on("open-file", (event, filePath) => {
+  event.preventDefault();
+  const target = normalizeExternalFileArgument(filePath);
+  if (!target) return;
+  if (mainWindow && !mainWindow.isDestroyed()) openTab(target, true);
+  else pendingExternalFile = target;
+});
 app.on("second-instance", (_event, commandLine) => {
   const externalUrl = commandLine.find(isHttpUrl);
-  if (externalUrl) {
+  const externalFile = commandLine.map(normalizeExternalFileArgument).find(Boolean);
+  const externalTarget = externalUrl || externalFile;
+  if (externalTarget) {
     if (mainWindow && !mainWindow.isDestroyed()) {
-      openTab(externalUrl, true);
+      openTab(externalTarget, true);
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     } else {
-      pendingExternalUrl = externalUrl;
+      pendingExternalUrl = externalUrl || null;
+      pendingExternalFile = externalFile || null;
       createWindow();
     }
   } else if (mainWindow && !mainWindow.isDestroyed()) {
