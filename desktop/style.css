@@ -223,7 +223,7 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .connect-footnote { margin: 18px 0 0; color: var(--muted, #aab6ca); font-size: 12px; line-height: 1.5; }
 @media (max-width: 620px) { .connect-grid { grid-template-columns: 1fr; } }
 
-/* NeoFind 0.1.27: connection security and always-on ad blocker status */
+/* NeoFind 0.1.28: connection security, ad blocker stats and local file navigation */
 .site-security-card, .adblock-status-card { border: 1px solid var(--line); border-radius: 13px; background: linear-gradient(135deg, rgba(79,172,254,.08), rgba(155,81,224,.06)); padding: 13px 15px; margin: 12px 0; }
 .site-security-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:7px; }
 .site-security-card p, .adblock-status-card p { color:var(--muted); font-size:12px; line-height:1.45; margin:5px 0 10px; }
@@ -239,3 +239,22 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .adblock-status-card p { margin-bottom:0; }
 .adblock-status-icon { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:rgba(104,240,189,.14); color:#68f0bd; font-weight:900; }
 .site-permissions-card { max-height:calc(100vh - 30px); overflow:auto; }
+
+
+/* NeoFind Browser 0.1.28: live ad-block counter and request history panel. */
+.adblock-counter{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:0 0 auto;min-width:48px;height:28px;margin-left:1px;padding:0 7px;border:1px solid rgba(104,240,189,.26);border-radius:8px;background:rgba(104,240,189,.08);color:#68f0bd;cursor:pointer;font-size:11px}
+.adblock-counter:hover,.adblock-counter:focus-visible{background:rgba(104,240,189,.16);border-color:#68f0bd;outline:none}
+.adblock-counter strong{font-size:11px;font-variant-numeric:tabular-nums}
+.adblock-stats-card{width:min(720px,100%);max-height:calc(100vh - 40px);overflow:auto}
+.adblock-total-card{display:flex;align-items:center;gap:14px;margin:14px 0;padding:17px;border:1px solid rgba(104,240,189,.25);border-radius:14px;background:rgba(104,240,189,.06)}
+.adblock-total-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:rgba(104,240,189,.14);font-size:22px}
+.adblock-total-card>div{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
+.adblock-total-card>div strong{font-size:28px;font-variant-numeric:tabular-nums}
+.adblock-total-card>div small,.adblock-stats-note{color:var(--muted);font-size:12px;line-height:1.5}
+.adblock-stats-card h2{font-size:16px;margin:22px 0 10px}
+.adblock-recent-list{display:grid;gap:8px;max-height:300px;overflow:auto}
+.adblock-recent-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.adblock-recent-row strong{display:block;overflow-wrap:anywhere;font-size:12px}
+.adblock-recent-row small{display:block;margin-top:4px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
+.adblock-recent-row time{color:var(--muted);font-size:11px;white-space:nowrap}
+@media(max-width:600px){.adblock-counter{min-width:40px;padding:0 4px}.adblock-total-card{align-items:flex-start;flex-wrap:wrap}.adblock-recent-row{grid-template-columns:1fr}.adblock-recent-row time{white-space:normal}}
