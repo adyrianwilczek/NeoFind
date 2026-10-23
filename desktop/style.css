@@ -248,6 +248,11 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .adblock-stats-card{width:min(720px,100%);max-height:calc(100vh - 40px);overflow:auto}
 .adblock-total-card{display:flex;align-items:center;gap:14px;margin:14px 0;padding:17px;border:1px solid rgba(104,240,189,.25);border-radius:14px;background:rgba(104,240,189,.06)}
 .adblock-total-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:13px;background:rgba(104,240,189,.14);font-size:22px}
+.adblock-tab-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);font-size:12px}
+.adblock-tab-summary>span:first-child{color:var(--muted)}
+.adblock-tab-summary>strong{font-size:17px;font-variant-numeric:tabular-nums}
+.adblock-session-summary{margin-left:auto;color:var(--muted)}
+.adblock-session-summary strong{color:var(--text);font-variant-numeric:tabular-nums}
 .adblock-total-card>div{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px}
 .adblock-total-card>div strong{font-size:28px;font-variant-numeric:tabular-nums}
 .adblock-total-card>div small,.adblock-stats-note{color:var(--muted);font-size:12px;line-height:1.5}
