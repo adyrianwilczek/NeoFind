@@ -10,18 +10,18 @@ const { pathToFileURL } = require("node:url");
 
 /* NEOFIND_AD_BLOCKER_0127: always-on request filtering; intentionally no user toggle. */
 const adBlockHostRules = [
-  /(^|\\.)doubleclick\\.net$/i, /(^|\\.)googlesyndication\\.com$/i,
-  /(^|\\.)googleadservices\\.com$/i, /(^|\\.)adservice\\.google\\.com$/i,
-  /(^|\\.)adnxs\\.com$/i, /(^|\\.)adsrvr\\.org$/i,
-  /(^|\\.)adform\\.net$/i, /(^|\\.)taboola\\.com$/i,
-  /(^|\\.)outbrain\\.com$/i, /(^|\\.)criteo\\.com$/i,
-  /(^|\\.)casalemedia\\.com$/i, /(^|\\.)pubmatic\\.com$/i,
-  /(^|\\.)rubiconproject\\.com$/i, /(^|\\.)openx\\.net$/i,
-  /(^|\\.)scorecardresearch\\.com$/i, /(^|\\.)zedo\\.com$/i,
-  /(^|\\.)adroll\\.com$/i, /(^|\\.)amazon-adsystem\\.com$/i,
-  /(^|\\.)moatads\\.com$/i, /(^|\\.)adsafeprotected\\.com$/i
+  /(^|\.)doubleclick\.net$/i, /(^|\.)googlesyndication\.com$/i,
+  /(^|\.)googleadservices\.com$/i, /(^|\.)adservice\.google\.com$/i,
+  /(^|\.)adnxs\.com$/i, /(^|\.)adsrvr\.org$/i,
+  /(^|\.)adform\.net$/i, /(^|\.)taboola\.com$/i,
+  /(^|\.)outbrain\.com$/i, /(^|\.)criteo\.com$/i,
+  /(^|\.)casalemedia\.com$/i, /(^|\.)pubmatic\.com$/i,
+  /(^|\.)rubiconproject\.com$/i, /(^|\.)openx\.net$/i,
+  /(^|\.)scorecardresearch\.com$/i, /(^|\.)zedo\.com$/i,
+  /(^|\.)adroll\.com$/i, /(^|\.)amazon-adsystem\.com$/i,
+  /(^|\.)moatads\.com$/i, /(^|\.)adsafeprotected\.com$/i
 ];
-const adBlockPathRules = /\\/(?:pagead|ads|advertising|adserver|adservice|banner-ads?)(?:[\\/_?.-]|$)/i;
+const adBlockPathRules = /\/(?:pagead|ads|advertising|adserver|adservice|banner-ads?)(?:[\/_?.-]|$)/i;
 const installedAdBlockSessions = new WeakSet();
 function isBlockedAdRequest(rawUrl) {
   try {
