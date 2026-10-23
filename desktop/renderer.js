@@ -100,11 +100,23 @@ document.getElementById("addressForm").addEventListener("submit", (event) => {
 const adBlockCounterButton = document.getElementById("adBlockCounter");
 const adBlockCounterValue = document.getElementById("adBlockCounterValue");
 const adBlockStatsOverlay = document.getElementById("adBlockStatsOverlay");
+function renderCurrentTabAdCount(count) {
+  const value = Math.max(0, Number(count) || 0);
+  adBlockCounterValue.textContent = value > 999 ? "999+" : String(value);
+  adBlockCounterValue.dataset.tabCount = String(value);
+  const sessionTotal = Number(adBlockCounterValue.dataset.sessionTotal) || 0;
+  adBlockCounterButton.title = value + " requests blocked on this tab; " + sessionTotal + " blocked this session. Click for details.";
+  const tabTotal = document.getElementById("adBlockCurrentTab");
+  if (tabTotal) tabTotal.textContent = value.toLocaleString();
+}
 function renderAdBlockStats(stats) {
   const value = stats && Number.isFinite(Number(stats.total)) ? Math.max(0, Number(stats.total)) : 0;
-  adBlockCounterValue.textContent = value > 999 ? "999+" : String(value);
-  adBlockCounterButton.title = value + " ad and tracker requests blocked this session. Click to view details.";
+  adBlockCounterValue.dataset.sessionTotal = String(value);
   document.getElementById("adBlockTotal").textContent = value.toLocaleString();
+  const sessionTotal = document.getElementById("adBlockSessionSummary");
+  if (sessionTotal) sessionTotal.textContent = value.toLocaleString();
+  const current = lastTabsState && (lastTabsState.tabs || []).find(tab => tab.id === lastTabsState.activeTabId);
+  renderCurrentTabAdCount(current ? current.blockedAdCount : 0);
   const list = document.getElementById("adBlockRecentList");
   list.replaceChildren();
   const recent = stats && Array.isArray(stats.recent) ? stats.recent : [];
@@ -150,10 +162,8 @@ adBlockStatsOverlay.addEventListener("click", event => { if (event.target === ad
 window.neoBrowser.onAdBlockState(renderAdBlockStats);
 window.neoBrowser.onAdBlockCount(stats => {
   if (lastTabsState && stats && stats.tabId === lastTabsState.activeTabId) {
-    const count = Number(stats.tabCount) || 0;
-    adBlockCounterValue.dataset.tabCount = String(count);
+    renderCurrentTabAdCount(stats.tabCount);
   }
-  adBlockCounterValue.textContent = Number(stats.total) > 999 ? "999+" : String(Number(stats.total) || 0);
 });
 refreshAdBlockStats();
 
@@ -286,9 +296,7 @@ window.neoBrowser.onTabsState((state)=>{
   lastTabsState = state;
   renderTabs(state);
   const activeForAdCount = (state.tabs || []).find(tab => tab.id === state.activeTabId);
-  if (activeForAdCount && activeForAdCount.blockedAdCount !== undefined) {
-    adBlockCounterValue.dataset.tabCount = String(activeForAdCount.blockedAdCount || 0);
-  }
+  renderCurrentTabAdCount(activeForAdCount ? activeForAdCount.blockedAdCount : 0);
   const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
   if (!isHistorySavingDisabled()) {
     (state.tabs||[]).forEach(tab=>{if(!tab.isPrivate&&tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
