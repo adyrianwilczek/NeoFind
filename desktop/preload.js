@@ -22,6 +22,8 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   getSitePermissionsForActiveSite: () => ipcRenderer.invoke("browser:get-site-permissions"),
   getSiteSecurityForActiveSite: () => ipcRenderer.invoke("browser:get-site-security"),
   getAdBlockStats: () => ipcRenderer.invoke("browser:get-adblock-stats"),
+  getRecentSites: () => ipcRenderer.invoke("browser:get-recent-sites"),
+  recordRecentSite: (site) => ipcRenderer.invoke("browser:record-recent-site", site),
   onAdBlockState: (callback) => { ipcRenderer.removeAllListeners("adblock:state"); ipcRenderer.on("adblock:state", (_event, stats) => callback(stats)); },
   onAdBlockCount: (callback) => { ipcRenderer.removeAllListeners("adblock:count"); ipcRenderer.on("adblock:count", (_event, stats) => callback(stats)); },
   setSitePermissionsForActiveSite: (values) => ipcRenderer.invoke("browser:set-site-permissions", values),
