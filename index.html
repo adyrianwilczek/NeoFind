@@ -2125,6 +2125,31 @@ body.neo-theme-premium-gradient::before {
 .neo-history-use:focus-visible, .neo-history-delete:focus-visible { outline: 2px solid #00f2fe; outline-offset: 2px; }
 </style>
 
+
+<style id="neoMarketingStyles">
+  body.neo-marketing-mode { margin:0!important; min-height:100vh; overflow-x:hidden; background:#070b16!important; color:#eef8ff; font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important; }
+  body.neo-marketing-mode > *:not(#neoMarketingLanding) { display:none!important; }
+  #neoMarketingLanding { display:none; min-height:100vh; box-sizing:border-box; color:#eef8ff; background:radial-gradient(ellipse at 15% 15%,rgba(0,242,254,.14),transparent 35%),radial-gradient(ellipse at 85% 25%,rgba(155,81,224,.18),transparent 32%),#070b16; }
+  body.neo-marketing-mode #neoMarketingLanding { display:block; }
+  #neoMarketingLanding * { box-sizing:border-box; }
+  #neoMarketingLanding .nf-nav { max-width:1100px; margin:auto; padding:24px 28px; display:flex; align-items:center; gap:12px; font-weight:800; letter-spacing:.04em; }
+  #neoMarketingLanding .nf-nav img { width:38px;height:38px;object-fit:contain; }
+  #neoMarketingLanding .nf-hero { max-width:1000px; margin:0 auto; padding:clamp(70px,13vh,140px) 28px 45px; text-align:center; }
+  #neoMarketingLanding .nf-kicker { display:inline-block; border:1px solid #00f2fe55; border-radius:999px; padding:8px 13px; color:#9deff7; background:#00f2fe0d; font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+  #neoMarketingLanding h1 { margin:22px 0 14px; font-size:clamp(46px,8vw,86px); line-height:1.02; letter-spacing:-.055em; }
+  #neoMarketingLanding h1 span { background:linear-gradient(100deg,#00f2fe,#4facfe 55%,#b18aff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #neoMarketingLanding .nf-lead { max-width:680px; margin:0 auto; color:#b8c7da; font-size:clamp(17px,2vw,21px); line-height:1.75; }
+  #neoMarketingLanding .nf-about { max-width:860px; margin:42px auto 0; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; text-align:left; }
+  #neoMarketingLanding .nf-card { border:1px solid #ffffff18; background:linear-gradient(145deg,#ffffff0c,#ffffff04); border-radius:18px; padding:21px; }
+  #neoMarketingLanding .nf-card h2 { font-size:17px; margin:0 0 9px; }
+  #neoMarketingLanding .nf-card p { margin:0; color:#aebed2; font-size:14px; line-height:1.65; }
+  #neoMarketingLanding .nf-actions { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin:42px auto 0; }
+  #neoMarketingLanding .nf-button { display:inline-flex; justify-content:center; align-items:center; gap:8px; padding:13px 20px; border-radius:12px; text-decoration:none; font-weight:800; border:1px solid #ffffff24; color:#eef8ff; background:#ffffff0a; transition:transform .18s ease,border-color .18s ease; }
+  #neoMarketingLanding .nf-button:hover { transform:translateY(-2px); border-color:#00f2feaa; }
+  #neoMarketingLanding .nf-button.primary { color:#04121b; background:linear-gradient(110deg,#00f2fe,#4facfe); border-color:transparent; }
+  #neoMarketingLanding footer { text-align:center; color:#71839a; font-size:13px; padding:32px 20px 26px; }
+  @media(max-width:700px){ #neoMarketingLanding .nf-about{grid-template-columns:1fr;} #neoMarketingLanding .nf-hero{padding-top:70px;} }
+</style>
 </head>
 <body>
     <div id="neofind-loading">
@@ -2225,9 +2250,6 @@ body.neo-theme-premium-gradient::before {
     <button onclick="openNeoSocial()">
     NeoSocial
 </button>
-    <button id="downloadNeoFindBtn" onclick="window.open('https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe','_blank','noopener,noreferrer')" title="Download NeoFind Browser" style="background:linear-gradient(135deg,rgba(0,242,254,0.18),rgba(79,172,254,0.22),rgba(155,81,224,0.2));border:1px solid rgba(0,242,254,0.45);color:#dffcff;font-weight:bold;border-radius:12px;padding:8px 14px;font-size:14px;display:flex;align-items:center;gap:7px;cursor:pointer;">
-      <span aria-hidden="true">↓</span> <span>Download NeoFind</span>
-    </button>
 </div>
 
     <!-- NeoFind Beta tabs: integrated into the existing NeoFind page -->
@@ -8841,6 +8863,32 @@ function triggerCustomLockScreen(userEmail, blockReason) {
 #neoPurchaseReceiptBody .neo-receipt-value{font-size:14px;color:#fff;font-weight:650}
 </style>
 
+
+<section id="neoMarketingLanding" aria-label="About NeoFind">
+  <nav class="nf-nav"><img src="icon_nobg.png" alt="NeoFind logo"><span>NeoFind</span></nav>
+  <main class="nf-hero">
+    <span class="nf-kicker">Search. Connect. Discover.</span>
+    <h1>The web, <span>connected.</span></h1>
+    <p class="nf-lead">NeoFind is an independent search and communication platform built to help people discover useful things online, explore topics, and connect through a clean, modern experience.</p>
+    <div class="nf-about">
+      <article class="nf-card"><h2>Search and discover</h2><p>Explore websites, topics, games, and information from across the internet.</p></article>
+      <article class="nf-card"><h2>Connect</h2><p>Bring search and communication together with NeoFind social features and NeoAI tools.</p></article>
+      <article class="nf-card"><h2>Choose your experience</h2><p>Use NeoFind on the web or choose NeoFind Browser for a dedicated desktop browsing experience.</p></article>
+    </div>
+    <div class="nf-actions">
+      <a class="nf-button primary" href="https://app.neofind.pl/">Go to website <span aria-hidden="true">↗</span></a>
+      <a class="nf-button" href="https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe">Download NeoFind Browser <span aria-hidden="true">↓</span></a>
+    </div>
+  </main>
+  <footer>NeoFind · Search. Connect. Discover.</footer>
+</section>
+<script id="neoMarketingRouter">
+(function(){
+  var host=String(location.hostname||"").toLowerCase();
+  if(host==="app.neofind.pl"||host.startsWith("app.neofind.pl:")) return;
+  document.body.classList.add("neo-marketing-mode");
+})();
+</script>
 </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
