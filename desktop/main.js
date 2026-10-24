@@ -289,11 +289,11 @@ function getSessionSnapshot() {
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
     if (tab.isPrivate) return;
-    let currentUrl = tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
+    let currentUrl = tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
     let currentTitle = tab.title || "New Tab";
     try {
       if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
-        if (!tab.isHomeTab) currentUrl = tab.view.webContents.getURL() || currentUrl;
+        if (!tab.isHomeTab && !tab.customNewTab) currentUrl = tab.view.webContents.getURL() || currentUrl;
         currentTitle = tab.isHomeTab ? "New Tab" : (tab.view.webContents.getTitle() || currentTitle);
       }
     } catch (error) {
@@ -563,17 +563,23 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
-    else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
-    else if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
-    else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
+    else {
+      tab.customNewTab = false;
+      if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
+      else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
+    }
     sendState();
     saveSessionSync();
   });
   wc.on("did-navigate-in-page", (_event, url) => {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
-    if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
-    else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
+    if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
+    else {
+      tab.customNewTab = false;
+      if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
+      else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
+    }
     sendState();
     saveSessionSync();
   });
