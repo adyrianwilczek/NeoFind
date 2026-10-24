@@ -297,6 +297,9 @@ window.neoBrowser.onTabsState((state)=>{
   renderTabs(state);
   const activeForAdCount = (state.tabs || []).find(tab => tab.id === state.activeTabId);
   renderCurrentTabAdCount(activeForAdCount ? activeForAdCount.blockedAdCount : 0);
+  if (activeForAdCount && !activeForAdCount.isPrivate && /^https?:/i.test(activeForAdCount.url || "")) {
+    window.neoBrowser.recordRecentSite({ url: activeForAdCount.url, title: activeForAdCount.title || activeForAdCount.url }).catch(() => {});
+  }
   const history=getBrowserHistory(), known=new Set(history.map(item=>item.url));
   if (!isHistorySavingDisabled()) {
     (state.tabs||[]).forEach(tab=>{if(!tab.isPrivate&&tab.url&&/^https?:/i.test(tab.url)&&!known.has(tab.url)){history.unshift({url:tab.url,title:tab.title||tab.url,visitedAt:Date.now()});known.add(tab.url);}});
