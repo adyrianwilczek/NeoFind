@@ -108,7 +108,7 @@ function inspectHttpsCertificate(hostname, port = 443) {
   });
 }
 
-const HOME_URL = "https://app.neofind.pl/";
+const HOME_URL = "https://neofind.pl/?app=1";
 let mainWindow;
 let browserLanguage = "en";
 let nextTabId = 1;
