@@ -17122,7 +17122,7 @@ placeFindables();refreshDisplay();
 <script id="neoMarketingRouter">
 (function(){
   var host=String(location.hostname||"").toLowerCase();
-  if(host==="app.neofind.pl") return;
+  if(host==="app.neofind.pl" || new URLSearchParams(location.search).get("app")==="1") return;
   document.body.classList.add("neo-marketing-mode");
 })();
 </script>
