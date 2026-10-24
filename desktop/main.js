@@ -765,6 +765,23 @@ ipcMain.handle("browser:get-site-permissions", () => {
   return { ok: true, origin, url, secure: url.startsWith("https://") || url.startsWith("http://localhost") || url.startsWith("http://127.0.0.1"), permissions };
 });
 
+function recentSitesFilePath() { return path.join(app.getPath("userData"), "recent-sites.json"); }
+function readRecentSites() {
+  try { const rows = JSON.parse(fsSync.readFileSync(recentSitesFilePath(), "utf8")); return Array.isArray(rows) ? rows : []; }
+  catch { return []; }
+}
+function writeRecentSites(rows) {
+  try { fsSync.mkdirSync(path.dirname(recentSitesFilePath()), { recursive: true }); fsSync.writeFileSync(recentSitesFilePath(), JSON.stringify(rows.slice(0, 100), null, 2), "utf8"); }
+  catch (error) { console.error("Could not save recent websites:", error); }
+}
+ipcMain.handle("browser:get-recent-sites", () => readRecentSites().slice(0, 10));
+ipcMain.handle("browser:record-recent-site", (_event, site) => {
+  if (!site || typeof site.url !== "string" || !/^https?:\/\//i.test(site.url)) return false;
+  const rows = readRecentSites().filter(row => row && row.url !== site.url);
+  rows.unshift({ url: site.url, title: String(site.title || site.url).slice(0, 250), visitedAt: Date.now() });
+  writeRecentSites(rows);
+  return true;
+});
 ipcMain.handle("browser:get-adblock-stats", () => getAdBlockStats());
 ipcMain.handle("browser:get-site-security", async () => {
   const { url } = getActivePermissionOrigin();
