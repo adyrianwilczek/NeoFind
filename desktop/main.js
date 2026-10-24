@@ -108,13 +108,13 @@ function inspectHttpsCertificate(hostname, port = 443) {
   });
 }
 
-const HOME_URL = "https://neofind.pl/";
+const HOME_URL = "https://app.neofind.pl/";
 let mainWindow;
 let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
-function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank"; }
+function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab"; }
 function normalizeExternalFileArgument(value) {
   if (typeof value !== "string" || !value.trim() || value.startsWith("-")) return null;
   const input = value.trim();
@@ -260,6 +260,7 @@ function loadAddressInTab(tab, address) {
     }
   }
   tab.pendingRiskUrl = null; tab.errorUrl = null;
+  if (tab.customNewTab) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"));
   return tab.view.webContents.loadURL(targetUrl);
 }
 function makeNavigationErrorPage(target) {
@@ -434,9 +435,10 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       ...(isPrivate ? { partition: "neofind-private-" + id } : {})
     }
   });
-  const isHomeTab = /^about:(blank|home)$/i.test(String(address || ""));
+  const isHomeTab = /^about:(blank|home|newtab)$/i.test(String(address || ""));
   const homePage = options.homePage === true || String(address || "").toLowerCase() === "about:home";
-  const tab = { id, view, title: "New Tab", url: isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
+  const customNewTab = String(address || "").toLowerCase() === "about:newtab";
+  const tab = { id, view, title: "New Tab", url: customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
   tabs.set(id, tab);
   const wc = view.webContents;
   installAlwaysOnAdBlocker(wc.session);
@@ -550,9 +552,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       tab.url = tab.pendingRiskUrl || tab.errorUrl;
       tab.title = tab.pendingRiskUrl ? "Page blocked by NeoFind" : "NeoFind: page not found";
     } else {
-      tab.url = tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
+      tab.url = tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
       tab.title = wc.getTitle() || tab.title || "New Tab";
-      if (!tab.isHomeTab) tab.url = wc.getURL() || tab.url || HOME_URL;
+      if (!tab.isHomeTab && !tab.customNewTab) tab.url = wc.getURL() || tab.url || HOME_URL;
     }
     sendState();
     saveSessionSync();
@@ -560,7 +562,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   wc.on("did-navigate", (_event, url) => {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
-    if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
+    if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
+    else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
+    else if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
     else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
     sendState();
     saveSessionSync();
@@ -586,7 +590,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     sendState();
   }
 
-  const targetUrl = homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
+  const targetUrl = customNewTab ? "about:newtab" : homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
   loadAddressInTab(tab, targetUrl).catch(() => {
     if (tab.pendingRiskUrl || tab.errorUrl) return;
     tab.loading = false;
