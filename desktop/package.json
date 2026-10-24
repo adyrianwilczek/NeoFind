@@ -32,7 +32,8 @@
       "icon_round.png",
       "features-014.js",
       "features-015.js",
-      "features-017.js"
+      "features-017.js",
+      "newtab.html"
     ],
     "win": {
       "target": "nsis",
