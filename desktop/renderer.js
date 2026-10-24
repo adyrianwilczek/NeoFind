@@ -448,7 +448,7 @@ neoFindConnectOverlay.addEventListener("click", (event) => { if (event.target ==
 document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !neoFindConnectOverlay.classList.contains("hidden")) closeNeoFindConnect(); });
 document.getElementById("connectOpenProfile").addEventListener("click", async () => {
   closeNeoFindConnect();
-  await window.neoBrowser.createTab("https://app.neofind.pl/?p=profile");
+  await window.neoBrowser.createTab("https://neofind.pl/?app=1&p=profile");
 });
 document.getElementById("connectOpenNeoAI").addEventListener("click", () => {
   closeNeoFindConnect();
