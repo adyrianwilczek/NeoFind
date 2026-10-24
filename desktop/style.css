@@ -263,3 +263,20 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .adblock-recent-row small{display:block;margin-top:4px;color:var(--muted);font-size:11px;overflow-wrap:anywhere}
 .adblock-recent-row time{color:var(--muted);font-size:11px;white-space:nowrap}
 @media(max-width:600px){.adblock-counter{min-width:40px;padding:0 4px}.adblock-total-card{align-items:flex-start;flex-wrap:wrap}.adblock-recent-row{grid-template-columns:1fr}.adblock-recent-row time{white-space:normal}}
+
+/* New Tab page support */
+.newtab-page { min-height:100vh; padding:clamp(28px,7vh,70px) 22px 36px; color:#eef6ff; background:radial-gradient(ellipse at 15% 12%,rgba(0,242,254,.12),transparent 36%),radial-gradient(ellipse at 85% 20%,rgba(155,81,224,.14),transparent 33%),#0a1020; font-family:Inter,system-ui,sans-serif; }
+.newtab-inner { width:min(980px,100%); margin:0 auto; }
+.newtab-brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:38px; font-size:18px; font-weight:800; }
+.newtab-brand img { width:32px;height:32px;object-fit:contain; }
+.newtab-search { display:flex; align-items:center; gap:10px; max-width:650px; margin:0 auto 46px; padding:8px 12px; border:1px solid #ffffff25; border-radius:16px; background:#ffffff0b; box-shadow:0 16px 60px #0004; }
+.newtab-search input { min-width:0; flex:1; padding:12px 4px; color:inherit; background:transparent; border:0; outline:none; font-size:16px; }
+.newtab-search button { border:0; background:transparent; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px; }
+.newtab-search img { width:22px;height:22px;object-fit:contain; }
+.newtab-section-title { color:#9eafc7; font-size:13px; text-transform:uppercase; letter-spacing:.12em; margin:0 0 15px; }
+.newtab-sites { display:grid; grid-template-columns:repeat(auto-fill,minmax(135px,1fr)); gap:12px; }
+.newtab-site { display:flex; min-height:112px; flex-direction:column; align-items:center; justify-content:center; gap:10px; border:1px solid #ffffff16; border-radius:16px; background:#ffffff08; color:inherit; text-decoration:none; padding:14px; overflow:hidden; }
+.newtab-site:hover { background:#ffffff12; border-color:#00f2fe66; }
+.newtab-site img { width:30px;height:30px;object-fit:contain;border-radius:7px; }
+.newtab-site span { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
+.newtab-empty { grid-column:1/-1; color:#9eafc7; padding:22px; border:1px dashed #ffffff24; border-radius:14px; text-align:center; }
