@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>New Tab</title><link rel="stylesheet" href="style.css">
+</head>
+<body class="newtab-page">
+<main class="newtab-inner">
+  <div class="newtab-brand"><img src="icon_round.png" alt="NeoFind logo"><span>New Tab</span></div>
+  <form id="webSearch" class="newtab-search">
+    <button type="button" id="googleSearch" title="Search with Google" aria-label="Search with Google"><img alt="Google" src="https://www.google.com/favicon.ico"></button>
+    <input id="searchText" type="search" placeholder="Search in web" autocomplete="off" autofocus>
+    <button type="button" id="neoSearch" title="Search with NeoFind" aria-label="Search with NeoFind"><img alt="NeoFind" src="icon_round.png"></button>
+  </form>
+  <h2 class="newtab-section-title">Recently opened</h2>
+  <section id="recentSites" class="newtab-sites" aria-live="polite"></section>
+</main>
+<script>
+(function(){
+  const input=document.getElementById("searchText");
+  let provider="google";
+  const historyKey="neofind.browserHistory";
+  function goSearch(){const q=input.value.trim();if(!q)return;const url=provider==="neo"?"https://app.neofind.pl/?q="+encodeURIComponent(q):"https://www.google.com/search?q="+encodeURIComponent(q);location.href=url;}
+  document.getElementById("googleSearch").addEventListener("click",()=>{provider="google";input.focus();if(input.value.trim())goSearch();});
+  document.getElementById("neoSearch").addEventListener("click",()=>{provider="neo";input.focus();if(input.value.trim())goSearch();});
+  document.getElementById("webSearch").addEventListener("submit",e=>{e.preventDefault();goSearch();});
+  function getHistory(){try{const v=JSON.parse(localStorage.getItem(historyKey)||"[]");return Array.isArray(v)?v:[];}catch{return[];}}
+  function render(){const host=document.getElementById("recentSites");const seen=new Set();const rows=getHistory().filter(x=>x&&/^https?:/i.test(x.url||"")&&!seen.has(x.url)&&seen.add(x.url)).slice(0,10);host.innerHTML="";if(!rows.length){host.innerHTML='<div class="newtab-empty">Your recently opened websites will appear here.</div>';return;}for(const row of rows){let url;try{url=new URL(row.url);}catch{continue;}const a=document.createElement("a");a.className="newtab-site";a.href=row.url;a.title=row.title||url.hostname;const img=document.createElement("img");img.loading="lazy";img.alt="";img.src="https://www.google.com/s2/favicons?domain="+encodeURIComponent(url.hostname)+"&sz=64";img.onerror=()=>{img.src="icon_round.png";};const label=document.createElement("span");label.textContent=row.title||url.hostname;a.append(img,label);host.append(a);}}
+  render();
+})();
+</script>
+</body></html>
