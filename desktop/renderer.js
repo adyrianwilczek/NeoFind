@@ -284,7 +284,7 @@ document.getElementById("resetSitePermissions").addEventListener("click", async 
   else { status.textContent = "Reset to ask."; closeSitePermissions(); }
 });
 document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
-document.getElementById("newTab").addEventListener("click", () => { const opensNeoFind = localStorage.getItem("neofind.newTabOpensNeoFind") === "true"; window.neoBrowser.createTab(opensNeoFind ? "about:home" : "about:blank"); });
+document.getElementById("newTab").addEventListener("click", () => { const destination = localStorage.getItem("neofind.newTabDestination") || (localStorage.getItem("neofind.newTabOpensNeoFind") === "true" ? "neofind" : "newtab"); window.neoBrowser.createTab(destination === "neofind" ? "about:home" : destination === "blank" ? "about:blank" : "about:newtab"); });
 let lastTabsState = null;
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
 document.getElementById("forward").addEventListener("click", () => window.neoBrowser.forward());
@@ -425,8 +425,8 @@ document.querySelectorAll("[data-sidebar-app]").forEach(input=>{
 renderSidebarApps();
 const newTabDestination = document.getElementById("newTabDestination");
 if (newTabDestination) {
-  newTabDestination.value = localStorage.getItem("neofind.newTabOpensNeoFind") === "true" ? "neofind" : "blank";
-  newTabDestination.addEventListener("change", () => localStorage.setItem("neofind.newTabOpensNeoFind", newTabDestination.value === "neofind" ? "true" : "false"));
+  newTabDestination.value = localStorage.getItem("neofind.newTabDestination") || (localStorage.getItem("neofind.newTabOpensNeoFind") === "true" ? "neofind" : "newtab");
+  newTabDestination.addEventListener("change", () => { localStorage.setItem("neofind.newTabDestination", newTabDestination.value); localStorage.setItem("neofind.newTabOpensNeoFind", newTabDestination.value === "neofind" ? "true" : "false"); });
 }
 document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.openNeoAI());
 document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("history"); });
