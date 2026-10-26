@@ -91,9 +91,65 @@ function updateViewportBounds() {
   window.neoBrowser.setBounds({ x: rect.left, y: rect.top, width: rect.width, height: rect.height });
 }
 
+const searchEngineButton = document.getElementById("searchEngineButton");
+const searchEngineMenu = document.getElementById("searchEngineMenu");
+const searchEngineCurrentLogo = document.getElementById("searchEngineCurrentLogo");
+const searchEngineOptions = Array.from(document.querySelectorAll(".search-engine-option"));
+const searchEngineDetails = {
+  google: { label: "Google", logoClass: "google-logo", logoText: "G", search: q => "https://www.google.com/search?q=" + encodeURIComponent(q) },
+  neofind: { label: "NeoFind", logoClass: "neofind-logo", logoText: "N", search: q => "https://neofind.pl/app/?q=" + encodeURIComponent(q) },
+  bing: { label: "Bing", logoClass: "bing-logo", logoText: "b", search: q => "https://www.bing.com/search?q=" + encodeURIComponent(q) },
+  duckduckgo: { label: "DuckDuckGo", logoClass: "duck-logo", logoText: "D", search: q => "https://duckduckgo.com/?q=" + encodeURIComponent(q) },
+  wikipedia: { label: "Wikipedia", logoClass: "wiki-logo", logoText: "W", search: q => "https://en.wikipedia.org/w/index.php?search=" + encodeURIComponent(q) }
+};
+let selectedSearchEngine = localStorage.getItem("neoBrowserSearchEngine") || "google";
+if (!searchEngineDetails[selectedSearchEngine]) selectedSearchEngine = "google";
+function renderSearchEnginePicker() {
+  const selected = searchEngineDetails[selectedSearchEngine];
+  searchEngineCurrentLogo.className = "search-engine-logo " + selected.logoClass;
+  searchEngineCurrentLogo.textContent = selected.logoText;
+  searchEngineButton.title = "Search in: " + selected.label;
+  searchEngineButton.setAttribute("aria-label", "Search in: " + selected.label);
+  for (const option of searchEngineOptions) {
+    const active = option.dataset.engine === selectedSearchEngine;
+    option.setAttribute("aria-checked", String(active));
+  }
+}
+function closeSearchEngineMenu() {
+  searchEngineMenu.classList.add("hidden");
+  searchEngineButton.setAttribute("aria-expanded", "false");
+}
+searchEngineButton.addEventListener("click", () => {
+  const opening = searchEngineMenu.classList.contains("hidden");
+  searchEngineMenu.classList.toggle("hidden", !opening);
+  searchEngineButton.setAttribute("aria-expanded", String(opening));
+});
+searchEngineOptions.forEach(option => option.addEventListener("click", () => {
+  const engine = option.dataset.engine;
+  if (!searchEngineDetails[engine]) return;
+  selectedSearchEngine = engine;
+  localStorage.setItem("neoBrowserSearchEngine", engine);
+  renderSearchEnginePicker();
+  closeSearchEngineMenu();
+}));
+document.addEventListener("click", event => {
+  if (!event.target.closest("#searchEnginePicker")) closeSearchEngineMenu();
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeSearchEngineMenu();
+});
+function addressOrSearchTarget(raw) {
+  const value = String(raw || "").trim();
+  if (!value) return value;
+  const isExplicitScheme = /^[a-zA-Z][a-zA-Z\\d+.-]*:/.test(value);
+  const isLocalPath = /^(?:[a-zA-Z]:[\\\\/]|\\\\\\\\|\\.\\.?[\\\\/])/.test(value);
+  const isDomain = /^(?:localhost|(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,})(?::\\d+)?(?:[\\\\/?#].*)?$/.test(value);
+  if (isExplicitScheme || isLocalPath || isDomain) return value;
+  return searchEngineDetails[selectedSearchEngine].search(value);
+}
 document.getElementById("addressForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  window.neoBrowser.navigate(addressInput.value);
+  window.neoBrowser.navigate(addressOrSearchTarget(addressInput.value));
   addressInput.blur();
 });
 
