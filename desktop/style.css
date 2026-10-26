@@ -304,3 +304,5 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .search-engine-check{visibility:hidden;color:#68f0bd;font-weight:800}
 .search-engine-option[aria-checked="true"] .search-engine-check{visibility:visible}
 @media(max-width:560px){.search-engine-menu{left:-35px}}
+
+#adBlockCounter[hidden]{display:none!important}
