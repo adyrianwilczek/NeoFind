@@ -252,6 +252,14 @@ function makeBlockedPage(target, reason) {
 }
 function loadAddressInTab(tab, address) {
   const targetUrl = normalizeAddress(address);
+  if (targetUrl.startsWith("https://ulululu.neofind.local/")) {
+    let query = "";
+    try { query = new URL(targetUrl).searchParams.get("q") || ""; } catch {}
+    const safeQuery = query.replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+    const fakeHtml = "<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>ulululu Search</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#111827;color:#f9fafb;font:16px system-ui}.card{max-width:620px;margin:24px;padding:32px;border:1px solid #ffcf5a66;border-radius:20px;background:#1f2937;box-shadow:0 20px 70px #0006}h1{color:#ffcf5a}p{line-height:1.6}.query{padding:10px 12px;border-radius:9px;background:#111827;overflow-wrap:anywhere}</style></head><body><main class='card'><h1>ulululu Search</h1><p>Search query:</p><div class='query'>" + safeQuery + "</div><p>this is fake search engine soo</p></main></body></html>";
+    tab.pendingRiskUrl = null; tab.errorUrl = null; tab.url = targetUrl; tab.title = "ulululu Search";
+    return tab.view.webContents.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(fakeHtml));
+  }
   if (isHttpUrl(targetUrl)) {
     const reason = getRiskReason(targetUrl);
     if (reason) {
@@ -359,6 +367,7 @@ function restoreSessionOrHome() {
 
 function normalizeAddress(input) {
   const value = String(input || "").trim();
+  if (/^ulululu:\/\//i.test(value)) { try { const u = new URL(value); return "https://ulululu.neofind.local/?q=" + encodeURIComponent(u.searchParams.get("q") || ""); } catch {} }
   if (!value || /^about:(blank|home)$/i.test(value)) return "about:blank";
   if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
   if (/^file:/i.test(value)) { try { const url = new URL(value); if (url.protocol === "file:") return url.href; } catch {} }
