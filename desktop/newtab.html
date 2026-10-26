@@ -20,6 +20,7 @@
         <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="bing"><span class="search-engine-logo bing-logo" aria-hidden="true">b</span><span>Bing</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
         <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="duckduckgo"><span class="search-engine-logo duck-logo" aria-hidden="true">D</span><span>DuckDuckGo</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
         <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="wikipedia"><span class="search-engine-logo wiki-logo" aria-hidden="true">W</span><span>Wikipedia</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="ulululu"><span class="search-engine-logo ulululu-logo" aria-hidden="true">u</span><span>ulululu</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
       </div>
     </div>
     <input id="searchText" type="search" placeholder="Search in web" autocomplete="off" autofocus>
@@ -41,7 +42,8 @@
     neofind:{label:"NeoFind",logoClass:"neofind-logo",logoText:"N",search:q=>"https://neofind.pl/app/?q="+encodeURIComponent(q)},
     bing:{label:"Bing",logoClass:"bing-logo",logoText:"b",search:q=>"https://www.bing.com/search?q="+encodeURIComponent(q)},
     duckduckgo:{label:"DuckDuckGo",logoClass:"duck-logo",logoText:"D",search:q=>"https://duckduckgo.com/?q="+encodeURIComponent(q)},
-    wikipedia:{label:"Wikipedia",logoClass:"wiki-logo",logoText:"W",search:q=>"https://en.wikipedia.org/w/index.php?search="+encodeURIComponent(q)}
+    wikipedia:{label:"Wikipedia",logoClass:"wiki-logo",logoText:"W",search:q=>"https://en.wikipedia.org/w/index.php?search="+encodeURIComponent(q)},
+    ulululu:{label:"ulululu",logoClass:"ulululu-logo",logoText:"u",search:q=>"https://ulululu.neofind.local/?q="+encodeURIComponent(q)}
   };
   let provider=localStorage.getItem("neoBrowserSearchEngine")||"google";
   if(!providers[provider])provider="google";
@@ -72,7 +74,7 @@
   document.getElementById("webSearch").addEventListener("submit",event=>{
     event.preventDefault();
     const query=input.value.trim();
-    if(query)location.href=providers[provider].search(query);
+    if(query){const target=providers[provider].search(query);if(provider==="ulululu"&&window.neoBrowser&&window.neoBrowser.navigate)window.neoBrowser.navigate(target);else location.href=target;}
   });
   renderProvider();
   const historyKey="neofind.browserHistory";
