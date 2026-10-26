@@ -100,7 +100,8 @@ const searchEngineDetails = {
   neofind: { label: "NeoFind", logoClass: "neofind-logo", logoText: "N", search: q => "https://neofind.pl/app/?q=" + encodeURIComponent(q) },
   bing: { label: "Bing", logoClass: "bing-logo", logoText: "b", search: q => "https://www.bing.com/search?q=" + encodeURIComponent(q) },
   duckduckgo: { label: "DuckDuckGo", logoClass: "duck-logo", logoText: "D", search: q => "https://duckduckgo.com/?q=" + encodeURIComponent(q) },
-  wikipedia: { label: "Wikipedia", logoClass: "wiki-logo", logoText: "W", search: q => "https://en.wikipedia.org/w/index.php?search=" + encodeURIComponent(q) }
+  wikipedia: { label: "Wikipedia", logoClass: "wiki-logo", logoText: "W", search: q => "https://en.wikipedia.org/w/index.php?search=" + encodeURIComponent(q) },
+  ulululu: { label: "ulululu", logoClass: "ulululu-logo", logoText: "u", search: q => "https://ulululu.neofind.local/?q=" + encodeURIComponent(q) }
 };
 let selectedSearchEngine = localStorage.getItem("neoBrowserSearchEngine") || "google";
 if (!searchEngineDetails[selectedSearchEngine]) selectedSearchEngine = "google";
