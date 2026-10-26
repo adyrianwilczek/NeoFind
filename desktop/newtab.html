@@ -8,9 +8,22 @@
 <main class="newtab-inner">
   <div class="newtab-brand"><img src="icon_round.png" alt="NeoFind logo"><span>New Tab</span></div>
   <form id="webSearch" class="newtab-search">
-    <button type="button" id="googleSearch" title="Search with Google" aria-label="Search with Google"><img alt="Google" src="https://www.google.com/favicon.ico"></button>
+    <div id="newtabSearchEnginePicker" class="search-engine-picker">
+      <button id="newtabSearchEngineButton" class="search-engine-button" type="button" aria-haspopup="menu" aria-expanded="false" title="Choose search engine" aria-label="Choose search engine">
+        <span id="newtabSearchEngineLogo" class="search-engine-logo google-logo" aria-hidden="true">G</span>
+        <span class="search-engine-chevron" aria-hidden="true">⌄</span>
+      </button>
+      <div id="newtabSearchEngineMenu" class="search-engine-menu hidden" role="menu" aria-label="Search in">
+        <div class="search-engine-menu-title">Search in:</div>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="true" data-engine="google"><span class="search-engine-logo google-logo" aria-hidden="true">G</span><span>Google</span><span class="search-engine-default">Default</span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="neofind"><span class="search-engine-logo neofind-logo" aria-hidden="true">N</span><span>NeoFind</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="bing"><span class="search-engine-logo bing-logo" aria-hidden="true">b</span><span>Bing</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="duckduckgo"><span class="search-engine-logo duck-logo" aria-hidden="true">D</span><span>DuckDuckGo</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="wikipedia"><span class="search-engine-logo wiki-logo" aria-hidden="true">W</span><span>Wikipedia</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+      </div>
+    </div>
     <input id="searchText" type="search" placeholder="Search in web" autocomplete="off" autofocus>
-    <button type="button" id="neoSearch" title="Search with NeoFind" aria-label="Search with NeoFind"><img alt="NeoFind" src="icon_round.png"></button>
+    <button type="submit" id="newtabSearchSubmit" title="Search" aria-label="Search">↵</button>
   </form>
   <h2 class="newtab-section-title">Recently opened</h2>
   <section id="recentSites" class="newtab-sites" aria-live="polite"></section>
@@ -18,12 +31,51 @@
 <script>
 (function(){
   const input=document.getElementById("searchText");
-  let provider="google";
+  const picker=document.getElementById("newtabSearchEnginePicker");
+  const button=document.getElementById("newtabSearchEngineButton");
+  const menu=document.getElementById("newtabSearchEngineMenu");
+  const logo=document.getElementById("newtabSearchEngineLogo");
+  const options=Array.from(menu.querySelectorAll(".search-engine-option"));
+  const providers={
+    google:{label:"Google",logoClass:"google-logo",logoText:"G",search:q=>"https://www.google.com/search?q="+encodeURIComponent(q)},
+    neofind:{label:"NeoFind",logoClass:"neofind-logo",logoText:"N",search:q=>"https://neofind.pl/app/?q="+encodeURIComponent(q)},
+    bing:{label:"Bing",logoClass:"bing-logo",logoText:"b",search:q=>"https://www.bing.com/search?q="+encodeURIComponent(q)},
+    duckduckgo:{label:"DuckDuckGo",logoClass:"duck-logo",logoText:"D",search:q=>"https://duckduckgo.com/?q="+encodeURIComponent(q)},
+    wikipedia:{label:"Wikipedia",logoClass:"wiki-logo",logoText:"W",search:q=>"https://en.wikipedia.org/w/index.php?search="+encodeURIComponent(q)}
+  };
+  let provider=localStorage.getItem("neoBrowserSearchEngine")||"google";
+  if(!providers[provider])provider="google";
+  function renderProvider(){
+    const p=providers[provider];
+    logo.className="search-engine-logo "+p.logoClass;
+    logo.textContent=p.logoText;
+    button.title="Search in: "+p.label;
+    button.setAttribute("aria-label","Search in: "+p.label);
+    options.forEach(option=>option.setAttribute("aria-checked",String(option.dataset.engine===provider)));
+  }
+  function closeMenu(){menu.classList.add("hidden");button.setAttribute("aria-expanded","false");}
+  button.addEventListener("click",()=>{
+    const opening=menu.classList.contains("hidden");
+    menu.classList.toggle("hidden",!opening);
+    button.setAttribute("aria-expanded",String(opening));
+  });
+  options.forEach(option=>option.addEventListener("click",()=>{
+    if(!providers[option.dataset.engine])return;
+    provider=option.dataset.engine;
+    localStorage.setItem("neoBrowserSearchEngine",provider);
+    renderProvider();
+    closeMenu();
+    input.focus();
+  }));
+  document.addEventListener("click",event=>{if(!event.target.closest("#newtabSearchEnginePicker"))closeMenu();});
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")closeMenu();});
+  document.getElementById("webSearch").addEventListener("submit",event=>{
+    event.preventDefault();
+    const query=input.value.trim();
+    if(query)location.href=providers[provider].search(query);
+  });
+  renderProvider();
   const historyKey="neofind.browserHistory";
-  function goSearch(){const q=input.value.trim();if(!q)return;const url=provider==="neo"?"https://app.neofind.pl/?q="+encodeURIComponent(q):"https://www.google.com/search?q="+encodeURIComponent(q);location.href=url;}
-  document.getElementById("googleSearch").addEventListener("click",()=>{provider="google";input.focus();if(input.value.trim())goSearch();});
-  document.getElementById("neoSearch").addEventListener("click",()=>{provider="neo";input.focus();if(input.value.trim())goSearch();});
-  document.getElementById("webSearch").addEventListener("submit",e=>{e.preventDefault();goSearch();});
   function getHistory(){try{const v=JSON.parse(localStorage.getItem(historyKey)||"[]");return Array.isArray(v)?v:[];}catch{return[];}}
   async function render(){const host=document.getElementById("recentSites");let rows=[];try{if(window.neoBrowser&&window.neoBrowser.getRecentSites)rows=await window.neoBrowser.getRecentSites();}catch{}if(!rows.length)rows=getHistory();const seen=new Set();rows=rows.filter(x=>x&&/^https?:/i.test(x.url||"")&&!seen.has(x.url)&&seen.add(x.url)).slice(0,10);host.innerHTML="";if(!rows.length){host.innerHTML='<div class="newtab-empty">Your recently opened websites will appear here.</div>';return;}for(const row of rows){let url;try{url=new URL(row.url);}catch{continue;}const a=document.createElement("a");a.className="newtab-site";a.href=row.url;a.title=row.title||url.hostname;const img=document.createElement("img");img.loading="lazy";img.alt="";img.src="https://www.google.com/s2/favicons?domain="+encodeURIComponent(url.hostname)+"&sz=64";img.onerror=()=>{img.src="icon_round.png";};const label=document.createElement("span");label.textContent=row.title||url.hostname;a.append(img,label);host.append(a);}}
   render();
