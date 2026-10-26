@@ -339,7 +339,7 @@ document.getElementById("resetSitePermissions").addEventListener("click", async 
   if (!result || !result.ok) status.textContent = result && result.message ? result.message : "Could not reset permissions.";
   else { status.textContent = "Reset to ask."; closeSitePermissions(); }
 });
-document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressInput.value));
+document.getElementById("go").addEventListener("click", () => window.neoBrowser.navigate(addressOrSearchTarget(addressInput.value)));
 document.getElementById("newTab").addEventListener("click", () => { const destination = localStorage.getItem("neofind.newTabDestination") || (localStorage.getItem("neofind.newTabOpensNeoFind") === "true" ? "neofind" : "newtab"); window.neoBrowser.createTab(destination === "neofind" ? "about:home" : destination === "blank" ? "about:blank" : "about:newtab"); });
 let lastTabsState = null;
 document.getElementById("back").addEventListener("click", () => window.neoBrowser.back());
