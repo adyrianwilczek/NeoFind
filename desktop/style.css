@@ -306,3 +306,6 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 @media(max-width:560px){.search-engine-menu{left:-35px}}
 
 #adBlockCounter[hidden]{display:none!important}
+
+/* NeoFind Browser 0.1.33 fake search provider badge */
+.ulululu-logo{font-family:ui-monospace,monospace;font-size:12px;font-weight:900;color:#ffcf5a;border:2px dotted #ffcf5a;border-radius:50%;background:#3b2a13}
