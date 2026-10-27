@@ -286,7 +286,7 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .search-engine-picker{position:relative;display:flex;align-items:center;flex:0 0 auto}
 .search-engine-button{display:inline-flex;align-items:center;justify-content:center;gap:3px;width:43px;height:29px;padding:3px 5px;border:1px solid transparent;border-radius:8px;background:transparent;color:var(--text,#edf6ff);cursor:pointer}
 .search-engine-button:hover,.search-engine-button[aria-expanded="true"]{background:var(--panel2,#1d3049);border-color:var(--line,#34445b)}
-.search-engine-logo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;font-size:16px;font-weight:800;line-height:1}
+.search-engine-logo{display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;width:20px;height:20px;object-fit:contain;line-height:1}
 .google-logo{font-family:Arial,sans-serif;font-weight:800;background:conic-gradient(from -45deg,#4285f4 0 25%,#34a853 25% 48%,#fbbc05 48% 68%,#ea4335 68% 83%,#4285f4 83%);color:transparent;background-clip:text;-webkit-background-clip:text}
 .neofind-logo{font-size:12px;color:#00f2fe;border:2px solid #00cfe8;border-radius:50%;box-shadow:inset 0 0 0 2px #4facfe}
 .bing-logo{color:#39a7f7;font-size:20px;font-family:Arial,sans-serif}
@@ -328,9 +328,18 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .background-assets-note{padding:11px 13px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:12px;line-height:1.6}
 .background-assets-note code{color:var(--cyan)}
 .newtab-page[data-newtab-background="classic"]{background:radial-gradient(ellipse at 15% 12%,rgba(0,242,254,.12),transparent 36%),radial-gradient(ellipse at 85% 20%,rgba(155,81,224,.14),transparent 33%),#0a1020}
-.newtab-page[data-newtab-background="mountains"]{background:linear-gradient(180deg,rgba(7,14,30,.18),rgba(7,14,30,.66)),url("backgrounds/mountains.jpg") center/cover fixed,linear-gradient(180deg,#82c9f4 0%,#d8d7d4 52%,#304b68 53%,#0c1729 100%)}
-.newtab-page[data-newtab-background="sunset"]{background:linear-gradient(180deg,rgba(20,10,30,.15),rgba(20,10,30,.62)),url("backgrounds/sunset.jpg") center/cover fixed,linear-gradient(180deg,#512e72 0%,#f28b67 48%,#ffca80 68%,#35415b 69%,#171b30 100%)}
-.newtab-page[data-newtab-background="beach"]{background:linear-gradient(180deg,rgba(0,20,35,.15),rgba(0,20,35,.55)),url("backgrounds/beach.jpg") center/cover fixed,linear-gradient(180deg,#61c8f2 0%,#b4efff 50%,#14a8ce 51%,#087b9e 72%,#e6c58e 73%,#d7aa6d 100%)}
-.newtab-page[data-newtab-background="sky"]{background:linear-gradient(180deg,rgba(4,19,43,.18),rgba(4,19,43,.52)),url("backgrounds/sky.jpg") center/cover fixed,linear-gradient(180deg,#3e93ed 0%,#91d5ff 60%,#e6f8ff 100%)}
-.newtab-page[data-newtab-background="halloween"]{background:linear-gradient(180deg,rgba(15,8,25,.18),rgba(15,8,25,.64)),url("backgrounds/halloween.jpg") center/cover fixed,radial-gradient(circle at 76% 25%,#ffd47b 0 8%,transparent 8.5%),linear-gradient(180deg,#17152d 0%,#49254e 48%,#d9662d 49%,#2c1b2d 100%)}
+.newtab-page[data-newtab-background="mountains"]{background:linear-gradient(180deg,rgba(7,14,30,.18),rgba(7,14,30,.66)),url("backgrounds/mountains.svg") center/cover fixed,linear-gradient(180deg,#82c9f4 0%,#d8d7d4 52%,#304b68 53%,#0c1729 100%)}
+.newtab-page[data-newtab-background="sunset"]{background:linear-gradient(180deg,rgba(20,10,30,.15),rgba(20,10,30,.62)),url("backgrounds/sunset.svg") center/cover fixed,linear-gradient(180deg,#512e72 0%,#f28b67 48%,#ffca80 68%,#35415b 69%,#171b30 100%)}
+.newtab-page[data-newtab-background="beach"]{background:linear-gradient(180deg,rgba(0,20,35,.15),rgba(0,20,35,.55)),url("backgrounds/beach.svg") center/cover fixed,linear-gradient(180deg,#61c8f2 0%,#b4efff 50%,#14a8ce 51%,#087b9e 72%,#e6c58e 73%,#d7aa6d 100%)}
+.newtab-page[data-newtab-background="sky"]{background:linear-gradient(180deg,rgba(4,19,43,.18),rgba(4,19,43,.52)),url("backgrounds/sky.svg") center/cover fixed,linear-gradient(180deg,#3e93ed 0%,#91d5ff 60%,#e6f8ff 100%)}
+.newtab-page[data-newtab-background="halloween"]{background:linear-gradient(180deg,rgba(15,8,25,.18),rgba(15,8,25,.64)),url("backgrounds/halloween.svg") center/cover fixed,radial-gradient(circle at 76% 25%,#ffd47b 0 8%,transparent 8.5%),linear-gradient(180deg,#17152d 0%,#49254e 48%,#d9662d 49%,#2c1b2d 100%)}
 @media(max-width:620px){.background-choice-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.background-preview{height:70px}}
+
+/* Real local image assets for provider logos and background previews */
+.bg-preview-mountains{background-image:url("backgrounds/mountains.svg");background-size:cover;background-position:center}
+.bg-preview-sunset{background-image:url("backgrounds/sunset.svg");background-size:cover;background-position:center}
+.bg-preview-beach{background-image:url("backgrounds/beach.svg");background-size:cover;background-position:center}
+.bg-preview-sky{background-image:url("backgrounds/sky.svg");background-size:cover;background-position:center}
+.bg-preview-halloween{background-image:url("backgrounds/halloween.svg");background-size:cover;background-position:center}
+.newtab-search .search-engine-logo{width:23px;height:23px;flex:0 0 23px}
+.search-engine-option .search-engine-logo{width:24px;height:24px;flex:0 0 24px}
