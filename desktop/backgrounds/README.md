@@ -1,11 +1,11 @@
 # NeoFind Browser New Tab backgrounds
 
-Place the image files below in this folder. JPG or PNG images are recommended. The filenames are case-sensitive and must match exactly:
+The New Tab page now includes five illustrated background images, used by the **Personalize** settings:
 
-- `mountains.jpg`
-- `sunset.jpg`
-- `beach.jpg`
-- `sky.jpg`
-- `halloween.jpg`
+- `mountains.svg` - alpine mountains at dusk
+- `sunset.svg` - warm sunset over the sea
+- `beach.svg` - tropical beach
+- `sky.svg` - bright blue sky and clouds
+- `halloween.svg` - Halloween night with pumpkins
 
-The app includes gradient fallbacks, so the New Tab page still looks styled until you add the real images. This folder is included in the Windows build.
+These are the actual background assets loaded by the browser. To replace one with your own art later, keep the same filename and update the matching CSS reference if you use a different format. The `.jpg` files are old placeholders and are not used by the current background selector.
