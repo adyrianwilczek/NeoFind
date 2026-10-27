@@ -34,7 +34,9 @@
       "features-015.js",
       "features-017.js",
       "newtab.html",
-      "backgrounds/**/*"
+      "logos/**/*",
+      "backgrounds/**/*",
+      "logos/**/*"
     ],
     "win": {
       "target": "nsis",
