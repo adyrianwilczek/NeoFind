@@ -374,6 +374,7 @@ const bookmarkStoreKey = "neofind.importedBookmarks";
 const historyStoreKey = "neofind.importedHistory";
 const browserThemeKey = "neofind.browserTheme";
 const themeSelect = document.getElementById("browserTheme");
+const newTabBackgroundKey = "neofind.newTabBackground";
 function applyBrowserTheme(theme) {
   const allowed = ["midnight","ocean","purple","light","aurora","nord","lavender","rose","sunset","ember","forest","sakura","paper","cyber","space","matrix","prism","neon","candy","galaxy","lava","ice","gold","oceanic","dream","hologram"];
   const value = allowed.includes(theme) ? theme : "midnight";
@@ -383,6 +384,16 @@ function applyBrowserTheme(theme) {
 }
 applyBrowserTheme(localStorage.getItem(browserThemeKey) || "midnight");
 themeSelect.addEventListener("change", () => applyBrowserTheme(themeSelect.value));
+const backgroundChoiceButtons = Array.from(document.querySelectorAll("[data-bg-choice]"));
+function applyNewTabBackground(name) {
+  const allowed = ["classic", "mountains", "sunset", "beach", "sky", "halloween"];
+  const selected = allowed.includes(name) ? name : "classic";
+  try { localStorage.setItem(newTabBackgroundKey, selected); } catch {}
+  backgroundChoiceButtons.forEach(button => button.classList.toggle("selected", button.dataset.bgChoice === selected));
+  return selected;
+}
+applyNewTabBackground(localStorage.getItem(newTabBackgroundKey) || "classic");
+backgroundChoiceButtons.forEach(button => button.addEventListener("click", () => applyNewTabBackground(button.dataset.bgChoice)));
 
 async function renderBlockedNotifications() {
   const host = document.getElementById("blockedNotificationsList");
@@ -410,6 +421,7 @@ window.neoBrowser.onBlockedNotificationsChanged(() => renderBlockedNotifications
 function setSettingsTab(tab) {
   document.querySelectorAll(".settings-tab").forEach((button) => button.classList.toggle("selected", button.dataset.settingsTab === tab));
   document.getElementById("settingsGeneral").classList.toggle("hidden", tab !== "general");
+  document.getElementById("settingsPersonalize").classList.toggle("hidden", tab !== "personalize");
   document.getElementById("settingsImport").classList.toggle("hidden", tab !== "import");
   document.getElementById("settingsIntegrations").classList.toggle("hidden", tab !== "integrations");
   document.getElementById("settingsHistory").classList.toggle("hidden", tab !== "history");
