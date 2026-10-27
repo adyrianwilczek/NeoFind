@@ -15,12 +15,12 @@
       </button>
       <div id="newtabSearchEngineMenu" class="search-engine-menu hidden" role="menu" aria-label="Search in">
         <div class="search-engine-menu-title">Search in:</div>
-        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="true" data-engine="google"><span class="search-engine-logo google-logo" aria-hidden="true">G</span><span>Google</span><span class="search-engine-default">Default</span><span class="search-engine-check">✓</span></button>
-        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="neofind"><span class="search-engine-logo neofind-logo" aria-hidden="true">N</span><span>NeoFind</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
-        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="bing"><span class="search-engine-logo bing-logo" aria-hidden="true">b</span><span>Bing</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
-        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="duckduckgo"><span class="search-engine-logo duck-logo" aria-hidden="true">D</span><span>DuckDuckGo</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
-        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="wikipedia"><span class="search-engine-logo wiki-logo" aria-hidden="true">W</span><span>Wikipedia</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
-        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="ulululu"><span class="search-engine-logo ulululu-logo" aria-hidden="true">u</span><span>ulululu</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="true" data-engine="google"><img class="search-engine-logo" src="logos/google.svg" alt=""><span>Google</span><span class="search-engine-default">Default</span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="neofind"><img class="search-engine-logo" src="logos/neofind.svg" alt=""><span>NeoFind</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="bing"><img class="search-engine-logo" src="logos/bing.svg" alt=""><span>Bing</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="duckduckgo"><img class="search-engine-logo" src="logos/duckduckgo.svg" alt=""><span>DuckDuckGo</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="wikipedia"><img class="search-engine-logo" src="logos/wikipedia.svg" alt=""><span>Wikipedia</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
+        <button class="search-engine-option" type="button" role="menuitemradio" aria-checked="false" data-engine="ulululu"><img class="search-engine-logo" src="logos/ulululu.svg" alt=""><span>ulululu</span><span class="search-engine-default"></span><span class="search-engine-check">✓</span></button>
       </div>
     </div>
     <input id="searchText" type="search" placeholder="Search in web" autocomplete="off" autofocus>
@@ -38,19 +38,20 @@
   const logo=document.getElementById("newtabSearchEngineLogo");
   const options=Array.from(menu.querySelectorAll(".search-engine-option"));
   const providers={
-    google:{label:"Google",logoClass:"google-logo",logoText:"G",search:q=>"https://www.google.com/search?q="+encodeURIComponent(q)},
-    neofind:{label:"NeoFind",logoClass:"neofind-logo",logoText:"N",search:q=>"https://neofind.pl/app/?q="+encodeURIComponent(q)},
-    bing:{label:"Bing",logoClass:"bing-logo",logoText:"b",search:q=>"https://www.bing.com/search?q="+encodeURIComponent(q)},
-    duckduckgo:{label:"DuckDuckGo",logoClass:"duck-logo",logoText:"D",search:q=>"https://duckduckgo.com/?q="+encodeURIComponent(q)},
-    wikipedia:{label:"Wikipedia",logoClass:"wiki-logo",logoText:"W",search:q=>"https://en.wikipedia.org/w/index.php?search="+encodeURIComponent(q)},
-    ulululu:{label:"ulululu",logoClass:"ulululu-logo",logoText:"u",search:q=>"https://ulululu.neofind.local/?q="+encodeURIComponent(q)}
+    google:{label:"Google",logoUrl:"logos/google.svg",search:q=>"https://www.google.com/search?q="+encodeURIComponent(q)},
+    neofind:{label:"NeoFind",logoUrl:"logos/neofind.svg",search:q=>"https://neofind.pl/app/?q="+encodeURIComponent(q)},
+    bing:{label:"Bing",logoUrl:"logos/bing.svg",search:q=>"https://www.bing.com/search?q="+encodeURIComponent(q)},
+    duckduckgo:{label:"DuckDuckGo",logoUrl:"logos/duckduckgo.svg",search:q=>"https://duckduckgo.com/?q="+encodeURIComponent(q)},
+    wikipedia:{label:"Wikipedia",logoUrl:"logos/wikipedia.svg",search:q=>"https://en.wikipedia.org/w/index.php?search="+encodeURIComponent(q)},
+    ulululu:{label:"ulululu",logoUrl:"logos/ulululu.svg",search:q=>"https://ulululu.neofind.local/?q="+encodeURIComponent(q)}
   };
   let provider=localStorage.getItem("neoBrowserSearchEngine")||"google";
   if(!providers[provider])provider="google";
   function renderProvider(){
     const p=providers[provider];
-    logo.className="search-engine-logo "+p.logoClass;
-    logo.textContent=p.logoText;
+    logo.className="search-engine-logo";
+    logo.src=p.logoUrl;
+    logo.alt="";
     button.title="Search in: "+p.label;
     button.setAttribute("aria-label","Search in: "+p.label);
     options.forEach(option=>option.setAttribute("aria-checked",String(option.dataset.engine===provider)));
