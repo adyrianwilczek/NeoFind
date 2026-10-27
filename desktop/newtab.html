@@ -4,7 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>New Tab</title><link rel="stylesheet" href="style.css">
 </head>
-<body class="newtab-page">
+<body class="newtab-page" data-newtab-background="classic">
 <main class="newtab-inner">
   <div class="newtab-brand"><img src="icon_round.png" alt="NeoFind logo"><span>New Tab</span></div>
   <form id="webSearch" class="newtab-search">
@@ -77,6 +77,14 @@
     if(query){const target=providers[provider].search(query);if(provider==="ulululu"&&window.neoBrowser&&window.neoBrowser.navigate)window.neoBrowser.navigate(target);else location.href=target;}
   });
   renderProvider();
+  const backgroundKey="neofind.newTabBackground";
+  function applyBackground(){
+    const allowed=["classic","mountains","sunset","beach","sky","halloween"];
+    const selected=allowed.includes(localStorage.getItem(backgroundKey))?localStorage.getItem(backgroundKey):"classic";
+    document.body.dataset.newtabBackground=selected;
+  }
+  applyBackground();
+  window.addEventListener("storage",event=>{if(event.key===backgroundKey)applyBackground();});
   const historyKey="neofind.browserHistory";
   function getHistory(){try{const v=JSON.parse(localStorage.getItem(historyKey)||"[]");return Array.isArray(v)?v:[];}catch{return[];}}
   async function render(){const host=document.getElementById("recentSites");let rows=[];try{if(window.neoBrowser&&window.neoBrowser.getRecentSites)rows=await window.neoBrowser.getRecentSites();}catch{}if(!rows.length)rows=getHistory();const seen=new Set();rows=rows.filter(x=>x&&/^https?:/i.test(x.url||"")&&!seen.has(x.url)&&seen.add(x.url)).slice(0,10);host.innerHTML="";if(!rows.length){host.innerHTML='<div class="newtab-empty">Your recently opened websites will appear here.</div>';return;}for(const row of rows){let url;try{url=new URL(row.url);}catch{continue;}const a=document.createElement("a");a.className="newtab-site";a.href=row.url;a.title=row.title||url.hostname;const img=document.createElement("img");img.loading="lazy";img.alt="";img.src="https://www.google.com/s2/favicons?domain="+encodeURIComponent(url.hostname)+"&sz=64";img.onerror=()=>{img.src="icon_round.png";};const label=document.createElement("span");label.textContent=row.title||url.hostname;a.append(img,label);host.append(a);}}
