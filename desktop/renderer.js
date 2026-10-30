@@ -54,6 +54,65 @@ function renderTabs(state) {
 }
 
 
+// Firefox-inspired bookmarks toolbar. Bookmarks are stored locally on this device.
+const pageBookmarksKey = "neofind.pageBookmarks";
+const bookmarkButton = document.getElementById("bookmarkCurrent");
+const bookmarksBar = document.getElementById("bookmarksBar");
+function readPageBookmarks() {
+  try { const items = JSON.parse(localStorage.getItem(pageBookmarksKey) || "[]"); return Array.isArray(items) ? items : []; }
+  catch { return []; }
+}
+function renderPageBookmarks() {
+  if (!bookmarksBar) return;
+  bookmarksBar.replaceChildren();
+  readPageBookmarks().forEach((entry, index) => {
+    const link = document.createElement("button");
+    link.type = "button";
+    link.className = "bookmark-chip";
+    link.title = entry.url + " · Right-click to remove";
+    const favicon = document.createElement("img");
+    favicon.alt = "";
+    try { favicon.src = "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(new URL(entry.url).hostname) + "&sz=32"; } catch {}
+    favicon.onerror = () => { favicon.style.display = "none"; };
+    const label = document.createElement("span");
+    label.textContent = entry.title || entry.url;
+    link.append(favicon, label);
+    link.addEventListener("click", () => window.neoBrowser.navigate(entry.url));
+    link.addEventListener("contextmenu", event => {
+      event.preventDefault();
+      const items = readPageBookmarks();
+      items.splice(index, 1);
+      localStorage.setItem(pageBookmarksKey, JSON.stringify(items));
+      renderPageBookmarks();
+      updateBookmarkButton(lastTabsState);
+    });
+    bookmarksBar.append(link);
+  });
+}
+function updateBookmarkButton(state) {
+  if (!bookmarkButton) return;
+  const active = state && (state.tabs || []).find(tab => tab.id === state.activeTabId);
+  const url = active && !active.isPrivate && /^https?:\/\//i.test(active.url || "") ? active.url : "";
+  const saved = url && readPageBookmarks().some(item => item.url === url);
+  bookmarkButton.disabled = !url;
+  bookmarkButton.textContent = saved ? "★" : "☆";
+  bookmarkButton.classList.toggle("is-bookmarked", !!saved);
+  bookmarkButton.setAttribute("aria-pressed", String(!!saved));
+  bookmarkButton.title = url ? (saved ? "Remove bookmark" : "Bookmark this page") : "Bookmarks are unavailable on this page";
+}
+bookmarkButton?.addEventListener("click", () => {
+  const active = lastTabsState && (lastTabsState.tabs || []).find(tab => tab.id === lastTabsState.activeTabId);
+  if (!active || active.isPrivate || !/^https?:\/\//i.test(active.url || "")) return;
+  const items = readPageBookmarks();
+  const existing = items.findIndex(item => item.url === active.url);
+  if (existing >= 0) items.splice(existing, 1);
+  else items.unshift({ url: active.url, title: active.title || new URL(active.url).hostname });
+  localStorage.setItem(pageBookmarksKey, JSON.stringify(items.slice(0, 40)));
+  renderPageBookmarks();
+  updateBookmarkButton(lastTabsState);
+});
+renderPageBookmarks();
+
 // Tab context menu: duplicate and pin actions live on right-click.
 let tabContextTarget = null;
 let tabContextMenu = document.getElementById("tabContextMenu");
@@ -304,6 +363,7 @@ document.getElementById("brandHome").addEventListener("click", () => window.neoB
 window.neoBrowser.onTabsState((state)=>{
   lastTabsState = state;
   renderTabs(state);
+  updateBookmarkButton(state);
   const activeForAdCount = (state.tabs || []).find(tab => tab.id === state.activeTabId);
   renderCurrentTabAdCount(activeForAdCount ? activeForAdCount.blockedAdCount : 0);
   if (activeForAdCount && !activeForAdCount.isPrivate && /^https?:/i.test(activeForAdCount.url || "")) {
@@ -338,7 +398,7 @@ applyBrowserTheme(localStorage.getItem(browserThemeKey) || "midnight");
 themeSelect.addEventListener("change", () => applyBrowserTheme(themeSelect.value));
 const backgroundChoiceButtons = Array.from(document.querySelectorAll("[data-bg-choice]"));
 function applyNewTabBackground(name) {
-  const allowed = ["classic", "mountains", "sunset", "beach", "sky", "halloween"];
+  const allowed = ["classic", "mountains", "sunset", "beach", "snow", "sky", "halloween"];
   const selected = allowed.includes(name) ? name : "classic";
   try { localStorage.setItem(newTabBackgroundKey, selected); } catch {}
   backgroundChoiceButtons.forEach(button => button.classList.toggle("selected", button.dataset.bgChoice === selected));
