@@ -17132,6 +17132,17 @@ body.neo-marketing-mode #neoMarketingLanding{display:block!important;min-height:
 #neoMarketingLanding .edge-orbit{position:absolute;width:330px;height:330px;border-radius:50%;border:1px solid rgba(117,218,255,.32);box-shadow:0 0 80px rgba(0,183,255,.12),inset 0 0 60px rgba(0,183,255,.08)}
 #neoMarketingLanding .edge-orbit:before,#neoMarketingLanding .edge-orbit:after{content:"";position:absolute;border-radius:50%;inset:27px;border:1px solid rgba(117,218,255,.2)}
 #neoMarketingLanding .edge-orbit:after{inset:62px}
+#neoMarketingLanding .edge-orbit-spinner{position:absolute;inset:0;border-radius:50%;animation:neoOrbitSpin 7s linear infinite;pointer-events:none}
+#neoMarketingLanding .edge-orbit-spinner i{position:absolute;top:-5px;left:50%;width:11px;height:11px;transform:translateX(-50%);border-radius:50%;background:#68e5ff;box-shadow:0 0 10px #68e5ff,0 0 24px rgba(104,229,255,.8)}
+@keyframes neoOrbitSpin{to{transform:rotate(360deg)}}
+#neoMarketingLanding .neo-reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+#neoMarketingLanding .neo-reveal.neo-visible{opacity:1;transform:translateY(0)}
+#neoMarketingLanding .edge-feature:nth-child(2){transition-delay:.08s}
+#neoMarketingLanding .edge-feature:nth-child(3){transition-delay:.16s}
+#neoMarketingLanding .edge-feature:nth-child(4){transition-delay:.04s}
+#neoMarketingLanding .edge-feature:nth-child(5){transition-delay:.12s}
+#neoMarketingLanding .edge-feature:nth-child(6){transition-delay:.2s}
+@media(prefers-reduced-motion:reduce){#neoMarketingLanding .neo-reveal{opacity:1;transform:none;transition:none}#neoMarketingLanding .edge-orbit-spinner{animation:none}}
 #neoMarketingLanding .edge-glass-card{position:relative;width:min(390px,100%);padding:23px;border:1px solid rgba(188,225,255,.25);border-radius:25px;background:linear-gradient(145deg,rgba(23,54,83,.88),rgba(10,24,45,.88));box-shadow:0 30px 90px rgba(0,0,0,.38);backdrop-filter:blur(20px);transform:rotate(-3deg)}
 #neoMarketingLanding .edge-card-top{display:flex;align-items:center;justify-content:space-between;color:#9db5d0;font-size:12px}
 #neoMarketingLanding .edge-dots{display:flex;gap:5px}.edge-dots i{width:7px;height:7px;border-radius:50%;background:#6b91b5}
@@ -17179,7 +17190,7 @@ body.neo-marketing-mode #neoMarketingLanding{display:block!important;min-height:
           <div class="edge-note">A growing independent project. Built to make the web feel more connected.</div>
         </div>
         <div class="edge-visual" aria-label="Illustration of NeoFind search and tools">
-          <div class="edge-orbit"></div>
+          <div class="edge-orbit" aria-hidden="true"><span class="edge-orbit-spinner"><i></i></span></div>
           <div class="edge-glass-card">
             <div class="edge-card-top"><span>NEOFIND · QUICK ACCESS</span><span class="edge-dots"><i></i><i></i><i></i></span></div>
             <div class="edge-search-demo">Search the web... <span>⌕</span></div>
@@ -17213,6 +17224,24 @@ body.neo-marketing-mode #neoMarketingLanding{display:block!important;min-height:
   var host=String(location.hostname||"").toLowerCase();
   if(host==="app.neofind.pl" || new URLSearchParams(location.search).get("app")==="1") return;
   document.body.classList.add("neo-marketing-mode");
+  var landing=document.getElementById("neoMarketingLanding");
+  if(landing && !window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    var revealItems=landing.querySelectorAll(".edge-section-heading,.edge-feature,.edge-browser-band");
+    revealItems.forEach(function(el){el.classList.add("neo-reveal");});
+    if("IntersectionObserver" in window){
+      var revealObserver=new IntersectionObserver(function(entries){
+        entries.forEach(function(entry){
+          if(entry.isIntersecting){
+            entry.target.classList.add("neo-visible");
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },{threshold:.12,rootMargin:"0px 0px -35px 0px"});
+      revealItems.forEach(function(el){revealObserver.observe(el);});
+    }else{
+      revealItems.forEach(function(el){el.classList.add("neo-visible");});
+    }
+  }
 })();
 </script>
 </body>
