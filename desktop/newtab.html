@@ -26,7 +26,7 @@
     <input id="searchText" type="search" placeholder="Search in web" autocomplete="off" autofocus>
     <button type="submit" id="newtabSearchSubmit" title="Search" aria-label="Search">↵</button>
   </form>
-  <h2 class="newtab-section-title">Recently opened</h2>
+  <div class="newtab-section-heading"><h2 class="newtab-section-title">Your shortcuts</h2><span class="newtab-section-caption">Recently visited</span></div>
   <section id="recentSites" class="newtab-sites" aria-live="polite"></section>
 </main>
 <script>
@@ -80,7 +80,7 @@
   renderProvider();
   const backgroundKey="neofind.newTabBackground";
   function applyBackground(){
-    const allowed=["classic","mountains","sunset","beach","sky","halloween"];
+    const allowed=["classic","mountains","sunset","beach","snow","sky","halloween"];
     const selected=allowed.includes(localStorage.getItem(backgroundKey))?localStorage.getItem(backgroundKey):"classic";
     document.body.dataset.newtabBackground=selected;
   }
