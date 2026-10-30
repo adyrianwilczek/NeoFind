@@ -17101,23 +17101,112 @@ placeFindables();refreshDisplay();
 })();
 </script>
 
-<section id="neoMarketingLanding" aria-label="About NeoFind">
-  <nav class="nf-nav"><img src="icon_nobg.png" alt="NeoFind logo"><span>NeoFind</span></nav>
-  <main class="nf-hero">
-    <span class="nf-kicker">Search. Connect. Discover.</span>
-    <h1>The web, <span>connected.</span></h1>
-    <p class="nf-lead">NeoFind is an independent search and communication platform built to help people discover useful things online, explore topics, and connect through a clean, modern experience.</p>
-    <div class="nf-about">
-      <article class="nf-card"><h2>Search and discover</h2><p>Explore websites, topics, games, and information from across the internet.</p></article>
-      <article class="nf-card"><h2>Connect</h2><p>Bring search and communication together with NeoFind social features and NeoAI tools.</p></article>
-      <article class="nf-card"><h2>Choose your experience</h2><p>Use NeoFind on the web or choose NeoFind Browser for a dedicated desktop browsing experience.</p></article>
+<style id="neoMarketingEdgeStyle">
+#neoMarketingLanding{display:none}
+body.neo-marketing-mode{background:#07111f!important;color:#f5f8ff!important;font-family:Inter,Segoe UI,Arial,sans-serif!important}
+body.neo-marketing-mode #neoMarketingLanding{display:block!important;min-height:100vh;overflow:hidden;background:#07111f;color:#f5f8ff;font-family:Inter,Segoe UI,Arial,sans-serif}
+#neoMarketingLanding *{box-sizing:border-box}
+#neoMarketingLanding .edge-nav{height:76px;max-width:1240px;margin:auto;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+#neoMarketingLanding .edge-brand{display:flex;align-items:center;gap:11px;color:#fff;text-decoration:none;font-size:21px;font-weight:750;letter-spacing:-.5px}
+#neoMarketingLanding .edge-brand img{width:38px;height:38px;object-fit:contain}
+#neoMarketingLanding .edge-links{display:flex;align-items:center;gap:28px}
+#neoMarketingLanding .edge-links a{color:#c4d0e4;text-decoration:none;font-size:14px;transition:.2s}
+#neoMarketingLanding .edge-links a:hover{color:#fff}
+#neoMarketingLanding .edge-nav-cta{padding:11px 17px;border-radius:999px;background:#f4f8ff;color:#101a2b!important;font-weight:700}
+#neoMarketingLanding .edge-hero{position:relative;isolation:isolate;min-height:610px;display:flex;align-items:center;overflow:hidden;background:radial-gradient(ellipse at 78% 45%,rgba(0,190,255,.24),transparent 35%),radial-gradient(ellipse at 62% 85%,rgba(122,79,255,.24),transparent 40%),linear-gradient(120deg,#081323 0%,#0d2340 54%,#102c4c 100%)}
+#neoMarketingLanding .edge-hero:before{content:"";position:absolute;z-index:-1;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:58px 58px;mask-image:linear-gradient(90deg,transparent,#000 35%,#000)}
+#neoMarketingLanding .edge-hero:after{content:"";position:absolute;z-index:-1;width:520px;height:520px;right:5%;top:50%;transform:translateY(-50%);border-radius:50%;border:1px solid rgba(122,211,255,.22);box-shadow:0 0 0 42px rgba(122,211,255,.035),0 0 0 88px rgba(122,211,255,.025),0 0 100px rgba(0,191,255,.14)}
+#neoMarketingLanding .edge-hero-inner{width:min(1180px,100%);margin:auto;padding:85px 34px 105px;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:45px}
+#neoMarketingLanding .edge-eyebrow{display:inline-flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid rgba(111,210,255,.25);border-radius:999px;background:rgba(10,34,58,.62);color:#9de5ff;font-size:12px;font-weight:750;letter-spacing:1.5px;text-transform:uppercase}
+#neoMarketingLanding .edge-eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:#35d9ff;box-shadow:0 0 12px #35d9ff}
+#neoMarketingLanding .edge-hero h1{max-width:680px;margin:24px 0 18px;font-size:clamp(46px,6.2vw,78px);line-height:1.02;letter-spacing:-4px;font-weight:780;color:#fff}
+#neoMarketingLanding .edge-hero h1 span{background:linear-gradient(90deg,#51e2ff,#68a8ff 55%,#b69aff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#neoMarketingLanding .edge-lead{max-width:570px;margin:0;color:#c1cee0;font-size:18px;line-height:1.75}
+#neoMarketingLanding .edge-actions{display:flex;flex-wrap:wrap;gap:13px;margin-top:31px}
+#neoMarketingLanding .edge-btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 21px;border-radius:999px;text-decoration:none;font-size:14px;font-weight:750;transition:transform .2s,background .2s}
+#neoMarketingLanding .edge-btn:hover{transform:translateY(-3px)}
+#neoMarketingLanding .edge-btn-main{background:linear-gradient(100deg,#42dafa,#7b9dff);color:#071323;box-shadow:0 12px 35px rgba(48,177,255,.22)}
+#neoMarketingLanding .edge-btn-ghost{border:1px solid rgba(210,230,255,.28);color:#f4f8ff;background:rgba(255,255,255,.045)}
+#neoMarketingLanding .edge-note{margin-top:18px;color:#8296b2;font-size:12px}
+#neoMarketingLanding .edge-visual{position:relative;min-height:370px;display:grid;place-items:center}
+#neoMarketingLanding .edge-orbit{position:absolute;width:330px;height:330px;border-radius:50%;border:1px solid rgba(117,218,255,.32);box-shadow:0 0 80px rgba(0,183,255,.12),inset 0 0 60px rgba(0,183,255,.08)}
+#neoMarketingLanding .edge-orbit:before,#neoMarketingLanding .edge-orbit:after{content:"";position:absolute;border-radius:50%;inset:27px;border:1px solid rgba(117,218,255,.2)}
+#neoMarketingLanding .edge-orbit:after{inset:62px}
+#neoMarketingLanding .edge-glass-card{position:relative;width:min(390px,100%);padding:23px;border:1px solid rgba(188,225,255,.25);border-radius:25px;background:linear-gradient(145deg,rgba(23,54,83,.88),rgba(10,24,45,.88));box-shadow:0 30px 90px rgba(0,0,0,.38);backdrop-filter:blur(20px);transform:rotate(-3deg)}
+#neoMarketingLanding .edge-card-top{display:flex;align-items:center;justify-content:space-between;color:#9db5d0;font-size:12px}
+#neoMarketingLanding .edge-dots{display:flex;gap:5px}.edge-dots i{width:7px;height:7px;border-radius:50%;background:#6b91b5}
+#neoMarketingLanding .edge-search-demo{margin:24px 0 17px;padding:15px 17px;border:1px solid rgba(155,213,255,.25);border-radius:15px;background:rgba(3,15,30,.6);color:#e9f7ff;font-size:14px}
+#neoMarketingLanding .edge-search-demo span{float:right;color:#60dcff}
+#neoMarketingLanding .edge-shortcuts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+#neoMarketingLanding .edge-shortcut{padding:15px 8px;border-radius:14px;background:rgba(255,255,255,.055);text-align:center;color:#dcecff;font-size:11px}
+#neoMarketingLanding .edge-shortcut b{display:grid;place-items:center;width:31px;height:31px;margin:0 auto 9px;border-radius:10px;background:linear-gradient(135deg,#1baccb,#665be8);font-size:15px;color:white}
+#neoMarketingLanding .edge-section{max-width:1180px;margin:auto;padding:85px 30px}
+#neoMarketingLanding .edge-section-heading{text-align:center;max-width:720px;margin:0 auto 42px}
+#neoMarketingLanding .edge-section-heading small{color:#69dfff;font-weight:750;letter-spacing:1.7px;text-transform:uppercase}
+#neoMarketingLanding .edge-section-heading h2{font-size:clamp(30px,4vw,46px);letter-spacing:-1.7px;margin:13px 0;color:#fff}
+#neoMarketingLanding .edge-section-heading p{color:#aabbd0;line-height:1.7;margin:0}
+#neoMarketingLanding .edge-feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+#neoMarketingLanding .edge-feature{padding:27px;border:1px solid rgba(169,207,245,.13);border-radius:21px;background:linear-gradient(145deg,rgba(20,43,69,.82),rgba(12,26,44,.82));min-height:205px}
+#neoMarketingLanding .edge-feature-icon{display:grid;place-items:center;width:43px;height:43px;border-radius:14px;background:rgba(65,202,245,.13);color:#70e4ff;font-size:21px}
+#neoMarketingLanding .edge-feature h3{margin:19px 0 9px;color:#f5f9ff;font-size:19px}
+#neoMarketingLanding .edge-feature p{margin:0;color:#a9bad0;font-size:14px;line-height:1.7}
+#neoMarketingLanding .edge-browser-band{max-width:1120px;margin:0 auto 80px;padding:36px 40px;border-radius:26px;border:1px solid rgba(109,202,255,.22);background:radial-gradient(ellipse at 90% 10%,rgba(62,193,255,.2),transparent 45%),linear-gradient(110deg,#102d4b,#172342);display:flex;align-items:center;justify-content:space-between;gap:28px}
+#neoMarketingLanding .edge-browser-band h2{margin:0 0 9px;font-size:27px;color:#fff}
+#neoMarketingLanding .edge-browser-band p{margin:0;color:#b6c8dd;line-height:1.6;max-width:650px}
+#neoMarketingLanding .edge-footer{border-top:1px solid rgba(170,207,245,.12);padding:28px;text-align:center;color:#7188a5;font-size:12px}
+@media(max-width:800px){#neoMarketingLanding .edge-links{gap:14px}#neoMarketingLanding .edge-links a:not(.edge-nav-cta){display:none}#neoMarketingLanding .edge-hero-inner{grid-template-columns:1fr;padding-top:65px;padding-bottom:75px}#neoMarketingLanding .edge-visual{min-height:310px}#neoMarketingLanding .edge-orbit{width:270px;height:270px}#neoMarketingLanding .edge-feature-grid{grid-template-columns:1fr 1fr}#neoMarketingLanding .edge-browser-band{margin:0 18px 55px;flex-direction:column;align-items:flex-start}}
+@media(max-width:520px){#neoMarketingLanding .edge-nav{padding:0 18px}#neoMarketingLanding .edge-hero h1{letter-spacing:-2.5px}#neoMarketingLanding .edge-hero-inner{padding-left:22px;padding-right:22px}#neoMarketingLanding .edge-feature-grid{grid-template-columns:1fr}#neoMarketingLanding .edge-section{padding:65px 20px}#neoMarketingLanding .edge-browser-band{padding:28px 24px}}
+</style>
+<section id="neoMarketingLanding" aria-label="NeoFind homepage">
+  <nav class="edge-nav">
+    <a class="edge-brand" href="https://neofind.pl/" aria-label="NeoFind home"><img src="icon_nobg.png" alt=""><span>NeoFind</span></a>
+    <div class="edge-links">
+      <a href="#neoFeatures">Features</a><a href="?p=about">About</a><a href="https://neofind.pl/app/">Web app</a>
+      <a class="edge-nav-cta" href="https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe">Download</a>
     </div>
-    <div class="nf-actions">
-      <a class="nf-button primary" href="https://neofind.pl/app/">Go to website <span aria-hidden="true">↗</span></a>
-      <a class="nf-button" href="https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe">Download NeoFind Browser <span aria-hidden="true">↓</span></a>
-    </div>
+  </nav>
+  <main>
+    <section class="edge-hero">
+      <div class="edge-hero-inner">
+        <div>
+          <span class="edge-eyebrow">Search. Connect. Discover.</span>
+          <h1>Your internet.<br><span>Your way.</span></h1>
+          <p class="edge-lead">Discover a connected web experience with NeoFind. Search for what matters, explore new ideas and keep your everyday tools close at hand.</p>
+          <div class="edge-actions">
+            <a class="edge-btn edge-btn-main" href="https://neofind.pl/app/">Explore NeoFind <span>↗</span></a>
+            <a class="edge-btn edge-btn-ghost" href="https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe">Get NeoFind Browser ↓</a>
+          </div>
+          <div class="edge-note">A growing independent project. Built to make the web feel more connected.</div>
+        </div>
+        <div class="edge-visual" aria-label="Illustration of NeoFind search and tools">
+          <div class="edge-orbit"></div>
+          <div class="edge-glass-card">
+            <div class="edge-card-top"><span>NEOFIND · QUICK ACCESS</span><span class="edge-dots"><i></i><i></i><i></i></span></div>
+            <div class="edge-search-demo">Search the web... <span>⌕</span></div>
+            <div class="edge-shortcuts">
+              <div class="edge-shortcut"><b>⌕</b>Search</div><div class="edge-shortcut"><b>✦</b>Discover</div><div class="edge-shortcut"><b>◈</b>Connect</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="edge-section" id="neoFeatures">
+      <div class="edge-section-heading"><small>One connected experience</small><h2>More than a search box.</h2><p>NeoFind brings discovery, useful tools and communication into one evolving platform.</p></div>
+      <div class="edge-feature-grid">
+        <article class="edge-feature"><div class="edge-feature-icon">⌕</div><h3>Search & discover</h3><p>Explore websites, topics, games and information from across the internet.</p></article>
+        <article class="edge-feature"><div class="edge-feature-icon">✦</div><h3>NeoAI</h3><p>Get help exploring ideas and understanding information with NeoFind's AI tools.</p></article>
+        <article class="edge-feature"><div class="edge-feature-icon">◉</div><h3>Stay connected</h3><p>Bring conversations and social features closer to your everyday browsing.</p></article>
+        <article class="edge-feature"><div class="edge-feature-icon">⚙</div><h3>Your browser, your style</h3><p>Personalize the NeoFind Browser experience with themes, backgrounds and handy built-in tools.</p></article>
+        <article class="edge-feature"><div class="edge-feature-icon">⌘</div><h3>Useful tools nearby</h3><p>Access practical utilities without interrupting what you are doing.</p></article>
+        <article class="edge-feature"><div class="edge-feature-icon">◇</div><h3>Your choice</h3><p>Choose the search experience and the way you want to use NeoFind.</p></article>
+      </div>
+    </section>
+    <section class="edge-browser-band">
+      <div><h2>Meet NeoFind Browser</h2><p>A desktop browser built around the NeoFind experience, with customizable themes, quick tools and a focused place to explore the web.</p></div>
+      <a class="edge-btn edge-btn-main" href="https://github.com/adyrianwilczek/NeoFind/releases/download/main/NeoFind-Setup.exe">Download for Windows ↓</a>
+    </section>
   </main>
-  <footer>NeoFind · Search. Connect. Discover.</footer>
+  <footer class="edge-footer">NeoFind · Search. Connect. Discover.</footer>
 </section>
 <script id="neoMarketingRouter">
 (function(){
