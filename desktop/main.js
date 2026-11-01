@@ -252,7 +252,7 @@ function makeBlockedPage(target, reason) {
 }
 function installPictureInPictureControls(wc) {
   if (!wc || wc.isDestroyed()) return;
-  wc.executeJavaScript(\`(() => {
+  wc.executeJavaScript(`(() => {
     if (window.__neoFindPiPInstalled) return;
     window.__neoFindPiPInstalled = true;
 
@@ -387,7 +387,7 @@ function installPictureInPictureControls(wc) {
       }
     });
     observer.observe(document.documentElement, { childList: true, subtree: true });
-  })()\`).catch(() => {});
+  })()`).catch(() => {});
 }
 
 function loadAddressInTab(tab, address) {
