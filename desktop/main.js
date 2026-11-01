@@ -250,6 +250,146 @@ function makeBlockedPage(target, reason) {
   const html = "<!doctype html><html lang='" + lang + "'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>" + words.title + "</title><style>body{margin:0;background:#09111f;color:#eaf2ff;font:16px system-ui;display:grid;place-items:center;min-height:100vh}.card{max-width:660px;margin:24px;padding:32px;border:1px solid #314765;border-radius:22px;background:#111e30;box-shadow:0 20px 70px #0008}h1{font-size:28px}p{line-height:1.6;color:#b9c9dd;overflow-wrap:anywhere}.buttons{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer;background:#273c55;color:white}.danger{background:#a92f39;color:white}</style></head><body><main class='card'><p>" + words.eyebrow + "</p><h1>" + words.title + "</h1><p>" + reasonText + "</p><p><b>" + words.address + "</b> " + targetText + "</p><p>" + words.detail + "</p><div class='buttons'><button onclick='history.back()'>" + words.ok + "</button><button class='danger' id='openRisk'>" + words.open + "</button></div></main><script>document.getElementById('openRisk').addEventListener('click',()=>{location.href=" + targetScript + "})</script></body></html>";
   return "data:text/html;charset=utf-8," + encodeURIComponent(html);
 }
+function installPictureInPictureControls(wc) {
+  if (!wc || wc.isDestroyed()) return;
+  wc.executeJavaScript(\`(() => {
+    if (window.__neoFindPiPInstalled) return;
+    window.__neoFindPiPInstalled = true;
+
+    const style = document.createElement("style");
+    style.id = "neofind-pip-style";
+    style.textContent = \`
+      #neofind-pip-control {
+        position: fixed;
+        z-index: 2147483647;
+        display: none;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 11px;
+        border: 1px solid rgba(255,255,255,.22);
+        border-radius: 9px;
+        color: #f5fbff;
+        background: linear-gradient(110deg, rgba(8,125,186,.97), rgba(86,82,200,.97));
+        box-shadow: 0 5px 22px rgba(0,0,0,.38);
+        font: 700 12px/1.1 Inter, "Segoe UI", Arial, sans-serif;
+        cursor: pointer;
+        pointer-events: auto;
+        user-select: none;
+      }
+      #neofind-pip-control:hover { filter: brightness(1.15); transform: translateY(-1px); }
+      #neofind-pip-control svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    \`;
+    (document.head || document.documentElement).appendChild(style);
+
+    const button = document.createElement("button");
+    button.id = "neofind-pip-control";
+    button.type = "button";
+    button.setAttribute("aria-label", "Open video in Picture-in-Picture");
+    button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M13 12h6v5h-6z"/></svg><span>PiP</span>';
+    (document.body || document.documentElement).appendChild(button);
+
+    let activeVideo = null;
+    let hideTimer = null;
+    const attachedVideos = new WeakSet();
+
+    const hideButton = () => {
+      button.style.display = "none";
+      activeVideo = null;
+    };
+
+    const positionButton = video => {
+      if (!video || !video.isConnected || document.pictureInPictureElement) {
+        hideButton();
+        return;
+      }
+      const rect = video.getBoundingClientRect();
+      if (rect.width < 120 || rect.height < 70 || rect.bottom < 0 || rect.right < 0 || rect.top > innerHeight || rect.left > innerWidth) {
+        hideButton();
+        return;
+      }
+      activeVideo = video;
+      button.style.display = "inline-flex";
+      button.style.top = Math.max(6, Math.min(innerHeight - 44, rect.top + 10)) + "px";
+      button.style.left = Math.max(6, Math.min(innerWidth - 82, rect.right - 76)) + "px";
+    };
+
+    const showFor = video => {
+      if (hideTimer) clearTimeout(hideTimer);
+      positionButton(video);
+    };
+
+    const attachVideo = video => {
+      if (!(video instanceof HTMLVideoElement) || attachedVideos.has(video)) return;
+      attachedVideos.add(video);
+      video.addEventListener("pointerenter", () => showFor(video), { passive: true });
+      video.addEventListener("pointermove", () => showFor(video), { passive: true });
+      video.addEventListener("pointerleave", () => {
+        if (hideTimer) clearTimeout(hideTimer);
+        hideTimer = setTimeout(() => {
+          if (!button.matches(":hover")) hideButton();
+        }, 850);
+      }, { passive: true });
+      video.addEventListener("play", () => {
+        if (video.matches(":hover")) showFor(video);
+      });
+    };
+
+    button.addEventListener("pointerenter", () => {
+      if (hideTimer) clearTimeout(hideTimer);
+    });
+    button.addEventListener("pointerleave", () => {
+      if (hideTimer) clearTimeout(hideTimer);
+      hideTimer = setTimeout(hideButton, 500);
+    });
+    button.addEventListener("click", async event => {
+      event.preventDefault();
+      event.stopPropagation();
+      const video = activeVideo;
+      if (!video || !video.isConnected) {
+        hideButton();
+        return;
+      }
+      try {
+        if (document.pictureInPictureElement === video) {
+          await document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled && typeof video.requestPictureInPicture === "function") {
+          await video.requestPictureInPicture();
+        } else {
+          button.querySelector("span").textContent = "PiP unavailable";
+          setTimeout(() => { button.querySelector("span").textContent = "PiP"; }, 1600);
+        }
+      } catch (error) {
+        button.querySelector("span").textContent = "Unavailable";
+        setTimeout(() => { button.querySelector("span").textContent = "PiP"; }, 1600);
+      }
+    });
+
+    document.addEventListener("enterpictureinpicture", () => { button.style.display = "none"; }, true);
+    document.addEventListener("leavepictureinpicture", () => {
+      if (activeVideo && activeVideo.matches(":hover")) showFor(activeVideo);
+      else hideButton();
+    }, true);
+    window.addEventListener("scroll", () => {
+      if (activeVideo) positionButton(activeVideo);
+    }, true);
+    window.addEventListener("resize", () => {
+      if (activeVideo) positionButton(activeVideo);
+    });
+
+    document.querySelectorAll("video").forEach(attachVideo);
+    const observer = new MutationObserver(records => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node.nodeType !== 1) continue;
+          if (node.matches && node.matches("video")) attachVideo(node);
+          if (node.querySelectorAll) node.querySelectorAll("video").forEach(attachVideo);
+        }
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  })()\`).catch(() => {});
+}
+
 function loadAddressInTab(tab, address) {
   const targetUrl = normalizeAddress(address);
   if (targetUrl.startsWith("https://ulululu.neofind.local/")) {
@@ -546,7 +686,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (typeof message !== "string" || !message.startsWith("__NEOFIND_PASSWORD_CANDIDATE__")) return;
     try { handleCredentialCandidate(JSON.parse(message.slice("__NEOFIND_PASSWORD_CANDIDATE__".length))); } catch {}
   });
-  wc.on("dom-ready", () => installCredentialCapture(wc));
+  wc.on("dom-ready", () => { installCredentialCapture(wc); installPictureInPictureControls(wc); });
   wc.on("page-title-updated", (_event, title) => {
     tab.title = tab.isHomeTab ? "New Tab" : (title || "New Tab");
     sendState();
