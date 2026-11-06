@@ -1,6 +1,11 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("neoBrowser", {
+  getTransferDeviceInfo: () => ipcRenderer.invoke("transfer:get-device-info"),
+  sendToOtherDevice: (code, payload) => ipcRenderer.invoke("transfer:send", code, payload),
+  getTransferInbox: () => ipcRenderer.invoke("transfer:get-inbox"),
+  copyTransferDeviceCode: () => ipcRenderer.invoke("transfer:copy-code"),
+  onTransferCompose: (callback) => { ipcRenderer.removeAllListeners("transfer:compose"); ipcRenderer.on("transfer:compose", (_event, payload) => callback(payload)); },
   createTab: (url, options) => ipcRenderer.invoke("tabs:create", url, options),
   duplicateTab: (id) => ipcRenderer.invoke("tabs:duplicate", id),
   togglePinTab: (id) => ipcRenderer.invoke("tabs:toggle-pin", id),

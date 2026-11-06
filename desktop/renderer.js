@@ -438,7 +438,27 @@ function setSettingsTab(tab) {
   document.getElementById("settingsIntegrations").classList.toggle("hidden", tab !== "integrations");
   document.getElementById("settingsHistory").classList.toggle("hidden", tab !== "history");
   document.getElementById("settingsPrivacy").classList.toggle("hidden", tab !== "privacy");
-  if (tab === "general") renderBlockedNotifications();
+  if (tab === "general") {
+    renderBlockedNotifications();
+    renderTransferDeviceCode();
+  }
+}
+
+async function renderTransferDeviceCode() {
+  const codeNode = document.getElementById("transferDeviceCode");
+  const statusNode = document.getElementById("transferDeviceStatus");
+  if (!codeNode || !statusNode) return;
+  codeNode.textContent = "Connecting…";
+  statusNode.textContent = "Creating or loading this device's secure identity.";
+  try {
+    const result = await window.neoBrowser.getTransferDeviceInfo();
+    if (!result || !result.ok) throw new Error(result && result.message || "Could not load this device's code.");
+    codeNode.textContent = result.deviceCode;
+    statusNode.textContent = "This code is unique to this NeoFind Browser installation.";
+  } catch (error) {
+    codeNode.textContent = "Unavailable";
+    statusNode.textContent = String(error.message || error);
+  }
 }
 
 
@@ -546,6 +566,12 @@ function setImportPreset(preset) {
     ? "All categories selected, including cookies. Selected data will be imported only where supported."
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
+document.getElementById("sideAnnouncements").addEventListener("click", () => window.neoBrowser.createTab("about:announcements"));
+document.getElementById("copyTransferDeviceCode").addEventListener("click", async () => {
+  const status = document.getElementById("transferDeviceStatus");
+  const result = await window.neoBrowser.copyTransferDeviceCode();
+  status.textContent = result && result.ok ? "Device code copied to clipboard." : (result && result.message || "Could not copy device code.");
+});
 document.getElementById("sideSettings").addEventListener("click", () => { settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("general"); });
 function closeSettingsPanel() { settingsPanel.classList.add("hidden"); window.neoSetModalOpen("settings", false); }
 document.getElementById("closeSettings").addEventListener("click", closeSettingsPanel);
@@ -554,6 +580,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") {
     const sitePermissions = document.getElementById("sitePermissionsOverlay");
     if (sitePermissions && !sitePermissions.classList.contains("hidden")) { closeSitePermissions(); return; }
+    if (transferOverlay && !transferOverlay.classList.contains("hidden")) { closeTransferCompose(); return; }
     const toolClose = document.querySelector(".neo-tool-backdrop .settings-heading .tool");
     if (toolClose) { toolClose.click(); return; }
     const updateModal = document.getElementById("updateReadyModal");
@@ -583,6 +610,54 @@ window.neoBrowser.onContextSearchSelection((text) => {
   addressInput.select();
 });
 window.neoBrowser.onContextAskNeoAI((text) => { window.neoBrowser.openNeoAIWithPrompt(String(text || "")); });
+
+// Native webpage context menu opens this transfer dialog in the browser chrome.
+const transferOverlay = document.getElementById("transferComposeOverlay");
+const transferCodeInput = document.getElementById("transferDestinationCode");
+const transferPreview = document.getElementById("transferComposePreview");
+const transferStatus = document.getElementById("transferComposeStatus");
+const transferSendButton = document.getElementById("sendTransferButton");
+let pendingTransferPayload = null;
+function closeTransferCompose() {
+  transferOverlay.classList.add("hidden");
+  window.neoSetModalOpen("transfer", false);
+  pendingTransferPayload = null;
+}
+function openTransferCompose(payload) {
+  pendingTransferPayload = payload && typeof payload === "object" ? payload : { kind: "text", text: "", url: "" };
+  const label = { text: "Selected text", link: "Link", page: "Web page", image: "Image", video: "Video", audio: "Audio" }[pendingTransferPayload.kind] || "Item";
+  transferPreview.textContent = label + ": " + String(pendingTransferPayload.text || pendingTransferPayload.url || "Ready to send").slice(0, 260);
+  transferCodeInput.value = "";
+  transferStatus.textContent = "The destination device must have NeoFind Browser and its own device code.";
+  transferSendButton.disabled = false;
+  transferSendButton.textContent = "Send";
+  transferOverlay.classList.remove("hidden");
+  window.neoSetModalOpen("transfer", true);
+  setTimeout(() => transferCodeInput.focus(), 30);
+}
+window.neoBrowser.onTransferCompose(openTransferCompose);
+document.getElementById("closeTransferCompose").addEventListener("click", closeTransferCompose);
+document.getElementById("cancelTransferCompose").addEventListener("click", closeTransferCompose);
+transferOverlay.addEventListener("click", event => { if (event.target === transferOverlay) closeTransferCompose(); });
+transferCodeInput.addEventListener("input", () => { transferCodeInput.value = transferCodeInput.value.replace(/[^A-Za-z0-9-]/g, "").slice(0, 22); });
+async function submitTransfer() {
+  if (!pendingTransferPayload) return;
+  transferSendButton.disabled = true;
+  transferSendButton.textContent = "Sending…";
+  transferStatus.textContent = "Connecting to the receiving device…";
+  const result = await window.neoBrowser.sendToOtherDevice(transferCodeInput.value.trim(), pendingTransferPayload);
+  if (result && result.ok) {
+    transferStatus.textContent = "Sent successfully. It will appear in Announcements on the other device.";
+    transferSendButton.textContent = "Sent";
+    setTimeout(closeTransferCompose, 900);
+  } else {
+    transferStatus.textContent = result && result.message || "Could not send this item.";
+    transferSendButton.disabled = false;
+    transferSendButton.textContent = "Try again";
+  }
+}
+transferSendButton.addEventListener("click", submitTransfer);
+transferCodeInput.addEventListener("keydown", event => { if (event.key === "Enter") submitTransfer(); });
 window.neoBrowser.onFocusAddress(() => { addressInput.focus(); addressInput.select(); });
 window.neoBrowser.onShortcut((action) => {
   if (action === "settings") {

@@ -5,7 +5,7 @@
 <title>New Tab</title><link rel="stylesheet" href="style.css">
 </head>
 <body class="newtab-page" data-newtab-background="classic">
-<main class="newtab-inner">
+<main class="newtab-inner" id="newtabMain">
   <div class="newtab-brand"><img src="icon_round.png" alt="NeoFind logo"><span>New Tab</span></div>
   <form id="webSearch" class="newtab-search">
     <div id="newtabSearchEnginePicker" class="search-engine-picker">
@@ -29,8 +29,80 @@
   <div class="newtab-section-heading"><h2 class="newtab-section-title">Your shortcuts</h2><span class="newtab-section-caption">Recently visited</span></div>
   <section id="recentSites" class="newtab-sites" aria-live="polite"></section>
 </main>
+<main id="announcementsRoot" class="announcements-shell" hidden>
+  <header class="announcements-header">
+    <div><p class="announcements-eyebrow">NEOFIND CONNECT</p><h1>Announcements</h1><p>Things sent to this device from another NeoFind Browser.</p></div>
+    <button id="refreshAnnouncements" class="announcements-refresh" type="button">Refresh</button>
+  </header>
+  <section id="announcementsList" class="announcements-list" aria-live="polite"><div class="announcements-empty">Loading your inbox…</div></section>
+</main>
 <script>
 (function(){
+  const announcementsMode = new URLSearchParams(location.search).get("view") === "announcements";
+  if (announcementsMode) {
+    document.title = "Announcements";
+    document.getElementById("newtabMain").hidden = true;
+    document.getElementById("announcementsRoot").hidden = false;
+    const list = document.getElementById("announcementsList");
+    function addText(parent, tag, className, value) {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      node.textContent = String(value || "");
+      parent.append(node);
+      return node;
+    }
+    window.renderNeoAnnouncements = function(result) {
+      list.replaceChildren();
+      if (!result || !result.ok) {
+        addText(list, "div", "announcements-empty", result && result.message || "Could not connect to the device inbox.");
+        return;
+      }
+      const messages = Array.isArray(result.messages) ? result.messages : [];
+      if (!messages.length) {
+        addText(list, "div", "announcements-empty", "No announcements yet. Items sent to this device will appear here.");
+        return;
+      }
+      messages.forEach(message => {
+        const card = document.createElement("article");
+        card.className = "announcement-card";
+        const top = document.createElement("div");
+        top.className = "announcement-card-top";
+        addText(top, "span", "announcement-kind", String(message.kind || "item").toUpperCase());
+        const date = message.createdAt ? new Date(message.createdAt) : null;
+        addText(top, "time", "announcement-date", date && !Number.isNaN(date.getTime()) ? date.toLocaleString() : "");
+        card.append(top);
+        addText(card, "h2", "announcement-title", message.title || "Shared item");
+        if (message.kind === "text") {
+          addText(card, "pre", "announcement-text", message.text || "");
+        } else {
+          const target = String(message.url || message.text || "");
+          let validUrl = "";
+          try {
+            const parsed = new URL(target);
+            if (parsed.protocol === "https:" || parsed.protocol === "http:") validUrl = parsed.href;
+          } catch {}
+          if (["image", "video", "audio"].includes(message.kind)) {
+            addText(card, "p", "announcement-description", message.kind[0].toUpperCase() + message.kind.slice(1) + " shared from another device.");
+          }
+          if (validUrl) {
+            const link = document.createElement("a");
+            link.className = "announcement-link";
+            link.href = validUrl;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.textContent = message.kind === "page" ? "Open shared page" : message.kind === "image" ? "Open image" : message.kind === "video" ? "Open video" : message.kind === "audio" ? "Open audio" : (message.title || validUrl);
+            card.append(link);
+          } else {
+            addText(card, "pre", "announcement-text", message.text || "No preview available.");
+          }
+        }
+        addText(card, "p", "announcement-from", "From device " + String(message.fromCode || "unknown"));
+        list.append(card);
+      });
+    };
+    document.getElementById("refreshAnnouncements").addEventListener("click", () => location.reload());
+    return;
+  }
   const input=document.getElementById("searchText");
   const picker=document.getElementById("newtabSearchEnginePicker");
   const button=document.getElementById("newtabSearchEngineButton");

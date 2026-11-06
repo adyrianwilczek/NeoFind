@@ -1,7 +1,7 @@
 {
   "name": "neofind-browser",
-  "version": "0.1.38",
-  "description": "NeoFind Browser for Windows - Firefox-inspired details",
+  "version": "0.1.39",
+  "description": "NeoFind Browser for Windows - cross-device sharing",
   "main": "main.js",
   "private": true,
   "scripts": {

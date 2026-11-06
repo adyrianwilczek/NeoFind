@@ -362,3 +362,33 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .newtab-page[data-newtab-background="snow"] { background:linear-gradient(180deg,rgba(8,19,38,.16),rgba(8,19,38,.48)),url("backgrounds/snow.jpg") center/cover fixed,#dcebf7; }
 .bg-preview-snow { background:url("backgrounds/snow.jpg") center/cover; }
 @media(max-width:700px){.bookmarks-bar{padding-left:8px}.bookmark-chip{max-width:115px}}
+
+
+/* NeoFind Browser 0.1.39 · Send to other device */
+.device-code-row{align-items:flex-start}
+.device-code-value{display:inline-block;margin-top:8px;padding:8px 11px;border:1px solid rgba(0,242,254,.28);border-radius:9px;background:rgba(0,242,254,.07);color:#75efff;font:700 15px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.07em;user-select:all}
+.device-code-row .secondary-button{flex:0 0 auto}
+.transfer-compose-card{width:min(560px,100%)}
+.transfer-compose-preview{margin:18px 0;padding:13px 14px;max-height:130px;overflow:auto;border:1px solid var(--line);border-radius:11px;background:var(--panel2);color:var(--muted);font-size:13px;line-height:1.5;overflow-wrap:anywhere;white-space:pre-wrap}
+.transfer-code-input{font:700 16px ui-monospace,Consolas,monospace;letter-spacing:.04em}
+#sideAnnouncements svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.announcements-shell{width:min(900px,calc(100% - 40px));margin:0 auto;padding:48px 0 60px}
+.announcements-header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:26px}
+.announcements-eyebrow{margin:0 0 8px;color:#00dce9;font-size:11px;font-weight:800;letter-spacing:.18em}
+.announcements-header h1{margin:0;font-size:clamp(28px,5vw,42px);letter-spacing:-.04em}
+.announcements-header p:not(.announcements-eyebrow){margin:8px 0 0;color:#9eafc7;line-height:1.55}
+.announcements-refresh{padding:10px 15px;border:1px solid #ffffff24;border-radius:10px;background:#ffffff0b;color:#edf6ff;font-weight:700;cursor:pointer}
+.announcements-refresh:hover{border-color:#00dce9;background:#00dce912}
+.announcements-list{display:grid;gap:13px}
+.announcements-empty{padding:28px;border:1px dashed #ffffff28;border-radius:16px;color:#9eafc7;text-align:center;line-height:1.6}
+.announcement-card{padding:19px 20px;border:1px solid #ffffff1b;border-radius:16px;background:linear-gradient(135deg,#ffffff0b,#ffffff05);box-shadow:0 12px 35px #0002}
+.announcement-card-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.announcement-kind{padding:4px 8px;border:1px solid #00dce933;border-radius:999px;background:#00dce910;color:#67eaf1;font-size:10px;font-weight:800;letter-spacing:.08em}
+.announcement-date,.announcement-from{color:#91a5bd;font-size:11px}
+.announcement-title{margin:13px 0 8px;font-size:17px}
+.announcement-text{margin:0;padding:12px;border-radius:10px;background:#070d18a6;color:#e8f2ff;font:13px/1.6 Inter,"Segoe UI",Arial,sans-serif;white-space:pre-wrap;overflow-wrap:anywhere}
+.announcement-description{color:#aebed2;font-size:13px}
+.announcement-link{display:inline-flex;margin-top:7px;padding:10px 13px;border:1px solid #00dce944;border-radius:9px;background:#00dce910;color:#86f0f4;text-decoration:none;font-size:13px;font-weight:700;overflow-wrap:anywhere}
+.announcement-link:hover{background:#00dce91e}
+.announcement-from{margin:13px 0 0}
+@media(max-width:560px){.announcements-shell{width:calc(100% - 26px);padding-top:28px}.announcements-header{align-items:flex-start;flex-direction:column}.announcement-card{padding:15px}}

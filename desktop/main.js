@@ -114,7 +114,7 @@ let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
-function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab"; }
+function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab" || value === "about:announcements"; }
 function normalizeExternalFileArgument(value) {
   if (typeof value !== "string" || !value.trim() || value.startsWith("-")) return null;
   const input = value.trim();
@@ -140,6 +140,229 @@ const recentlyClosedTabs = [];
 const downloadHistoryPath = path.join(app.getPath("userData"), "download-history.json");
 const passwordVaultPath = path.join(app.getPath("userData"), "password-vault.json");
 let pendingPasswordCandidate = null;
+
+// NeoFind Send to other device (0.1.39).
+const TRANSFER_FIREBASE_API_KEY = "AIzaSyCPqX1UsGZRuGQ2ATUzTqBh20LgrrCtXI0";
+const TRANSFER_FIRESTORE_ROOT = "https://firestore.googleapis.com/v1/projects/neofind-f8213/databases/(default)/documents";
+const transferIdentityPath = path.join(app.getPath("userData"), "device-identity.json");
+let transferIdentityCache = null;
+let transferIdentityPromise = null;
+const transferAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+function transferErrorMessage(error) {
+  const message = String(error && error.message ? error.message : error);
+  if (/OPERATION_NOT_ALLOWED|ADMIN_ONLY_OPERATION/i.test(message)) return "Anonymous sign-in is disabled. Enable Authentication → Sign-in method → Anonymous in Firebase.";
+  if (/PERMISSION_DENIED|Missing or insufficient permissions/i.test(message)) return "Firebase rejected this request. Deploy the updated firestore.rules and check that Anonymous sign-in is enabled.";
+  if (/API_KEY_INVALID|INVALID_API_KEY/i.test(message)) return "The Firebase API key was rejected.";
+  return message.slice(0, 500);
+}
+
+async function transferFirebaseRequest(url, options = {}) {
+  const response = await fetch(url, {
+    method: options.method || "GET",
+    headers: {
+      ...(options.token ? { Authorization: "Bearer " + options.token } : {}),
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+      ...(options.headers || {})
+    },
+    ...(options.rawBody !== undefined ? { body: options.rawBody } : options.body ? { body: JSON.stringify(options.body) } : {})
+  });
+  const raw = await response.text();
+  let data = {};
+  try { data = raw ? JSON.parse(raw) : {}; } catch {}
+  if (!response.ok) {
+    const error = new Error(data && data.error && data.error.message ? data.error.message : "Firebase request failed (" + response.status + ").");
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
+
+function readStoredTransferIdentity() {
+  try {
+    if (!safeStorage.isEncryptionAvailable()) throw new Error("Windows secure storage is unavailable.");
+    const stored = JSON.parse(fsSync.readFileSync(transferIdentityPath, "utf8"));
+    if (!stored || typeof stored.encrypted !== "string") return null;
+    const value = JSON.parse(safeStorage.decryptString(Buffer.from(stored.encrypted, "base64")));
+    if (!value || typeof value.uid !== "string" || typeof value.refreshToken !== "string") return null;
+    return value;
+  } catch (error) {
+    if (error && error.code === "ENOENT") return null;
+    throw new Error("Could not unlock this device's saved identity: " + (error.message || error));
+  }
+}
+
+function saveTransferIdentity(identity) {
+  if (!safeStorage.isEncryptionAvailable()) throw new Error("Windows secure storage is unavailable. Device identity cannot be saved safely.");
+  fsSync.mkdirSync(path.dirname(transferIdentityPath), { recursive: true });
+  const encrypted = safeStorage.encryptString(JSON.stringify({
+    uid: identity.uid,
+    refreshToken: identity.refreshToken,
+    deviceCode: identity.deviceCode || ""
+  })).toString("base64");
+  fsSync.writeFileSync(transferIdentityPath, JSON.stringify({ encrypted }), { mode: 0o600 });
+}
+
+async function getTransferAccessToken(identity) {
+  if (identity.idToken && identity.expiresAt && identity.expiresAt > Date.now() + 60000) return identity.idToken;
+  const body = new URLSearchParams({ grant_type: "refresh_token", refresh_token: identity.refreshToken }).toString();
+  const refreshed = await transferFirebaseRequest(
+    "https://securetoken.googleapis.com/v1/token?key=" + TRANSFER_FIREBASE_API_KEY,
+    { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, rawBody: body }
+  );
+  identity.idToken = refreshed.id_token;
+  identity.refreshToken = refreshed.refresh_token || identity.refreshToken;
+  identity.expiresAt = Date.now() + Math.max(60, Number(refreshed.expires_in) || 3600) * 1000;
+  saveTransferIdentity(identity);
+  return identity.idToken;
+}
+
+function generateTransferDeviceCode() {
+  let raw = "dv";
+  for (let i = 0; i < 14; i++) raw += transferAlphabet[crypto.randomInt(0, transferAlphabet.length)];
+  return raw.slice(0, 4) + "-" + raw.slice(4, 8) + "-" + raw.slice(8, 12) + "-" + raw.slice(12, 16);
+}
+
+async function ensureTransferIdentity() {
+  if (transferIdentityCache && transferIdentityCache.deviceCode) {
+    await getTransferAccessToken(transferIdentityCache);
+    return transferIdentityCache;
+  }
+  if (transferIdentityPromise) return transferIdentityPromise;
+  transferIdentityPromise = (async () => {
+    if (!safeStorage.isEncryptionAvailable()) throw new Error("Windows secure storage is unavailable. Device identity cannot be saved safely.");
+    let identity = transferIdentityCache || readStoredTransferIdentity();
+    if (!identity) {
+      const signup = await transferFirebaseRequest(
+        "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + TRANSFER_FIREBASE_API_KEY,
+        { method: "POST", body: { returnSecureToken: true } }
+      );
+      identity = {
+        uid: signup.localId,
+        refreshToken: signup.refreshToken,
+        deviceCode: "",
+        idToken: signup.idToken,
+        expiresAt: Date.now() + Math.max(60, Number(signup.expiresIn) || 3600) * 1000
+      };
+      saveTransferIdentity(identity);
+    } else {
+      await getTransferAccessToken(identity);
+    }
+
+    if (!identity.deviceCode) {
+      const token = await getTransferAccessToken(identity);
+      let registered = false;
+      for (let attempt = 0; attempt < 30; attempt++) {
+        const candidate = generateTransferDeviceCode();
+        try {
+          await transferFirebaseRequest(
+            TRANSFER_FIRESTORE_ROOT + "/browserDevices?documentId=" + encodeURIComponent(candidate),
+            {
+              method: "POST",
+              token,
+              body: { fields: {
+                uid: { stringValue: identity.uid },
+                createdAt: { timestampValue: new Date().toISOString() }
+              } }
+            }
+          );
+          identity.deviceCode = candidate;
+          saveTransferIdentity(identity);
+          registered = true;
+          break;
+        } catch (error) {
+          if (error.status === 409 || /ALREADY_EXISTS|already exists/i.test(error.message)) continue;
+          throw error;
+        }
+      }
+      if (!registered) throw new Error("Could not reserve a unique device code. Please try again.");
+    }
+    transferIdentityCache = identity;
+    return identity;
+  })();
+  try { return await transferIdentityPromise; }
+  finally { transferIdentityPromise = null; }
+}
+
+function firestoreFieldsToObject(fields = {}) {
+  const result = {};
+  for (const [key, value] of Object.entries(fields)) {
+    if (Object.prototype.hasOwnProperty.call(value, "stringValue")) result[key] = value.stringValue;
+    else if (Object.prototype.hasOwnProperty.call(value, "timestampValue")) result[key] = value.timestampValue;
+    else if (Object.prototype.hasOwnProperty.call(value, "integerValue")) result[key] = Number(value.integerValue);
+    else if (Object.prototype.hasOwnProperty.call(value, "booleanValue")) result[key] = value.booleanValue;
+  }
+  return result;
+}
+
+async function getTransferInbox() {
+  const identity = await ensureTransferIdentity();
+  const token = await getTransferAccessToken(identity);
+  const url = TRANSFER_FIRESTORE_ROOT + "/browserDevices/" + encodeURIComponent(identity.deviceCode) + "/inbox?pageSize=50&orderBy=createdAt%20desc";
+  const result = await transferFirebaseRequest(url, { token });
+  const messages = (result.documents || []).map(document => ({
+    id: String(document.name || "").split("/").pop(),
+    ...firestoreFieldsToObject(document.fields || {})
+  }));
+  messages.sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0));
+  return { ok: true, deviceCode: identity.deviceCode, messages };
+}
+
+async function sendTransferToDevice(rawCode, rawPayload) {
+  const code = String(rawCode || "").trim();
+  if (!/^dv[A-Za-z0-9]{2}(?:-[A-Za-z0-9]{4}){3}$/.test(code)) return { ok: false, message: "Enter a valid device code, for example dvGR-8Hfv-h7Jk-Sfmw." };
+  const allowedKinds = ["text", "link", "page", "image", "video", "audio"];
+  const kind = allowedKinds.includes(rawPayload && rawPayload.kind) ? rawPayload.kind : "text";
+  const text = String(rawPayload && rawPayload.text || "").slice(0, 20000);
+  const url = String(rawPayload && rawPayload.url || "").slice(0, 2048);
+  const title = String(rawPayload && rawPayload.title || "Shared from NeoFind Browser").slice(0, 200);
+  if (!text && !url) return { ok: false, message: "There is nothing to send." };
+  try {
+    const identity = await ensureTransferIdentity();
+    if (code === identity.deviceCode) return { ok: false, message: "This is already the current device." };
+    const token = await getTransferAccessToken(identity);
+    const recipient = await transferFirebaseRequest(TRANSFER_FIRESTORE_ROOT + "/browserDevices/" + encodeURIComponent(code), { token });
+    const recipientUid = recipient.fields && recipient.fields.uid && recipient.fields.uid.stringValue;
+    if (!recipientUid) return { ok: false, message: "This device code is not registered." };
+    await transferFirebaseRequest(
+      TRANSFER_FIRESTORE_ROOT + "/browserDevices/" + encodeURIComponent(code) + "/inbox?documentId=" + crypto.randomUUID(),
+      {
+        method: "POST",
+        token,
+        body: { fields: {
+          fromUid: { stringValue: identity.uid },
+          fromCode: { stringValue: identity.deviceCode },
+          toUid: { stringValue: recipientUid },
+          toCode: { stringValue: code },
+          kind: { stringValue: kind },
+          title: { stringValue: title },
+          text: { stringValue: text },
+          url: { stringValue: url },
+          createdAt: { timestampValue: new Date().toISOString() }
+        } }
+      }
+    );
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: transferErrorMessage(error) };
+  }
+}
+
+async function renderAnnouncementsInTab(tab) {
+  if (!tab || !tab.internalAnnouncements || !tab.view || tab.view.webContents.isDestroyed()) return;
+  let result;
+  try { result = await getTransferInbox(); }
+  catch (error) { result = { ok: false, message: transferErrorMessage(error), messages: [] }; }
+  const serialized = JSON.stringify(result).replace(/</g, "\\u003c");
+  try { await tab.view.webContents.executeJavaScript("if (typeof window.renderNeoAnnouncements === 'function') window.renderNeoAnnouncements(" + serialized + ");"); } catch {}
+}
+
+async function refreshOpenAnnouncementTabs() {
+  const open = Array.from(tabs.values()).filter(tab => tab.internalAnnouncements && tab.view && !tab.view.webContents.isDestroyed());
+  if (!open.length) return;
+  for (const tab of open) await renderAnnouncementsInTab(tab);
+}
+
 function readDownloadHistory() {
   try { const value = JSON.parse(fsSync.readFileSync(downloadHistoryPath, "utf8")); return Array.isArray(value) ? value : []; }
   catch { return []; }
@@ -437,11 +660,11 @@ function getSessionSnapshot() {
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
     if (tab.isPrivate) return;
-    let currentUrl = tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
-    let currentTitle = tab.title || "New Tab";
+    let currentUrl = tab.internalAnnouncements ? "about:announcements" : tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
+    let currentTitle = tab.internalAnnouncements ? "Announcements" : (tab.title || "New Tab");
     try {
       if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
-        if (!tab.isHomeTab && !tab.customNewTab) currentUrl = tab.view.webContents.getURL() || currentUrl;
+        if (!tab.isHomeTab && !tab.customNewTab && !tab.internalAnnouncements) currentUrl = tab.view.webContents.getURL() || currentUrl;
         currentTitle = tab.isHomeTab ? "New Tab" : (tab.view.webContents.getTitle() || currentTitle);
       }
     } catch (error) {
@@ -508,6 +731,7 @@ function restoreSessionOrHome() {
 function normalizeAddress(input) {
   const value = String(input || "").trim();
   if (/^ulululu:\/\//i.test(value)) { try { const u = new URL(value); return "https://ulululu.neofind.local/?q=" + encodeURIComponent(u.searchParams.get("q") || ""); } catch {} }
+  if (/^about:announcements$/i.test(value)) return "about:announcements";
   if (!value || /^about:(blank|home)$/i.test(value)) return "about:blank";
   if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
   if (/^file:/i.test(value)) { try { const url = new URL(value); if (url.protocol === "file:") return url.href; } catch {} }
@@ -572,6 +796,22 @@ function showActiveTab() {
   sendState();
 }
 
+function getTransferPayloadFromContext(params, pageUrl, pageTitle) {
+  const selectedText = String(params.selectionText || "").trim();
+  const sourceUrl = isHttpUrl(pageUrl) ? pageUrl : "";
+  const mediaKind = ["image", "video", "audio"].includes(params.mediaType) ? params.mediaType : "";
+  if (mediaKind && isHttpUrl(params.srcURL || "")) return { kind: mediaKind, title: pageTitle || mediaKind, text: "", url: params.srcURL, sourceUrl };
+  if (isHttpUrl(params.linkURL || "")) return { kind: "link", title: String(params.linkText || params.linkURL).slice(0, 200), text: String(params.linkText || params.linkURL).slice(0, 20000), url: params.linkURL, sourceUrl };
+  if (selectedText) return { kind: "text", title: "Selected text", text: selectedText.slice(0, 20000), url: sourceUrl, sourceUrl };
+  if (sourceUrl) return { kind: "page", title: pageTitle || "Shared page", text: sourceUrl, url: sourceUrl, sourceUrl };
+  return { kind: "text", title: "Shared text", text: "", url: "", sourceUrl: "" };
+}
+
+function requestSendToDevice(payload) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send("transfer:compose", payload);
+}
+
 function openTab(address = HOME_URL, activate = true, options = {}) {
   const id = nextTabId++;
   const isPrivate = options.private === true;
@@ -584,10 +824,11 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       ...(isPrivate ? { partition: "neofind-private-" + id } : {})
     }
   });
+  const internalAnnouncements = String(address || "").toLowerCase() === "about:announcements";
   const isHomeTab = /^about:(blank|home|newtab)$/i.test(String(address || ""));
   const homePage = options.homePage === true || String(address || "").toLowerCase() === "about:home";
   const customNewTab = String(address || "").toLowerCase() === "about:newtab";
-  const tab = { id, view, title: "New Tab", url: customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
+  const tab = { id, view, title: internalAnnouncements ? "Announcements" : "New Tab", url: internalAnnouncements ? "about:announcements" : customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, internalAnnouncements, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
   tabs.set(id, tab);
   const wc = view.webContents;
   installAlwaysOnAdBlocker(wc.session);
@@ -647,6 +888,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       );
     }
     items.push(
+      { type: "separator" },
+      { label: "Send to other device", click: () => requestSendToDevice(getTransferPayloadFromContext(params, pageUrl, wc.getTitle())) },
+      { type: "separator" },
       { label: "Select all", click: () => { if (!wc.isDestroyed()) wc.selectAll(); } },
       { label: "Copy address", click: () => { if (pageUrl) clipboard.writeText(pageUrl); } },
       { label: "Inspect element", click: () => {
@@ -687,6 +931,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     try { handleCredentialCandidate(JSON.parse(message.slice("__NEOFIND_PASSWORD_CANDIDATE__".length))); } catch {}
   });
   wc.on("dom-ready", () => { installCredentialCapture(wc); installPictureInPictureControls(wc); });
+  wc.on("did-finish-load", () => { if (tab.internalAnnouncements) renderAnnouncementsInTab(tab); });
   wc.on("page-title-updated", (_event, title) => {
     tab.title = tab.isHomeTab ? "New Tab" : (title || "New Tab");
     sendState();
@@ -700,6 +945,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (tab.pendingRiskUrl || tab.errorUrl) {
       tab.url = tab.pendingRiskUrl || tab.errorUrl;
       tab.title = tab.pendingRiskUrl ? "Page blocked by NeoFind" : "NeoFind: page not found";
+    } else if (tab.internalAnnouncements) {
+      tab.url = "about:announcements";
+      tab.title = "Announcements";
     } else {
       tab.url = tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
       tab.title = wc.getTitle() || tab.title || "New Tab";
@@ -711,7 +959,8 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   wc.on("did-navigate", (_event, url) => {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
-    if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
+    if (tab.internalAnnouncements && url.startsWith("file:")) { tab.url = "about:announcements"; tab.title = "Announcements"; }
+    else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
     else {
       tab.customNewTab = false;
       if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
@@ -723,7 +972,8 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   wc.on("did-navigate-in-page", (_event, url) => {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
-    if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
+    if (tab.internalAnnouncements && url.startsWith("file:")) { tab.url = "about:announcements"; tab.title = "Announcements"; }
+    else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
     else {
       tab.customNewTab = false;
       if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
@@ -745,7 +995,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     sendState();
   }
 
-  const targetUrl = customNewTab ? "about:newtab" : homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
+  const targetUrl = internalAnnouncements
+    ? pathToFileURL(path.join(__dirname, "newtab.html")).href + "?view=announcements"
+    : customNewTab ? "about:newtab" : homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
   loadAddressInTab(tab, targetUrl).catch(() => {
     if (tab.pendingRiskUrl || tab.errorUrl) return;
     tab.loading = false;
@@ -976,6 +1228,19 @@ ipcMain.handle("browser:set-site-permissions", async (_event, values) => {
   }
   try { await tab.view.webContents.reload(); } catch {}
   return { ok: true, origin, permissions: Object.fromEntries(keys.map(key => [key, getPermissionDecision(origin, key) || "ask"])) };
+});
+ipcMain.handle("transfer:get-device-info", async () => {
+  try { const identity = await ensureTransferIdentity(); return { ok: true, deviceCode: identity.deviceCode }; }
+  catch (error) { return { ok: false, message: transferErrorMessage(error) }; }
+});
+ipcMain.handle("transfer:send", async (_event, code, payload) => sendTransferToDevice(code, payload));
+ipcMain.handle("transfer:get-inbox", async () => {
+  try { return await getTransferInbox(); }
+  catch (error) { return { ok: false, message: transferErrorMessage(error), messages: [] }; }
+});
+ipcMain.handle("transfer:copy-code", async () => {
+  try { const identity = await ensureTransferIdentity(); clipboard.writeText(identity.deviceCode); return { ok: true }; }
+  catch (error) { return { ok: false, message: transferErrorMessage(error) }; }
 });
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
@@ -1259,6 +1524,8 @@ app.whenReady().then(async () => {
   if (!gotSingleInstanceLock) return;
   await loadSavedSession();
   createWindow();
+  const announcementPoll = setInterval(() => refreshOpenAnnouncementTabs().catch(() => {}), 15000);
+  announcementPoll.unref();
   if (app.isPackaged) setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 5000);
 });
 app.on("open-file", (event, filePath) => {
