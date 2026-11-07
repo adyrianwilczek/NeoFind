@@ -32,7 +32,7 @@
 <main id="announcementsRoot" class="announcements-shell" hidden>
   <header class="announcements-header">
     <div><p class="announcements-eyebrow">NEOFIND CONNECT</p><h1>Announcements</h1><p>Things sent to this device from another NeoFind Browser.</p></div>
-    <div class="announcements-header-actions"><a class="announcements-compose" href="https://neofind.pl/app/?app=1&p=system-notification">System notification</a><button id="refreshAnnouncements" class="announcements-refresh" type="button">Refresh</button></div>
+    <div class="announcements-header-actions"><button id="refreshAnnouncements" class="announcements-refresh" type="button">Refresh</button></div>
   </header>
   <section id="announcementsList" class="announcements-list" aria-live="polite"><div class="announcements-empty">Loading your inbox…</div></section>
 </main>
@@ -64,7 +64,7 @@
       }
       messages.forEach(message => {
         const card = document.createElement("article");
-        card.className = message.isSystem ? "announcement-card system-announcement-card" : "announcement-card";
+        card.className = "announcement-card";
         if (message.isSystem) {
           const verified = document.createElement("div");
           verified.className = "system-announcement-brand";
@@ -80,10 +80,6 @@
           brand.append(name, badge);
           verified.append(logo, brand);
           card.append(verified);
-          const safety = document.createElement("p");
-          safety.className = "system-announcement-safety";
-          safety.textContent = "NeoFind will never ask you for your password. / NeoFind nigdy nie poprosi Cię o hasło.";
-          card.append(safety);
         }
         const top = document.createElement("div");
         top.className = "announcement-card-top";
@@ -116,7 +112,7 @@
             addText(card, "pre", "announcement-text", message.text || "No preview available.");
           }
         }
-        addText(card, "p", "announcement-from", "From device " + String(message.fromCode || "unknown"));
+        addText(card, "p", "announcement-from", message.isSystem ? "From NeoFind" : "From device " + String(message.fromCode || "unknown"));
         list.append(card);
       });
     };
