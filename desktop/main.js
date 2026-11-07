@@ -307,10 +307,7 @@ async function getTransferInbox() {
     transferFirebaseRequest(ownUrl, { token }),
     transferFirebaseRequest(systemUrl, { token })
   ]);
-  const ownMessages = (ownResult.documents || []).map(document => ({
-    id: String(document.name || "").split("/").pop(),
-    ...firestoreFieldsToObject(document.fields || {})
-  }));
+  const ownMessages = (ownResult.documents || []).map(document => {const message={id:String(document.name||"").split("/").pop(),...firestoreFieldsToObject(document.fields||{})};if(message.kind==="system")message.isSystem=true;return message;});
   const systemMessages = (systemResult.documents || []).map(document => ({
     id: String(document.name || "").split("/").pop(),
     ...firestoreFieldsToObject(document.fields || {}),
@@ -1289,7 +1286,6 @@ ipcMain.handle("transfer:get-device-info", async () => {
   catch (error) { return { ok: false, message: transferErrorMessage(error) }; }
 });
 ipcMain.handle("transfer:send", async (_event, code, payload) => sendTransferToDevice(code, payload));
-ipcMain.on("transfer:compose-personal", () => requestSendToDevice({ kind: "text", title: "Message from this NeoFind device", text: "", url: "" }));
 ipcMain.handle("transfer:get-inbox", async () => {
   try { return await getTransferInbox(); }
   catch (error) { return { ok: false, message: transferErrorMessage(error), messages: [] }; }
