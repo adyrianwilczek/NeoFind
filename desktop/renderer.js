@@ -567,7 +567,6 @@ function setImportPreset(preset) {
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
 document.getElementById("sideShop").addEventListener("click", () => window.neoBrowser.createTab("about:shop"));
-document.getElementById("sidePersonalMessage").addEventListener("click", () => window.neoBrowser.composePersonalMessage());
 document.getElementById("sideAnnouncements").addEventListener("click", () => window.neoBrowser.createTab("about:announcements"));
 document.getElementById("copyTransferDeviceCode").addEventListener("click", async () => {
   const status = document.getElementById("transferDeviceStatus");
