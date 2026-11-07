@@ -1,7 +1,7 @@
 {
   "name": "neofind-browser",
-  "version": "0.1.39",
-  "description": "NeoFind Browser for Windows - cross-device sharing",
+  "version": "0.1.40",
+  "description": "NeoFind Browser for Windows - verified notifications and NeoFind Shop",
   "main": "main.js",
   "private": true,
   "scripts": {

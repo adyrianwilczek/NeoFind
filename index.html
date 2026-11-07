@@ -8864,6 +8864,25 @@ function triggerCustomLockScreen(userEmail, blockReason) {
 </style>
 
 
+<script id="neoFindBrowserShopRoute">
+(function(){
+  const params = new URLSearchParams(location.search);
+  if (params.get("p") !== "shop") return;
+  const openShop = () => {
+    if (typeof openOrbsPanel !== "function") return;
+    openOrbsPanel();
+    const shop = document.getElementById("orbChestShop");
+    if (shop) setTimeout(() => shop.scrollIntoView({behavior:"smooth",block:"start"}), 250);
+  };
+  if (typeof auth !== "undefined" && auth && typeof auth.onAuthStateChanged === "function") {
+    auth.onAuthStateChanged(user => {
+      if (user) openShop();
+    });
+  } else {
+    window.addEventListener("load", openShop, {once:true});
+  }
+})();
+</script>
 </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---

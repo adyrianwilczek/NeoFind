@@ -1,4 +1,4 @@
-const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session, safeStorage, clipboard, Menu } = require("electron");
+const { app, BrowserWindow, WebContentsView, ipcMain, dialog, shell, session, safeStorage, clipboard, Menu, Notification } = require("electron");
 const crypto = require("node:crypto");
 const { autoUpdater } = require("electron-updater");
 const fs = require("node:fs/promises");
@@ -114,7 +114,7 @@ let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
-function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab" || value === "about:announcements"; }
+function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab" || value === "about:announcements" || value === "about:shop"; }
 function normalizeExternalFileArgument(value) {
   if (typeof value !== "string" || !value.trim() || value.startsWith("-")) return null;
   const input = value.trim();
@@ -148,6 +148,9 @@ const transferIdentityPath = path.join(app.getPath("userData"), "device-identity
 let transferIdentityCache = null;
 let transferIdentityPromise = null;
 const transferAlphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const SYSTEM_DEVICE_CODE = "dv00-0000-0000-0000";
+const systemNotificationSeen = new Set();
+let systemNotificationPollInitialized = false;
 
 function transferErrorMessage(error) {
   const message = String(error && error.message ? error.message : error);
@@ -298,14 +301,58 @@ function firestoreFieldsToObject(fields = {}) {
 async function getTransferInbox() {
   const identity = await ensureTransferIdentity();
   const token = await getTransferAccessToken(identity);
-  const url = TRANSFER_FIRESTORE_ROOT + "/browserDevices/" + encodeURIComponent(identity.deviceCode) + "/inbox?pageSize=50&orderBy=createdAt%20desc";
-  const result = await transferFirebaseRequest(url, { token });
-  const messages = (result.documents || []).map(document => ({
+  const ownUrl = TRANSFER_FIRESTORE_ROOT + "/browserDevices/" + encodeURIComponent(identity.deviceCode) + "/inbox?pageSize=50&orderBy=createdAt%20desc";
+  const systemUrl = TRANSFER_FIRESTORE_ROOT + "/browserDevices/" + encodeURIComponent(SYSTEM_DEVICE_CODE) + "/inbox?pageSize=50&orderBy=createdAt%20desc";
+  const [ownResult, systemResult] = await Promise.all([
+    transferFirebaseRequest(ownUrl, { token }),
+    transferFirebaseRequest(systemUrl, { token })
+  ]);
+  const ownMessages = (ownResult.documents || []).map(document => ({
     id: String(document.name || "").split("/").pop(),
     ...firestoreFieldsToObject(document.fields || {})
   }));
+  const systemMessages = (systemResult.documents || []).map(document => ({
+    id: String(document.name || "").split("/").pop(),
+    ...firestoreFieldsToObject(document.fields || {}),
+    kind: "system",
+    isSystem: true,
+    fromCode: SYSTEM_DEVICE_CODE
+  }));
+  const messages = ownMessages.concat(systemMessages);
   messages.sort((a, b) => Date.parse(b.createdAt || 0) - Date.parse(a.createdAt || 0));
   return { ok: true, deviceCode: identity.deviceCode, messages };
+}
+
+async function pollSystemNotifications() {
+  try {
+    const inbox = await getTransferInbox();
+    if (!inbox.ok) return;
+    const incoming = inbox.messages.filter(message => message.isSystem);
+    if (!systemNotificationPollInitialized) {
+      incoming.forEach(message => systemNotificationSeen.add(message.id));
+      systemNotificationPollInitialized = true;
+      return;
+    }
+    for (const message of incoming) {
+      if (systemNotificationSeen.has(message.id)) continue;
+      systemNotificationSeen.add(message.id);
+      if (!Notification.isSupported()) continue;
+      const notification = new Notification({
+        title: "NeoFind · Verified",
+        body: String(message.text || message.title || "New system notification").trim().slice(0, 240),
+        icon: path.join(__dirname, "icon_round.png")
+      });
+      notification.on("click", () => {
+        if (!mainWindow || mainWindow.isDestroyed()) return;
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.focus();
+        openTab("about:announcements", true);
+      });
+      notification.show();
+    }
+  } catch (error) {
+    console.warn("NeoFind system notification check failed:", error && error.message ? error.message : error);
+  }
 }
 
 async function sendTransferToDevice(rawCode, rawPayload) {
@@ -660,12 +707,12 @@ function getSessionSnapshot() {
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
     if (tab.isPrivate) return;
-    let currentUrl = tab.internalAnnouncements ? "about:announcements" : tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
-    let currentTitle = tab.internalAnnouncements ? "Announcements" : (tab.title || "New Tab");
+    let currentUrl = tab.internalAnnouncements ? "about:announcements" : tab.internalShop ? "about:shop" : tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
+    let currentTitle = tab.internalAnnouncements ? "Announcements" : tab.internalShop ? "NeoFind Shop" : (tab.title || "New Tab");
     try {
       if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
-        if (!tab.isHomeTab && !tab.customNewTab && !tab.internalAnnouncements) currentUrl = tab.view.webContents.getURL() || currentUrl;
-        currentTitle = tab.isHomeTab ? "New Tab" : (tab.view.webContents.getTitle() || currentTitle);
+        if (!tab.isHomeTab && !tab.customNewTab && !tab.internalAnnouncements && !tab.internalShop) currentUrl = tab.view.webContents.getURL() || currentUrl;
+        currentTitle = tab.isHomeTab ? "New Tab" : (tab.internalShop ? "NeoFind Shop" : (tab.view.webContents.getTitle() || currentTitle));
       }
     } catch (error) {
       // Use the last URL/title recorded by navigation events if the view is closing.
@@ -732,6 +779,7 @@ function normalizeAddress(input) {
   const value = String(input || "").trim();
   if (/^ulululu:\/\//i.test(value)) { try { const u = new URL(value); return "https://ulululu.neofind.local/?q=" + encodeURIComponent(u.searchParams.get("q") || ""); } catch {} }
   if (/^about:announcements$/i.test(value)) return "about:announcements";
+  if (/^about:shop$/i.test(value)) return "about:shop";
   if (!value || /^about:(blank|home)$/i.test(value)) return "about:blank";
   if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
   if (/^file:/i.test(value)) { try { const url = new URL(value); if (url.protocol === "file:") return url.href; } catch {} }
@@ -825,10 +873,11 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     }
   });
   const internalAnnouncements = String(address || "").toLowerCase() === "about:announcements";
+  const internalShop = String(address || "").toLowerCase() === "about:shop";
   const isHomeTab = /^about:(blank|home|newtab)$/i.test(String(address || ""));
   const homePage = options.homePage === true || String(address || "").toLowerCase() === "about:home";
   const customNewTab = String(address || "").toLowerCase() === "about:newtab";
-  const tab = { id, view, title: internalAnnouncements ? "Announcements" : "New Tab", url: internalAnnouncements ? "about:announcements" : customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, internalAnnouncements, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
+  const tab = { id, view, title: internalAnnouncements ? "Announcements" : internalShop ? "NeoFind Shop" : "New Tab", url: internalAnnouncements ? "about:announcements" : internalShop ? "about:shop" : customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, internalAnnouncements, internalShop, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
   tabs.set(id, tab);
   const wc = view.webContents;
   installAlwaysOnAdBlocker(wc.session);
@@ -948,6 +997,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     } else if (tab.internalAnnouncements) {
       tab.url = "about:announcements";
       tab.title = "Announcements";
+    } else if (tab.internalShop) {
+      tab.url = "about:shop";
+      tab.title = "NeoFind Shop";
     } else {
       tab.url = tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
       tab.title = wc.getTitle() || tab.title || "New Tab";
@@ -960,6 +1012,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.internalAnnouncements && url.startsWith("file:")) { tab.url = "about:announcements"; tab.title = "Announcements"; }
+    else if (tab.internalShop && url.includes("p=shop")) { tab.url = "about:shop"; tab.title = "NeoFind Shop"; }
     else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
     else {
       tab.customNewTab = false;
@@ -973,6 +1026,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.internalAnnouncements && url.startsWith("file:")) { tab.url = "about:announcements"; tab.title = "Announcements"; }
+    else if (tab.internalShop && url.includes("p=shop")) { tab.url = "about:shop"; tab.title = "NeoFind Shop"; }
     else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
     else {
       tab.customNewTab = false;
@@ -997,6 +1051,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
 
   const targetUrl = internalAnnouncements
     ? pathToFileURL(path.join(__dirname, "newtab.html")).href + "?view=announcements"
+    : internalShop ? "https://neofind.pl/app/?app=1&p=shop"
     : customNewTab ? "about:newtab" : homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
   loadAddressInTab(tab, targetUrl).catch(() => {
     if (tab.pendingRiskUrl || tab.errorUrl) return;
@@ -1234,6 +1289,7 @@ ipcMain.handle("transfer:get-device-info", async () => {
   catch (error) { return { ok: false, message: transferErrorMessage(error) }; }
 });
 ipcMain.handle("transfer:send", async (_event, code, payload) => sendTransferToDevice(code, payload));
+ipcMain.on("transfer:compose-personal", () => requestSendToDevice({ kind: "text", title: "Message from this NeoFind device", text: "", url: "" }));
 ipcMain.handle("transfer:get-inbox", async () => {
   try { return await getTransferInbox(); }
   catch (error) { return { ok: false, message: transferErrorMessage(error), messages: [] }; }
@@ -1526,6 +1582,9 @@ app.whenReady().then(async () => {
   createWindow();
   const announcementPoll = setInterval(() => refreshOpenAnnouncementTabs().catch(() => {}), 15000);
   announcementPoll.unref();
+  const systemNotificationPoll = setInterval(() => pollSystemNotifications().catch(() => {}), 25000);
+  systemNotificationPoll.unref();
+  setTimeout(() => pollSystemNotifications().catch(() => {}), 4000);
   if (app.isPackaged) setTimeout(() => autoUpdater.checkForUpdates().catch(() => {}), 5000);
 });
 app.on("open-file", (event, filePath) => {

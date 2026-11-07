@@ -32,7 +32,7 @@
 <main id="announcementsRoot" class="announcements-shell" hidden>
   <header class="announcements-header">
     <div><p class="announcements-eyebrow">NEOFIND CONNECT</p><h1>Announcements</h1><p>Things sent to this device from another NeoFind Browser.</p></div>
-    <button id="refreshAnnouncements" class="announcements-refresh" type="button">Refresh</button>
+    <div class="announcements-header-actions"><a class="announcements-compose" href="https://neofind.pl/app/?app=1&p=system-notification">System notification</a><button id="refreshAnnouncements" class="announcements-refresh" type="button">Refresh</button></div>
   </header>
   <section id="announcementsList" class="announcements-list" aria-live="polite"><div class="announcements-empty">Loading your inbox…</div></section>
 </main>
@@ -64,7 +64,27 @@
       }
       messages.forEach(message => {
         const card = document.createElement("article");
-        card.className = "announcement-card";
+        card.className = message.isSystem ? "announcement-card system-announcement-card" : "announcement-card";
+        if (message.isSystem) {
+          const verified = document.createElement("div");
+          verified.className = "system-announcement-brand";
+          const logo = document.createElement("img");
+          logo.src = "icon_round.png";
+          logo.alt = "NeoFind";
+          const brand = document.createElement("div");
+          const name = document.createElement("strong");
+          name.textContent = "NeoFind";
+          const badge = document.createElement("span");
+          badge.className = "system-verified-badge";
+          badge.textContent = "✓ Verified";
+          brand.append(name, badge);
+          verified.append(logo, brand);
+          card.append(verified);
+          const safety = document.createElement("p");
+          safety.className = "system-announcement-safety";
+          safety.textContent = "NeoFind will never ask you for your password. / NeoFind nigdy nie poprosi Cię o hasło.";
+          card.append(safety);
+        }
         const top = document.createElement("div");
         top.className = "announcement-card-top";
         addText(top, "span", "announcement-kind", String(message.kind || "item").toUpperCase());

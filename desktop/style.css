@@ -392,3 +392,17 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .announcement-link:hover{background:#00dce91e}
 .announcement-from{margin:13px 0 0}
 @media(max-width:560px){.announcements-shell{width:calc(100% - 26px);padding-top:28px}.announcements-header{align-items:flex-start;flex-direction:column}.announcement-card{padding:15px}}
+
+
+/* NeoFind Browser 0.1.40 */
+#sideShop svg,#sidePersonalMessage svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.transfer-message-input{width:100%;min-height:90px;resize:vertical;padding:11px 12px;line-height:1.45}
+.announcements-header-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.announcements-compose{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(0,242,254,.35);border-radius:10px;padding:9px 12px;background:rgba(0,242,254,.08);color:#c8faff;font-weight:700;text-decoration:none;cursor:pointer}
+.announcements-compose:hover{background:rgba(0,242,254,.16)}
+.system-announcement-card{border-color:rgba(0,242,254,.42);background:linear-gradient(145deg,rgba(0,242,254,.07),rgba(155,81,224,.07)),var(--panel,#101827)}
+.system-announcement-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.system-announcement-brand img{width:34px;height:34px;object-fit:contain}
+.system-announcement-brand strong{font-size:14px;color:var(--text,#edf6ff)}
+.system-verified-badge{display:inline-flex;margin-left:7px;padding:3px 7px;border-radius:999px;background:rgba(0,210,150,.12);border:1px solid rgba(0,210,150,.4);color:#75e7b7;font-size:10px;font-weight:800}
+.system-announcement-safety{margin:0 0 12px;color:#8fa8bd;font-size:10px;line-height:1.45}

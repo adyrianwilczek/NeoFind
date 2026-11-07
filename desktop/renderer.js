@@ -566,6 +566,8 @@ function setImportPreset(preset) {
     ? "All categories selected, including cookies. Selected data will be imported only where supported."
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
+document.getElementById("sideShop").addEventListener("click", () => window.neoBrowser.createTab("about:shop"));
+document.getElementById("sidePersonalMessage").addEventListener("click", () => window.neoBrowser.composePersonalMessage());
 document.getElementById("sideAnnouncements").addEventListener("click", () => window.neoBrowser.createTab("about:announcements"));
 document.getElementById("copyTransferDeviceCode").addEventListener("click", async () => {
   const status = document.getElementById("transferDeviceStatus");
@@ -615,6 +617,7 @@ window.neoBrowser.onContextAskNeoAI((text) => { window.neoBrowser.openNeoAIWithP
 const transferOverlay = document.getElementById("transferComposeOverlay");
 const transferCodeInput = document.getElementById("transferDestinationCode");
 const transferPreview = document.getElementById("transferComposePreview");
+const transferTextInput = document.getElementById("transferMessageText");
 const transferStatus = document.getElementById("transferComposeStatus");
 const transferSendButton = document.getElementById("sendTransferButton");
 let pendingTransferPayload = null;
@@ -628,6 +631,7 @@ function openTransferCompose(payload) {
   const label = { text: "Selected text", link: "Link", page: "Web page", image: "Image", video: "Video", audio: "Audio" }[pendingTransferPayload.kind] || "Item";
   transferPreview.textContent = label + ": " + String(pendingTransferPayload.text || pendingTransferPayload.url || "Ready to send").slice(0, 260);
   transferCodeInput.value = "";
+  transferTextInput.value = String(pendingTransferPayload.text || "");
   transferStatus.textContent = "The destination device must have NeoFind Browser and its own device code.";
   transferSendButton.disabled = false;
   transferSendButton.textContent = "Send";
@@ -645,7 +649,9 @@ async function submitTransfer() {
   transferSendButton.disabled = true;
   transferSendButton.textContent = "Sending…";
   transferStatus.textContent = "Connecting to the receiving device…";
-  const result = await window.neoBrowser.sendToOtherDevice(transferCodeInput.value.trim(), pendingTransferPayload);
+  const outgoingPayload = { ...pendingTransferPayload };
+  if (transferTextInput.value.trim()) { outgoingPayload.kind = "text"; outgoingPayload.text = transferTextInput.value.trim(); outgoingPayload.url = ""; outgoingPayload.title = "Message from this NeoFind device"; }
+  const result = await window.neoBrowser.sendToOtherDevice(transferCodeInput.value.trim(), outgoingPayload);
   if (result && result.ok) {
     transferStatus.textContent = "Sent successfully. It will appear in Announcements on the other device.";
     transferSendButton.textContent = "Sent";
