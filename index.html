@@ -3041,11 +3041,12 @@ Search. Connect. Discover.
 <p id="giveOrbsStatus" style="font-size:13px; margin-top:5px;"></p>
 
 <hr style="border:0;border-top:1px solid rgba(0,255,200,.2);margin:20px 0;">
-<h3>Global Announcement</h3>
+<h3>NeoFind Announcements</h3>
+<select id="announcementAdminMode" onchange="updateAnnouncementAdminMode()" style="margin:8px 0;width:90%;max-width:420px;"><option value="announcement">Regular announcement</option><option value="system">Verified system notification</option></select><br>
 <input id="announcementAdminTitle" placeholder="Announcement title"><br>
 <textarea id="announcementAdminBody" placeholder="Announcement text" style="width:90%;min-height:90px;"></textarea><br>
-<button onclick="adminCreateAnnouncement()">Send to everyone</button>
-<p id="announcementAdminStatus" style="font-size:12px;opacity:.7;"></p>
+<div id="systemAnnouncementTarget" style="display:none;margin:8px 0;"><select id="systemAnnouncementScope" onchange="updateSystemAnnouncementScope()" style="width:90%;max-width:420px;"><option value="all">Send to every NeoFind Browser device</option><option value="one">Send to one device</option></select><br><input id="systemAnnouncementDeviceCode" placeholder="Recipient device code" style="display:none;margin-top:8px;"></div>
+<button onclick="adminCreateAnnouncement()">Send</button><p id="announcementAdminStatus" style="font-size:12px;opacity:.7;"></p>
 
     <div id="ownerChestGrantSection" style="display:none;margin-top:20px;padding:16px;border:1px solid rgba(255,215,0,.25);border-radius:14px;background:rgba(255,215,0,.04);">
         <h3 style="margin-top:0;">OWNER • Give Chest</h3>
@@ -4517,26 +4518,22 @@ function startAnnouncementListeners(user){
     });
 }
 
+function updateAnnouncementAdminMode(){const m=document.getElementById("announcementAdminMode")?.value||"announcement";const t=document.getElementById("systemAnnouncementTarget");if(t)t.style.display=m==="system"?"block":"none";}
+function updateSystemAnnouncementScope(){const one=document.getElementById("systemAnnouncementScope")?.value==="one";const i=document.getElementById("systemAnnouncementDeviceCode");if(i)i.style.display=one?"inline-block":"none";}
 async function adminCreateAnnouncement(){
-    const user = auth.currentUser;
-    const titleEl = document.getElementById("announcementAdminTitle");
-    const bodyEl = document.getElementById("announcementAdminBody");
-    const status = document.getElementById("announcementAdminStatus");
-    if(!user || !isAdmin(user.email)) return;
-    const title = titleEl.value.trim();
-    const body = bodyEl.value.trim();
-    if(!title || !body){ status.textContent = "Title and text are required."; return; }
-    try {
-        await db.collection("announcements").add({
-            title, body, author:user.email,
-            createdAt:firebase.firestore.FieldValue.serverTimestamp()
-        });
-        titleEl.value = "";
-        bodyEl.value = "";
-        status.textContent = "Announcement created.";
-    } catch(e) {
-        status.textContent = "Error: " + e.message;
-    }
+ const user=auth.currentUser,titleEl=document.getElementById("announcementAdminTitle"),bodyEl=document.getElementById("announcementAdminBody"),status=document.getElementById("announcementAdminStatus"),mode=document.getElementById("announcementAdminMode")?.value||"announcement";
+ if(!user||!isAdmin(user.email))return;const title=titleEl.value.trim(),body=bodyEl.value.trim();if(!title||!body){status.textContent="Title and text are required.";return;}
+ try{if(mode==="system"){
+  if(!isOwner(user.email)){status.textContent="Only the NeoFind owner can send verified system notifications.";return;}
+  const scope=document.getElementById("systemAnnouncementScope")?.value||"all",code=String(document.getElementById("systemAnnouncementDeviceCode")?.value||"").trim(),devices=db.collection("browserDevices");let ref;
+  if(scope==="one"){if(!/^dv[A-Za-z0-9]{2}(?:-[A-Za-z0-9]{4}){3}$/.test(code)||code==="dv00-0000-0000-0000"){status.textContent="Enter a valid device code.";return;}ref=devices.doc(code);const d=await ref.get();if(!d.exists||!d.data().uid){status.textContent="Device code not found.";return;}}
+  else ref=devices.doc("dv00-0000-0000-0000");
+  const d=await ref.get(),data=d.exists?d.data():{uid:"system"};
+  await ref.collection("inbox").add({fromUid:user.uid,fromCode:"dv00-0000-0000-0000",toUid:data.uid,toCode:ref.id,kind:"system",title,text:body,url:"",createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+  status.textContent=scope==="all"?"Verified notification sent to all Browser installations.":"Verified notification sent to selected device.";
+ }else{await db.collection("announcements").add({title,body,author:user.email,createdAt:firebase.firestore.FieldValue.serverTimestamp()});status.textContent="Announcement created.";}
+ titleEl.value="";bodyEl.value="";
+ }catch(e){status.textContent="Error: "+e.message;}
 }
 
 document.addEventListener("keydown", function(event){
@@ -8864,25 +8861,7 @@ function triggerCustomLockScreen(userEmail, blockReason) {
 </style>
 
 
-<script id="neoFindBrowserShopRoute">
-(function(){
-  const params = new URLSearchParams(location.search);
-  if (params.get("p") !== "shop") return;
-  const openShop = () => {
-    if (typeof openOrbsPanel !== "function") return;
-    openOrbsPanel();
-    const shop = document.getElementById("orbChestShop");
-    if (shop) setTimeout(() => shop.scrollIntoView({behavior:"smooth",block:"start"}), 250);
-  };
-  if (typeof auth !== "undefined" && auth && typeof auth.onAuthStateChanged === "function") {
-    auth.onAuthStateChanged(user => {
-      if (user) openShop();
-    });
-  } else {
-    window.addEventListener("load", openShop, {once:true});
-  }
-})();
-</script>
+
 </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
@@ -17333,5 +17312,6 @@ body.neo-marketing-mode #neoMarketingLanding{display:block!important;min-height:
   }
 })();
 </script>
+<script id="neoFindBrowserShopRoute">(function(){if(new URLSearchParams(location.search).get("p")!=="shop")return;const open=()=>{if(typeof openOrbsPanel!=="function")return;openOrbsPanel();const el=document.getElementById("orbChestShop")||document.getElementById("orbsBox");if(el)setTimeout(()=>el.scrollIntoView({behavior:"smooth",block:"start"}),250);};if(typeof auth!=="undefined"&&auth?.onAuthStateChanged)auth.onAuthStateChanged(u=>{if(u)open();});else window.addEventListener("load",open,{once:true});})();</script>
 </body>
 </html>
