@@ -1,7 +1,7 @@
 {
   "name": "neofind-browser",
-  "version": "0.1.43",
-  "description": "NeoFind Browser for Windows - native internal pages and Premium shop discount",
+  "version": "0.1.44",
+  "description": "NeoFind Browser for Windows - native Shop and Announcements panels with shared NeoFind account session",
   "main": "main.js",
   "private": true,
   "scripts": {
