@@ -631,8 +631,10 @@ service cloud.firestore {
           && (
             ticketUsed
             ? getAfter(receiptRef).data.discountPercent == 0
-            : getAfter(receiptRef).data.costOrbs == getAfter(receiptRef).data.originalCostOrbs
+            : getAfter(receiptRef).data.costOrbs == math.ceil(
+                getAfter(receiptRef).data.originalCostOrbs
                 * (100 - getAfter(receiptRef).data.discountPercent) / 100
+              )
           );
       }
 
