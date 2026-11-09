@@ -341,7 +341,7 @@ service cloud.firestore {
           'missionDay', 'missionClaims', 'lastAdminOrbGrant',
           'chestInventory', 'lastChestReward', 'lastAdminChestGrant',
           'lastRedeemCode', 'lastRedeemAt', 'shopTicketUses',
-          'shopDiscountPercent', 'shopDiscountUses', 'lastOrbTransferIn',
+          'shopDiscountPercent', 'shopDiscountUses', 'lastShopPurchaseId', 'lastOrbTransferIn',
           'lastOrbTransferOut', 'advancements', 'advancementStats',
           'badges', 'advancementNotices', 'serverEvents',
           'neoVisitDate', 'neoVisitStreak'
@@ -583,6 +583,52 @@ service cloud.firestore {
           );
       }
 
+      function isShopChestPurchase() {
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let oldTickets = resource.data.get('shopTicketUses', 0);
+        let newTickets = request.resource.data.get('shopTicketUses', oldTickets);
+        let oldDiscountUses = resource.data.get('shopDiscountUses', 0);
+        let newDiscountUses = request.resource.data.get('shopDiscountUses', oldDiscountUses);
+        let ticketUsed = newTickets == oldTickets - 1 && oldTickets > 0;
+        let discountUsed = newDiscountUses == oldDiscountUses - 1 && oldDiscountUses > 0;
+        let oldOrbsValue = oldOrbs();
+        let newOrbsValue = newOrbs();
+        let purchaseId = request.resource.data.get('lastShopPurchaseId', '');
+        let receiptRef = /databases/$(database)/documents/users/$(userId)/purchaseReceipts/$(purchaseId);
+        let normal = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let rare = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let epic = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let neofind = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1;
+        return isOwner(userId)
+          && purchaseId is string && purchaseId.size() > 0
+          && (normal || rare || epic || neofind)
+          && (
+            (ticketUsed && newOrbsValue == oldOrbsValue)
+            || (!ticketUsed && discountUsed && newOrbsValue < oldOrbsValue)
+            || (!ticketUsed && !discountUsed && newOrbsValue < oldOrbsValue)
+          )
+          && changedKeys().hasOnly([
+            'orbs', 'chestInventory', 'shopTicketUses',
+            'shopDiscountUses', 'lastShopPurchaseId'
+          ])
+          && getAfter(receiptRef).data.uid == request.auth.uid
+          && getAfter(receiptRef).data.ticketUsed == ticketUsed
+          && getAfter(receiptRef).data.costOrbs == oldOrbsValue - newOrbsValue;
+      }
+
       function isOwnerChestGrant() {
         let oldInv = resource.data.get('chestInventory', {});
         let newInv = request.resource.data.get('chestInventory', {});
@@ -691,6 +737,8 @@ service cloud.firestore {
             || isStartBalance()
             || isOwnerChestGrant()
             || isPremiumPurchase()
+            || isRedeemReward()
+            || isShopChestPurchase()
           )
         );
 
