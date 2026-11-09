@@ -676,6 +676,7 @@ function loadAddressInTab(tab, address) {
   }
   tab.pendingRiskUrl = null; tab.errorUrl = null;
   if (tab.customNewTab) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"));
+  if (tab.internalShop) return tab.view.webContents.loadURL(targetUrl);
   return tab.view.webContents.loadURL(targetUrl);
 }
 function makeNavigationErrorPage(target) {
@@ -1048,7 +1049,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
 
   const targetUrl = internalAnnouncements
     ? pathToFileURL(path.join(__dirname, "newtab.html")).href + "?view=announcements"
-    : internalShop ? "https://neofind.pl/app/?app=1&p=shop"
+    : internalShop ? pathToFileURL(path.join(__dirname, "newtab.html")).href + "?view=shop"
     : customNewTab ? "about:newtab" : homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
   loadAddressInTab(tab, targetUrl).catch(() => {
     if (tab.pendingRiskUrl || tab.errorUrl) return;
