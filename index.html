@@ -12693,7 +12693,7 @@ async function buyOrbChest(type) {
     try {
         const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
         const purchasedAtMs = Date.now();
-        let usedTicket = false, chargedOrbs = def.price, discountPercent = 0;
+        let usedTicket = false, chargedOrbs = def.price, discountPercent = 0, usedGiftDiscount = false;
         await db.runTransaction(async transaction => {
             const ref = db.collection("users").doc(user.uid);
             const snap = await transaction.get(ref), data = snap.exists ? snap.data() : {};
@@ -12701,11 +12701,14 @@ async function buyOrbChest(type) {
             const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
             const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
             const availableDiscount = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
+            const premiumActive = data.premium === true || Number(data.premiumUntil || 0) > Date.now();
+            const premiumDiscount = premiumActive ? 50 : 0;
+            usedGiftDiscount = discountUses > 0 && availableDiscount > premiumDiscount;
             const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
             inv[type] = Math.max(0, Number(inv[type] || 0)) + 1;
             if (tickets > 0) { usedTicket = true; chargedOrbs = 0; }
             else {
-                discountPercent = discountUses > 0 ? availableDiscount : 0;
+                discountPercent = Math.max(premiumDiscount, usedGiftDiscount ? availableDiscount : 0);
                 chargedOrbs = Math.ceil(def.price * (100 - discountPercent) / 100);
                 if (current < chargedOrbs) throw new Error("NOT_ENOUGH_ORBS");
             }
@@ -12713,7 +12716,7 @@ async function buyOrbChest(type) {
                 orbs: current - chargedOrbs, chestInventory: inv,
                 lastShopPurchaseId: purchaseRef.id,
                 ...(usedTicket ? { shopTicketUses: tickets - 1 } : {}),
-                ...(!usedTicket && discountPercent > 0 ? { shopDiscountUses: discountUses - 1 } : {})
+                ...(!usedTicket && usedGiftDiscount ? { shopDiscountUses: discountUses - 1 } : {})
             }, { merge: true });
             transaction.set(purchaseRef, {
                 purchaseId: purchaseRef.id, uid: user.uid,
@@ -13303,9 +13306,22 @@ async function startPremiumTrial() {
     }
 }
 
+function updatePremiumShopPricing() {
+    const premium = typeof isPremiumActive === "function" && isPremiumActive();
+    document.querySelectorAll("#orbChestShop .orb-chest-card").forEach(card => {
+        const label = card.querySelector(".orb-chest-buy small");
+        if (!label || card.id === "orbHalloweenChestCard") return;
+        const type = ["normal", "rare", "epic", "neofind"].find(key => card.classList.contains("orb-chest-" + key));
+        const definition = type && ORB_CHEST_DEFINITIONS[type];
+        if (!definition) return;
+        const price = premium ? Math.ceil(definition.price * 0.5) : definition.price;
+        label.textContent = premium ? price + " Orbs · Premium -50%" : definition.price + " Orbs";
+    });
+}
 function openOrbsPanel() {
     setTimeout(() => { loadOrbChestInventory(); updateOwnerChestSection(); }, 0);
     renderMissions();
+    updatePremiumShopPricing();
     const box = document.getElementById('orbsBox');
     if (box) box.style.display = 'block';
 }
