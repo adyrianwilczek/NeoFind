@@ -114,7 +114,7 @@ let browserLanguage = "en";
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
-function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab" || value === "about:announcements" || value === "about:shop"; }
+function isRestorableUrl(value) { return isHttpUrl(value) || (typeof value === "string" && value.startsWith("file://")) || value === "about:home" || value === "about:blank" || value === "about:newtab" || value === "about:announcements"; }
 function normalizeExternalFileArgument(value) {
   if (typeof value !== "string" || !value.trim() || value.startsWith("-")) return null;
   const input = value.trim();
@@ -676,10 +676,8 @@ function loadAddressInTab(tab, address) {
   }
   tab.pendingRiskUrl = null; tab.errorUrl = null;
   tab.internalAnnouncements = targetUrl === "about:announcements";
-  tab.internalShop = targetUrl === "about:shop";
   if (tab.customNewTab) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"));
   if (tab.internalAnnouncements) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"), { query: { view: "announcements" } });
-  if (tab.internalShop) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"), { query: { view: "shop" } });
   return tab.view.webContents.loadURL(targetUrl);
 }
 function makeNavigationErrorPage(target) {
@@ -708,12 +706,12 @@ function getSessionSnapshot() {
   let activeIndex = 0;
   orderedTabs.forEach((tab, index) => {
     if (tab.isPrivate) return;
-    let currentUrl = tab.internalAnnouncements ? "about:announcements" : tab.internalShop ? "about:shop" : tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
-    let currentTitle = tab.internalAnnouncements ? "Announcements" : tab.internalShop ? "NeoFind Shop" : (tab.title || "New Tab");
+    let currentUrl = tab.internalAnnouncements ? "about:announcements" : tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL);
+    let currentTitle = tab.internalAnnouncements ? "Announcements" : (tab.title || "New Tab");
     try {
       if (tab.view && tab.view.webContents && !tab.view.webContents.isDestroyed()) {
-        if (!tab.isHomeTab && !tab.customNewTab && !tab.internalAnnouncements && !tab.internalShop) currentUrl = tab.view.webContents.getURL() || currentUrl;
-        currentTitle = tab.isHomeTab ? "New Tab" : (tab.internalShop ? "NeoFind Shop" : (tab.view.webContents.getTitle() || currentTitle));
+        if (!tab.isHomeTab && !tab.customNewTab && !tab.internalAnnouncements) currentUrl = tab.view.webContents.getURL() || currentUrl;
+        currentTitle = tab.isHomeTab ? "New Tab" : (tab.view.webContents.getTitle() || currentTitle);
       }
     } catch (error) {
       // Use the last URL/title recorded by navigation events if the view is closing.
@@ -780,7 +778,6 @@ function normalizeAddress(input) {
   const value = String(input || "").trim();
   if (/^ulululu:\/\//i.test(value)) { try { const u = new URL(value); return "https://ulululu.neofind.local/?q=" + encodeURIComponent(u.searchParams.get("q") || ""); } catch {} }
   if (/^about:announcements$/i.test(value)) return "about:announcements";
-  if (/^about:shop$/i.test(value)) return "about:shop";
   if (!value || /^about:(blank|home)$/i.test(value)) return "about:blank";
   if (/^(profile|link)$/i.test(value)) return HOME_URL + "?p=profile";
   if (/^file:/i.test(value)) { try { const url = new URL(value); if (url.protocol === "file:") return url.href; } catch {} }
@@ -874,11 +871,10 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     }
   });
   const internalAnnouncements = String(address || "").toLowerCase() === "about:announcements";
-  const internalShop = String(address || "").toLowerCase() === "about:shop";
   const isHomeTab = /^about:(blank|home|newtab)$/i.test(String(address || ""));
   const homePage = options.homePage === true || String(address || "").toLowerCase() === "about:home";
   const customNewTab = String(address || "").toLowerCase() === "about:newtab";
-  const tab = { id, view, title: internalAnnouncements ? "Announcements" : internalShop ? "NeoFind Shop" : "New Tab", url: internalAnnouncements ? "about:announcements" : internalShop ? "about:shop" : customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, internalAnnouncements, internalShop, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
+  const tab = { id, view, title: internalAnnouncements ? "Announcements" : "New Tab", url: internalAnnouncements ? "about:announcements" : customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, internalAnnouncements, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
   tabs.set(id, tab);
   const wc = view.webContents;
   installAlwaysOnAdBlocker(wc.session);
@@ -998,9 +994,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     } else if (tab.internalAnnouncements) {
       tab.url = "about:announcements";
       tab.title = "Announcements";
-    } else if (tab.internalShop) {
-      tab.url = "about:shop";
-      tab.title = "NeoFind Shop";
     } else {
       tab.url = tab.customNewTab ? "about:newtab" : tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : wc.getURL();
       tab.title = wc.getTitle() || tab.title || "New Tab";
@@ -1013,7 +1006,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.internalAnnouncements && url.startsWith("file:")) { tab.url = "about:announcements"; tab.title = "Announcements"; }
-    else if (tab.internalShop && url.includes("p=shop")) { tab.url = "about:shop"; tab.title = "NeoFind Shop"; }
     else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
     else {
       tab.customNewTab = false;
@@ -1052,7 +1044,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
 
   const targetUrl = internalAnnouncements
     ? pathToFileURL(path.join(__dirname, "newtab.html")).href + "?view=announcements"
-    : internalShop ? pathToFileURL(path.join(__dirname, "newtab.html")).href + "?view=shop"
     : customNewTab ? "about:newtab" : homePage ? HOME_URL : (isHomeTab ? "about:blank" : normalizeAddress(address));
   loadAddressInTab(tab, targetUrl).catch(() => {
     if (tab.pendingRiskUrl || tab.errorUrl) return;
