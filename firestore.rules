@@ -340,7 +340,8 @@ service cloud.firestore {
           'dailyChestDate', 'lastChestAt', 'lastDailyChestReward',
           'missionDay', 'missionClaims', 'lastAdminOrbGrant',
           'chestInventory', 'lastChestReward', 'lastAdminChestGrant',
-          'lastRedeemCode', 'lastRedeemAt', 'lastOrbTransferIn',
+          'lastRedeemCode', 'lastRedeemAt', 'shopTicketUses',
+          'shopDiscountPercent', 'shopDiscountUses', 'lastOrbTransferIn',
           'lastOrbTransferOut', 'advancements', 'advancementStats',
           'badges', 'advancementNotices', 'serverEvents',
           'neoVisitDate', 'neoVisitStreak'
@@ -453,9 +454,32 @@ service cloud.firestore {
           ? resource.data.get('premiumUntil', 0)
           : request.time.toMillis();
 
+        let oldTickets = resource.data.get('shopTicketUses', 0);
+        let newTickets = request.resource.data.get('shopTicketUses', oldTickets);
+        let oldDiscountUses = resource.data.get('shopDiscountUses', 0);
+        let newDiscountUses = request.resource.data.get('shopDiscountUses', oldDiscountUses);
+        let ticketReward = code.get('shopTicketUses', 0);
+        let discountPercent = code.get('discountPercent', 0);
+        let discountUses = code.get('discountUses', 0);
+
         return changedKeys().hasOnly([
-            'orbs', 'premiumUntil', 'lastRedeemCode', 'lastRedeemAt'
+            'orbs', 'premiumUntil', 'lastRedeemCode', 'lastRedeemAt',
+            'shopTicketUses', 'shopDiscountPercent', 'shopDiscountUses'
           ])
+          && newTickets is int && newTickets >= oldTickets
+          && newTickets <= oldTickets + 30
+          && newDiscountUses is int && newDiscountUses >= oldDiscountUses
+          && newDiscountUses <= oldDiscountUses + 10
+          && ticketReward is int && ticketReward >= 0 && ticketReward <= 30
+          && discountPercent is int && discountPercent >= 0 && discountPercent <= 90
+          && discountUses is int && discountUses >= 0 && discountUses <= 10
+          && newTickets == oldTickets + ticketReward
+          && (
+            discountPercent == 0
+            ? newDiscountUses == oldDiscountUses
+            : request.resource.data.shopDiscountPercent == discountPercent
+              && newDiscountUses == oldDiscountUses + discountUses
+          )
           && code.get('active', false) == true
           && scope in ['global', 'user']
           && orbReward is int
@@ -679,7 +703,8 @@ service cloud.firestore {
           && request.resource.data.keys().hasOnly([
             'purchaseId', 'uid', 'email', 'item', 'itemType',
             'costOrbs', 'ownerShareOrbs', 'ownerEmail',
-            'purchasedAt', 'purchasedAtMs'
+            'purchasedAt', 'purchasedAtMs', 'originalCostOrbs',
+            'ticketUsed', 'discountPercent'
           ])
           && request.resource.data.purchaseId == purchaseId
           && request.resource.data.uid == request.auth.uid
@@ -687,6 +712,13 @@ service cloud.firestore {
           && request.resource.data.item is string
           && request.resource.data.itemType in ['chest', 'premium']
           && request.resource.data.costOrbs is int
+          && (
+            request.resource.data.itemType == 'premium'
+            ? !request.resource.data.get('ticketUsed', false)
+            : request.resource.data.get('ticketUsed', false) is bool
+              && request.resource.data.get('discountPercent', 0) is int
+              && request.resource.data.get('originalCostOrbs', request.resource.data.costOrbs) is int
+          )
           && request.resource.data.costOrbs > 0
           && (
             request.resource.data.itemType != 'premium'
