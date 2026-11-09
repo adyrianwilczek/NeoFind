@@ -443,3 +443,9 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .native-announcements-list{display:grid;gap:12px;max-height:min(62vh,620px);overflow:auto;padding-right:3px}
 .announcement-card{background:linear-gradient(135deg,#ffffff0b,#ffffff05),var(--panel2)}
 @media(max-width:560px){.native-announcements-actions{gap:5px}.native-announcements-card{padding:16px}}
+
+.native-shop-premium-buy{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:18px 0 20px;padding:17px 18px;border:1px solid rgba(0,242,254,.3);border-radius:14px;background:linear-gradient(120deg,rgba(0,242,254,.09),rgba(155,81,224,.11)),var(--panel2)}
+.native-shop-premium-buy h2{margin:5px 0;font-size:18px}
+.native-shop-premium-buy p{margin:0 0 7px;color:var(--muted);font-size:12px}
+.native-shop-premium-buy strong{color:#7deaf0;font-size:13px}
+.native-shop-premium-buy button{flex:0 0 auto}
