@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   getTransferInbox: () => ipcRenderer.invoke("transfer:get-inbox"),
   copyTransferDeviceCode: () => ipcRenderer.invoke("transfer:copy-code"),
   onTransferCompose: (callback) => { ipcRenderer.removeAllListeners("transfer:compose"); ipcRenderer.on("transfer:compose", (_event, payload) => callback(payload)); },
+  onOpenAnnouncements: (callback) => { ipcRenderer.removeAllListeners("announcements:open"); ipcRenderer.on("announcements:open", () => callback()); },
   createTab: (url, options) => ipcRenderer.invoke("tabs:create", url, options),
   duplicateTab: (id) => ipcRenderer.invoke("tabs:duplicate", id),
   togglePinTab: (id) => ipcRenderer.invoke("tabs:toggle-pin", id),
