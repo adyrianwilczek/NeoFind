@@ -133,6 +133,13 @@
       <div id="nativeShopSignIn" class="native-shop-signin hidden"><span>Sign in to NeoFind to use your balance and redeem codes.</span><button id="nativeShopSignInButton" class="primary-button" type="button">Open sign in</button></div>
     </div>
   </section>
+  <section id="nativeAnnouncementsOverlay" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="nativeAnnouncementsTitle">
+    <div class="settings-card native-announcements-card">
+      <div class="settings-heading"><div><p class="eyebrow">NEOFIND CONNECT</p><h1 id="nativeAnnouncementsTitle">Announcements</h1></div><div class="native-announcements-actions"><button id="nativeAnnouncementsRefresh" class="secondary-button" type="button">Refresh</button><button id="closeNativeAnnouncements" class="tool" type="button" aria-label="Close announcements">×</button></div></div>
+      <p class="native-announcements-intro">Messages and shared items sent to this NeoFind Browser device.</p>
+      <section id="nativeAnnouncementsList" class="native-announcements-list" aria-live="polite"><p class="announcements-empty">Loading announcements…</p></section>
+    </div>
+  </section>
   <section id="transferComposeOverlay" class="settings-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="transferComposeTitle">
     <div class="settings-card transfer-compose-card">
       <div class="settings-heading"><div><p class="eyebrow">NEOFIND CONNECT</p><h1 id="transferComposeTitle">Send to other device</h1></div><button id="closeTransferCompose" class="tool" type="button" aria-label="Close">×</button></div>
