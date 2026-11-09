@@ -1354,6 +1354,7 @@ async function getNativeShopState() {
         ok:true, signedIn:true, email:String(user.email || "NeoFind account"),
         orbs:Math.max(0, Math.floor(Number(data.orbs || 0))),
         premium, premiumUntil:Number(data.premiumUntil || 0),
+        premiumPrice:typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000,
         tickets:Math.max(0, Math.floor(Number(data.shopTicketUses || 0))),
         discountPercent:Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0)))),
         discountUses:Math.max(0, Math.floor(Number(data.shopDiscountUses || 0))),
@@ -1423,6 +1424,58 @@ async function buyNativeShopChest(type) {
     return { ok:false, message:message.includes("NOT_ENOUGH_ORBS") ? "Not enough Orbs for this chest." : message.slice(0,300) };
   }
 }
+
+async function buyNativeShopPremium() {
+  try {
+    return await executeShopBridge(`(async () => {
+      const user = auth.currentUser;
+      if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
+      const price = typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000;
+      const ownerEmail = "adrian.wilczek@hotmail.com";
+      const ownerShare = Math.floor(price * 0.25);
+      const ownerConfigRef = db.collection("config").doc("owner");
+      const initialOwner = await ownerConfigRef.get();
+      const ownerUid = initialOwner.exists ? String(initialOwner.data().uid || "") : "";
+      if (!ownerUid) return {ok:false,message:"NeoFind owner account is not initialized."};
+      if (ownerUid === user.uid) return {ok:false,message:"The owner account already has Premium privileges."};
+      const userRef = db.collection("users").doc(user.uid);
+      const ownerRef = db.collection("users").doc(ownerUid);
+      const receiptRef = userRef.collection("purchaseReceipts").doc();
+      const purchasedAtMs = Date.now();
+      const result = await db.runTransaction(async transaction => {
+        const userSnap = await transaction.get(userRef);
+        const configSnap = await transaction.get(ownerConfigRef);
+        const verifiedOwnerUid = configSnap.exists ? String(configSnap.data().uid || "") : "";
+        if (!verifiedOwnerUid || verifiedOwnerUid !== ownerUid) throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
+        const data = userSnap.exists ? userSnap.data() : {};
+        if (data.premium === true || Number(data.premiumUntil || 0) > Date.now()) throw new Error("PREMIUM_ACTIVE");
+        const current = Math.max(0,Math.floor(Number(data.orbs || 0)));
+        if (current < price) throw new Error("NOT_ENOUGH_ORBS");
+        const until = Math.max(Date.now(),Number(data.premiumUntil || 0)) + 30*86400000;
+        transaction.set(userRef,{orbs:current-price,premiumUntil:until},{merge:true});
+        transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
+        transaction.set(receiptRef,{
+          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim().toLowerCase(),
+          item:"Premium (30 days)",itemType:"premium",costOrbs:price,
+          ownerShareOrbs:ownerShare,ownerEmail,
+          purchasedAt:firebase.firestore.FieldValue.serverTimestamp(),purchasedAtMs
+        });
+        return {until};
+      });
+      try { if (typeof addAnnouncementToUser === "function") await addAnnouncementToUser(user,"Premium activated","Your Premium is active until "+new Date(result.until).toLocaleDateString()+".","premium_purchase"); } catch {}
+      return {ok:true,costOrbs:price,ownerShareOrbs:ownerShare,premiumUntil:result.until};
+    })()`);
+  } catch (error) {
+    const message=String(error && error.message || error);
+    const known={
+      NOT_ENOUGH_ORBS:"Not enough Orbs for Premium.",
+      PREMIUM_ACTIVE:"You already have active Premium.",
+      OWNER_ACCOUNT_NOT_INITIALIZED:"NeoFind owner account is not initialized.",
+      OWNER_CANNOT_BUY_PREMIUM:"The owner account already has Premium privileges."
+    };
+    return {ok:false,message:known[message] || message.slice(0,300)};
+  }
+}
 async function redeemNativeShopCode(code) {
   const normalized = String(code || "").trim().toUpperCase();
   if (!normalized || normalized.length > 100) return { status:"invalid" };
@@ -1441,6 +1494,7 @@ async function redeemNativeShopCode(code) {
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
 ipcMain.handle("shop:get-state", () => getNativeShopState());
 ipcMain.handle("shop:buy-chest", (_event, type) => buyNativeShopChest(type));
+ipcMain.handle("shop:buy-premium", () => buyNativeShopPremium());
 ipcMain.handle("shop:redeem-code", (_event, code) => redeemNativeShopCode(code));
 ipcMain.handle("shop:open-sign-in", () => ({ ok:true, tabId:openTab(HOME_URL, true) }));
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
