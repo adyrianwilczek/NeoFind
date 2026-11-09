@@ -626,7 +626,14 @@ service cloud.firestore {
           ])
           && getAfter(receiptRef).data.uid == request.auth.uid
           && getAfter(receiptRef).data.ticketUsed == ticketUsed
-          && getAfter(receiptRef).data.costOrbs == oldOrbsValue - newOrbsValue;
+          && getAfter(receiptRef).data.costOrbs == oldOrbsValue - newOrbsValue
+          && getAfter(receiptRef).data.originalCostOrbs in [25, 50, 100, 200]
+          && (
+            ticketUsed
+            ? getAfter(receiptRef).data.discountPercent == 0
+            : getAfter(receiptRef).data.costOrbs == getAfter(receiptRef).data.originalCostOrbs
+                * (100 - getAfter(receiptRef).data.discountPercent) / 100
+          );
       }
 
       function isOwnerChestGrant() {
@@ -767,7 +774,15 @@ service cloud.firestore {
               && request.resource.data.get('discountPercent', 0) is int
               && request.resource.data.get('originalCostOrbs', request.resource.data.costOrbs) is int
           )
-          && request.resource.data.costOrbs > 0
+          && (
+            request.resource.data.itemType == 'premium'
+            ? request.resource.data.costOrbs > 0
+            : (
+              request.resource.data.get('ticketUsed', false) == true
+              ? request.resource.data.costOrbs == 0
+              : request.resource.data.costOrbs > 0
+            )
+          )
           && (
             request.resource.data.itemType != 'premium'
             || (
