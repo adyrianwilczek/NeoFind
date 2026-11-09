@@ -675,8 +675,11 @@ function loadAddressInTab(tab, address) {
     }
   }
   tab.pendingRiskUrl = null; tab.errorUrl = null;
+  tab.internalAnnouncements = targetUrl === "about:announcements";
+  tab.internalShop = targetUrl === "about:shop";
   if (tab.customNewTab) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"));
-  if (tab.internalShop) return tab.view.webContents.loadURL(targetUrl);
+  if (tab.internalAnnouncements) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"), { query: { view: "announcements" } });
+  if (tab.internalShop) return tab.view.webContents.loadFile(path.join(__dirname, "newtab.html"), { query: { view: "shop" } });
   return tab.view.webContents.loadURL(targetUrl);
 }
 function makeNavigationErrorPage(target) {
