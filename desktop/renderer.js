@@ -602,7 +602,7 @@ function renderNativeShop(state) {
   const prices = {normal:25,rare:50,epic:100,neofind:200};
   Object.entries(nativeShopPrices).forEach(([type,node]) => {
     const price = Math.ceil(prices[type] * (100-discount)/100);
-    node.textContent = price.toLocaleString() + " Orbs" + (discount ? " · -" + discount + "%" : "");
+    node.textContent = state && state.tickets > 0 ? "0 Orbs · Shop Ticket" : price.toLocaleString() + " Orbs" + (discount ? " · -" + discount + "%" : "");
   });
   const inventory = state && state.signedIn ? state.inventory || {} : {};
   document.getElementById("nativeShopInventory").textContent = state && state.signedIn
@@ -750,6 +750,7 @@ document.getElementById("closeNativeAnnouncements").addEventListener("click",clo
 document.getElementById("nativeAnnouncementsRefresh").addEventListener("click",refreshNativeAnnouncements);
 nativeAnnouncementsOverlay.addEventListener("click",event=>{if(event.target===nativeAnnouncementsOverlay)closeNativeAnnouncements();});
 document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!nativeAnnouncementsOverlay.classList.contains("hidden"))closeNativeAnnouncements();});
+window.neoBrowser.onOpenAnnouncements(openNativeAnnouncements);
 document.getElementById("copyTransferDeviceCode").addEventListener("click", async () => {
   const status = document.getElementById("transferDeviceStatus");
   const result = await window.neoBrowser.copyTransferDeviceCode();
