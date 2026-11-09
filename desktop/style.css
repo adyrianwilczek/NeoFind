@@ -435,3 +435,11 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .native-shop-code-row button{flex:0 0 auto}
 .native-shop-signin{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:10px;border:1px solid #00dce933;border-radius:11px;background:#00dce908;font-size:12px}
 @media(max-width:650px){.native-shop-account{grid-template-columns:1fr}.native-shop-grid{grid-template-columns:1fr}.native-shop-item{grid-template-columns:42px minmax(0,1fr) auto}.native-shop-code-row{flex-direction:column}.native-shop-signin{align-items:flex-start;flex-direction:column}}
+
+/* NeoFind Browser 0.1.44 · Native Announcements panel */
+.native-announcements-card{width:min(850px,100%);max-height:calc(100vh - 34px);overflow:auto}
+.native-announcements-actions{display:flex;align-items:center;gap:8px}
+.native-announcements-intro{margin:9px 0 18px;color:var(--muted);font-size:13px;line-height:1.5}
+.native-announcements-list{display:grid;gap:12px;max-height:min(62vh,620px);overflow:auto;padding-right:3px}
+.announcement-card{background:linear-gradient(135deg,#ffffff0b,#ffffff05),var(--panel2)}
+@media(max-width:560px){.native-announcements-actions{gap:5px}.native-announcements-card{padding:16px}}
