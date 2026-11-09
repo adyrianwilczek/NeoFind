@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("neoBrowser", {
   getShopState: () => ipcRenderer.invoke("shop:get-state"),
   buyShopChest: (type) => ipcRenderer.invoke("shop:buy-chest", type),
+  buyShopPremium: () => ipcRenderer.invoke("shop:buy-premium"),
   redeemShopCode: (code) => ipcRenderer.invoke("shop:redeem-code", code),
   openShopSignIn: () => ipcRenderer.invoke("shop:open-sign-in"),
   getTransferDeviceInfo: () => ipcRenderer.invoke("transfer:get-device-info"),
