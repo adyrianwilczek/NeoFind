@@ -1298,7 +1298,158 @@ ipcMain.handle("transfer:copy-code", async () => {
   try { const identity = await ensureTransferIdentity(); clipboard.writeText(identity.deviceCode); return { ok: true }; }
   catch (error) { return { ok: false, message: transferErrorMessage(error) }; }
 });
+
+/* Native Shop bridge. The hidden page shares the default persistent session with
+   NeoFind Browser tabs, so Firebase sees the same signed-in NeoFind account. */
+let shopAuthWindow = null;
+let shopBridgeReady = null;
+async function ensureShopBridge() {
+  if (shopBridgeReady) return shopBridgeReady;
+  shopBridgeReady = (async () => {
+    if (!shopAuthWindow || shopAuthWindow.isDestroyed()) {
+      shopAuthWindow = new BrowserWindow({
+        show: false,
+        width: 900,
+        height: 700,
+        webPreferences: {
+          session: session.defaultSession,
+          nodeIntegration: false,
+          contextIsolation: true,
+          sandbox: true
+        }
+      });
+      shopAuthWindow.on("closed", () => { shopAuthWindow = null; shopBridgeReady = null; });
+      await shopAuthWindow.loadURL(HOME_URL);
+    }
+    const wc = shopAuthWindow.webContents;
+    for (let attempt = 0; attempt < 40; attempt++) {
+      if (wc.isDestroyed()) throw new Error("Shop session closed.");
+      try {
+        const ready = await wc.executeJavaScript(`(() => typeof auth !== "undefined" && typeof db !== "undefined" && typeof firebase !== "undefined" && typeof redeemCode === "function")()`);
+        if (ready) break;
+      } catch {}
+      if (attempt === 39) throw new Error("NeoFind account services did not finish loading.");
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    return wc;
+  })();
+  try { return await shopBridgeReady; }
+  catch (error) { shopBridgeReady = null; throw error; }
+}
+async function executeShopBridge(source) {
+  const wc = await ensureShopBridge();
+  return wc.executeJavaScript(source);
+}
+async function getNativeShopState() {
+  try {
+    return await executeShopBridge(`(async () => {
+      await new Promise(resolve => {
+        if (typeof auth === "undefined") return resolve();
+        if (window.__neoShopAuthResolved) return resolve();
+        const unsubscribe = auth.onAuthStateChanged(() => {
+          window.__neoShopAuthResolved = true;
+          try { unsubscribe(); } catch {}
+          resolve();
+        });
+      });
+      const user = auth.currentUser;
+      if (!user) return { ok:true, signedIn:false };
+      const snap = await db.collection("users").doc(user.uid).get();
+      const data = snap.exists ? snap.data() : {};
+      const premium = data.premium === true || Number(data.premiumUntil || 0) > Date.now();
+      return {
+        ok:true, signedIn:true, email:String(user.email || "NeoFind account"),
+        orbs:Math.max(0, Math.floor(Number(data.orbs || 0))),
+        premium, premiumUntil:Number(data.premiumUntil || 0),
+        tickets:Math.max(0, Math.floor(Number(data.shopTicketUses || 0))),
+        discountPercent:Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0)))),
+        discountUses:Math.max(0, Math.floor(Number(data.shopDiscountUses || 0))),
+        inventory:{
+          normal:Math.max(0, Math.floor(Number(data.chestInventory && data.chestInventory.normal || 0))),
+          rare:Math.max(0, Math.floor(Number(data.chestInventory && data.chestInventory.rare || 0))),
+          epic:Math.max(0, Math.floor(Number(data.chestInventory && data.chestInventory.epic || 0))),
+          neofind:Math.max(0, Math.floor(Number(data.chestInventory && data.chestInventory.neofind || 0)))
+        }
+      };
+    })()`);
+  } catch (error) {
+    return { ok:false, message:String(error && error.message || error).slice(0,300) };
+  }
+}
+async function buyNativeShopChest(type) {
+  const prices = { normal:25, rare:50, epic:100, neofind:200 };
+  const labels = { normal:"Normal Chest", rare:"Rare Chest", epic:"Epic Chest", neofind:"NeoFind Chest" };
+  if (!Object.prototype.hasOwnProperty.call(prices, type)) return { ok:false, message:"Unknown chest type." };
+  try {
+    return await executeShopBridge(`(async () => {
+      const user = auth.currentUser;
+      if (!user) return { ok:false, signedIn:false, message:"Sign in to NeoFind first." };
+      const type = ${JSON.stringify(type)};
+      const prices = ${JSON.stringify(prices)};
+      const labels = ${JSON.stringify(labels)};
+      const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
+      const purchasedAtMs = Date.now();
+      let usedTicket = false, chargedOrbs = prices[type], discountPercent = 0;
+      await db.runTransaction(async transaction => {
+        const ref = db.collection("users").doc(user.uid);
+        const snap = await transaction.get(ref);
+        const data = snap.exists ? snap.data() : {};
+        const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
+        const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
+        const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
+        const availableDiscount = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
+        const premiumActive = data.premium === true || Number(data.premiumUntil || 0) > Date.now();
+        const premiumDiscount = premiumActive ? 50 : 0;
+        const useGiftDiscount = discountUses > 0 && availableDiscount > premiumDiscount;
+        const inventory = Object.assign({normal:0,rare:0,epic:0,neofind:0}, data.chestInventory || {});
+        inventory[type] = Math.max(0, Number(inventory[type] || 0)) + 1;
+        if (tickets > 0) { usedTicket = true; chargedOrbs = 0; }
+        else {
+          discountPercent = Math.max(premiumDiscount, useGiftDiscount ? availableDiscount : 0);
+          chargedOrbs = Math.ceil(prices[type] * (100 - discountPercent) / 100);
+          if (current < chargedOrbs) throw new Error("NOT_ENOUGH_ORBS");
+        }
+        transaction.set(ref, {
+          orbs:current-chargedOrbs, chestInventory:inventory,
+          lastShopPurchaseId:purchaseRef.id,
+          ...(usedTicket ? {shopTicketUses:tickets-1} : {}),
+          ...(!usedTicket && useGiftDiscount ? {shopDiscountUses:discountUses-1} : {})
+        }, {merge:true});
+        transaction.set(purchaseRef, {
+          purchaseId:purchaseRef.id, uid:user.uid,
+          email:String(user.email || "").trim().toLowerCase(),
+          item:labels[type], itemType:"chest", costOrbs:chargedOrbs,
+          originalCostOrbs:prices[type], ticketUsed:usedTicket, discountPercent,
+          purchasedAt:firebase.firestore.FieldValue.serverTimestamp(), purchasedAtMs
+        });
+      });
+      return {ok:true, item:labels[type], costOrbs:chargedOrbs, originalCostOrbs:prices[type], ticketUsed:usedTicket, discountPercent, purchaseId:purchaseRef.id};
+    })()`);
+  } catch (error) {
+    const message = String(error && error.message || error);
+    return { ok:false, message:message.includes("NOT_ENOUGH_ORBS") ? "Not enough Orbs for this chest." : message.slice(0,300) };
+  }
+}
+async function redeemNativeShopCode(code) {
+  const normalized = String(code || "").trim().toUpperCase();
+  if (!normalized || normalized.length > 100) return { status:"invalid" };
+  try {
+    return await executeShopBridge(`(async () => {
+      if (!auth.currentUser) return {status:"not_logged"};
+      if (typeof redeemCode !== "function") return {status:"unavailable"};
+      const result = await redeemCode(${JSON.stringify(normalized)});
+      return {status:result.status,orbs:result.orbs||0,premiumDays:result.premiumDays||0,shopTicketUses:result.shopTicketUses||0,discountPercent:result.discountPercent||0};
+    })()`);
+  } catch (error) {
+    return { status:"error", message:String(error && error.message || error).slice(0,300) };
+  }
+}
+
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
+ipcMain.handle("shop:get-state", () => getNativeShopState());
+ipcMain.handle("shop:buy-chest", (_event, type) => buyNativeShopChest(type));
+ipcMain.handle("shop:redeem-code", (_event, code) => redeemNativeShopCode(code));
+ipcMain.handle("shop:open-sign-in", () => ({ ok:true, tabId:openTab(HOME_URL, true) }));
 ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
