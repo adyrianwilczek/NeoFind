@@ -1,7 +1,7 @@
 {
   "name": "neofind-browser",
-  "version": "0.1.41",
-  "description": "NeoFind Browser for Windows - verified notifications and NeoFind Shop",
+  "version": "0.1.42",
+  "description": "NeoFind Browser for Windows - native NeoFind Shop page and verified notifications",
   "main": "main.js",
   "private": true,
   "scripts": {
