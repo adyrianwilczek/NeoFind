@@ -343,7 +343,7 @@ async function pollSystemNotifications() {
         if (!mainWindow || mainWindow.isDestroyed()) return;
         if (mainWindow.isMinimized()) mainWindow.restore();
         mainWindow.focus();
-        openTab("about:announcements", true);
+        mainWindow.webContents.send("announcements:open");
       });
       notification.show();
     }
