@@ -1188,6 +1188,9 @@ function createWindow() {
   mainWindow.on("close", () => { saveSessionSync(); });
   mainWindow.on("closed", () => {
     mainWindow = null;
+    if (shopAuthWindow && !shopAuthWindow.isDestroyed()) shopAuthWindow.close();
+    shopAuthWindow = null;
+    shopBridgeReady = null;
     for (const tab of tabs.values()) {
       try { tab.view.webContents.close(); } catch {}
     }
