@@ -593,6 +593,11 @@ function renderNativeShop(state) {
   document.getElementById("nativeShopOrbs").textContent = state && state.signedIn ? Number(state.orbs || 0).toLocaleString() + " Orbs" : "— Orbs";
   document.getElementById("nativeShopTickets").textContent = state && state.signedIn ? String(state.tickets || 0) : "—";
   document.getElementById("nativeShopPremium").classList.toggle("hidden", !(state && state.premium));
+  document.getElementById("nativeShopPremiumPrice").textContent = state && state.premiumPrice ? Number(state.premiumPrice).toLocaleString() + " Orbs" : "1000 Orbs";
+  const premiumButton = document.getElementById("nativeShopBuyPremium");
+  premiumButton.disabled = !(state && state.ok && state.signedIn) || !!(state && state.premium);
+  premiumButton.textContent = state && state.premium ? "Already active" : "Buy Premium";
+
   const discount = state && state.premium ? 50 : (state && state.discountUses > 0 ? state.discountPercent : 0);
   const prices = {normal:25,rare:50,epic:100,neofind:200};
   Object.entries(nativeShopPrices).forEach(([type,node]) => {
@@ -642,6 +647,20 @@ document.querySelectorAll("[data-shop-buy]").forEach(button => button.addEventLi
     await refreshNativeShop();
   }
 }));
+
+document.getElementById("nativeShopBuyPremium").addEventListener("click", async () => {
+  const button=document.getElementById("nativeShopBuyPremium");
+  button.disabled=true;
+  setNativeShopStatus("Processing Premium purchase…");
+  const result=await window.neoBrowser.buyShopPremium();
+  if(result&&result.ok){
+    setNativeShopStatus("Premium activated for 30 days. "+result.ownerShareOrbs+" Orbs were credited to the NeoFind owner.");
+    await refreshNativeShop();
+  }else{
+    setNativeShopStatus(result&&result.message||"Premium purchase failed.",true);
+    await refreshNativeShop();
+  }
+});
 document.getElementById("nativeShopRedeem").addEventListener("click", async () => {
   const input = document.getElementById("nativeShopCode");
   const button = document.getElementById("nativeShopRedeem");
