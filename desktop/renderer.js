@@ -566,8 +566,171 @@ function setImportPreset(preset) {
     ? "All categories selected, including cookies. Selected data will be imported only where supported."
     : "All categories except cookies selected. Selected data will be imported only where supported.";
 }
-document.getElementById("sideShop").addEventListener("click", () => window.neoBrowser.createTab("about:shop"));
-document.getElementById("sideAnnouncements").addEventListener("click", () => window.neoBrowser.createTab("about:announcements"));
+
+/* Native NeoFind Shop. It never creates a tab or embeds the website. */
+const nativeShopOverlay = document.getElementById("nativeShopOverlay");
+const nativeShopStatus = document.getElementById("nativeShopStatus");
+const nativeShopSignIn = document.getElementById("nativeShopSignIn");
+const nativeShopPrices = {
+  normal:document.getElementById("nativeShopPriceNormal"),
+  rare:document.getElementById("nativeShopPriceRare"),
+  epic:document.getElementById("nativeShopPriceEpic"),
+  neofind:document.getElementById("nativeShopPriceNeofind")
+};
+let nativeShopState = null;
+function setNativeShopStatus(message, error=false) {
+  nativeShopStatus.textContent = message;
+  nativeShopStatus.style.color = error ? "#ff9292" : "";
+}
+function closeNativeShop() {
+  nativeShopOverlay.classList.add("hidden");
+  window.neoSetModalOpen("native-shop", false);
+}
+function renderNativeShop(state) {
+  nativeShopState = state;
+  nativeShopSignIn.classList.toggle("hidden", !!(state && state.signedIn));
+  document.getElementById("nativeShopAccount").textContent = state && state.signedIn ? state.email : "Not signed in";
+  document.getElementById("nativeShopOrbs").textContent = state && state.signedIn ? Number(state.orbs || 0).toLocaleString() + " Orbs" : "— Orbs";
+  document.getElementById("nativeShopTickets").textContent = state && state.signedIn ? String(state.tickets || 0) : "—";
+  document.getElementById("nativeShopPremium").classList.toggle("hidden", !(state && state.premium));
+  const discount = state && state.premium ? 50 : (state && state.discountUses > 0 ? state.discountPercent : 0);
+  const prices = {normal:25,rare:50,epic:100,neofind:200};
+  Object.entries(nativeShopPrices).forEach(([type,node]) => {
+    const price = Math.ceil(prices[type] * (100-discount)/100);
+    node.textContent = price.toLocaleString() + " Orbs" + (discount ? " · -" + discount + "%" : "");
+  });
+  const inventory = state && state.signedIn ? state.inventory || {} : {};
+  document.getElementById("nativeShopInventory").textContent = state && state.signedIn
+    ? ["Normal: "+(inventory.normal||0),"Rare: "+(inventory.rare||0),"Epic: "+(inventory.epic||0),"NeoFind: "+(inventory.neofind||0)].join(" · ")
+    : "Sign in to view your inventory.";
+  document.querySelectorAll("[data-shop-buy]").forEach(button => {
+    button.disabled = !(state && state.ok && state.signedIn);
+    button.textContent = state && state.tickets > 0 ? "Use ticket" : "Buy";
+  });
+  if (!state || !state.ok) setNativeShopStatus(state && state.message || "Could not connect to NeoFind.", true);
+  else if (!state.signedIn) setNativeShopStatus("Sign in to your NeoFind account to load your Orbs and inventory.");
+  else setNativeShopStatus("Connected to your NeoFind account.");
+}
+async function refreshNativeShop() {
+  setNativeShopStatus("Syncing your NeoFind account…");
+  const state = await window.neoBrowser.getShopState();
+  renderNativeShop(state);
+}
+async function openNativeShop() {
+  nativeShopOverlay.classList.remove("hidden");
+  window.neoSetModalOpen("native-shop", true);
+  await refreshNativeShop();
+}
+document.getElementById("sideShop").addEventListener("click", openNativeShop);
+document.getElementById("closeNativeShop").addEventListener("click", closeNativeShop);
+document.getElementById("nativeShopRefresh").addEventListener("click", refreshNativeShop);
+nativeShopOverlay.addEventListener("click", event => { if (event.target === nativeShopOverlay) closeNativeShop(); });
+document.getElementById("nativeShopSignInButton").addEventListener("click", async () => {
+  closeNativeShop();
+  await window.neoBrowser.openShopSignIn();
+});
+document.querySelectorAll("[data-shop-buy]").forEach(button => button.addEventListener("click", async () => {
+  const type = button.dataset.shopBuy;
+  button.disabled = true;
+  setNativeShopStatus("Processing purchase…");
+  const result = await window.neoBrowser.buyShopChest(type);
+  if (result && result.ok) {
+    setNativeShopStatus("Purchased " + result.item + " for " + result.costOrbs + " Orbs" + (result.ticketUsed ? " using a Shop Ticket." : result.discountPercent ? " with -" + result.discountPercent + "% discount." : "."));
+    await refreshNativeShop();
+  } else {
+    setNativeShopStatus(result && result.message || "Purchase failed.", true);
+    await refreshNativeShop();
+  }
+}));
+document.getElementById("nativeShopRedeem").addEventListener("click", async () => {
+  const input = document.getElementById("nativeShopCode");
+  const button = document.getElementById("nativeShopRedeem");
+  const code = input.value.trim();
+  if (!code) { setNativeShopStatus("Enter a gift code.", true); return; }
+  button.disabled = true;
+  setNativeShopStatus("Checking gift code…");
+  const result = await window.neoBrowser.redeemShopCode(code);
+  button.disabled = false;
+  if (result && result.status === "redeemed") {
+    const rewards = [];
+    if (result.orbs) rewards.push("+" + result.orbs + " Orbs");
+    if (result.premiumDays) rewards.push("+" + result.premiumDays + " days Premium");
+    if (result.shopTicketUses) rewards.push("Shop Ticket ×" + result.shopTicketUses);
+    if (result.discountPercent) rewards.push(result.discountPercent + "% discount");
+    setNativeShopStatus("Code redeemed! " + (rewards.join(" · ") || "Reward claimed."));
+    input.value = "";
+    await refreshNativeShop();
+  } else {
+    const messages = {already:"This code has already been redeemed.",invalid:"Invalid or inactive code.",not_logged:"Sign in to NeoFind first.",unavailable:"Gift code service is unavailable."};
+    setNativeShopStatus(messages[result && result.status] || (result && result.message) || "Could not redeem this code.", true);
+  }
+});
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape" && !nativeShopOverlay.classList.contains("hidden")) closeNativeShop();
+});
+
+/* Announcements are a native Browser panel, separate from the Shop. */
+const nativeAnnouncementsOverlay = document.getElementById("nativeAnnouncementsOverlay");
+function closeNativeAnnouncements() {
+  nativeAnnouncementsOverlay.classList.add("hidden");
+  window.neoSetModalOpen("native-announcements", false);
+}
+function renderNativeAnnouncements(result) {
+  const host = document.getElementById("nativeAnnouncementsList");
+  host.replaceChildren();
+  if (!result || !result.ok) {
+    const message = document.createElement("p"); message.className="announcements-empty";
+    message.textContent = result && result.message || "Could not connect to the device inbox."; host.append(message); return;
+  }
+  const messages = Array.isArray(result.messages) ? result.messages : [];
+  if (!messages.length) {
+    const empty=document.createElement("p");empty.className="announcements-empty";empty.textContent="No announcements yet. Items sent to this device will appear here.";host.append(empty);return;
+  }
+  messages.forEach(message => {
+    const card=document.createElement("article");card.className="announcement-card";
+    if(message.isSystem){
+      const brand=document.createElement("div");brand.className="system-announcement-brand";
+      const logo=document.createElement("img");logo.src="icon_round.png";logo.alt="NeoFind";
+      const title=document.createElement("strong");title.textContent="NeoFind";
+      const badge=document.createElement("span");badge.className="system-verified-badge";badge.textContent="✓ Verified";
+      const label=document.createElement("div");label.append(title,badge);brand.append(logo,label);card.append(brand);
+    }
+    const top=document.createElement("div");top.className="announcement-card-top";
+    const kind=document.createElement("span");kind.className="announcement-kind";kind.textContent=String(message.kind||"item").toUpperCase();
+    const date=document.createElement("time");date.className="announcement-date";
+    const timestamp=message.createdAt?new Date(message.createdAt):null;
+    date.textContent=timestamp&&!Number.isNaN(timestamp.getTime())?timestamp.toLocaleString():"";
+    top.append(kind,date);card.append(top);
+    const heading=document.createElement("h2");heading.className="announcement-title";heading.textContent=message.title||"Shared item";card.append(heading);
+    if(message.kind==="text"){
+      const body=document.createElement("pre");body.className="announcement-text";body.textContent=message.text||"";card.append(body);
+    }else{
+      const target=String(message.url||message.text||"");let safe="";
+      try{const parsed=new URL(target);if(["https:","http:"].includes(parsed.protocol))safe=parsed.href;}catch{}
+      if(["image","video","audio"].includes(message.kind)){const desc=document.createElement("p");desc.className="announcement-description";desc.textContent=message.kind[0].toUpperCase()+message.kind.slice(1)+" shared from another device.";card.append(desc);}
+      if(safe){const link=document.createElement("a");link.className="announcement-link";link.href=safe;link.textContent=message.kind==="page"?"Open shared page":"Open shared item";link.addEventListener("click",event=>{event.preventDefault();closeNativeAnnouncements();window.neoBrowser.createTab(safe);});card.append(link);}
+      else{const body=document.createElement("pre");body.className="announcement-text";body.textContent=message.text||"No preview available.";card.append(body);}
+    }
+    const from=document.createElement("p");from.className="announcement-from";from.textContent=message.isSystem?"From NeoFind":"From device "+String(message.fromCode||"unknown");card.append(from);
+    host.append(card);
+  });
+}
+async function refreshNativeAnnouncements() {
+  const host=document.getElementById("nativeAnnouncementsList");
+  host.innerHTML='<p class="announcements-empty">Loading announcements…</p>';
+  try{renderNativeAnnouncements(await window.neoBrowser.getTransferInbox());}
+  catch(error){renderNativeAnnouncements({ok:false,message:String(error.message||error)});}
+}
+async function openNativeAnnouncements() {
+  nativeAnnouncementsOverlay.classList.remove("hidden");
+  window.neoSetModalOpen("native-announcements",true);
+  await refreshNativeAnnouncements();
+}
+document.getElementById("sideAnnouncements").addEventListener("click",openNativeAnnouncements);
+document.getElementById("closeNativeAnnouncements").addEventListener("click",closeNativeAnnouncements);
+document.getElementById("nativeAnnouncementsRefresh").addEventListener("click",refreshNativeAnnouncements);
+nativeAnnouncementsOverlay.addEventListener("click",event=>{if(event.target===nativeAnnouncementsOverlay)closeNativeAnnouncements();});
+document.addEventListener("keydown",event=>{if(event.key==="Escape"&&!nativeAnnouncementsOverlay.classList.contains("hidden"))closeNativeAnnouncements();});
 document.getElementById("copyTransferDeviceCode").addEventListener("click", async () => {
   const status = document.getElementById("transferDeviceStatus");
   const result = await window.neoBrowser.copyTransferDeviceCode();
