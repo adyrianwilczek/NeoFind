@@ -12711,6 +12711,7 @@ async function buyOrbChest(type) {
             }
             transaction.set(ref, {
                 orbs: current - chargedOrbs, chestInventory: inv,
+                lastShopPurchaseId: purchaseRef.id,
                 ...(usedTicket ? { shopTicketUses: tickets - 1 } : {}),
                 ...(!usedTicket && discountPercent > 0 ? { shopDiscountUses: discountUses - 1 } : {})
             }, { merge: true });
