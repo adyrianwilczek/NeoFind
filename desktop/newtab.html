@@ -29,13 +29,6 @@
   <div class="newtab-section-heading"><h2 class="newtab-section-title">Your shortcuts</h2><span class="newtab-section-caption">Recently visited</span></div>
   <section id="recentSites" class="newtab-sites" aria-live="polite"></section>
 </main>
-<main id="shopRoot" class="shop-shell" hidden>
-  <header class="shop-header">
-    <div><p class="shop-eyebrow">NEOFIND BROWSER</p><h1>NeoFind Shop</h1><p>Real NeoFind shop, connected to your account.</p></div>
-    <div class="shop-actions"><button id="shopReload" type="button">Refresh</button><button id="shopOpenWeb" type="button">Open in a tab</button></div>
-  </header>
-  <section class="shop-frame-wrap"><iframe id="shopFrame" title="NeoFind Shop" referrerpolicy="strict-origin-when-cross-origin" allow="clipboard-read; clipboard-write"></iframe></section>
-</main>
 <main id="announcementsRoot" class="announcements-shell" hidden>
   <header class="announcements-header">
     <div><p class="announcements-eyebrow">NEOFIND CONNECT</p><h1>Announcements</h1><p>Things sent to this device from another NeoFind Browser.</p></div>
@@ -46,17 +39,6 @@
 <script>
 (function(){
   const pageMode = new URLSearchParams(location.search).get("view");
-  const shopMode = pageMode === "shop";
-  if (shopMode) {
-    document.title = "NeoFind Shop";
-    document.getElementById("newtabMain").hidden = true;
-    document.getElementById("shopRoot").hidden = false;
-    const frame = document.getElementById("shopFrame");
-    frame.src = "https://neofind.pl/app/?app=1&p=shop";
-    document.getElementById("shopReload").addEventListener("click", () => { frame.src = frame.src; });
-    document.getElementById("shopOpenWeb").addEventListener("click", () => { window.open("https://neofind.pl/app/?app=1&p=shop", "_blank", "noopener"); });
-    return;
-  }
   const announcementsMode = pageMode === "announcements";
   if (announcementsMode) {
     document.title = "Announcements";
