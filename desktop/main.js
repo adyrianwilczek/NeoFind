@@ -1019,7 +1019,6 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     if (url.startsWith("data:text/html") && (tab.pendingRiskUrl || tab.errorUrl)) { sendState(); return; }
     tab.pendingRiskUrl = null; tab.errorUrl = null;
     if (tab.internalAnnouncements && url.startsWith("file:")) { tab.url = "about:announcements"; tab.title = "Announcements"; }
-    else if (tab.internalShop && url.includes("p=shop")) { tab.url = "about:shop"; tab.title = "NeoFind Shop"; }
     else if (tab.customNewTab && url.startsWith("file:")) { tab.isHomeTab = true; tab.url = "about:newtab"; tab.title = "New Tab"; }
     else {
       tab.customNewTab = false;
