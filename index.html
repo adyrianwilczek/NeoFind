@@ -2765,6 +2765,7 @@ Search. Connect. Discover.
         <button onclick="redeemCodeFromPanel()">Redeem</button>
     </div>
     <div id="redeemCodeStatus" style="margin-top:10px;font-size:13px;min-height:20px;"></div>
+    <div id="shopRewardStatus" style="margin:8px 0 0;font-size:12px;opacity:.8;">Shop rewards load with your account.</div>
 
     
 <br><br>
@@ -12687,62 +12688,56 @@ function showNeoPurchaseReceipt(receipt, onClose) {
 }
 
 async function buyOrbChest(type) {
-    const user = auth.currentUser;
-    const def = ORB_CHEST_DEFINITIONS[type];
-    if (!user || !def) {
-        alert("You must be logged in.");
-        return;
-    }
-
+    const user = auth.currentUser, def = ORB_CHEST_DEFINITIONS[type];
+    if (!user || !def) { alert("You must be logged in."); return; }
     try {
         const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
         const purchasedAtMs = Date.now();
+        let usedTicket = false, chargedOrbs = def.price, discountPercent = 0;
         await db.runTransaction(async transaction => {
             const ref = db.collection("users").doc(user.uid);
-            const snap = await transaction.get(ref);
-            const data = snap.exists ? snap.data() : {};
+            const snap = await transaction.get(ref), data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            if (current < def.price) throw new Error("NOT_ENOUGH_ORBS");
-
+            const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
+            const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
+            const availableDiscount = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
             const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
             inv[type] = Math.max(0, Number(inv[type] || 0)) + 1;
-
+            if (tickets > 0) { usedTicket = true; chargedOrbs = 0; }
+            else {
+                discountPercent = discountUses > 0 ? availableDiscount : 0;
+                chargedOrbs = Math.ceil(def.price * (100 - discountPercent) / 100);
+                if (current < chargedOrbs) throw new Error("NOT_ENOUGH_ORBS");
+            }
             transaction.set(ref, {
-                orbs: current - def.price,
-                chestInventory: inv
+                orbs: current - chargedOrbs, chestInventory: inv,
+                ...(usedTicket ? { shopTicketUses: tickets - 1 } : {}),
+                ...(!usedTicket && discountPercent > 0 ? { shopDiscountUses: discountUses - 1 } : {})
             }, { merge: true });
             transaction.set(purchaseRef, {
-                purchaseId: purchaseRef.id,
-                uid: user.uid,
+                purchaseId: purchaseRef.id, uid: user.uid,
                 email: String(user.email || "").trim().toLowerCase(),
-                item: def.label,
-                itemType: "chest",
-                costOrbs: def.price,
-                purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                purchasedAtMs
+                item: def.label, itemType: "chest", costOrbs: chargedOrbs,
+                originalCostOrbs: def.price, ticketUsed: usedTicket, discountPercent,
+                purchasedAt: firebase.firestore.FieldValue.serverTimestamp(), purchasedAtMs
             });
         });
-
-        userOrbs = Math.max(0, userOrbs - def.price);
+        userOrbs = Math.max(0, userOrbs - chargedOrbs);
         localStorage.setItem("userOrbs", userOrbs);
         const orbCountEl = document.getElementById("userOrbsCount");
         if (orbCountEl) orbCountEl.textContent = userOrbs;
         if (type === "neofind") unlockNeoAdvancement("neoFindChest");
         if (typeof trackNeoAdvancementProgress === "function") trackNeoAdvancementProgress("chestsBought");
         await loadOrbChestInventory();
+        await refreshShopRewardStatus();
         showNeoPurchaseReceipt({
-            purchaseId: purchaseRef.id,
-            purchasedAtMs,
-            item: def.label,
-            costOrbs: def.price,
+            purchaseId: purchaseRef.id, purchasedAtMs, item: def.label,
+            costOrbs: chargedOrbs, ticketUsed: usedTicket, discountPercent,
             email: String(user.email || "").trim().toLowerCase()
         }, () => openOrbChestModal(type));
     } catch (e) {
         if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + def.price + ".");
-        else {
-            console.error("Chest purchase failed:", e);
-            alert("Could not buy this chest.");
-        }
+        else { console.error("Chest purchase failed:", e); alert("Could not buy this chest."); }
     }
 }
 
@@ -13331,21 +13326,11 @@ initDailyMissions();
    //        "user"   = każdy użytkownik może użyć raz
    // =========================================================
 const REDEEM_CODES = {
-    "AUTUMN26": {
-        orbs: 0,
-        premiumDays: 7,
-        scope: "user"
-    },
-    "GIVEMESOMEORBSMEOW": {
-        orbs: 5,
-        premiumDays: 0,
-        scope: "user"
-    },
-    "FDFN-453C8D-DN7K2-9QW4P-L8MXC": {
-        orbs: 2500,
-        premiumDays: 0,
-        scope: "global"
-    }
+    "AUTUMN26": { orbs: 0, premiumDays: 7, scope: "user" },
+    "GIVEMESOMEORBSMEOW": { orbs: 5, premiumDays: 0, scope: "user" },
+    "FDFN-453C8D-DN7K2-9QW4P-L8MXC": { orbs: 2500, premiumDays: 0, scope: "global" },
+    "SHOP-TICKET-30": { orbs: 0, premiumDays: 0, shopTicketUses: 30, scope: "user" },
+    "NEO-SAVE-25": { orbs: 0, premiumDays: 0, discountPercent: 25, discountUses: 1, scope: "user" }
 };
 
 async function syncRedeemCodeConfigs() {
@@ -13355,6 +13340,9 @@ async function syncRedeemCodeConfigs() {
             await db.collection("redeemCodes").doc(code).set({
                 orbs: Number(config.orbs) || 0,
                 premiumDays: Number(config.premiumDays) || 0,
+                shopTicketUses: Math.max(0, Math.min(30, Math.floor(Number(config.shopTicketUses) || 0))),
+                discountPercent: Math.max(0, Math.min(90, Math.floor(Number(config.discountPercent) || 0))),
+                discountUses: Math.max(0, Math.min(10, Math.floor(Number(config.discountUses) || 0))),
                 scope: config.scope === "global" ? "global" : "user",
                 active: true,
                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -13363,6 +13351,21 @@ async function syncRedeemCodeConfigs() {
             console.error("Redeem code sync failed:", code, e);
         }
     }
+}
+
+async function refreshShopRewardStatus() {
+    const el = document.getElementById("shopRewardStatus");
+    const user = auth.currentUser;
+    if (!el) return;
+    if (!user) { el.textContent = "Sign in to view shop rewards."; return; }
+    try {
+        const snap = await db.collection("users").doc(user.uid).get();
+        const data = snap.exists ? snap.data() : {};
+        const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
+        const discount = Math.max(0, Math.floor(Number(data.shopDiscountPercent || 0)));
+        const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
+        el.textContent = "Shop Ticket: " + tickets + " purchases remaining" + (discount && discountUses ? " · Next eligible purchase: " + discount + "% off" : "");
+    } catch (_) { el.textContent = "Could not load shop rewards."; }
 }
 
 async function redeemCode(code) {
@@ -13406,6 +13409,11 @@ async function redeemCode(code) {
             const currentOrbs = Math.max(0, Math.floor(Number(data.orbs || 0)));
             const orbReward = Math.max(0, Math.floor(Number(config.orbs || 0)));
             const premiumDays = Math.max(0, Math.floor(Number(config.premiumDays || 0)));
+            const ticketUses = Math.max(0, Math.min(30, Math.floor(Number(config.shopTicketUses || 0))));
+            const discountPercent = Math.max(0, Math.min(90, Math.floor(Number(config.discountPercent || 0))));
+            const discountUses = discountPercent > 0 ? Math.max(1, Math.min(10, Math.floor(Number(config.discountUses || 1)))) : 0;
+            const currentTicketUses = Math.max(0, Math.min(30, Math.floor(Number(data.shopTicketUses || 0))));
+            const currentDiscountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
             const currentPremiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0));
             const newPremiumUntil = premiumDays > 0
                 ? currentPremiumUntil + premiumDays * 86400000
@@ -13421,6 +13429,8 @@ async function redeemCode(code) {
             transaction.set(userRef, {
                 orbs: currentOrbs + orbReward,
                 ...(premiumDays > 0 ? { premiumUntil: newPremiumUntil } : {}),
+                ...(ticketUses > 0 ? { shopTicketUses: Math.min(30, currentTicketUses + ticketUses) } : {}),
+                ...(discountPercent > 0 ? { shopDiscountPercent: discountPercent, shopDiscountUses: currentDiscountUses + discountUses } : {}),
                 lastRedeemCode: normalized,
                 lastRedeemAt: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
@@ -13429,6 +13439,9 @@ async function redeemCode(code) {
                 status: "redeemed",
                 orbs: orbReward,
                 premiumDays,
+                shopTicketUses: ticketUses,
+                discountPercent,
+                discountUses,
                 premiumUntil: newPremiumUntil
             };
         });
@@ -13469,9 +13482,12 @@ async function redeemCodeFromPanel() {
         const rewards = [];
         if (result.orbs) rewards.push("+" + result.orbs + " Orbs");
         if (result.premiumDays) rewards.push("+" + result.premiumDays + " days Premium");
+        if (result.shopTicketUses) rewards.push("Shop Ticket: " + result.shopTicketUses + " purchases");
+        if (result.discountPercent) rewards.push(result.discountPercent + "% shop discount");
         status.style.color = "#00ffcc";
         status.textContent = "Code redeemed! " + rewards.join(" • ");
         input.value = "";
+        refreshShopRewardStatus();
     } else if (result.status === "already") {
         status.style.color = "#ffcc66";
         status.textContent = "You already redeemed this code.";
