@@ -592,6 +592,12 @@ service cloud.firestore {
         let newDiscountUses = request.resource.data.get('shopDiscountUses', oldDiscountUses);
         let ticketUsed = newTickets == oldTickets - 1 && oldTickets > 0;
         let discountUsed = newDiscountUses == oldDiscountUses - 1 && oldDiscountUses > 0;
+        let premiumActive = resource.data.get('premium', false) == true
+          || resource.data.get('premiumUntil', 0) > request.time.toMillis();
+        let premiumDiscount = premiumActive ? 50 : 0;
+        let storedDiscount = resource.data.get('shopDiscountPercent', 0);
+        let expectedDiscount = oldDiscountUses > 0 && storedDiscount > premiumDiscount
+          ? storedDiscount : premiumDiscount;
         let oldOrbsValue = oldOrbs();
         let newOrbsValue = newOrbs();
         let purchaseId = request.resource.data.get('lastShopPurchaseId', '');
@@ -631,7 +637,7 @@ service cloud.firestore {
           && (
             ticketUsed
             ? getAfter(receiptRef).data.discountPercent == 0
-            : getAfter(receiptRef).data.discountPercent == resource.data.get('shopDiscountPercent', 0)
+            : getAfter(receiptRef).data.discountPercent == expectedDiscount
                 && getAfter(receiptRef).data.discountPercent >= 0
                 && getAfter(receiptRef).data.discountPercent <= 90
                 && getAfter(receiptRef).data.costOrbs == math.ceil(
