@@ -408,15 +408,30 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .system-announcement-safety{margin:0 0 12px;color:#8fa8bd;font-size:10px;line-height:1.45}
 
 
-/* NeoFind Browser 0.1.42 · Native Shop page */
-.shop-shell{width:min(1240px,calc(100% - 40px));height:calc(100vh - 32px);margin:0 auto;padding:28px 0 24px;display:flex;flex-direction:column;gap:18px}
-.shop-header{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex:0 0 auto}
-.shop-eyebrow{margin:0 0 7px;color:#00dce9;font-size:10px;font-weight:800;letter-spacing:.18em}
-.shop-header h1{margin:0;font-size:clamp(26px,4vw,36px);letter-spacing:-.04em}
-.shop-header p:not(.shop-eyebrow){margin:6px 0 0;color:#9eafc7;font-size:13px}
-.shop-actions{display:flex;gap:8px;flex-wrap:wrap}
-.shop-actions button{padding:9px 13px;border:1px solid #ffffff24;border-radius:9px;background:#ffffff0b;color:#edf6ff;font-weight:700;cursor:pointer}
-.shop-actions button:hover{border-color:#00dce9;background:#00dce912}
-.shop-frame-wrap{flex:1;min-height:0;overflow:hidden;border:1px solid #ffffff1c;border-radius:15px;background:#0b1220;box-shadow:0 16px 45px #0003}
-.shop-frame-wrap iframe{display:block;width:100%;height:100%;border:0;background:#0b1220}
-@media(max-width:650px){.shop-shell{width:calc(100% - 20px);height:calc(100vh - 20px);padding:15px 0}.shop-header{align-items:flex-start;flex-direction:column}}
+
+/* NeoFind Browser 0.1.44 · Native Shop panel */
+.native-shop-card{width:min(920px,100%);max-height:calc(100vh - 34px);overflow:auto}
+.native-shop-account{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:20px 0 12px}
+.native-shop-account>div{display:flex;flex-direction:column;gap:6px;padding:13px 15px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);min-width:0}
+.native-shop-label{font-size:10px;letter-spacing:.12em;color:var(--muted);font-weight:800}
+.native-shop-account strong{font-size:17px;overflow-wrap:anywhere}
+.native-shop-premium{padding:11px 13px;border:1px solid #d9a44155;border-radius:10px;background:#d9a44112;color:#ffd889;font-size:12px;font-weight:800}
+.native-shop-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:22px 0 12px}
+.native-shop-heading h2,.native-shop-redeem h2{font-size:17px;margin:0}
+.native-shop-heading p,.native-shop-redeem p{font-size:12px;color:var(--muted);margin:5px 0 0}
+.native-shop-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.native-shop-item{display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:12px;padding:14px;border:1px solid var(--line);border-radius:13px;background:linear-gradient(135deg,var(--panel2),#0b1423)}
+.native-shop-item-icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#00dce914;font-size:25px}
+.native-shop-item h3{margin:0;font-size:14px}
+.native-shop-item p{margin:4px 0;color:var(--muted);font-size:11px}
+.native-shop-item strong{font-size:12px;color:#7deaf0}
+.native-shop-item button{padding:8px 13px}
+.native-shop-item button:disabled,.native-shop-code-row button:disabled{opacity:.45;cursor:not-allowed}
+.native-shop-inventory{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:13px 14px;margin-top:12px;border:1px solid var(--line);border-radius:11px;background:var(--panel2);font-size:12px}
+.native-shop-inventory span{color:var(--muted)}
+.native-shop-redeem{margin-top:20px;padding:16px;border:1px solid var(--line);border-radius:13px;background:#ffffff05}
+.native-shop-code-row{display:flex;gap:9px;margin-top:12px}
+.native-shop-code-row input{flex:1;min-width:0}
+.native-shop-code-row button{flex:0 0 auto}
+.native-shop-signin{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;margin-top:10px;border:1px solid #00dce933;border-radius:11px;background:#00dce908;font-size:12px}
+@media(max-width:650px){.native-shop-account{grid-template-columns:1fr}.native-shop-grid{grid-template-columns:1fr}.native-shop-item{grid-template-columns:42px minmax(0,1fr) auto}.native-shop-code-row{flex-direction:column}.native-shop-signin{align-items:flex-start;flex-direction:column}}
