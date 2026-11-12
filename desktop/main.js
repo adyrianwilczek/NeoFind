@@ -659,6 +659,8 @@ function installPictureInPictureControls(wc) {
 
 function loadAddressInTab(tab, address) {
   const targetUrl = normalizeAddress(address);
+  // Leaving the internal New Tab page must disable its file-page routing before navigation.
+  if (targetUrl.toLowerCase() !== "about:newtab") tab.customNewTab = false;
   if (targetUrl.startsWith("https://ulululu.neofind.local/")) {
     let query = "";
     try { query = new URL(targetUrl).searchParams.get("q") || ""; } catch {}
