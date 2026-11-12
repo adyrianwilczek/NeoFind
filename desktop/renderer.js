@@ -533,7 +533,6 @@ if (newTabDestination) {
   newTabDestination.addEventListener("change", () => { localStorage.setItem("neofind.newTabDestination", newTabDestination.value); localStorage.setItem("neofind.newTabOpensNeoFind", newTabDestination.value === "neofind" ? "true" : "false"); });
 }
 document.getElementById("sideNeoAI").addEventListener("click",()=>window.neoBrowser.openNeoAI());
-document.getElementById("sideCalendar").addEventListener("click",()=>window.neoBrowser.createTab("https://calendar.google.com/calendar/u/0/r"));
 document.getElementById("sideHistory").addEventListener("click",()=>{ renderBrowserHistory(); settingsPanel.classList.remove("hidden"); window.neoSetModalOpen("settings", true); setSettingsTab("history"); });
 const neoFindConnectOverlay = document.getElementById("neoFindConnectOverlay");
 function openNeoFindConnect() {
