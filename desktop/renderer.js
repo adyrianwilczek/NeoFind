@@ -13,6 +13,41 @@ window.neoSetModalOpen = (key, isOpen) => {
 };
 
 
+const neoRecommendationBar=document.getElementById("neoRecommendationBar");
+const neoRecommendationButton=document.getElementById("neoRecommendationButton");
+const neoRecommendationDetails=document.getElementById("neoRecommendationDetails");
+const neoRecommendationSites=[
+  {match:h=>h==="cyrber.com"||h==="app.cyrber.com",category:{en:"Cybersecurity",pl:"Cyberbezpieczeństwo",es:"Ciberseguridad"}},
+  {match:h=>h==="metalpro.com.pl",category:{en:"Transport",pl:"Transport",es:"Transporte"}},
+  {match:h=>/(^|\\.)allegro\\.[a-z.]+$/i.test(h),category:{en:"Online shopping",pl:"Zakupy online",es:"Compras online"}},
+  {match:h=>/(^|\\.)spotify\\.[a-z.]+$/i.test(h),category:{en:"Music",pl:"Muzyka",es:"Música"}},
+  {match:h=>/(^|\\.)netflix\\.[a-z.]+$/i.test(h),category:{en:"Movies",pl:"Filmy",es:"Películas"}},
+  {match:h=>h==="citihandlowy.pl"||h.endsWith(".citihandlowy.pl"),category:{en:"Finance",pl:"Finanse",es:"Finanzas"}},
+  {match:h=>h==="r.pl"||h.endsWith(".r.pl"),category:{en:"Travel",pl:"Podróże",es:"Viajes"}}
+];
+const neoRecommendationWords={
+  en:{label:"Recommended by NeoFind",for:"Recommended for: "},
+  pl:{label:"Polecane przez NeoFind",for:"Polecane do: "},
+  es:{label:"Recomendado por NeoFind",for:"Recomendado para: "}
+};
+function renderNeoRecommendation(url){
+  let host="";try{host=new URL(url).hostname.toLowerCase().replace(/^www\\./,"");}catch{}
+  const site=neoRecommendationSites.find(item=>item.match(host));
+  if(!site){neoRecommendationBar.hidden=true;neoRecommendationDetails.hidden=true;neoRecommendationButton.setAttribute("aria-expanded","false");return;}
+  const lang=["pl","en","es"].includes(localStorage.getItem("neofind.browserLanguage"))?localStorage.getItem("neofind.browserLanguage"):"en";
+  const words=neoRecommendationWords[lang];
+  neoRecommendationButton.textContent=words.label;
+  neoRecommendationDetails.textContent=words.for+site.category[lang];
+  neoRecommendationBar.hidden=false;
+  neoRecommendationDetails.hidden=true;
+  neoRecommendationButton.setAttribute("aria-expanded","false");
+}
+neoRecommendationButton.addEventListener("click",()=>{
+  const opening=neoRecommendationDetails.hidden;
+  neoRecommendationDetails.hidden=!opening;
+  neoRecommendationButton.setAttribute("aria-expanded",String(opening));
+});
+
 function renderTabs(state) {
   tabsElement.replaceChildren();
   for (const tab of state.tabs) {
@@ -49,6 +84,7 @@ function renderTabs(state) {
 
   const active = state.tabs.find((tab) => tab.id === state.activeTabId);
   if (active && document.activeElement !== addressInput) addressInput.value = active.url || "";
+  renderNeoRecommendation(active ? active.url : "");
   document.getElementById("back").disabled = !active || !active.canGoBack;
   document.getElementById("forward").disabled = !active || !active.canGoForward;
 }
@@ -364,6 +400,8 @@ window.neoBrowser.onTabsState((state)=>{
   lastTabsState = state;
   renderTabs(state);
   updateBookmarkButton(state);
+  const activeRecommendationTab=(state.tabs||[]).find(tab=>tab.id===state.activeTabId);
+  renderNeoRecommendation(activeRecommendationTab ? activeRecommendationTab.url : "");
   const activeForAdCount = (state.tabs || []).find(tab => tab.id === state.activeTabId);
   renderCurrentTabAdCount(activeForAdCount ? activeForAdCount.blockedAdCount : 0);
   if (activeForAdCount && !activeForAdCount.isPrivate && /^https?:/i.test(activeForAdCount.url || "")) {
