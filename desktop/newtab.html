@@ -165,7 +165,7 @@
   document.getElementById("webSearch").addEventListener("submit",event=>{
     event.preventDefault();
     const query=input.value.trim();
-    if(query){const target=providers[provider].search(query);if(window.neoBrowser&&window.neoBrowser.navigate)window.neoBrowser.navigate(target);else location.href=target;}
+    if(query){const target=providers[provider].search(query);if(provider==="ulululu"&&window.neoBrowser&&window.neoBrowser.navigate)window.neoBrowser.navigate(target);else location.href=target;}
   });
   const recommendedSites=[
     {match:h=>h==="cyrber.com"||h==="app.cyrber.com",url:"https://cyrber.com/",category:{en:"Cybersecurity",pl:"Cyberbezpieczeństwo",es:"Ciberseguridad"}},
