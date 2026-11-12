@@ -1,7 +1,7 @@
 {
   "name": "neofind-browser",
-  "version": "0.1.45",
-  "description": "NeoFind Browser with Google Calendar shortcut and recommended sites on New Tab",
+  "version": "0.1.46",
+  "description": "NeoFind Browser",
   "main": "main.js",
   "private": true,
   "scripts": {
