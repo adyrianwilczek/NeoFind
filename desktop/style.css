@@ -449,3 +449,7 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .native-shop-premium-buy p{margin:0 0 7px;color:var(--muted);font-size:12px}
 .native-shop-premium-buy strong{color:#7deaf0;font-size:13px}
 .native-shop-premium-buy button{flex:0 0 auto}
+
+
+/* 0.1.46 site recommendation indicator */
+.neo-recommendation-bar{position:relative;display:flex;align-items:center;min-height:0;padding:0 0 5px 0;margin-left:0;z-index:20}.neo-recommendation-bar[hidden],.neo-recommendation-details[hidden]{display:none}.neo-recommendation-button{border:0;background:transparent;color:var(--accent,#00dce9);font:600 11px/1.4 inherit;padding:3px 8px;border-radius:6px;cursor:pointer}.neo-recommendation-button:hover{background:var(--surface-hover,#ffffff12)}.neo-recommendation-details{position:absolute;top:100%;left:6px;z-index:1000;padding:9px 12px;border:1px solid var(--border,#ffffff24);border-radius:8px;background:var(--panel,#172235);color:var(--text,#edf6ff);font-size:12px;box-shadow:0 8px 24px #0005;white-space:nowrap}
