@@ -1354,6 +1354,8 @@ async function getNativeShopState() {
         ok:true, signedIn:true, email:String(user.email || "NeoFind account"),
         orbs:Math.max(0, Math.floor(Number(data.orbs || 0))),
         premium, premiumUntil:Number(data.premiumUntil || 0),
+        slotMachineUses:Number(data.slotMachineDay || -1) === Math.floor(Date.now()/86400000) ? Math.max(0,Math.floor(Number(data.slotMachineUses || 0))) : 0,
+        slotMachineLimit:premium ? 5 : 1,
         premiumPrice:typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000,
         tickets:Math.max(0, Math.floor(Number(data.shopTicketUses || 0))),
         discountPercent:Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0)))),
@@ -1422,6 +1424,47 @@ async function buyNativeShopChest(type) {
   } catch (error) {
     const message = String(error && error.message || error);
     return { ok:false, message:message.includes("NOT_ENOUGH_ORBS") ? "Not enough Orbs for this chest." : message.slice(0,300) };
+  }
+}
+
+
+async function spinNativeShopSlotMachine() {
+  const symbols = ["orbs","normal","rare","epic","neofind","blank"];
+  try {
+    return await executeShopBridge(`(async () => {
+      const user = auth.currentUser;
+      if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
+      const userRef = db.collection("users").doc(user.uid);
+      const spinDay = Math.floor(Date.now()/86400000);
+      const reels = [0,1,2].map(() => symbols[Math.floor(Math.random()*symbols.length)]);
+      const win = reels.every(symbol => symbol === reels[0]) && reels[0] !== "blank";
+      const reward = win ? reels[0] : "none";
+      const result = await db.runTransaction(async transaction => {
+        const snap = await transaction.get(userRef);
+        const data = snap.exists ? snap.data() : {};
+        const premium = data.premium === true || Number(data.premiumUntil || 0) > Date.now();
+        const oldUses = Number(data.slotMachineDay || -1) === spinDay ? Math.max(0,Math.floor(Number(data.slotMachineUses || 0))) : 0;
+        const limit = premium ? 5 : 1;
+        if (oldUses >= limit) throw new Error("DAILY_LIMIT");
+        const currentOrbs = Math.max(0,Math.floor(Number(data.orbs || 0)));
+        const inventory = Object.assign({normal:0,rare:0,epic:0,neofind:0},data.chestInventory || {});
+        let newOrbs = currentOrbs;
+        if (reward === "orbs") newOrbs += 15000;
+        if (["normal","rare","epic","neofind"].includes(reward)) inventory[reward] = Math.max(0,Math.floor(Number(inventory[reward] || 0))) + 1;
+        transaction.set(userRef,{
+          slotMachineDay:spinDay,
+          slotMachineUses:oldUses+1,
+          lastSlotMachineReward:reward,
+          ...(reward === "orbs" ? {orbs:newOrbs} : {}),
+          ...( ["normal","rare","epic","neofind"].includes(reward) ? {chestInventory:inventory} : {})
+        },{merge:true});
+        return {uses:oldUses+1,limit,reward,orbs:newOrbs,inventory};
+      });
+      return {ok:true,reels,reward,uses:result.uses,limit:result.limit};
+    })()`);
+  } catch (error) {
+    const message=String(error && error.message || error);
+    return {ok:false,message:message.includes("DAILY_LIMIT") ? "You have used all your slot machine spins for today." : message.slice(0,300)};
   }
 }
 
@@ -1494,6 +1537,7 @@ async function redeemNativeShopCode(code) {
 ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
 ipcMain.handle("shop:get-state", () => getNativeShopState());
 ipcMain.handle("shop:buy-chest", (_event, type) => buyNativeShopChest(type));
+ipcMain.handle("shop:spin-slot-machine", () => spinNativeShopSlotMachine());
 ipcMain.handle("shop:buy-premium", () => buyNativeShopPremium());
 ipcMain.handle("shop:redeem-code", (_event, code) => redeemNativeShopCode(code));
 ipcMain.handle("shop:open-sign-in", () => ({ ok:true, tabId:openTab(HOME_URL, true) }));
