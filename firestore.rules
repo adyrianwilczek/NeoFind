@@ -341,7 +341,8 @@ service cloud.firestore {
           'missionDay', 'missionClaims', 'lastAdminOrbGrant',
           'chestInventory', 'lastChestReward', 'lastAdminChestGrant',
           'lastRedeemCode', 'lastRedeemAt', 'shopTicketUses',
-          'shopDiscountPercent', 'shopDiscountUses', 'lastShopPurchaseId', 'lastOrbTransferIn',
+          'shopDiscountPercent', 'shopDiscountUses', 'lastShopPurchaseId',
+          'slotMachineDay', 'slotMachineUses', 'lastSlotMachineReward', 'lastOrbTransferIn',
           'lastOrbTransferOut', 'advancements', 'advancementStats',
           'badges', 'advancementNotices', 'serverEvents',
           'neoVisitDate', 'neoVisitStreak'
@@ -673,6 +674,57 @@ service cloud.firestore {
           && (normal || rare || epic || neofind);
       }
 
+      function isSlotMachineSpin() {
+        let oldDay = resource.data.get('slotMachineDay', -1);
+        let oldUses = oldDay == utcDay() ? resource.data.get('slotMachineUses', 0) : 0;
+        let premiumActive = resource.data.get('premium', false) == true
+          || resource.data.get('premiumUntil', 0) > nowMs();
+        let maxUses = premiumActive ? 5 : 1;
+        let oldInv = resource.data.get('chestInventory', {});
+        let newInv = request.resource.data.get('chestInventory', {});
+        let sameInventory = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let normalWin = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let rareWin = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let epicWin = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
+        let neofindWin = newInv.get('normal', 0) == oldInv.get('normal', 0)
+          && newInv.get('rare', 0) == oldInv.get('rare', 0)
+          && newInv.get('epic', 0) == oldInv.get('epic', 0)
+          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1;
+        let reward = request.resource.data.get('lastSlotMachineReward', '');
+        return isOwner(userId)
+          && changedKeys().hasOnly([
+            'slotMachineDay', 'slotMachineUses', 'lastSlotMachineReward',
+            'orbs', 'chestInventory', 'email'
+          ])
+          && request.resource.data.slotMachineDay == utcDay()
+          && request.resource.data.slotMachineUses == oldUses + 1
+          && request.resource.data.slotMachineUses <= maxUses
+          && request.resource.data.lastSlotMachineReward is string
+          && request.resource.data.lastSlotMachineReward in ['orbs', 'normal', 'rare', 'epic', 'neofind', 'none']
+          && orbsValid()
+          && newInv is map
+          && (
+            (reward == 'orbs' && newOrbs() - oldOrbs() == 15000 && sameInventory)
+            || (reward == 'none' && newOrbs() == oldOrbs() && sameInventory)
+            || (reward == 'normal' && newOrbs() == oldOrbs() && normalWin)
+            || (reward == 'rare' && newOrbs() == oldOrbs() && rareWin)
+            || (reward == 'epic' && newOrbs() == oldOrbs() && epicWin)
+            || (reward == 'neofind' && newOrbs() == oldOrbs() && neofindWin)
+          );
+      }
+
       function isPremiumPurchase() {
         let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
           ? resource.data.get('premiumUntil', 0)
@@ -754,6 +806,7 @@ service cloud.firestore {
             !changedKeys().hasAny(economyKeys())
             || isStartBalance()
             || isOwnerChestGrant()
+            || isSlotMachineSpin()
             || isPremiumPurchase()
             || isRedeemReward()
             || isShopChestPurchase()
