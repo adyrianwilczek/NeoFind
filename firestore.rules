@@ -682,26 +682,6 @@ service cloud.firestore {
         let maxUses = premiumActive ? 5 : 1;
         let oldInv = resource.data.get('chestInventory', {});
         let newInv = request.resource.data.get('chestInventory', {});
-        let sameInventory = newInv.get('normal', 0) == oldInv.get('normal', 0)
-          && newInv.get('rare', 0) == oldInv.get('rare', 0)
-          && newInv.get('epic', 0) == oldInv.get('epic', 0)
-          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
-        let normalWin = newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
-          && newInv.get('rare', 0) == oldInv.get('rare', 0)
-          && newInv.get('epic', 0) == oldInv.get('epic', 0)
-          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
-        let rareWin = newInv.get('normal', 0) == oldInv.get('normal', 0)
-          && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
-          && newInv.get('epic', 0) == oldInv.get('epic', 0)
-          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
-        let epicWin = newInv.get('normal', 0) == oldInv.get('normal', 0)
-          && newInv.get('rare', 0) == oldInv.get('rare', 0)
-          && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
-          && newInv.get('neofind', 0) == oldInv.get('neofind', 0);
-        let neofindWin = newInv.get('normal', 0) == oldInv.get('normal', 0)
-          && newInv.get('rare', 0) == oldInv.get('rare', 0)
-          && newInv.get('epic', 0) == oldInv.get('epic', 0)
-          && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1;
         let reward = request.resource.data.get('lastSlotMachineReward', '');
         return isOwner(userId)
           && changedKeys().hasOnly([
@@ -711,17 +691,47 @@ service cloud.firestore {
           && request.resource.data.slotMachineDay == utcDay()
           && request.resource.data.slotMachineUses == oldUses + 1
           && request.resource.data.slotMachineUses <= maxUses
-          && request.resource.data.lastSlotMachineReward is string
-          && request.resource.data.lastSlotMachineReward in ['orbs', 'normal', 'rare', 'epic', 'neofind', 'none']
+          && reward is string
+          && reward in ['orbs', 'normal', 'rare', 'epic', 'neofind', 'none']
           && orbsValid()
           && newInv is map
           && (
-            (reward == 'orbs' && newOrbs() - oldOrbs() == 15000 && sameInventory)
-            || (reward == 'none' && newOrbs() == oldOrbs() && sameInventory)
-            || (reward == 'normal' && newOrbs() == oldOrbs() && normalWin)
-            || (reward == 'rare' && newOrbs() == oldOrbs() && rareWin)
-            || (reward == 'epic' && newOrbs() == oldOrbs() && epicWin)
-            || (reward == 'neofind' && newOrbs() == oldOrbs() && neofindWin)
+            (reward == 'orbs'
+              && newOrbs() - oldOrbs() == 15000
+              && newInv.get('normal', 0) == oldInv.get('normal', 0)
+              && newInv.get('rare', 0) == oldInv.get('rare', 0)
+              && newInv.get('epic', 0) == oldInv.get('epic', 0)
+              && newInv.get('neofind', 0) == oldInv.get('neofind', 0))
+            || (reward == 'none'
+              && newOrbs() == oldOrbs()
+              && newInv.get('normal', 0) == oldInv.get('normal', 0)
+              && newInv.get('rare', 0) == oldInv.get('rare', 0)
+              && newInv.get('epic', 0) == oldInv.get('epic', 0)
+              && newInv.get('neofind', 0) == oldInv.get('neofind', 0))
+            || (reward == 'normal'
+              && newOrbs() == oldOrbs()
+              && newInv.get('normal', 0) == oldInv.get('normal', 0) + 1
+              && newInv.get('rare', 0) == oldInv.get('rare', 0)
+              && newInv.get('epic', 0) == oldInv.get('epic', 0)
+              && newInv.get('neofind', 0) == oldInv.get('neofind', 0))
+            || (reward == 'rare'
+              && newOrbs() == oldOrbs()
+              && newInv.get('normal', 0) == oldInv.get('normal', 0)
+              && newInv.get('rare', 0) == oldInv.get('rare', 0) + 1
+              && newInv.get('epic', 0) == oldInv.get('epic', 0)
+              && newInv.get('neofind', 0) == oldInv.get('neofind', 0))
+            || (reward == 'epic'
+              && newOrbs() == oldOrbs()
+              && newInv.get('normal', 0) == oldInv.get('normal', 0)
+              && newInv.get('rare', 0) == oldInv.get('rare', 0)
+              && newInv.get('epic', 0) == oldInv.get('epic', 0) + 1
+              && newInv.get('neofind', 0) == oldInv.get('neofind', 0))
+            || (reward == 'neofind'
+              && newOrbs() == oldOrbs()
+              && newInv.get('normal', 0) == oldInv.get('normal', 0)
+              && newInv.get('rare', 0) == oldInv.get('rare', 0)
+              && newInv.get('epic', 0) == oldInv.get('epic', 0)
+              && newInv.get('neofind', 0) == oldInv.get('neofind', 0) + 1)
           );
       }
 
