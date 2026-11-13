@@ -1434,6 +1434,7 @@ async function spinNativeShopSlotMachine() {
     return await executeShopBridge(`(async () => {
       const user = auth.currentUser;
       if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
+      const symbols = ["orbs","normal","rare","epic","neofind","blank"];
       const userRef = db.collection("users").doc(user.uid);
       const spinDay = Math.floor(Date.now()/86400000);
       const reels = [0,1,2].map(() => symbols[Math.floor(Math.random()*symbols.length)]);
