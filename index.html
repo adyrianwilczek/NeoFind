@@ -3125,6 +3125,7 @@ Search. Connect. Discover.
                 <option value="neoai-1.8">NeoAI 1.8</option>
                 <option value="neoai-2.0">NeoAI 2.0</option>
                 <option value="neoai-2.3" selected>NeoAI 2.3</option>
+                <option value="neoai-2.4">NeoAI 2.4 (Premium)</option>
             </select>
         </div>
         <button id="neoAiSend" onclick="sendNeoAiMessage()" aria-label="Wyślij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
@@ -3749,7 +3750,7 @@ async function neoWiki(question) {
 
 // instrukcja dla Neo, wspólna dla czatu i odpowiedzi w wyszukiwarce
 function neoSystemPrompt(langName, wiki) {
-    let p = `You are Neo, the witty built-in AI assistant and system guide of NeoFind. You have a verified internal feature manifest in this prompt. Treat it as the source of truth for what NeoFind currently contains. If a feature is absent from the manifest, say it is not currently part of NeoFind instead of inventing it. You know the following current NeoFind systems: search, NeoAI chat with model selector (NeoAI 1.0, 1.3, 3.1 IAoen, 1.5, 1.8, 2.0, 2.3), friends and friend requests, real-time chat with text/images/audio, announcements, persistent Firestore user notifications, admin global announcements, Orbs economy and daily missions, Premium, API key panel, settings, language/theme controls, search history, favorites, ratings, reports, admin panel, bans, seasonal modes, developer console, F1 diagnostics, F9 panic page, NeoNews/update pages, Minecraft mod search, weather and AI features. Current notification events include admin Orb grants, Premium purchases, chat messages, friend requests, and global admin announcements. The user can delete their own notifications. Admins can create global announcements. The authoritative live backend is Firebase/Firestore. Do not claim a feature exists unless it is in this manifest or explicitly supplied in the conversation. NeoFind is a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Personality: little ironic, surprising, non-obvious takes, like a sharp and cultured friend. Be classy and polite, never crude or mean. The humour serves the answer, it never replaces being genuinely useful. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly, youthful language that still reads polished. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
+    let p = `You are Neo, the built-in AI assistant and system guide of NeoFind. You have a verified internal feature manifest in this prompt. Treat it as the source of truth for what NeoFind currently contains. If a feature is absent from the manifest, say it is not currently part of NeoFind instead of inventing it. You know the following current NeoFind systems: search, NeoAI chat with model selector (NeoAI 1.0, 1.3, 3.1 IAoen, 1.5, 1.8, 2.0, 2.3), friends and friend requests, real-time chat with text/images/audio, announcements, persistent Firestore user notifications, admin global announcements, Orbs economy and daily missions, Premium, API key panel, settings, language/theme controls, search history, favorites, ratings, reports, admin panel, bans, seasonal modes, developer console, F1 diagnostics, F9 panic page, NeoNews/update pages, Minecraft mod search, weather and AI features. Current notification events include admin Orb grants, Premium purchases, chat messages, friend requests, and global admin announcements. The user can delete their own notifications. Admins can create global announcements. The authoritative live backend is Firebase/Firestore. Do not claim a feature exists unless it is in this manifest or explicitly supplied in the conversation. NeoFind is a custom search app made by Adrian Wilkowski and NeoFind Group. NeoFind features: web-style search, a friends chat (text, voice messages, emoji), AI "Did you know?" facts, Minecraft mod search (type "mod" and a name, e.g. "mod create"), themed modes (autumn, rain), a developer console opened with the F1 key, orbs (orbs is currency in neofind it's like robux in roblox), API keys system. Style: sound natural, calm, clear and helpful. Speak directly, like a normal assistant. Do not narrate physical actions, stage directions, gestures or roleplay actions. Never write things such as "*takes off virtual glasses*", "*adjusts glasses*", "*sighs*", or similar action descriptions. Do not use theatrical scene-setting or pretend to perform physical actions. Use humour only when it fits naturally. Accuracy comes first: get every fact and calculation exactly right and double-check any number before you answer; add the joke only after a correct answer, never instead of it, and if a witty line would require bending a fact, drop the joke, not the truth. From time to time, when it fits the moment naturally, drop a short clever joke or witty aside that plays on the user's exact question or on the conversation so far, but never force it and do not joke in every message. Use your full general knowledge to help with anything and explain clearly. Never invent things: if you are not sure about a NeoFind feature or any fact, admit it with a light touch instead of making it up. You have no live internet access and your knowledge has a cutoff, so for very recent events say you might be behind rather than guessing. Write well: correct spelling, punctuation and grammar, in natural, friendly language that still reads polished. Use Markdown when useful: **bold**, *italic*, > blockquotes and fenced code blocks. For coding requests, provide complete, usable code in fenced code blocks. Never put code in ordinary prose. Never use dash characters (the em dash or en dash) as punctuation; use commas, full stops or colons instead. Always reply in ${langName}, no matter which language the user writes in. Keep answers concise, and use short paragraphs separated by blank lines so the text is easy to read.
 
 Games: only switch into game-guide mode when the user's current message actually mentions Minecraft, Roblox, or another game explicitly relevant to the question. If the user is not talking about a game, do not bring up Minecraft, Roblox, RIVALS, Blox Fruits, Adopt Me, Grow a Garden, mods, crafting, items, mobs, weapons, strategies, or game wikis on your own. When a game is mentioned, use the supplied wiki excerpts when available and follow the existing game-specific accuracy rules. Only mention NeoFind features from the list above, never suggest other things to search for in NeoFind.`;
     if (wiki) {
@@ -8508,14 +8509,70 @@ const NEO_AI_MODELS = {
     "neoai-1.5": { name:"NeoAI 1.5", desc:"Lepszy i w miarę szybki", apiModel:"neoai-1.5" },
     "neoai-1.8": { name:"NeoAI 1.8", desc:"Szybki i mądry", apiModel:"neoai-1.8" },
     "neoai-2.0": { name:"NeoAI 2.0", desc:"Bardzo mądry i szybki", apiModel:"neoai-2.0" },
-    "neoai-2.3": { name:"NeoAI 2.3", desc:"Najnowszy i najbardziej zaawansowany", apiModel:"neoai-2.3" }
+    "neoai-2.3": { name:"NeoAI 2.3", desc:"Poprzednia wersja", apiModel:"neoai-2.3" },
+    "neoai-2.4": { name:"NeoAI 2.4", desc:"Premium: generowanie kodu i formatowanie Markdown", apiModel:"neoai-2.4" }
 };
 let neoAiSelectedModel=localStorage.getItem("neoAiSelectedModel")||"neoai-2.3";
 if(!NEO_AI_MODELS[neoAiSelectedModel]) neoAiSelectedModel="neoai-2.3";
-function selectNeoAiModel(modelId){ if(!NEO_AI_MODELS[modelId])return; neoAiSelectedModel=modelId; localStorage.setItem("neoAiSelectedModel",modelId); const s=document.getElementById("neoAiModelSelect"); if(s){s.value=modelId;s.title=NEO_AI_MODELS[modelId].desc;} }
-function initNeoAiModelSelector(){const s=document.getElementById("neoAiModelSelect");if(s){s.value=neoAiSelectedModel;s.title=NEO_AI_MODELS[neoAiSelectedModel].desc;}}
+function neoAiHasPremium(){return typeof isPremiumActive==="function" && isPremiumActive();}
+function neoAiShowPremiumUpgrade(){
+    const buyButton=document.getElementById("neoBuyPremiumButton");
+    if(!buyButton)return;
+    const parent=buyButton.parentElement;
+    let notice=document.getElementById("neoAi24PremiumNotice");
+    if(!notice){
+        notice=document.createElement("div");
+        notice.id="neoAi24PremiumNotice";
+        notice.style.cssText="display:none;flex:1 0 100%;width:100%;box-sizing:border-box;margin:0 0 8px;padding:11px 14px;border:1px solid rgba(0,242,254,.35);border-radius:10px;background:rgba(0,180,220,.09);color:#e8fbff;font-size:13px;line-height:1.5;text-align:center;";
+        notice.innerHTML="<strong>NeoAI 2.4 jest dostępny tylko w Premium.</strong><br>Wykup Premium, aby odblokować generowanie kodu i formatowanie Markdown.";
+        parent.insertBefore(notice,buyButton);
+    }
+    notice.style.display="block";
+    notice.scrollIntoView({behavior:"smooth",block:"center"});
+}
+function neoAiHidePremiumUpgrade(){const notice=document.getElementById("neoAi24PremiumNotice");if(notice)notice.style.display="none";}
+function selectNeoAiModel(modelId){
+    if(!NEO_AI_MODELS[modelId])return;
+    if(modelId==="neoai-2.4"&&!neoAiHasPremium()){
+        neoAiSelectedModel="neoai-2.3";
+        localStorage.setItem("neoAiSelectedModel","neoai-2.3");
+        const selector=document.getElementById("neoAiModelSelect");
+        if(selector){selector.value="neoai-2.3";selector.title=NEO_AI_MODELS["neoai-2.3"].desc;}
+        neoAiShowPremiumUpgrade();
+        return;
+    }
+    neoAiSelectedModel=modelId;
+    localStorage.setItem("neoAiSelectedModel",modelId);
+    const selector=document.getElementById("neoAiModelSelect");
+    if(selector){selector.value=modelId;selector.title=NEO_AI_MODELS[modelId].desc;}
+    if(modelId==="neoai-2.4")neoAiHidePremiumUpgrade();
+}
+function initNeoAiModelSelector(){
+    const selector=document.getElementById("neoAiModelSelect");
+    if(neoAiSelectedModel==="neoai-2.4"&&!neoAiHasPremium()){
+        neoAiSelectedModel="neoai-2.3";
+        localStorage.setItem("neoAiSelectedModel","neoai-2.3");
+    }
+    if(selector){selector.value=neoAiSelectedModel;selector.title=NEO_AI_MODELS[neoAiSelectedModel].desc;}
+}
 function neoAiReverseText(text){return String(text||"").split("").reverse().join("");}
-function neoFormat(raw){let s=escapeHtml(raw);s=s.replace(/ *[—–] */g,", ");s=s.replace(/**([^*]+?)**/g,"<strong>$1</strong>");s=s.replace(/(^|[^*])*(?!\s)([^*\n]+?)*/g,"$1<em>$2</em>");return s;}
+function neoFormat(raw){
+    const codeBlocks=[];
+    let text=String(raw||"").replace(/\r\n?/g,"\n");
+    text=text.replace(/```([\\w+-]*)\n([\\s\\S]*?)```/g,(match,lang,code)=>{
+        const id=codeBlocks.length;
+        codeBlocks.push('<pre class="neo-code-block"><code'+(lang?' class="language-'+escapeHtml(lang)+'"':'')+'>'+escapeHtml(code.replace(/\n$/,""))+'</code></pre>');
+        return "NEOCODEBLOCKTOKEN"+id+"END";
+    });
+    text=escapeHtml(text);
+    text=text.replace(/`([^`\n]+)`/g,'<code class="neo-inline-code">$1</code>');
+    text=text.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>');
+    text=text.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g,'$1<em>$2</em>');
+    text=text.replace(/^&gt; ?(.*)$/gm,'<blockquote>$1</blockquote>');
+    text=text.replace(/<\\/blockquote>\n<blockquote>/g,'<br>');
+    text=text.replace(/NEOCODEBLOCKTOKEN(\d+)END/g,(match,id)=>codeBlocks[Number(id)]||"");
+    return text.replace(/\n/g,"<br>");
+}
 
 let neoHistory=[];
 let neoAiCurrentChatId=null;
@@ -8735,8 +8792,10 @@ window.sendNeoAiMessage=async function(){
             "neoai-1.5":{max_tokens:650,temperature:.45,prompt:"Reason carefully and answer clearly."},
             "neoai-1.8":{max_tokens:850,temperature:.5,prompt:"Use stronger reasoning and useful detail."},
             "neoai-2.0":{max_tokens:1100,temperature:.45,prompt:"Use strong reasoning, context and detailed answers."},
-            "neoai-2.3":{max_tokens:1500,temperature:.4,prompt:"Use the strongest available reasoning, context awareness and accuracy. Prefer useful, well-structured answers."}
+            "neoai-2.3":{max_tokens:1500,temperature:.4,prompt:"Use strong reasoning and accuracy. Prefer useful, well-structured answers."},
+            "neoai-2.4":{max_tokens:1800,temperature:.4,prompt:"Use strong reasoning and accuracy. Format answers with Markdown when useful, including fenced code blocks, bold, italics and blockquotes. For coding requests, provide complete, runnable code. Speak naturally and directly. Never include theatrical stage directions, narrated gestures, pretend physical actions or roleplay actions. Do not write phrases such as \"*takes off virtual glasses*\". Keep the tone normal, clear and helpful."}
         };
+        if(neoAiSelectedModel==="neoai-2.4"&&!neoAiHasPremium()){selectNeoAiModel("neoai-2.3");typing.remove();input.disabled=false;if(sendBtn)sendBtn.disabled=false;return;}
         const activeModel=MODEL_CONFIG[neoAiSelectedModel]||MODEL_CONFIG["neoai-2.3"];
         const memoryContext=neoAiMemorySummary?("\n\nUSER MEMORY (saved in Firestore, use as context when relevant):\n"+neoAiMemorySummary):"";
         const requestBody={model:activeModel.apiModel||"mistral-small-latest",messages:[{role:"system",content:neoSystemPrompt(neoT().langName,wiki)+"\n\nNEOAI MODEL PROFILE:\n"+activeModel.prompt+memoryContext},...neoHistory.slice(-10)],max_tokens:activeModel.max_tokens,temperature:wiki?Math.min(activeModel.temperature,.25):activeModel.temperature};
