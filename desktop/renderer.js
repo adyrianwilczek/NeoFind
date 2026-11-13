@@ -615,6 +615,14 @@ const nativeShopPrices = {
   epic:document.getElementById("nativeShopPriceEpic"),
   neofind:document.getElementById("nativeShopPriceNeofind")
 };
+const slotMachineSymbols = {
+  orbs:{mark:"✦",label:"ORBS"},
+  normal:{mark:"N",label:"NORMAL"},
+  rare:{mark:"R",label:"RARE"},
+  epic:{mark:"E",label:"EPIC"},
+  neofind:{mark:"NF",label:"NEOFIND"},
+  blank:{mark:"—",label:"EMPTY"}
+};
 let nativeShopState = null;
 function setNativeShopStatus(message, error=false) {
   nativeShopStatus.textContent = message;
@@ -630,6 +638,10 @@ function renderNativeShop(state) {
   document.getElementById("nativeShopAccount").textContent = state && state.signedIn ? state.email : "Not signed in";
   document.getElementById("nativeShopOrbs").textContent = state && state.signedIn ? Number(state.orbs || 0).toLocaleString() + " Orbs" : "— Orbs";
   document.getElementById("nativeShopTickets").textContent = state && state.signedIn ? String(state.tickets || 0) : "—";
+  const slotLimit = Number(state && state.slotMachineLimit || 1);
+  const slotUses = Number(state && state.slotMachineUses || 0);
+  document.getElementById("slotMachineUses").textContent = state && state.signedIn ? slotUses + " / " + slotLimit + " used today" : "Sign in to spin";
+  document.getElementById("slotMachineSpin").disabled = !(state && state.ok && state.signedIn) || slotUses >= slotLimit;
   document.getElementById("nativeShopPremium").classList.toggle("hidden", !(state && state.premium));
   document.getElementById("nativeShopPremiumPrice").textContent = state && state.premiumPrice ? Number(state.premiumPrice).toLocaleString() + " Orbs" : "1000 Orbs";
   const premiumButton = document.getElementById("nativeShopBuyPremium");
@@ -654,6 +666,40 @@ function renderNativeShop(state) {
   else if (!state.signedIn) setNativeShopStatus("Sign in to your NeoFind account to load your Orbs and inventory.");
   else setNativeShopStatus("Connected to your NeoFind account.");
 }
+
+const slotMachineSpinButton=document.getElementById("slotMachineSpin");
+const slotMachineReels=Array.from(document.querySelectorAll(".slot-reel"));
+function setSlotReel(node,symbol){
+  const item=slotMachineSymbols[symbol]||slotMachineSymbols.blank;
+  node.innerHTML='<span class="slot-reel-mark"></span><span class="slot-reel-label"></span>';
+  node.querySelector(".slot-reel-mark").textContent=item.mark;
+  node.querySelector(".slot-reel-label").textContent=item.label;
+  node.dataset.symbol=symbol;
+}
+slotMachineReels.forEach(node=>setSlotReel(node,"blank"));
+slotMachineSpinButton.addEventListener("click",async()=>{
+  if(slotMachineSpinButton.disabled)return;
+  slotMachineSpinButton.disabled=true;
+  const machine=document.getElementById("slotMachine");
+  machine.classList.add("spinning");
+  setNativeShopStatus("The reels are spinning…");
+  const shuffle=setInterval(()=>slotMachineReels.forEach(node=>setSlotReel(node,Object.keys(slotMachineSymbols)[Math.floor(Math.random()*6)])),90);
+  const result=await window.neoBrowser.spinShopSlotMachine();
+  await new Promise(resolve=>setTimeout(resolve,1150));
+  clearInterval(shuffle);
+  machine.classList.remove("spinning");
+  if(result&&result.ok){
+    result.reels.forEach((symbol,index)=>setSlotReel(slotMachineReels[index],symbol));
+    const rewards={orbs:"JACKPOT! You won 15,000 Orbs!",normal:"You won a Normal Chest!",rare:"You won a Rare Chest!",epic:"You won an Epic Chest!",neofind:"You won a NeoFind Chest!",none:"No match. Better luck next time."};
+    setNativeShopStatus(rewards[result.reward]||"Spin complete.");
+    document.getElementById("slotMachineUses").textContent=result.uses+" / "+result.limit+" used today";
+    await refreshNativeShop();
+  }else{
+    setNativeShopStatus(result&&result.message||"The slot machine could not spin.",true);
+    await refreshNativeShop();
+  }
+});
+
 async function refreshNativeShop() {
   setNativeShopStatus("Syncing your NeoFind account…");
   const state = await window.neoBrowser.getShopState();
