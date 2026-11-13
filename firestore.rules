@@ -1137,6 +1137,65 @@ service cloud.firestore {
     }
 
     /* =========================================================
+       NEOAI CHATS AND MEMORY
+       ========================================================= */
+
+    match /neoAiChats/{chatId} {
+      allow read: if isLoggedIn() && resource.data.uid == request.auth.uid;
+
+      allow create: if isLoggedIn()
+        && request.resource.data.keys().hasOnly([
+          'uid', 'title', 'pinned', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.pinned is bool;
+
+      allow update: if isLoggedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['title', 'pinned', 'updatedAt'])
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 100
+        && request.resource.data.pinned is bool;
+
+      allow delete: if isLoggedIn() && resource.data.uid == request.auth.uid;
+
+      match /messages/{messageId} {
+        function ownsChat() {
+          return isLoggedIn()
+            && get(/databases/$(database)/documents/neoAiChats/$(chatId)).data.uid == request.auth.uid;
+        }
+
+        allow read: if ownsChat();
+
+        allow create: if ownsChat()
+          && request.resource.data.keys().hasOnly([
+            'uid', 'role', 'content', 'createdAt'
+          ])
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.role in ['user', 'assistant']
+          && request.resource.data.content is string
+          && request.resource.data.content.size() <= 30000;
+
+        allow update: if false;
+        allow delete: if ownsChat();
+      }
+    }
+
+    match /neoAiMemory/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId)
+        && request.resource.data.keys().hasOnly(['uid', 'summary', 'updatedAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.summary is string
+        && request.resource.data.summary.size() <= 10000;
+      allow delete: if isOwner(userId);
+    }
+
+    /* =========================================================
        DEFAULT DENY
        ========================================================= */
 
