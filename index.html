@@ -1204,6 +1204,9 @@ body.ocean {
 #neoAiModelSelect option { background: #08161c; color: #e8fffa; }
 .neo-ai-model-row { display:flex; gap:7px; align-items:center; width:100%; }
 .neo-ai-model-row #neoAiInput { flex:1; min-width:0; }
+#neoAi24QuickSelect{height:30px;min-width:42px;padding:0 9px;border:1px solid rgba(0,242,254,.55);border-radius:9px;background:linear-gradient(135deg,rgba(0,242,254,.2),rgba(79,172,254,.2));color:#eaffff;font:700 10px 'Oxanium',sans-serif;cursor:pointer;box-shadow:0 0 10px rgba(0,242,254,.13);flex-shrink:0}
+#neoAi24QuickSelect:hover{background:linear-gradient(135deg,rgba(0,242,254,.35),rgba(79,172,254,.35));border-color:#00f2fe}
+#neoAi24QuickSelect:active{transform:scale(.96)}
 @media (max-width: 430px) {
     #neoAiModelSelect { width: 102px; min-width: 102px; max-width: 102px; font-size: 8px; }
     .neo-ai-model-row { gap: 4px; }
@@ -3127,6 +3130,7 @@ Search. Connect. Discover.
                 <option value="neoai-2.3" selected>NeoAI 2.3</option>
                 <option value="neoai-2.4">NeoAI 2.4 (Premium)</option>
             </select>
+            <button type="button" id="neoAi24QuickSelect" onclick="selectNeoAiModel('neoai-2.4')" title="NeoAI 2.4, dostępny w Premium">2.4</button>
         </div>
         <button id="neoAiSend" onclick="sendNeoAiMessage()" aria-label="Wyślij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="currentColor" stroke="none"/></svg></button>
     </div>
