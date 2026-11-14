@@ -1333,6 +1333,16 @@ async function executeShopBridge(source) {
   const wc = await ensureShopBridge();
   return wc.executeJavaScript(source);
 }
+async function awardNativeXp(event) {
+  try {
+    const eventId = event + "_" + crypto.randomUUID();
+    const source = "(async () => { if (typeof window.neoAwardXp !== 'function') return {awarded:false,reason:'XP_SERVICE_UNAVAILABLE'}; return await window.neoAwardXp(" + JSON.stringify(event) + "," + JSON.stringify(eventId) + "); })()";
+    return await executeShopBridge(source);
+  } catch (error) {
+    console.warn("NeoFind XP award failed:", error && error.message || error);
+    return {awarded:false,reason:"XP_SERVICE_ERROR"};
+  }
+}
 async function getNativeShopState() {
   try {
     return await executeShopBridge(`(async () => {
@@ -1350,8 +1360,13 @@ async function getNativeShopState() {
       const snap = await db.collection("users").doc(user.uid).get();
       const data = snap.exists ? snap.data() : {};
       const premium = data.premium === true || Number(data.premiumUntil || 0) > Date.now();
+      const totalXp = Math.max(0, Math.floor(Number(data.totalXp || 0)));
+      let level = 0, spentXp = 0, nextLevelXp = 25;
+      while (totalXp >= spentXp + nextLevelXp && level < 100000) { spentXp += nextLevelXp; level++; nextLevelXp *= 2; }
+      const levelRank = String(data.levelRank || (level >= 100001 ? "Infinity" : level >= 25001 ? "Impossible" : level >= 10001 ? "Multiverse" : level >= 5001 ? "Insane" : level >= 2001 ? "Godly" : level >= 1501 ? "Hyper" : level >= 1001 ? "Legendary" : level >= 751 ? "Super" : level >= 501 ? "Diamond" : level >= 251 ? "Obsidian" : level >= 101 ? "Platinum" : level >= 51 ? "Gold" : level >= 31 ? "Pearl" : level >= 21 ? "Amethyst" : level >= 16 ? "Ruby" : level >= 11 ? "Emerald" : level >= 7 ? "Silver" : level >= 4 ? "Bronze" : "Unranked"));
       return {
         ok:true, signedIn:true, email:String(user.email || "NeoFind account"),
+        levelData:{level,xp:totalXp-spentXp,nextLevelXp,totalXp,rank:levelRank},
         orbs:Math.max(0, Math.floor(Number(data.orbs || 0))),
         premium, premiumUntil:Number(data.premiumUntil || 0),
         slotMachineUses:Number(data.slotMachineDay || -1) === Math.floor(Date.now()/86400000) ? Math.max(0,Math.floor(Number(data.slotMachineUses || 0))) : 0,
@@ -1377,7 +1392,7 @@ async function buyNativeShopChest(type) {
   const labels = { normal:"Normal Chest", rare:"Rare Chest", epic:"Epic Chest", neofind:"NeoFind Chest" };
   if (!Object.prototype.hasOwnProperty.call(prices, type)) return { ok:false, message:"Unknown chest type." };
   try {
-    return await executeShopBridge(`(async () => {
+    const result = await executeShopBridge(`(async () => {
       const user = auth.currentUser;
       if (!user) return { ok:false, signedIn:false, message:"Sign in to NeoFind first." };
       const type = ${JSON.stringify(type)};
@@ -1421,6 +1436,8 @@ async function buyNativeShopChest(type) {
       });
       return {ok:true, item:labels[type], costOrbs:chargedOrbs, originalCostOrbs:prices[type], ticketUsed:usedTicket, discountPercent, purchaseId:purchaseRef.id};
     })()`);
+    if (result && result.ok) await awardNativeXp("browser_chest_" + type);
+    return result;
   } catch (error) {
     const message = String(error && error.message || error);
     return { ok:false, message:message.includes("NOT_ENOUGH_ORBS") ? "Not enough Orbs for this chest." : message.slice(0,300) };
@@ -1431,7 +1448,7 @@ async function buyNativeShopChest(type) {
 async function spinNativeShopSlotMachine() {
   const symbols = ["orbs","normal","rare","epic","neofind","blank"];
   try {
-    return await executeShopBridge(`(async () => {
+    const result = await executeShopBridge(`(async () => {
       const user = auth.currentUser;
       if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
       const symbols = ["orbs","normal","rare","epic","neofind","blank"];
@@ -1463,6 +1480,8 @@ async function spinNativeShopSlotMachine() {
       });
       return {ok:true,reels,reward,uses:result.uses,limit:result.limit};
     })()`);
+    if (result && result.ok) await awardNativeXp("browser_slot_spin");
+    return result;
   } catch (error) {
     const message=String(error && error.message || error);
     return {ok:false,message:message.includes("DAILY_LIMIT") ? "You have used all your slot machine spins for today." : message.slice(0,300)};
@@ -1471,7 +1490,7 @@ async function spinNativeShopSlotMachine() {
 
 async function buyNativeShopPremium() {
   try {
-    return await executeShopBridge(`(async () => {
+    const result = await executeShopBridge(`(async () => {
       const user = auth.currentUser;
       if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
       const price = typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000;
@@ -1509,6 +1528,8 @@ async function buyNativeShopPremium() {
       try { if (typeof addAnnouncementToUser === "function") await addAnnouncementToUser(user,"Premium activated","Your Premium is active until "+new Date(result.until).toLocaleDateString()+".","premium_purchase"); } catch {}
       return {ok:true,costOrbs:price,ownerShareOrbs:ownerShare,premiumUntil:result.until};
     })()`);
+    if (result && result.ok) await awardNativeXp("browser_premium_purchase");
+    return result;
   } catch (error) {
     const message=String(error && error.message || error);
     const known={
