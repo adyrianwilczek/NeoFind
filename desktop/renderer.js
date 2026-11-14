@@ -142,7 +142,7 @@ bookmarkButton?.addEventListener("click", () => {
   const items = readPageBookmarks();
   const existing = items.findIndex(item => item.url === active.url);
   if (existing >= 0) items.splice(existing, 1);
-  else items.unshift({ url: active.url, title: active.title || new URL(active.url).hostname });
+  else { items.unshift({ url: active.url, title: active.title || new URL(active.url).hostname }); window.neoBrowser.awardBrowserXp("browser_bookmark_add").catch(()=>{}); }
   localStorage.setItem(pageBookmarksKey, JSON.stringify(items.slice(0, 40)));
   renderPageBookmarks();
   updateBookmarkButton(lastTabsState);
@@ -443,7 +443,7 @@ function applyNewTabBackground(name) {
   return selected;
 }
 applyNewTabBackground(localStorage.getItem(newTabBackgroundKey) || "classic");
-backgroundChoiceButtons.forEach(button => button.addEventListener("click", () => applyNewTabBackground(button.dataset.bgChoice)));
+backgroundChoiceButtons.forEach(button => button.addEventListener("click", () => { const previous=localStorage.getItem(newTabBackgroundKey)||"classic"; const next=applyNewTabBackground(button.dataset.bgChoice); if(next!==previous) window.neoBrowser.awardBrowserXp("browser_wallpaper_change").catch(()=>{}); }));
 
 async function renderBlockedNotifications() {
   const host = document.getElementById("blockedNotificationsList");
