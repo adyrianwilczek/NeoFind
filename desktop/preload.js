@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("neoBrowser", {
   getShopState: () => ipcRenderer.invoke("shop:get-state"),
+  awardBrowserXp: (event) => ipcRenderer.invoke("xp:award-browser-action", event),
   buyShopChest: (type) => ipcRenderer.invoke("shop:buy-chest", type),
   spinShopSlotMachine: () => ipcRenderer.invoke("shop:spin-slot-machine"),
   buyShopPremium: () => ipcRenderer.invoke("shop:buy-premium"),
