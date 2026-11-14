@@ -615,14 +615,9 @@ const nativeShopPrices = {
   epic:document.getElementById("nativeShopPriceEpic"),
   neofind:document.getElementById("nativeShopPriceNeofind")
 };
-const slotMachineSymbols = {
-  orbs:{mark:"✦",label:"ORBS"},
-  normal:{mark:"N",label:"NORMAL"},
-  rare:{mark:"R",label:"RARE"},
-  epic:{mark:"E",label:"EPIC"},
-  neofind:{mark:"NF",label:"NEOFIND"},
-  blank:{mark:"—",label:"EMPTY"}
-};
+const slotChestSvg={normal:'<svg viewBox="0 0 64 64"><path d="M9 25 14 12h36l5 13v27H9Z" fill="#aab8c8" stroke="#e2eaf2" stroke-width="2.5"/><path d="M9 27h46v10H9z" fill="#8295aa" stroke="#e2eaf2" stroke-width="2"/><path d="M27 27h10v15H27z" fill="#172235" stroke="#e2eaf2" stroke-width="2"/></svg>',rare:'<svg viewBox="0 0 64 64"><path d="M9 25 14 12h36l5 13v27H9Z" fill="#38a8e8" stroke="#a6edff" stroke-width="2.5"/><path d="M9 27h46v10H9z" fill="#187dbb" stroke="#a6edff" stroke-width="2"/><path d="M27 27h10v15H27z" fill="#172235" stroke="#a6edff" stroke-width="2"/></svg>',epic:'<svg viewBox="0 0 64 64"><path d="M9 25 14 12h36l5 13v27H9Z" fill="#9560e8" stroke="#e1c3ff" stroke-width="2.5"/><path d="M9 27h46v10H9z" fill="#7041c4" stroke="#e1c3ff" stroke-width="2"/><path d="M27 27h10v15H27z" fill="#172235" stroke="#e1c3ff" stroke-width="2"/></svg>',neofind:'<svg viewBox="0 0 64 64"><path d="M9 25 14 12h36l5 13v27H9Z" fill="#08c9c9" stroke="#a6ffff" stroke-width="2.5"/><path d="M9 27h46v10H9z" fill="#087f91" stroke="#a6ffff" stroke-width="2"/><path d="M27 27h10v15H27z" fill="#172235" stroke="#a6ffff" stroke-width="2"/></svg>'};
+const slotOrbSvg='<svg viewBox="0 0 100 100"><defs><radialGradient id="slotOrbGradient" cx="30%" cy="25%"><stop stop-color="#fff"/><stop offset=".2" stop-color="#b9faff"/><stop offset=".6" stop-color="#438cff"/><stop offset="1" stop-color="#172caa"/></radialGradient></defs><circle cx="50" cy="50" r="39" fill="url(#slotOrbGradient)" stroke="#8ceaff" stroke-width="3"/><ellipse cx="37" cy="31" rx="12" ry="7" fill="#fff" opacity=".75"/></svg>';
+const slotMachineSymbols={orbs:{svg:slotOrbSvg,label:"ORBS"},normal:{svg:slotChestSvg.normal,label:"NORMAL"},rare:{svg:slotChestSvg.rare,label:"RARE"},epic:{svg:slotChestSvg.epic,label:"EPIC"},neofind:{svg:slotChestSvg.neofind,label:"NEOFIND"},blank:{svg:'<span class="slot-empty-mark">?</span>',label:"EMPTY"}};
 let nativeShopState = null;
 function setNativeShopStatus(message, error=false) {
   nativeShopStatus.textContent = message;
@@ -671,9 +666,7 @@ const slotMachineSpinButton=document.getElementById("slotMachineSpin");
 const slotMachineReels=Array.from(document.querySelectorAll(".slot-reel"));
 function setSlotReel(node,symbol){
   const item=slotMachineSymbols[symbol]||slotMachineSymbols.blank;
-  node.innerHTML='<span class="slot-reel-mark"></span><span class="slot-reel-label"></span>';
-  node.querySelector(".slot-reel-mark").textContent=item.mark;
-  node.querySelector(".slot-reel-label").textContent=item.label;
+  node.innerHTML='<span class="slot-reel-art">'+item.svg+'</span><span class="slot-reel-label">'+item.label+'</span>';
   node.dataset.symbol=symbol;
 }
 slotMachineReels.forEach(node=>setSlotReel(node,"blank"));
@@ -681,23 +674,23 @@ slotMachineSpinButton.addEventListener("click",async()=>{
   if(slotMachineSpinButton.disabled)return;
   slotMachineSpinButton.disabled=true;
   const machine=document.getElementById("slotMachine");
-  machine.classList.add("spinning");
-  setNativeShopStatus("The reels are spinning…");
-  const shuffle=setInterval(()=>slotMachineReels.forEach(node=>setSlotReel(node,Object.keys(slotMachineSymbols)[Math.floor(Math.random()*6)])),90);
-  const result=await window.neoBrowser.spinShopSlotMachine();
-  await new Promise(resolve=>setTimeout(resolve,1150));
-  clearInterval(shuffle);
-  machine.classList.remove("spinning");
+  machine.classList.add("lever-pulled");
+  setNativeShopStatus("The lever is engaged. Reels are spinning…");
+  let result;
+  try{result=await window.neoBrowser.spinShopSlotMachine();}catch(error){result={ok:false,message:String(error&&error.message||error)};}
   if(result&&result.ok){
-    result.reels.forEach((symbol,index)=>setSlotReel(slotMachineReels[index],symbol));
+    machine.classList.add("spinning");
+    const symbols=Object.keys(slotMachineSymbols);
+    const shuffle=setInterval(()=>slotMachineReels.forEach(node=>setSlotReel(node,symbols[Math.floor(Math.random()*symbols.length)])),65);
+    await new Promise(resolve=>setTimeout(resolve,700));clearInterval(shuffle);
+    for(let i=0;i<slotMachineReels.length;i++){setSlotReel(slotMachineReels[i],result.reels[i]);slotMachineReels[i].classList.add("reel-stopped");await new Promise(resolve=>setTimeout(resolve,260));}
+    machine.classList.remove("spinning");
     const rewards={orbs:"JACKPOT! You won 15,000 Orbs!",normal:"You won a Normal Chest!",rare:"You won a Rare Chest!",epic:"You won an Epic Chest!",neofind:"You won a NeoFind Chest!",none:"No match. Better luck next time."};
     setNativeShopStatus(rewards[result.reward]||"Spin complete.");
     document.getElementById("slotMachineUses").textContent=result.uses+" / "+result.limit+" used today";
     await refreshNativeShop();
-  }else{
-    setNativeShopStatus(result&&result.message||"The slot machine could not spin.",true);
-    await refreshNativeShop();
-  }
+  }else{machine.classList.remove("spinning");setNativeShopStatus(result&&result.message||"The slot machine could not spin.",true);await refreshNativeShop();}
+  machine.classList.remove("lever-pulled");slotMachineReels.forEach(node=>node.classList.remove("reel-stopped"));
 });
 
 async function refreshNativeShop() {
