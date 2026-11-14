@@ -473,3 +473,12 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .slot-machine-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:13px;border-top:1px solid #ffffff20;color:#d4d9e2;font-size:11px}.slot-machine-prizes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.slot-prize{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:1px solid #ffffff1a;border-radius:11px;background:#ffffff08;text-align:center}.slot-prize>strong{font-size:10px;color:#f7e5bd}.slot-prize small{font-size:9px;color:#b6bfcd}.slot-prize-orb svg{width:31px;height:31px}.slot-prize-chest{font-size:10px;color:#d8bd82;font-weight:900}.slot-prize-empty{font-size:25px;line-height:31px;color:#aab3c0}
 @media(max-width:600px){.slot-machine-body{gap:10px;padding-inline:0}.slot-cabinet{padding:9px}.slot-reels{gap:5px;padding:7px}.slot-reel{height:84px}.slot-reel-art{height:45px}.slot-reel-art svg{width:42px;height:42px}.slot-machine-lever-button{min-width:65px;padding:7px}.slot-machine-prizes{gap:5px}.slot-prize{padding:8px 3px}}
 .slot-machine-controls{flex-direction:row}.slot-machine-footer{flex-direction:column}.slot-reels{gap:6px;padding:8px}.slot-reel{width:72px;height:82px}}
+
+/* Slot machine jackpot confetti */
+.slot-machine{overflow:hidden}
+.slot-confetti-burst{position:absolute;inset:0;z-index:20;overflow:hidden;pointer-events:none}
+.slot-confetti-piece{position:absolute;top:-18px;left:var(--confetti-x);width:9px;height:14px;border-radius:2px;background:hsl(var(--confetti-hue) 92% 62%);opacity:0;transform:translate3d(0,-20px,0) rotate(0);animation:slotConfettiFall var(--confetti-duration) cubic-bezier(.18,.68,.32,1) var(--confetti-delay) forwards}
+.slot-confetti-piece:nth-child(3n){width:6px;height:18px;border-radius:99px}
+.slot-confetti-piece:nth-child(4n){width:12px;height:8px}
+@keyframes slotConfettiFall{0%{opacity:0;transform:translate3d(0,-20px,0) rotate(0)}8%{opacity:1}100%{opacity:0;transform:translate3d(var(--confetti-drift),calc(100vh + 80px),0) rotate(var(--confetti-rotation))}}
+@media(prefers-reduced-motion:reduce){.slot-confetti-piece{animation-duration:1ms!important}}
