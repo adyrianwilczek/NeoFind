@@ -1559,6 +1559,10 @@ async function redeemNativeShopCode(code) {
 
 ipcMain.handle("tabs:create", (_event, url, options) => { const id = openTab(url || HOME_URL, true, options || {}); if (!(options && options.private === true)) awardNativeXp("browser_new_tab"); return id; });
 ipcMain.handle("shop:get-state", () => getNativeShopState());
+ipcMain.handle("xp:award-browser-action", (_event, xpEvent) => {
+  const allowed = new Set(["browser_bookmark_add","browser_wallpaper_change","browser_theme_create","browser_translator_use","browser_calculator_use","browser_picture_in_picture","browser_install_extension","browser_first_sync","browser_update"]);
+  return allowed.has(String(xpEvent)) ? awardNativeXp(String(xpEvent)) : {awarded:false,reason:"INVALID_EVENT"};
+});
 ipcMain.handle("shop:buy-chest", (_event, type) => buyNativeShopChest(type));
 ipcMain.handle("shop:spin-slot-machine", () => spinNativeShopSlotMachine());
 ipcMain.handle("shop:buy-premium", () => buyNativeShopPremium());
