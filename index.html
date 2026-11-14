@@ -2524,6 +2524,15 @@ NOTE! Do not share the key with anyone.
 
             <div class="settings-col">
                 <h4 id="accountTitle">Account</h4>
+                <section id="neoLevelCard" style="margin-top:16px;padding:16px;border:1px solid rgba(0,242,254,.35);border-radius:16px;background:linear-gradient(135deg,rgba(0,242,254,.10),rgba(155,81,224,.12));text-align:left;">
+                    <div style="display:flex;align-items:center;gap:14px;">
+                        <div id="neoLevelShield" style="width:54px;height:60px;display:grid;place-items:center;flex:none;color:#aeb8c8;font-size:25px;">⬟</div>
+                        <div style="flex:1;min-width:0;"><div style="font-size:12px;opacity:.7;">NEOFIND LEVEL</div><div style="display:flex;align-items:baseline;gap:7px;"><strong id="neoLevelNumber" style="font-size:32px;line-height:1.1;">0</strong><span id="neoLevelRank" style="font-size:13px;opacity:.8;">Unranked</span></div><div id="neoLevelXpText" style="font-size:12px;opacity:.75;margin-top:5px;">0 / 25 XP</div></div>
+                    </div>
+                    <div style="height:9px;border-radius:20px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:13px;"><div id="neoLevelProgress" style="height:100%;width:0%;border-radius:20px;background:linear-gradient(90deg,#00f2fe,#4facfe,#9b51e0);transition:width .4s;"></div></div>
+                    <div id="neoLevelTotalXp" style="font-size:11px;opacity:.6;margin-top:7px;">0 total XP</div>
+                </section>
+
                 <div class="result">
                     <b>Email:</b>
                     <span id="accountEmail"></span>
@@ -4910,6 +4919,35 @@ const storage = firebase.storage();
 window.db = db;
 window.auth = auth;
 window.storage = storage;
+
+window.neoAwardXp = async function(event, eventId) {
+    const user = auth.currentUser;
+    if (!user) return { awarded:false, reason:"NOT_SIGNED_IN" };
+    const token = await user.getIdToken();
+    const response = await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/awardXp", {
+        method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+        body:JSON.stringify({event,eventId:eventId || (event+"_"+crypto.randomUUID())})
+    });
+    if (!response.ok) throw new Error("XP service error: "+response.status);
+    return response.json();
+};
+function neoRenderLevel(data) {
+    const total = Math.max(0,Math.floor(Number(data.totalXp||0)));
+    let level=0, spent=0, next=25;
+    while(total>=spent+next && level<100000){spent+=next;level++;next*=2;}
+    const rank=level>=100001?"Infinity":level>=25001?"Impossible":level>=10001?"Multiverse":level>=5001?"Insane":level>=2001?"Godly":level>=1501?"Hyper":level>=1001?"Legendary":level>=751?"Super":level>=501?"Diamond":level>=251?"Obsidian":level>=101?"Platinum":level>=51?"Gold":level>=31?"Pearl":level>=21?"Amethyst":level>=16?"Ruby":level>=11?"Emerald":level>=7?"Silver":level>=4?"Bronze":"Unranked";
+    const colors={Unranked:"#9ca3af",Bronze:"#b87333",Silver:"#c0c0c0",Emerald:"#10b981",Ruby:"#ef4444",Amethyst:"#a855f7",Pearl:"#f1f5f9",Gold:"#facc15",Platinum:"#cbd5e1",Obsidian:"#343044",Diamond:"#38bdf8",Super:"#22d3ee",Legendary:"#fbbf24",Hyper:"#9333ea",Godly:"#f59e0b",Insane:"#7c3aed",Multiverse:"#8b5cf6",Impossible:"#e2e8f0",Infinity:"#fff"};
+    const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=value;};
+    set("neoLevelNumber",level.toLocaleString());set("neoLevelRank",rank);set("neoLevelXpText",level>=100000?"MAX LEVEL":(total-spent).toLocaleString()+" / "+next.toLocaleString()+" XP");set("neoLevelTotalXp",total.toLocaleString()+" total XP");
+    const bar=document.getElementById("neoLevelProgress");if(bar)bar.style.width=(level>=100000?100:Math.min(100,(total-spent)/next*100))+"%";
+    const shield=document.getElementById("neoLevelShield");if(shield){shield.textContent=rank==="Infinity"?"∞":"⬟";shield.style.color=colors[rank]||"#9ca3af";shield.style.filter="drop-shadow(0 0 8px "+(colors[rank]||"#9ca3af")+")";shield.style.fontSize=rank==="Infinity"?"48px":"42px";}
+}
+auth.onAuthStateChanged(user=>{
+    if(window.neoLevelUnsub){window.neoLevelUnsub();window.neoLevelUnsub=null;}
+    if(!user){neoRenderLevel({totalXp:0});return;}
+    window.neoLevelUnsub=db.collection("users").doc(user.uid).onSnapshot(s=>neoRenderLevel(s.exists?s.data():{}));
+});
+
 
 /* =========================
    ADMIN EMAILS
