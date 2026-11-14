@@ -482,3 +482,39 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 .slot-confetti-piece:nth-child(4n){width:12px;height:8px}
 @keyframes slotConfettiFall{0%{opacity:0;transform:translate3d(0,-20px,0) rotate(0)}8%{opacity:1}100%{opacity:0;transform:translate3d(var(--confetti-drift),calc(100vh + 80px),0) rotate(var(--confetti-rotation))}}
 @media(prefers-reduced-motion:reduce){.slot-confetti-piece{animation-duration:1ms!important}}
+
+
+/* NeoFind Browser 0.1.51 · Level System */
+.native-level-card{display:grid;grid-template-columns:minmax(190px,.8fr) minmax(260px,1.2fr);align-items:center;gap:22px;margin:15px 0 20px;padding:19px 21px;border:1px solid rgba(91,205,255,.3);border-radius:17px;background:radial-gradient(ellipse at 5% 0%,rgba(0,220,255,.13),transparent 48%),linear-gradient(125deg,#14263b,#111a2b 70%,#17152e);box-shadow:0 12px 32px #0003}
+.native-level-main{display:flex;align-items:center;gap:14px;min-width:0}
+.native-level-shield{position:relative;display:grid;place-items:center;flex:0 0 64px;width:64px;height:72px;clip-path:polygon(50% 0,94% 17%,88% 72%,50% 100%,12% 72%,6% 17%);background:linear-gradient(145deg,#5c7187,#26374c);box-shadow:0 4px 15px #0006;color:#fff;font-size:20px;font-weight:900}
+.native-level-shield:before{content:"";position:absolute;inset:4px;clip-path:inherit;border:1px solid #ffffff70;background:linear-gradient(145deg,#ffffff20,#00000012)}
+.native-level-shield span{position:relative;text-shadow:0 2px 5px #0008}
+.native-level-shield[data-rank="bronze"]{background:linear-gradient(145deg,#e5a36a,#77401e)}
+.native-level-shield[data-rank="silver"]{background:linear-gradient(145deg,#f2f5fa,#64748b)}
+.native-level-shield[data-rank="emerald"]{background:linear-gradient(145deg,#75edb1,#08774f)}
+.native-level-shield[data-rank="ruby"]{background:linear-gradient(145deg,#ff829a,#941d48)}
+.native-level-shield[data-rank="amethyst"]{background:linear-gradient(145deg,#d5a0ff,#6134a9)}
+.native-level-shield[data-rank="pearl"]{background:linear-gradient(145deg,#fff,#9baec2)}
+.native-level-shield[data-rank="gold"]{background:linear-gradient(145deg,#fff0a1,#a56a08)}
+.native-level-shield[data-rank="platinum"]{background:linear-gradient(145deg,#d9f4ff,#668ba9)}
+.native-level-shield[data-rank="obsidian"]{background:linear-gradient(145deg,#68758e,#111827)}
+.native-level-shield[data-rank="diamond"]{background:linear-gradient(145deg,#a8ffff,#2482d8)}
+.native-level-shield[data-rank="super"]{background:linear-gradient(135deg,#00eaff,#8757ff,#ff64c8)}
+.native-level-shield[data-rank="legendary"]{background:linear-gradient(135deg,#fff0a0,#e68a22,#b82b4b)}
+.native-level-shield[data-rank="hyper"]{background:linear-gradient(135deg,#ff65db,#734cff,#32dfff)}
+.native-level-shield[data-rank="godly"]{background:linear-gradient(135deg,#fff,#e8b83d,#fff4a5);color:#51380a}
+.native-level-shield[data-rank="insane"]{background:linear-gradient(135deg,#ff4141,#ffb52e,#7d43ff)}
+.native-level-shield[data-rank="multiverse"]{background:linear-gradient(135deg,#00eaff,#7c4dff,#ff4dc4,#ffcf55)}
+.native-level-shield[data-rank="impossible"]{background:linear-gradient(135deg,#fff,#b7a5ff,#67eaff,#fff)}
+.native-level-shield[data-rank="infinity"]{background:linear-gradient(135deg,#fff,#8c70ff,#00eaff,#fff);box-shadow:0 0 22px #8d79ff99}
+.native-level-identity{display:flex;flex-direction:column;gap:4px;min-width:0}
+.native-level-identity>strong{font-size:25px;line-height:1.1;color:#f4f8ff}
+.native-level-identity>small{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#83ddf2}
+.native-level-progress{min-width:0}
+.native-level-progress-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:9px;color:#a9bbd0;font-size:10px;font-weight:850;letter-spacing:.1em}
+.native-level-progress-top strong{color:#e7f8ff;font-size:12px;letter-spacing:0}
+.native-level-track{height:12px;overflow:hidden;border:1px solid #ffffff20;border-radius:99px;background:#050d19;box-shadow:inset 0 2px 4px #0009}
+.native-level-track>span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#00d9e8,#4c9fff,#a36cff);box-shadow:0 0 13px #37cfff88;transition:width .65s cubic-bezier(.2,.7,.2,1)}
+.native-level-progress>small{display:block;margin-top:8px;color:#8299b3;font-size:10px}
+@media(max-width:650px){.native-level-card{grid-template-columns:1fr;gap:16px;padding:15px}.native-level-shield{flex-basis:57px;width:57px;height:64px}}
