@@ -627,8 +627,31 @@ function closeNativeShop() {
   nativeShopOverlay.classList.add("hidden");
   window.neoSetModalOpen("native-shop", false);
 }
+
+function renderNativeLevel(data){
+  const level=Math.max(0,Math.floor(Number(data&&data.level||0)));
+  const xp=Math.max(0,Math.floor(Number(data&&data.xp||0)));
+  const next=Math.max(25,Math.floor(Number(data&&data.nextLevelXp||25)));
+  const total=Math.max(0,Math.floor(Number(data&&data.totalXp||0)));
+  const rank=String(data&&data.rank||"Unranked");
+  const shield=document.getElementById("nativeLevelShield");
+  const fill=document.getElementById("nativeLevelProgressFill");
+  const bar=document.getElementById("nativeLevelProgress");
+  if(!shield||!fill||!bar)return;
+  shield.dataset.rank=rank.toLowerCase();
+  document.getElementById("nativeLevelShieldNumber").textContent=level.toLocaleString();
+  document.getElementById("nativeLevelTitle").textContent="Level "+level.toLocaleString();
+  document.getElementById("nativeLevelRank").textContent=rank;
+  document.getElementById("nativeLevelXpText").textContent=xp.toLocaleString()+" / "+next.toLocaleString()+" XP";
+  document.getElementById("nativeLevelTotalXp").textContent=total.toLocaleString()+" total XP earned";
+  const percent=Math.max(0,Math.min(100,xp/next*100));
+  fill.style.width=percent+"%";
+  bar.setAttribute("aria-valuemax",String(next));
+  bar.setAttribute("aria-valuenow",String(xp));
+}
 function renderNativeShop(state) {
   nativeShopState = state;
+  renderNativeLevel(state && state.levelData);
   nativeShopSignIn.classList.toggle("hidden", !!(state && state.signedIn));
   document.getElementById("nativeShopAccount").textContent = state && state.signedIn ? state.email : "Not signed in";
   document.getElementById("nativeShopOrbs").textContent = state && state.signedIn ? Number(state.orbs || 0).toLocaleString() + " Orbs" : "— Orbs";
