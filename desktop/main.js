@@ -876,6 +876,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
   const customNewTab = String(address || "").toLowerCase() === "about:newtab";
   const tab = { id, view, title: internalAnnouncements ? "Announcements" : "New Tab", url: internalAnnouncements ? "about:announcements" : customNewTab ? "about:newtab" : isHomeTab ? (homePage ? "about:home" : "about:blank") : "", loading: true, isHomeTab, homePage, customNewTab, internalAnnouncements, isPrivate, pinned: options.pinned === true, blockedAdCount: 0 };
   tabs.set(id, tab);
+  if (!isPrivate) setTimeout(() => { awardNativeXp("browser_daily_open"); }, 2800);
   const wc = view.webContents;
   installAlwaysOnAdBlocker(wc.session);
   // NEOFIND_011_KEYBOARD_SHORTCUTS: keep browser shortcuts active while a web page has focus.
@@ -1556,14 +1557,14 @@ async function redeemNativeShopCode(code) {
   }
 }
 
-ipcMain.handle("tabs:create", (_event, url, options) => openTab(url || HOME_URL, true, options || {}));
+ipcMain.handle("tabs:create", (_event, url, options) => { const id = openTab(url || HOME_URL, true, options || {}); if (!(options && options.private === true)) awardNativeXp("browser_new_tab"); return id; });
 ipcMain.handle("shop:get-state", () => getNativeShopState());
 ipcMain.handle("shop:buy-chest", (_event, type) => buyNativeShopChest(type));
 ipcMain.handle("shop:spin-slot-machine", () => spinNativeShopSlotMachine());
 ipcMain.handle("shop:buy-premium", () => buyNativeShopPremium());
 ipcMain.handle("shop:redeem-code", (_event, code) => redeemNativeShopCode(code));
 ipcMain.handle("shop:open-sign-in", () => ({ ok:true, tabId:openTab(HOME_URL, true) }));
-ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; return openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); });
+ipcMain.handle("tabs:duplicate", (_event, id) => { const tab = tabs.get(Number(id)) || tabs.get(activeTabId); if (!tab) return null; const duplicateId = openTab(tab.isHomeTab ? (tab.homePage ? "about:home" : "about:blank") : (tab.url || HOME_URL), true, { private: tab.isPrivate, pinned: false }); if (!tab.isPrivate) awardNativeXp("browser_new_tab"); return duplicateId; });
 ipcMain.handle("tabs:toggle-pin", (_event, id) => { const tab = tabs.get(Number(id)); if (!tab) return { ok: false }; tab.pinned = !tab.pinned; sendState(); queueSessionSave(); return { ok: true, pinned: tab.pinned }; });
 ipcMain.handle("browser:clear-data", async () => { try { await session.defaultSession.clearStorageData(); await session.defaultSession.clearCache(); return { ok: true }; } catch (error) { return { ok: false, message: error.message }; } });
 ipcMain.handle("downloads:get", () => readDownloadHistory());
