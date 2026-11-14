@@ -1012,7 +1012,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       tab.customNewTab = false;
       if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
       else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
-      if (!tab.isPrivate && /^https?:\\/\\//i.test(url)) {
+      if (!tab.isPrivate && (url.startsWith("http://") || url.startsWith("https://"))) {
         try { const host = new URL(url).hostname.toLowerCase(); awardNativeXp("browser_new_domain", "domain_" + host.replace(/[^a-z0-9_-]/g, "_")); } catch {}
       }
     }
