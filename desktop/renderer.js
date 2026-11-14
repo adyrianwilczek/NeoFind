@@ -664,6 +664,28 @@ function renderNativeShop(state) {
 
 const slotMachineSpinButton=document.getElementById("slotMachineSpin");
 const slotMachineReels=Array.from(document.querySelectorAll(".slot-reel"));
+function launchSlotJackpotConfetti(){
+  const machine=document.getElementById("slotMachine");
+  if(!machine)return;
+  machine.querySelector(".slot-confetti-burst")?.remove();
+  const burst=document.createElement("div");
+  burst.className="slot-confetti-burst";
+  burst.setAttribute("aria-hidden","true");
+  const pieces=90;
+  for(let i=0;i<pieces;i++){
+    const piece=document.createElement("i");
+    piece.style.setProperty("--confetti-x",(Math.random()*100)+"%");
+    piece.style.setProperty("--confetti-delay",(Math.random()*420)+"ms");
+    piece.style.setProperty("--confetti-duration",(1800+Math.random()*1500)+"ms");
+    piece.style.setProperty("--confetti-rotation",(Math.random()*900-450)+"deg");
+    piece.style.setProperty("--confetti-drift",(Math.random()*240-120)+"px");
+    piece.style.setProperty("--confetti-hue",Math.floor(Math.random()*360));
+    piece.className="slot-confetti-piece";
+    burst.appendChild(piece);
+  }
+  machine.appendChild(burst);
+  window.setTimeout(()=>burst.remove(),4000);
+}
 function setSlotReel(node,symbol){
   const item=slotMachineSymbols[symbol]||slotMachineSymbols.blank;
   node.innerHTML='<span class="slot-reel-art">'+item.svg+'</span><span class="slot-reel-label">'+item.label+'</span>';
@@ -687,6 +709,7 @@ slotMachineSpinButton.addEventListener("click",async()=>{
     machine.classList.remove("spinning");
     const rewards={orbs:"JACKPOT! You won 15,000 Orbs!",normal:"You won a Normal Chest!",rare:"You won a Rare Chest!",epic:"You won an Epic Chest!",neofind:"You won a NeoFind Chest!",none:"No match. Better luck next time."};
     setNativeShopStatus(rewards[result.reward]||"Spin complete.");
+    if(result.reward==="orbs")launchSlotJackpotConfetti();
     document.getElementById("slotMachineUses").textContent=result.uses+" / "+result.limit+" used today";
     await refreshNativeShop();
   }else{machine.classList.remove("spinning");setNativeShopStatus(result&&result.message||"The slot machine could not spin.",true);await refreshNativeShop();}
