@@ -43,6 +43,7 @@ const ONCE = new Set([
 ]);
 
 const DAILY_LIMITS = {
+  browser_daily_open: 1,
   browser_new_domain: 20,
   browser_install_extension: 5,
   browser_slot_spin: 5,
