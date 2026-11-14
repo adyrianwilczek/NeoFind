@@ -1012,6 +1012,9 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       tab.customNewTab = false;
       if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
       else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
+      if (!tab.isPrivate && /^https?:\\/\\//i.test(url)) {
+        try { const host = new URL(url).hostname.toLowerCase(); awardNativeXp("browser_new_domain", "domain_" + host.replace(/[^a-z0-9_-]/g, "_")); } catch {}
+      }
     }
     sendState();
     saveSessionSync();
@@ -1334,9 +1337,9 @@ async function executeShopBridge(source) {
   const wc = await ensureShopBridge();
   return wc.executeJavaScript(source);
 }
-async function awardNativeXp(event) {
+async function awardNativeXp(event, customEventId) {
   try {
-    const eventId = event + "_" + crypto.randomUUID();
+    const eventId = customEventId || (event + "_" + crypto.randomUUID());
     const source = "(async () => { if (typeof window.neoAwardXp !== 'function') return {awarded:false,reason:'XP_SERVICE_UNAVAILABLE'}; return await window.neoAwardXp(" + JSON.stringify(event) + "," + JSON.stringify(eventId) + "); })()";
     return await executeShopBridge(source);
   } catch (error) {
