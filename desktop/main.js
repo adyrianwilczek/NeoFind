@@ -1047,7 +1047,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
       else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
       if (!tab.isPrivate && (url.startsWith("http://") || url.startsWith("https://"))) {
-        try { const host = new URL(url).hostname.toLowerCase(); awardNativeXp("browser_new_domain", "domain_" + new Date().toISOString().slice(0, 10) + "_" + host.replace(/[^a-z0-9_-]/g, "_")); } catch {}
+        try { const host = new URL(url).hostname.toLowerCase(); awardNativeXp("browser_new_domain", "domain_" + new Date().toISOString().slice(0, 10) + "_" + host.replace(/[^a-z0-9_-]/g, "_").slice(0, 80)); } catch {}
       }
     }
     sendState();
@@ -1405,7 +1405,7 @@ async function awardNativeXp(event, customEventId) {
         return { awarded:false, reason:"XP_REQUEST_FAILED" };
       }
     })()`;
-    return await executeShopBridge(source);
+    const result = await executeShopBridge(source);\n    if (!result || result.awarded !== true) console.info("NeoFind XP:", event, result && result.reason || "NO_RESULT");\n    else console.info("NeoFind XP awarded:", event, result.gained, "total:", result.totalXp, "level:", result.level);\n    return result;
   } catch (error) {
     console.warn("NeoFind XP award failed:", error && error.message || error);
     return {awarded:false,reason:"XP_SERVICE_ERROR"};
