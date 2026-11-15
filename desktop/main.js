@@ -1415,7 +1415,7 @@ async function awardNativeXp(event, customEventId) {
           while(totalXp >= spent + next && level < 100000){spent += next;level++;next *= 2;}
           const rank = level>=100001?"Infinity":level>=25001?"Impossible":level>=10001?"Multiverse":level>=5001?"Insane":level>=2001?"Godly":level>=1501?"Hyper":level>=1001?"Legendary":level>=751?"Super":level>=501?"Diamond":level>=251?"Obsidian":level>=101?"Platinum":level>=51?"Gold":level>=31?"Pearl":level>=21?"Amethyst":level>=16?"Ruby":level>=11?"Emerald":level>=7?"Silver":level>=4?"Bronze":"Unranked";
           tx.set(eventRef,{event:${JSON.stringify(event)},points:reward,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-          tx.update(userRef,{totalXp,level,levelXp:totalXp-spent,levelNextXp:next,levelRank:rank,xpUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+          tx.update(userRef,{totalXp,level,levelXp:totalXp-spent,levelNextXp:next,levelRank:rank,xpLastEventId:eventRef.id,xpUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()});
           return {awarded:true,gained:reward,totalXp,level};
         });
         return result;
