@@ -6,7 +6,8 @@ const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 initializeApp();
 const db = getFirestore();
 
-const REWARDS = {
+// NEOFIND XP SYSTEM v2: all rewards are calculated and written server-side.
+const XP_REWARDS = Object.freeze({
   browser_new_domain: 2,
   browser_daily_open: 5,
   browser_install_extension: 3,
@@ -35,14 +36,14 @@ const REWARDS = {
   daily_mission_complete: 10,
   weekly_mission_complete: 50,
   neoai_first_open: 25
-};
+});
 
-const ONCE = new Set([
+const XP_ONCE = new Set([
   "browser_first_sync", "arcade_first_game", "neoai_first_open",
   "browser_premium_purchase", "browser_theme_create", "web_theme_create"
 ]);
 
-const DAILY_LIMITS = {
+const XP_DAILY_LIMITS = Object.freeze({
   browser_daily_open: 1,
   browser_new_domain: 20,
   browser_install_extension: 5,
@@ -58,18 +59,22 @@ const DAILY_LIMITS = {
   rating_submit: 3,
   friend_add: 10,
   message_send: 50
-};
+});
 
-function levelData(totalXp) {
+function calculateLevel(totalXp) {
+  const safeTotal = Math.max(0, Math.floor(Number(totalXp) || 0));
   let level = 0;
-  let spent = 0;
-  let next = 25;
-  while (totalXp >= spent + next && level < 100000) {
-    spent += next;
-    level++;
-    next *= 2;
+  let xpIntoLevel = safeTotal;
+  let xpForNextLevel = 25;
+
+  while (xpIntoLevel >= xpForNextLevel && level < 100000) {
+    xpIntoLevel -= xpForNextLevel;
+    level += 1;
+    xpForNextLevel *= 2;
   }
-  const rank = level >= 100001 ? "Infinity" :
+
+  const rank =
+    level >= 100001 ? "Infinity" :
     level >= 25001 ? "Impossible" :
     level >= 10001 ? "Multiverse" :
     level >= 5001 ? "Insane" :
@@ -87,59 +92,111 @@ function levelData(totalXp) {
     level >= 11 ? "Emerald" :
     level >= 7 ? "Silver" :
     level >= 4 ? "Bronze" : "Unranked";
-  return { level, xp: totalXp - spent, nextLevelXp: next, totalXp, rank };
+
+  return {
+    level,
+    xp: xpIntoLevel,
+    nextLevelXp: xpForNextLevel,
+    totalXp: safeTotal,
+    rank
+  };
 }
 
-exports.awardXp = onRequest({ region: "us-central1", cors: true, maxInstances: 20 }, async (req, res) => {
-  if (req.method !== "POST") return res.status(405).json({ error: "METHOD_NOT_ALLOWED" });
-  try {
-    const header = String(req.headers.authorization || "");
-    if (!header.startsWith("Bearer ")) return res.status(401).json({ error: "UNAUTHENTICATED" });
-    const decoded = await getAuth().verifyIdToken(header.slice(7));
-    const uid = decoded.uid;
-    const event = String(req.body && req.body.event || "");
-    const eventId = String(req.body && req.body.eventId || "");
-    if (!Object.prototype.hasOwnProperty.call(REWARDS, event) || !/^[a-zA-Z0-9_-]{8,120}$/.test(eventId)) {
-      return res.status(400).json({ error: "INVALID_EVENT" });
+exports.awardXp = onRequest(
+  { region: "us-central1", cors: true, maxInstances: 20 },
+  async (req, res) => {
+    if (req.method !== "POST") {
+      return res.status(405).json({ ok: false, error: "METHOD_NOT_ALLOWED" });
     }
 
-    const reward = REWARDS[event];
-    const userRef = db.collection("users").doc(uid);
-    const eventRef = userRef.collection("xpEvents").doc(eventId);
-    const day = new Date().toISOString().slice(0, 10);
-    const dailyRef = userRef.collection("xpDaily").doc(day);
-    const result = await db.runTransaction(async tx => {
-      const [userSnap, eventSnap, dailySnap] = await Promise.all([
-        tx.get(userRef), tx.get(eventRef), tx.get(dailyRef)
-      ]);
-      if (eventSnap.exists) return { awarded: false, reason: "ALREADY_CLAIMED", ...(userSnap.exists ? levelData(Number(userSnap.get("totalXp") || 0)) : levelData(0)) };
-      if (ONCE.has(event) && userSnap.exists && (userSnap.get("xpOneTime") || {})[event]) {
-        return { awarded: false, reason: "ALREADY_CLAIMED", ...levelData(Number(userSnap.get("totalXp") || 0)) };
+    try {
+      const authorization = String(req.headers.authorization || "");
+      if (!authorization.startsWith("Bearer ")) {
+        return res.status(401).json({ ok: false, error: "UNAUTHENTICATED" });
       }
-      const counts = dailySnap.exists ? (dailySnap.data().counts || {}) : {};
-      const limit = DAILY_LIMITS[event];
-      if (limit && Number(counts[event] || 0) >= limit) {
-        return { awarded: false, reason: "DAILY_LIMIT", ...levelData(Number(userSnap.get("totalXp") || 0)) };
+
+      const decoded = await getAuth().verifyIdToken(authorization.slice(7));
+      const uid = decoded.uid;
+      const event = String(req.body?.event || "");
+      const eventId = String(req.body?.eventId || "");
+
+      if (!Object.prototype.hasOwnProperty.call(XP_REWARDS, event)) {
+        return res.status(400).json({ ok: false, error: "UNKNOWN_XP_EVENT" });
       }
-      const oldXp = Math.max(0, Math.floor(Number(userSnap.exists ? userSnap.get("totalXp") || 0 : 0)));
-      const next = levelData(oldXp + reward);
-      const updates = {
-        totalXp: oldXp + reward,
-        level: next.level,
-        levelXp: next.xp,
-        levelNextXp: next.nextLevelXp,
-        levelRank: next.rank,
-        xpUpdatedAt: FieldValue.serverTimestamp()
-      };
-      if (ONCE.has(event)) updates[`xpOneTime.${event}`] = true;
-      tx.set(userRef, updates, { merge: true });
-      tx.create(eventRef, { event, reward, createdAt: FieldValue.serverTimestamp() });
-      if (limit) tx.set(dailyRef, { counts: { ...counts, [event]: Number(counts[event] || 0) + 1 } }, { merge: true });
-      return { awarded: true, gained: reward, ...next };
-    });
-    return res.status(200).json(result);
-  } catch (error) {
-    console.error("awardXp failed", error);
-    return res.status(500).json({ error: "XP_AWARD_FAILED" });
+      if (!/^[a-zA-Z0-9_-]{8,120}$/.test(eventId)) {
+        return res.status(400).json({ ok: false, error: "INVALID_EVENT_ID" });
+      }
+
+      const reward = XP_REWARDS[event];
+      const userRef = db.collection("users").doc(uid);
+      const eventRef = userRef.collection("xpEvents").doc(eventId);
+      const dayKey = new Date().toISOString().slice(0, 10);
+      const dailyRef = userRef.collection("xpDaily").doc(dayKey);
+
+      const result = await db.runTransaction(async (tx) => {
+        const [userSnap, eventSnap, dailySnap] = await Promise.all([
+          tx.get(userRef),
+          tx.get(eventRef),
+          tx.get(dailyRef)
+        ]);
+
+        const currentTotal = Math.max(
+          0,
+          Math.floor(Number(userSnap.exists ? userSnap.get("totalXp") : 0) || 0)
+        );
+        const currentLevel = calculateLevel(currentTotal);
+
+        if (eventSnap.exists) {
+          return { ok: true, awarded: false, reason: "ALREADY_CLAIMED", ...currentLevel };
+        }
+
+        const claimedOnce = userSnap.exists ? (userSnap.get("xpOneTime") || {}) : {};
+        if (XP_ONCE.has(event) && claimedOnce[event] === true) {
+          return { ok: true, awarded: false, reason: "ALREADY_CLAIMED", ...currentLevel };
+        }
+
+        const counts = dailySnap.exists ? (dailySnap.get("counts") || {}) : {};
+        const dailyLimit = XP_DAILY_LIMITS[event] || 0;
+        const usedToday = Math.max(0, Number(counts[event]) || 0);
+
+        if (dailyLimit > 0 && usedToday >= dailyLimit) {
+          return { ok: true, awarded: false, reason: "DAILY_LIMIT", ...currentLevel };
+        }
+
+        const updated = calculateLevel(currentTotal + reward);
+        const userUpdate = {
+          totalXp: updated.totalXp,
+          level: updated.level,
+          levelXp: updated.xp,
+          levelNextXp: updated.nextLevelXp,
+          levelRank: updated.rank,
+          xpUpdatedAt: FieldValue.serverTimestamp()
+        };
+
+        if (XP_ONCE.has(event)) userUpdate[`xpOneTime.${event}`] = true;
+
+        tx.set(userRef, userUpdate, { merge: true });
+        tx.create(eventRef, {
+          event,
+          reward,
+          eventId,
+          createdAt: FieldValue.serverTimestamp()
+        });
+
+        if (dailyLimit > 0) {
+          tx.set(dailyRef, {
+            counts: { ...counts, [event]: usedToday + 1 },
+            updatedAt: FieldValue.serverTimestamp()
+          }, { merge: true });
+        }
+
+        return { ok: true, awarded: true, gained: reward, ...updated };
+      });
+
+      return res.status(200).json(result);
+    } catch (error) {
+      console.error("awardXp failed:", error);
+      return res.status(500).json({ ok: false, error: "XP_AWARD_FAILED" });
+    }
   }
-});
+);
