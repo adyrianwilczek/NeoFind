@@ -1405,7 +1405,10 @@ async function awardNativeXp(event, customEventId) {
         return { awarded:false, reason:"XP_REQUEST_FAILED" };
       }
     })()`;
-    const result = await executeShopBridge(source);\n    if (!result || result.awarded !== true) console.info("NeoFind XP:", event, result && result.reason || "NO_RESULT");\n    else console.info("NeoFind XP awarded:", event, result.gained, "total:", result.totalXp, "level:", result.level);\n    return result;
+    const result = await executeShopBridge(source);
+    if (!result || result.awarded !== true) console.info("NeoFind XP:", event, result && result.reason || "NO_RESULT");
+    else console.info("NeoFind XP awarded:", event, result.gained, "total:", result.totalXp, "level:", result.level);
+    return result;
   } catch (error) {
     console.warn("NeoFind XP award failed:", error && error.message || error);
     return {awarded:false,reason:"XP_SERVICE_ERROR"};
