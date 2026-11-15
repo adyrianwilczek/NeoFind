@@ -354,6 +354,24 @@ service cloud.firestore {
         return request.resource.data.diff(resource.data).affectedKeys();
       }
 
+      function isXpProgressUpdate() {
+        return isOwner(userId)
+          && changedKeys().hasOnly([
+            'totalXp', 'level', 'levelXp', 'levelNextXp', 'levelRank', 'xpUpdatedAt'
+          ])
+          && request.resource.data.totalXp is int
+          && request.resource.data.totalXp >= resource.data.get('totalXp', 0) + 1
+          && request.resource.data.totalXp <= resource.data.get('totalXp', 0) + 5000
+          && request.resource.data.level is int
+          && request.resource.data.level >= 0
+          && request.resource.data.levelXp is int
+          && request.resource.data.levelXp >= 0
+          && request.resource.data.levelNextXp is int
+          && request.resource.data.levelNextXp > 0
+          && request.resource.data.levelRank is string
+          && request.resource.data.xpUpdatedAt == request.time;
+      }
+
       function emailOk(keys) {
         return !keys.hasAny(['email'])
           || request.resource.data.email == request.auth.token.email;
@@ -800,7 +818,8 @@ service cloud.firestore {
        * device authenticated with a backend-issued custom claim,
        * or by an admin.
        */
-      allow update: if isAdmin()
+      allow update: if isXpProgressUpdate()
+        || isAdmin()
         || isPremiumOwnerCredit()
         || (
           isOwner(userId)
@@ -829,7 +848,14 @@ service cloud.firestore {
 
       match /xpEvents/{eventId} {
         allow read: if isOwner(userId) || isAdmin();
-        allow write: if false;
+        allow create: if isOwner(userId)
+          && request.resource.data.keys().hasOnly(['event', 'points', 'createdAt'])
+          && request.resource.data.event is string
+          && request.resource.data.points is int
+          && request.resource.data.points >= 1
+          && request.resource.data.points <= 5000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
       }
 
       match /xpDaily/{dayId} {
