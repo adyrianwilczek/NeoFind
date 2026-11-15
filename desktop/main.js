@@ -1374,7 +1374,37 @@ async function executeShopBridge(source) {
 async function awardNativeXp(event, customEventId) {
   try {
     const eventId = customEventId || (event + "_" + crypto.randomUUID());
-    const source = "(async () => { if (typeof window.neoAwardXp !== 'function') return {awarded:false,reason:'XP_SERVICE_UNAVAILABLE'}; return await window.neoAwardXp(" + JSON.stringify(event) + "," + JSON.stringify(eventId) + "); })()";
+    const source = `(async () => {
+      try {
+        if (typeof auth === "undefined" || typeof fetch !== "function") {
+          return { awarded:false, reason:"XP_SERVICE_UNAVAILABLE" };
+        }
+        if (!window.__neoXpAuthResolved) {
+          await new Promise(resolve => {
+            const unsubscribe = auth.onAuthStateChanged(() => {
+              window.__neoXpAuthResolved = true;
+              try { unsubscribe(); } catch {}
+              resolve();
+            });
+          });
+        }
+        const user = auth.currentUser;
+        if (!user) return { awarded:false, reason:"NOT_SIGNED_IN" };
+        const token = await user.getIdToken();
+        const response = await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/awardXp", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json", "Authorization":"Bearer " + token },
+          body:JSON.stringify({ event:${JSON.stringify(event)}, eventId:${JSON.stringify(eventId)} })
+        });
+        let result = {};
+        try { result = await response.json(); } catch {}
+        if (!response.ok) return { awarded:false, reason:result.error || ("HTTP_" + response.status) };
+        return result;
+      } catch (error) {
+        console.warn("NeoFind XP request failed:", error && error.message || error);
+        return { awarded:false, reason:"XP_REQUEST_FAILED" };
+      }
+    })()`;
     return await executeShopBridge(source);
   } catch (error) {
     console.warn("NeoFind XP award failed:", error && error.message || error);
