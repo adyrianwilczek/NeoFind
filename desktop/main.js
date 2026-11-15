@@ -1047,7 +1047,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       if (tab.homePage && url === HOME_URL) { tab.isHomeTab = true; tab.url = "about:home"; }
       else { tab.isHomeTab = false; tab.homePage = false; tab.url = url; }
       if (!tab.isPrivate && (url.startsWith("http://") || url.startsWith("https://"))) {
-        try { const host = new URL(url).hostname.toLowerCase(); awardNativeXp("browser_new_domain", "domain_" + host.replace(/[^a-z0-9_-]/g, "_")); } catch {}
+        try { const host = new URL(url).hostname.toLowerCase(); awardNativeXp("browser_new_domain", "domain_" + new Date().toISOString().slice(0, 10) + "_" + host.replace(/[^a-z0-9_-]/g, "_")); } catch {}
       }
     }
     sendState();
