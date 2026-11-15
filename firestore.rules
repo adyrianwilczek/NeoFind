@@ -346,7 +346,7 @@ service cloud.firestore {
           'lastOrbTransferOut', 'advancements', 'advancementStats',
           'badges', 'advancementNotices', 'serverEvents',
           'neoVisitDate', 'neoVisitStreak',
-          'totalXp', 'level', 'levelXp', 'levelNextXp', 'levelRank', 'xpOneTime', 'xpUpdatedAt'
+          'totalXp', 'level', 'levelXp', 'levelNextXp', 'levelRank', 'xpOneTime', 'xpLastEventId', 'xpUpdatedAt'
         ];
       }
 
@@ -354,20 +354,55 @@ service cloud.firestore {
         return request.resource.data.diff(resource.data).affectedKeys();
       }
 
+      function xpPointsFor(event) {
+        return event == 'browser_new_domain' ? 2
+          : event == 'browser_daily_open' ? 5
+          : event == 'browser_install_extension' ? 3
+          : event == 'browser_slot_spin' ? 2
+          : event == 'browser_chest_normal' ? 10
+          : event == 'browser_chest_rare' ? 25
+          : event == 'browser_chest_epic' ? 50
+          : event == 'browser_chest_neofind' ? 100
+          : event == 'browser_premium_purchase' ? 5000
+          : event == 'browser_bookmark_add' ? 2
+          : event == 'browser_theme_create' ? 15
+          : event == 'browser_wallpaper_change' ? 2
+          : event == 'browser_translator_use' ? 2
+          : event == 'browser_calculator_use' ? 1
+          : event == 'browser_new_tab' ? 1
+          : event == 'browser_picture_in_picture' ? 3
+          : event == 'browser_first_sync' ? 25
+          : event == 'browser_update' ? 5
+          : event == 'arcade_play' ? 3
+          : event == 'arcade_first_game' ? 10
+          : event == 'report_submit' ? 2
+          : event == 'rating_submit' ? 10
+          : event == 'friend_add' ? 5
+          : event == 'message_send' ? 1
+          : event == 'web_theme_create' ? 15
+          : event == 'daily_mission_complete' ? 10
+          : event == 'weekly_mission_complete' ? 50
+          : event == 'neoai_first_open' ? 25 : 0;
+      }
+
       function isXpProgressUpdate() {
+        let eventId = request.resource.data.get('xpLastEventId', '');
+        let eventPath = /databases/$(database)/documents/users/$(userId)/xpEvents/$(eventId);
+        let event = getAfter(eventPath).data;
+        let gained = request.resource.data.totalXp - resource.data.get('totalXp', 0);
         return isOwner(userId)
           && changedKeys().hasOnly([
-            'totalXp', 'level', 'levelXp', 'levelNextXp', 'levelRank', 'xpUpdatedAt'
+            'totalXp', 'level', 'levelXp', 'levelNextXp', 'levelRank', 'xpLastEventId', 'xpUpdatedAt'
           ])
+          && eventId is string && eventId.size() > 0
+          && existsAfter(eventPath)
+          && event.points == gained
+          && event.points == xpPointsFor(event.event)
           && request.resource.data.totalXp is int
-          && request.resource.data.totalXp >= resource.data.get('totalXp', 0) + 1
-          && request.resource.data.totalXp <= resource.data.get('totalXp', 0) + 5000
-          && request.resource.data.level is int
-          && request.resource.data.level >= 0
-          && request.resource.data.levelXp is int
-          && request.resource.data.levelXp >= 0
-          && request.resource.data.levelNextXp is int
-          && request.resource.data.levelNextXp > 0
+          && gained >= 1 && gained <= 5000
+          && request.resource.data.level is int && request.resource.data.level >= 0
+          && request.resource.data.levelXp is int && request.resource.data.levelXp >= 0
+          && request.resource.data.levelNextXp is int && request.resource.data.levelNextXp > 0
           && request.resource.data.levelRank is string
           && request.resource.data.xpUpdatedAt == request.time;
       }
@@ -851,10 +886,10 @@ service cloud.firestore {
         allow create: if isOwner(userId)
           && request.resource.data.keys().hasOnly(['event', 'points', 'createdAt'])
           && request.resource.data.event is string
-          && request.resource.data.points is int
+          && request.resource.data.points == xpPointsFor(request.resource.data.event)
           && request.resource.data.points >= 1
-          && request.resource.data.points <= 5000
-          && request.resource.data.createdAt == request.time;
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/users/$(userId)).data.xpLastEventId == eventId;
         allow update, delete: if false;
       }
 
