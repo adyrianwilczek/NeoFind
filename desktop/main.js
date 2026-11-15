@@ -111,6 +111,19 @@ function inspectHttpsCertificate(hostname, port = 443) {
 const HOME_URL = "https://neofind.pl/app/";
 let mainWindow;
 let browserLanguage = "en";
+// NeoFind Browser spell checker: use the interface language for page text suggestions.
+function applySpellCheckerLanguage(targetSession) {
+  const currentSession = targetSession || session.defaultSession;
+  if (!currentSession) return;
+  const languageCode = ({ pl: "pl-PL", en: "en-US", es: "es-ES" })[browserLanguage] || "en-US";
+  try {
+    if (typeof currentSession.setSpellCheckerEnabled === "function") currentSession.setSpellCheckerEnabled(true);
+    if (typeof currentSession.setSpellCheckerLanguages === "function") currentSession.setSpellCheckerLanguages([languageCode]);
+  } catch (error) {
+    console.warn("NeoFind spell checker could not apply language:", error && error.message ? error.message : error);
+  }
+}
+
 let nextTabId = 1;
 let activeTabId = null;
 function isHttpUrl(value) { return typeof value === "string" && (value.startsWith("http://") || value.startsWith("https://")); }
@@ -867,6 +880,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
+      spellcheck: true,
       ...(isPrivate ? { partition: "neofind-private-" + id } : {})
     }
   });
@@ -909,6 +923,7 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     }
   });
 
+  applySpellCheckerLanguage(wc.session);
   wc.on("context-menu", (_event, params) => {
     if (!mainWindow || mainWindow.isDestroyed() || wc.isDestroyed()) return;
     const point = { x: Number(params.x) || 0, y: Number(params.y) || 0 };
@@ -917,6 +932,25 @@ function openTab(address = HOME_URL, activate = true, options = {}) {
     const selectedText = String(params.selectionText || "").trim();
     const imageContext = params.mediaType === "image" || Boolean(params.srcURL);
     const items = [];
+    const spellingWords = {
+      pl: { heading: "Propozycje pisowni", none: "Brak podpowiedzi", add: "Dodaj do słownika" },
+      en: { heading: "Spelling suggestions", none: "No suggestions", add: "Add to dictionary" },
+      es: { heading: "Sugerencias ortográficas", none: "Sin sugerencias", add: "Añadir al diccionario" }
+    }[browserLanguage] || { heading: "Spelling suggestions", none: "No suggestions", add: "Add to dictionary" };
+    const misspelledWord = String(params.misspelledWord || "").trim();
+    if (misspelledWord && params.isEditable) {
+      const suggestions = Array.isArray(params.dictionarySuggestions) ? params.dictionarySuggestions.slice(0, 6) : [];
+      items.push({ label: spellingWords.heading, enabled: false });
+      if (suggestions.length) {
+        for (const suggestion of suggestions) {
+          items.push({ label: suggestion, click: () => { if (!wc.isDestroyed()) wc.replaceMisspelling(suggestion); } });
+        }
+      } else {
+        items.push({ label: spellingWords.none, enabled: false });
+      }
+      items.push({ label: spellingWords.add, click: () => { try { wc.session.addWordToSpellCheckerDictionary(misspelledWord); } catch {} } });
+      items.push({ type: "separator" });
+    }
     if (imageContext) {
       items.push(
         { label: "Copy image", click: () => { try { wc.copyImageAt(point.x, point.y); } catch {} } },
@@ -1835,7 +1869,7 @@ ipcMain.handle("updater:install", () => {
 });
 autoUpdater.on("error", (error) => sendUpdaterState({ status: "error", message: "Update check failed: " + (error && error.message ? error.message : "unknown error") }));
 
-ipcMain.handle("browser:set-language", (_event, language) => { browserLanguage = ["en", "pl", "es"].includes(language) ? language : "en"; return true; });
+ipcMain.handle("browser:set-language", (_event, language) => { browserLanguage = ["en", "pl", "es"].includes(language) ? language : "en"; applySpellCheckerLanguage(session.defaultSession); for (const tab of tabs.values()) { try { applySpellCheckerLanguage(tab.view.webContents.session); } catch {} } return true; });
 ipcMain.handle("updater:check", async () => {
   if (!app.isPackaged) return { status: "development", message: "Updates are available in the installed version." };
   try { await autoUpdater.checkForUpdates(); return { status: "checking", message: "Checking GitHub Releases..." }; }
