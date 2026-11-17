@@ -1410,8 +1410,8 @@ async function getNativeShopState() {
       const data = snap.exists ? snap.data() : {};
       const premiumUntil = Number(data.premiumUntil || 0);
       const goldUntil = Number(data.goldUntil || 0);
-      const premium = data.plan === "premium" || (data.plan !== "gold" && (data.premium === true || premiumUntil > Date.now()));
-      const gold = data.plan === "gold" || goldUntil > Date.now();
+      const premium = data.plan === "premium" ? premiumUntil > Date.now() : (data.plan !== "gold" && (data.premium === true || premiumUntil > Date.now()));
+      const gold = data.plan === "gold" ? goldUntil > Date.now() : (data.plan !== "premium" && goldUntil > Date.now());
       const totalXp = Math.max(0, Math.floor(Number(data.totalXp || 0)));
       let level = 0, spentXp = 0, nextLevelXp = 25;
       while (totalXp >= spentXp + nextLevelXp && level < 100000) { spentXp += nextLevelXp; level++; nextLevelXp *= 2; }
@@ -1563,11 +1563,12 @@ async function buyNativeShopPremium() {
         const verifiedOwnerUid = configSnap.exists ? String(configSnap.data().uid || "") : "";
         if (!verifiedOwnerUid || verifiedOwnerUid !== ownerUid) throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
         const data = userSnap.exists ? userSnap.data() : {};
-        if (data.premium === true || Number(data.premiumUntil || 0) > Date.now()) throw new Error("PREMIUM_ACTIVE");
+        if (data.plan === "gold" ? Number(data.goldUntil || 0) > Date.now() : (data.gold === true || Number(data.goldUntil || 0) > Date.now())) throw new Error("GOLD_ACTIVE");
+        if (data.plan === "premium" ? Number(data.premiumUntil || 0) > Date.now() : (data.premium === true || Number(data.premiumUntil || 0) > Date.now())) throw new Error("PREMIUM_ACTIVE");
         const current = Math.max(0,Math.floor(Number(data.orbs || 0)));
         if (current < price) throw new Error("NOT_ENOUGH_ORBS");
         const until = Math.max(Date.now(),Number(data.premiumUntil || 0)) + 30*86400000;
-        transaction.set(userRef,{orbs:current-price,premiumUntil:until},{merge:true});
+        transaction.set(userRef,{orbs:current-price,premium:true,plan:"premium",premiumUntil:until,gold:false,goldUntil:0},{merge:true});
         transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
         transaction.set(receiptRef,{
           purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim().toLowerCase(),
@@ -1616,12 +1617,12 @@ async function buyNativeShopGold() {
         const verifiedOwnerUid = configSnap.exists ? String(configSnap.data().uid || "") : "";
         if (!verifiedOwnerUid || verifiedOwnerUid !== ownerUid) throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
         const data = userSnap.exists ? userSnap.data() : {};
-        if (data.plan === "gold" && Number(data.goldUntil || 0) > Date.now()) throw new Error("GOLD_ACTIVE");
-        if (data.plan === "gold" || data.gold === true || Number(data.goldUntil || 0) > Date.now()) throw new Error("PREMIUM_ACTIVE");
+        if (data.plan === "gold" ? Number(data.goldUntil || 0) > Date.now() : (data.gold === true || Number(data.goldUntil || 0) > Date.now())) throw new Error("GOLD_ACTIVE");
+        if (data.plan === "premium" ? Number(data.premiumUntil || 0) > Date.now() : (data.premium === true || Number(data.premiumUntil || 0) > Date.now())) throw new Error("PREMIUM_ACTIVE");
         const current = Math.max(0,Math.floor(Number(data.orbs || 0)));
         if (current < price) throw new Error("NOT_ENOUGH_ORBS");
         const until = Date.now() + 30*86400000;
-        transaction.set(userRef,{orbs:current-price,gold:false,plan:"gold",goldUntil:0,goldUntil:until},{merge:true});
+        transaction.set(userRef,{orbs:current-price,premium:false,premiumUntil:0,gold:true,plan:"gold",goldUntil:until},{merge:true});
         transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
         transaction.set(receiptRef,{
           purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim().toLowerCase(),
@@ -1640,7 +1641,8 @@ async function buyNativeShopGold() {
     const message=String(error && error.message || error);
     const known={
       NOT_ENOUGH_ORBS:"Not enough Orbs for Gold.",
-      PREMIUM_ACTIVE:"You already have active Gold.",
+      PREMIUM_ACTIVE:"You already have active Premium.",
+      GOLD_ACTIVE:"You already have active Gold.",
       OWNER_ACCOUNT_NOT_INITIALIZED:"NeoFind owner account is not initialized.",
       OWNER_CANNOT_BUY_PREMIUM:"The owner account already has Gold privileges."
     };
