@@ -2049,6 +2049,10 @@ body.ocean {
 </script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <meta name="google-site-verification" content="5FkGuLai_JBGQ7e0vj9ipYedqFX7CL5nFlMQG95aQUE"/>
+<style id="neo-gold-plan-styles">
+#neoBuyGoldButton{border:1px solid #d8a52f;background:linear-gradient(120deg,#f7cf68,#d99a25);color:#261a05;font-weight:800;border-radius:10px;padding:11px 18px;cursor:pointer;box-shadow:0 0 18px rgba(230,180,55,.18)}
+#neoBuyGoldButton:hover{filter:brightness(1.08)}
+</style>
 <style id="neo-profile-badges-style">
 .neo-profile-badge{display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;width:30px;height:30px;margin-left:5px;position:relative;top:-2px}
 .neo-profile-badge-svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 6px rgba(77,166,255,.28))}
@@ -5100,16 +5104,15 @@ async function syncUserEconomy(user) {
             );
 
         const premiumUntil = Number(data.premiumUntil || 0);
-        const premium = permanentPremium || premiumUntil > Date.now();
+        const goldUntil = Number(data.goldUntil || 0);
+        const gold = data.plan === "gold" || (data.plan !== "premium" && (data.gold === true || goldUntil > Date.now()));
+        const premium = !gold && (data.plan === "premium" || permanentPremium || premiumUntil > Date.now());
 
-        window.neoPremiumState = {
-            premium,
-            premiumUntil
-        };
+        window.neoPremiumState = { premium, premiumUntil, gold, goldUntil, plan: gold ? "gold" : premium ? "premium" : "free" };
 
         userOrbs = Math.floor(orbs);
         localStorage.setItem("userOrbs", String(userOrbs));
-        localStorage.setItem("userPremium", premium ? "true" : "false");
+        localStorage.setItem("userPremium", (premium || gold) ? "true" : "false");
         if (premiumUntil > 0) {
             localStorage.setItem("neoPremiumUntil", String(premiumUntil));
         }
@@ -5120,6 +5123,9 @@ async function syncUserEconomy(user) {
             orbs: userOrbs,
             premium,
             premiumUntil,
+            gold,
+            goldUntil,
+            plan: gold ? "gold" : premium ? "premium" : "free",
             badges: Array.isArray(data.badges) ? data.badges : []
         };
         if (typeof renderNeoFindAccountBadges === "function") {
