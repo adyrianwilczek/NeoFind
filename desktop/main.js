@@ -1461,7 +1461,7 @@ async function buyNativeShopChest(type) {
         const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
         const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
         const availableDiscount = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
-        const premiumActive = data.plan === "premium" || data.plan === "gold" || data.premium === true || Number(data.premiumUntil || 0) > Date.now() || Number(data.goldUntil || 0) > Date.now();
+        const premiumActive = data.plan === "premium" ? Number(data.premiumUntil || 0) > Date.now() : data.plan === "gold" ? Number(data.goldUntil || 0) > Date.now() : (data.premium === true || Number(data.premiumUntil || 0) > Date.now() || Number(data.goldUntil || 0) > Date.now());
         const premiumDiscount = premiumActive ? 50 : 0;
         const useGiftDiscount = discountUses > 0 && availableDiscount > premiumDiscount;
         const inventory = Object.assign({normal:0,rare:0,epic:0,neofind:0}, data.chestInventory || {});
@@ -1512,7 +1512,7 @@ async function spinNativeShopSlotMachine() {
       const result = await db.runTransaction(async transaction => {
         const snap = await transaction.get(userRef);
         const data = snap.exists ? snap.data() : {};
-        const premium = data.plan === "premium" || data.plan === "gold" || data.premium === true || Number(data.premiumUntil || 0) > Date.now() || Number(data.goldUntil || 0) > Date.now();
+        const premium = data.plan === "premium" ? Number(data.premiumUntil || 0) > Date.now() : data.plan === "gold" ? Number(data.goldUntil || 0) > Date.now() : (data.premium === true || Number(data.premiumUntil || 0) > Date.now() || Number(data.goldUntil || 0) > Date.now());
         const oldUses = Number(data.slotMachineDay || -1) === spinDay ? Math.max(0,Math.floor(Number(data.slotMachineUses || 0))) : 0;
         const limit = premium ? 5 : 1;
         if (oldUses >= limit) throw new Error("DAILY_LIMIT");
