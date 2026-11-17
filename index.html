@@ -2053,6 +2053,7 @@ body.ocean {
 #neoBuyGoldButton{border:1px solid #d8a52f;background:linear-gradient(120deg,#f7cf68,#d99a25);color:#261a05;font-weight:800;border-radius:10px;padding:11px 18px;cursor:pointer;box-shadow:0 0 18px rgba(230,180,55,.18)}
 #neoBuyGoldButton:hover{filter:brightness(1.08)}
 </style>
+<style id="neo-gold-plan-style">#neoBuyGoldButton{border:1px solid #d8a52f;background:linear-gradient(120deg,#f7cf68,#d99a25);color:#261a05;font-weight:800;border-radius:10px;padding:11px 18px;cursor:pointer}</style>
 <style id="neo-profile-badges-style">
 .neo-profile-badge{display:inline-flex;vertical-align:middle;align-items:center;justify-content:center;width:30px;height:30px;margin-left:5px;position:relative;top:-2px}
 .neo-profile-badge-svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 6px rgba(77,166,255,.28))}
@@ -2669,6 +2670,7 @@ NOTE! Do not share the key with anyone.
     </div>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button id="neoBuyPremiumButton" onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
+        <button id="neoBuyGoldButton" onclick="buyGoldWithOrbs()">Buy Gold (2500 Orbs)</button>
         <button onclick="openPremiumTrial()">Try out for free</button>
         <button type="button" onclick="openNeoPremiumBenefits()" id="neoPremiumBenefitsButton">See benefits</button>
     </div>
@@ -5015,6 +5017,7 @@ function neoBadgeSvg(type) {
     if (type === "developer") return base(`<circle cx="20" cy="20" r="18" fill="#2387ff"/><path d="M12 14h16l-2 3H14zM15 17h10v10H15z" fill="none" stroke="#fff" stroke-width="2.3" stroke-linejoin="round"/><path d="M17 27h6M18 11h4" fill="none" stroke="#bfe1ff" stroke-width="2.2" stroke-linecap="round"/>`);
     if (type === "orbs") return base(`<circle cx="20" cy="20" r="17" fill="url(#neoBadgeOrbGradient)"/><path d="M12 21c0-6 3-10 8-10s8 4 8 10-3 9-8 9-8-3-8-9z" fill="rgba(255,255,255,.16)" stroke="#fff" stroke-width="1.5"/><circle cx="17" cy="17" r="2.5" fill="#fff" opacity=".85"/>`, true);
     if (type === "premium") return base(`<circle cx="20" cy="20" r="18" fill="url(#neoBadgePremiumGradient)"/><path d="M10 16l4 13h12l4-13-6 5-4-8-4 8z" fill="#fff" opacity=".95"/><path d="M12 31h16" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>`, true);
+    if (type === "gold") return base(`<circle cx="20" cy="20" r="18" fill="#d99b22"/><path d="M20 6l4.2 8.5 9.4 1.4-6.8 6.6 1.6 9.3-8.4-4.4-8.4 4.4 1.6-9.3-6.8-6.6 9.4-1.4z" fill="#fff0b3" stroke="#8b5a0b" stroke-width="1.2"/>`);
     if (type === "luckyBoy") return base(`<circle cx="20" cy="20" r="18" fill="#eaffb5" stroke="#8bc34a" stroke-width="1.5"/><path d="M20 18C13 5 4 12 10 20c-9 2-5 12 3 9 1 8 10 7 10 0 8 4 14-6 6-10 5-9-5-15-9-1z" fill="#38b44a" stroke="#176b2c" stroke-width="1.3" stroke-linejoin="round"/><path d="M20 20c-1 5-3 9-7 13" fill="none" stroke="#176b2c" stroke-width="1.7" stroke-linecap="round"/><circle cx="13" cy="17" r="1.5" fill="#b9f6ca"/><circle cx="26" cy="19" r="1.5" fill="#b9f6ca"/>`);
     if (String(type).startsWith("adv_")) return base(`<circle cx="20" cy="20" r="18" fill="#182d55" stroke="#9df5ff" stroke-width="1.5"/><path d="M20 7l3.5 8 8.5 1-6.3 5.8 1.7 8.4L20 26l-7.4 4.2 1.7-8.4L8 16l8.5-1z" fill="#9df5ff" stroke="#d8fcff" stroke-width="1" stroke-linejoin="round"/><circle cx="20" cy="20" r="16" fill="none" stroke="#8b5cf6" stroke-width="1.3"/>`);
     const badgeText = /search/i.test(String(type)) ? "🔎"
@@ -5029,6 +5032,7 @@ function neoBadgeHtml(types) {
     return unique.map(type => {
         let title = type === "luckyBoy" ? "Lucky Boy"
             : type === "premium" ? "Premium"
+            : type === "gold" ? "Gold"
             : type === "admin" ? "Admin"
             : type === "developer" ? "Developer"
             : type === "owner" ? "Owner"
@@ -5048,14 +5052,15 @@ function getNeoUserBadgeTypes(user, orbs, economy = null) {
     if (email === "adrian.wilczek@hotmail.com") types.push("owner");
     if (DEVELOPER_BADGE_EMAILS.includes(email)) types.push("developer");
     if (typeof ADMIN_EMAILS !== "undefined" && ADMIN_EMAILS.map(e => String(e).toLowerCase()).includes(email)) types.push("admin");
-    const premiumFromEconomy = economy && (economy.premium === true || Number(economy.premiumUntil || 0) > Date.now());
-    if (premiumFromEconomy || isPremiumActive()) types.push("premium");
+    const goldFromEconomy = economy && (economy.plan === "gold" ? Number(economy.goldUntil || 0) > Date.now() : Number(economy.goldUntil || 0) > Date.now());
+    const premiumFromEconomy = economy && (economy.plan === "premium" ? Number(economy.premiumUntil || 0) > Date.now() : (economy.premium === true || Number(economy.premiumUntil || 0) > Date.now()));
+    if (goldFromEconomy) types.push("gold"); else if (premiumFromEconomy || isPremiumActive()) types.push("premium");
     if (Number(orbs || 0) >= 50000) types.push("orbs");
     if (Array.isArray(economy?.badges)) {
         economy.badges.forEach(badge => {
             if (typeof badge !== "string") return;
             const normalized = badge.trim();
-            if (!normalized || ["owner", "admin", "developer", "premium", "orbs"].includes(normalized)) return;
+            if (!normalized || ["owner", "admin", "developer", "premium", "gold", "orbs"].includes(normalized)) return;
             types.push(normalized);
         });
     }
@@ -5105,8 +5110,8 @@ async function syncUserEconomy(user) {
 
         const premiumUntil = Number(data.premiumUntil || 0);
         const goldUntil = Number(data.goldUntil || 0);
-        const gold = data.plan === "gold" || (data.plan !== "premium" && (data.gold === true || goldUntil > Date.now()));
-        const premium = !gold && (data.plan === "premium" || permanentPremium || premiumUntil > Date.now());
+        const gold = data.plan === "gold" ? goldUntil > Date.now() : (data.plan !== "premium" && goldUntil > Date.now());
+        const premium = !gold && (data.plan === "premium" ? premiumUntil > Date.now() : (permanentPremium || premiumUntil > Date.now()));
 
         window.neoPremiumState = { premium, premiumUntil, gold, goldUntil, plan: gold ? "gold" : premium ? "premium" : "free" };
 
@@ -5148,10 +5153,8 @@ function isPremiumActive() {
     }
 
     const state = window.neoPremiumState;
-    return !!state?.premium && (
-        Number(state.premiumUntil || 0) === 0 ||
-        Number(state.premiumUntil || 0) > Date.now()
-    );
+    return (!!state?.premium && (Number(state.premiumUntil || 0) === 0 || Number(state.premiumUntil || 0) > Date.now()))
+        || (!!state?.gold && (Number(state.goldUntil || 0) === 0 || Number(state.goldUntil || 0) > Date.now()));
 }
 
 
@@ -13197,7 +13200,7 @@ async function buyPremiumWithOrbs() {
     }
 
     if (isPremiumActive()) {
-        alert("You already have an active Premium status!");
+        alert("You already have an active plan!");
         return;
     }
 
@@ -13234,8 +13237,7 @@ async function buyPremiumWithOrbs() {
 
             const premiumUntil = Math.max(Date.now(), Number(data.premiumUntil || 0)) + 30 * 86400000;
             transaction.set(ref, {
-                orbs: current - price,
-                premiumUntil
+                orbs: current - price, premium:true, plan:"premium", premiumUntil, gold:false, goldUntil:0
             }, { merge: true });
 
             // FieldValue.increment nie wymaga odczytu prywatnego dokumentu właściciela.
@@ -13287,7 +13289,43 @@ async function buyPremiumWithOrbs() {
             alert("The owner account already has Premium privileges.");
         } else {
             console.error("Premium purchase failed:", error);
-            alert("Could not complete the Premium purchase. Please try again.");
+            alert("Could not complete the Premium purchase. Please tr
+async function buyGoldWithOrbs() {
+    const price=2500, ownerEmail="adrian.wilczek@hotmail.com", ownerShare=625;
+    const user=typeof auth!=="undefined"?auth.currentUser:null;
+    if(!user||typeof db==="undefined"){alert("You must be logged in.");return;}
+    try{
+        const ownerConfigRef=db.collection("config").doc("owner"),ownerSnap=await ownerConfigRef.get();
+        const ownerUid=ownerSnap.exists?String(ownerSnap.data().uid||""):"";
+        if(!ownerUid)throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
+        if(ownerUid===user.uid)throw new Error("OWNER_CANNOT_BUY_GOLD");
+        const ref=db.collection("users").doc(user.uid),ownerRef=db.collection("users").doc(ownerUid);
+        const purchaseRef=ref.collection("purchaseReceipts").doc(),purchasedAtMs=Date.now();
+        const result=await db.runTransaction(async tx=>{
+            const [snap,config]=await Promise.all([tx.get(ref),tx.get(ownerConfigRef)]);
+            if(!config.exists||String(config.data().uid||"")!==ownerUid)throw new Error("OWNER_ACCOUNT_NOT_INITIALIZED");
+            const data=snap.exists?snap.data():{};
+            if(data.plan==="premium"?Number(data.premiumUntil||0)>Date.now():(data.premium===true||Number(data.premiumUntil||0)>Date.now()))throw new Error("PREMIUM_ACTIVE");
+            if(data.plan==="gold"?Number(data.goldUntil||0)>Date.now():(data.gold===true||Number(data.goldUntil||0)>Date.now()))throw new Error("GOLD_ACTIVE");
+            const balance=Math.max(0,Math.floor(Number(data.orbs||0)));
+            if(balance<price)throw new Error("NOT_ENOUGH_ORBS");
+            const goldUntil=Date.now()+30*86400000;
+            tx.set(ref,{orbs:balance-price,premium:false,premiumUntil:0,gold:true,plan:"gold",goldUntil},{merge:true});
+            tx.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
+            tx.set(purchaseRef,{purchaseId:purchaseRef.id,uid:user.uid,email:String(user.email||"").trim().toLowerCase(),item:"Gold (30 days)",itemType:"gold",costOrbs:price,ownerShareOrbs:ownerShare,ownerEmail,purchasedAt:firebase.firestore.FieldValue.serverTimestamp(),purchasedAtMs});
+            return {goldUntil};
+        });
+        userOrbs=Math.max(0,userOrbs-price);localStorage.setItem("userOrbs",String(userOrbs));
+        window.neoPremiumState={...(window.neoPremiumState||{}),premium:false,premiumUntil:0,gold:true,goldUntil:result.goldUntil,plan:"gold"};
+        renderMissions();
+        showNeoPurchaseReceipt({purchaseId:purchaseRef.id,purchasedAtMs,item:"Gold (30 days)",costOrbs:price,email:String(user.email||"").trim().toLowerCase()});
+        alert("Gold activated for 30 days. 625 Orbs were credited to the NeoFind owner.");
+    }catch(error){
+        const messages={NOT_ENOUGH_ORBS:"Not enough Orbs. Gold costs 2500 Orbs.",PREMIUM_ACTIVE:"You already have active Premium.",GOLD_ACTIVE:"You already have active Gold.",OWNER_ACCOUNT_NOT_INITIALIZED:"The NeoFind owner account is not initialized.",OWNER_CANNOT_BUY_GOLD:"The owner account already has Gold privileges."};
+        console.error("Gold purchase failed:",error);alert(messages[error.message]||"Could not complete the Gold purchase.");
+    }
+}
+y again.");
         }
     }
 }
