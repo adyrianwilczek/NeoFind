@@ -28,7 +28,7 @@ jobs:
           node-version: 20
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
-      - name: Deploy Firestore rules only
-        run: firebase deploy --only firestore:rules --project neofind-f8213 --non-interactive
       - name: Deploy server-side XP function
         run: firebase deploy --only functions:awardXp --project neofind-f8213 --non-interactive
+      - name: Deploy Firestore rules only
+        run: firebase deploy --only firestore:rules --project neofind-f8213 --non-interactive
