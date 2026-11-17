@@ -364,6 +364,7 @@ service cloud.firestore {
           : event == 'browser_chest_epic' ? 50
           : event == 'browser_chest_neofind' ? 100
           : event == 'browser_premium_purchase' ? 5000
+          : event == 'browser_gold_purchase' ? 5000
           : event == 'browser_bookmark_add' ? 2
           : event == 'browser_theme_create' ? 15
           : event == 'browser_wallpaper_change' ? 2
