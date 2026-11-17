@@ -1356,7 +1356,7 @@ async function ensureShopBridge() {
     for (let attempt = 0; attempt < 40; attempt++) {
       if (wc.isDestroyed()) throw new Error("Shop session closed.");
       try {
-        const ready = await wc.executeJavaScript(`(() => typeof auth !== "undefined" && typeof db !== "undefined" && typeof firebase !== "undefined)()`);
+        const ready = await wc.executeJavaScript(`(() => typeof auth !== "undefined" && typeof db !== "undefined" && typeof firebase !== "undefined" && typeof redeemCode === "function)()`);
         if (ready) break;
       } catch {}
       if (attempt === 39) throw new Error("NeoFind account services did not finish loading.");
@@ -1372,26 +1372,67 @@ async function executeShopBridge(source) {
   return wc.executeJavaScript(source);
 }
 async function awardNativeXp(event, customEventId) {
-  const rewards = {browser_new_domain:2,browser_daily_open:5,browser_install_extension:3,browser_slot_spin:2,browser_chest_normal:10,browser_chest_rare:25,browser_chest_epic:50,browser_chest_neofind:100,browser_premium_purchase:5000,browser_gold_purchase:5000,browser_bookmark_add:2,browser_theme_create:15,browser_wallpaper_change:2,browser_translator_use:2,browser_calculator_use:1,browser_new_tab:1,browser_picture_in_picture:3,browser_first_sync:25,browser_update:5,arcade_play:3,arcade_first_game:10,report_submit:2,rating_submit:10,friend_add:5,message_send:1,web_theme_create:15,daily_mission_complete:10,weekly_mission_complete:50,neoai_first_open:25};
-  if (!Object.prototype.hasOwnProperty.call(rewards,event)) return {awarded:false,reason:"UNKNOWN_XP_EVENT"};
+  const rewards = {
+    browser_new_domain:2,browser_daily_open:5,browser_install_extension:3,
+    browser_slot_spin:2,browser_chest_normal:10,browser_chest_rare:25,
+    browser_chest_epic:50,browser_chest_neofind:100,browser_premium_purchase:5000,browser_gold_purchase:5000,
+    browser_bookmark_add:2,browser_theme_create:15,browser_wallpaper_change:2,
+    browser_translator_use:2,browser_calculator_use:1,browser_new_tab:1,
+    browser_picture_in_picture:3,browser_first_sync:25,browser_update:5,
+    arcade_play:3,arcade_first_game:10,report_submit:2,rating_submit:10,
+    friend_add:5,message_send:1,web_theme_create:15,daily_mission_complete:10,
+    weekly_mission_complete:50,neoai_first_open:25
+  };
+  if (!Object.prototype.hasOwnProperty.call(rewards, event)) return {awarded:false,reason:"UNKNOWN_XP_EVENT"};
   try {
-    const oneTime=["browser_first_sync","arcade_first_game","neoai_first_open","browser_premium_purchase","browser_gold_purchase","browser_theme_create","web_theme_create"];
-    const daily=["browser_daily_open"];
-    const eventId=customEventId || (oneTime.includes(event) ? event+"_once" : daily.includes(event) ? event+"_"+new Date().toISOString().slice(0,10) : event+"_"+crypto.randomUUID());
-    const source=`(async()=>{
+    const oneTime = ["browser_first_sync","arcade_first_game","neoai_first_open","browser_premium_purchase","browser_gold_purchase","browser_theme_create","web_theme_create"];
+    const daily = ["browser_daily_open"];
+    const eventId = customEventId || (oneTime.includes(event) ? event + "_once" : daily.includes(event) ? event + "_" + new Date().toISOString().slice(0,10) : event + "_" + crypto.randomUUID());
+    const source = `(async () => {
       try {
-        if(typeof auth==="undefined" || typeof fetch!=="function") return {awarded:false,reason:"XP_SERVICE_UNAVAILABLE"};
-        if(!window.__neoXpAuthResolved){await new Promise(resolve=>{const unsub=auth.onAuthStateChanged(()=>{window.__neoXpAuthResolved=true;try{unsub();}catch{}resolve();});});}
-        const user=auth.currentUser;if(!user)return {awarded:false,reason:"NOT_SIGNED_IN"};
-        const token=await user.getIdToken();
-        const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/awardXp",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({event:${JSON.stringify(event)},eventId:${JSON.stringify(eventId)}})});
-        const payload=await response.json().catch(()=>({}));if(!response.ok)return {awarded:false,reason:payload.error||"XP_REQUEST_FAILED"};return payload;
-      }catch(error){console.warn("NeoFind XP request failed:",error&&error.message||error);return {awarded:false,reason:"XP_REQUEST_FAILED"};}
+        if (typeof auth === "undefined" || typeof db === "undefined") return {awarded:false,reason:"XP_SERVICE_UNAVAILABLE"};
+        if (!window.__neoXpAuthResolved) {
+          await new Promise(resolve => {
+            const unsubscribe = auth.onAuthStateChanged(() => {
+              window.__neoXpAuthResolved = true;
+              try { unsubscribe(); } catch {}
+              resolve();
+            });
+          });
+        }
+        const user = auth.currentUser;
+        if (!user) return {awarded:false,reason:"NOT_SIGNED_IN"};
+        const reward = ${rewards[event]};
+        const userRef = db.collection("users").doc(user.uid);
+        const eventRef = userRef.collection("xpEvents").doc(${JSON.stringify(eventId)});
+        const result = await db.runTransaction(async tx => {
+          const [userSnap,eventSnap] = await Promise.all([tx.get(userRef),tx.get(eventRef)]);
+          if (eventSnap.exists) return {awarded:false,reason:"ALREADY_CLAIMED"};
+          if (!userSnap.exists) throw new Error("USER_PROFILE_MISSING");
+          const data = userSnap.data() || {};
+          const totalXp = Math.max(0,Math.floor(Number(data.totalXp || 0))) + reward;
+          let level=0,spent=0,next=25;
+          while(totalXp >= spent + next && level < 100000){spent += next;level++;next *= 2;}
+          const rank = level>=100001?"Infinity":level>=25001?"Impossible":level>=10001?"Multiverse":level>=5001?"Insane":level>=2001?"Godly":level>=1501?"Hyper":level>=1001?"Legendary":level>=751?"Super":level>=501?"Diamond":level>=251?"Obsidian":level>=101?"Platinum":level>=51?"Gold":level>=31?"Pearl":level>=21?"Amethyst":level>=16?"Ruby":level>=11?"Emerald":level>=7?"Silver":level>=4?"Bronze":"Unranked";
+          tx.set(eventRef,{event:${JSON.stringify(event)},points:reward,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+          tx.update(userRef,{totalXp,level,levelXp:totalXp-spent,levelNextXp:next,levelRank:rank,xpLastEventId:eventRef.id,xpUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()});
+          return {awarded:true,gained:reward,totalXp,level};
+        });
+        return result;
+      } catch(error) {
+        console.warn("NeoFind XP transaction failed:",error && error.message || error);
+        return {awarded:false,reason:error && error.code === "permission-denied" ? "XP_RULES_NOT_PUBLISHED" : "XP_REQUEST_FAILED"};
+      }
     })()`;
-    const result=await executeShopBridge(source);return result||{awarded:false,reason:"NO_RESULT"};
-  }catch(error){console.warn("NeoFind XP award failed:",error&&error.message||error);return {awarded:false,reason:"XP_SERVICE_ERROR"};}
+    const result = await executeShopBridge(source);
+    if (!result || result.awarded !== true) console.info("NeoFind XP:",event,result && result.reason || "NO_RESULT");
+    else console.info("NeoFind XP awarded:",event,result.gained,"total:",result.totalXp,"level:",result.level);
+    return result;
+  } catch(error) {
+    console.warn("NeoFind XP award failed:",error && error.message || error);
+    return {awarded:false,reason:"XP_SERVICE_ERROR"};
+  }
 }
-
 async function getNativeShopState() {
   try {
     return await executeShopBridge(`(async () => {
