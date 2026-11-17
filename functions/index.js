@@ -17,6 +17,7 @@ const XP_REWARDS = Object.freeze({
   browser_chest_epic: 50,
   browser_chest_neofind: 100,
   browser_premium_purchase: 5000,
+  browser_gold_purchase: 5000,
   browser_bookmark_add: 2,
   browser_theme_create: 15,
   browser_wallpaper_change: 2,
@@ -40,7 +41,7 @@ const XP_REWARDS = Object.freeze({
 
 const XP_ONCE = new Set([
   "browser_first_sync", "arcade_first_game", "neoai_first_open",
-  "browser_premium_purchase", "browser_theme_create", "web_theme_create"
+  "browser_premium_purchase", "browser_gold_purchase", "browser_theme_create", "web_theme_create"
 ]);
 
 const XP_DAILY_LIMITS = Object.freeze({
