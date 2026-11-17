@@ -521,3 +521,8 @@ body.neo-rainbow .chrome,body.neo-rainbow .sidebar{background:linear-gradient(12
 
 /* NeoFind Gold plan */
 .native-shop-gold-buy{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:14px;padding:20px;border:1px solid rgba(255,194,64,.52);border-radius:18px;background:linear-gradient(120deg,rgba(255,190,45,.13),rgba(155,81,224,.08));box-shadow:0 8px 30px rgba(255,190,45,.08)}.native-shop-gold-buy .native-shop-label{color:#e6b84c}.native-shop-gold-buy h2{margin:6px 0}.native-shop-gold-buy strong{display:block;margin-top:10px;color:#ffd36b;font-size:19px}.native-shop-gold-buy button{border-color:#d9a52f;background:linear-gradient(120deg,#f7c75a,#d99a25);color:#231704}.native-shop-plan{margin:12px 0;padding:10px 14px;border:1px solid rgba(255,255,255,.12);border-radius:10px;font-weight:700}
+
+/* Gold-exclusive browser accent theme */
+body.neo-gold-active #sideShop,body.neo-gold-active .native-shop-header{border-color:rgba(255,199,85,.55)}
+body.neo-gold-active .native-shop-overlay .native-shop-label{color:#f3c65d}
+body.neo-gold-active .native-shop-plan{border-color:rgba(255,199,85,.55);color:#ffdc83;background:rgba(255,190,45,.08)}
