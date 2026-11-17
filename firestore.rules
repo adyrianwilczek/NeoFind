@@ -809,7 +809,6 @@ service cloud.firestore {
         let ownerData = get(/databases/$(database)/documents/config/owner).data;
         let ownerUid = ownerData.get('uid', '');
         let ownerRef = /databases/$(database)/documents/users/$(ownerUid);
-        let ownerBefore = get(ownerRef).data.get('orbs', 0);
         let ownerAfter = getAfter(ownerRef).data.get('orbs', 0);
         return ownerUid is string && ownerUid.size() > 0 && ownerUid != userId
           && changedKeys().hasOnly(['orbs','premiumUntil','premium','goldUntil','gold','plan','email'])
@@ -827,7 +826,7 @@ service cloud.firestore {
           && activeUntil is int && activeUntil > nowMs()
           && activeUntil <= planBase + 30 * 86400000 + 600000
           && (isGold ? request.resource.data.get('premiumUntil', 0) == 0 : request.resource.data.get('goldUntil', 0) == 0)
-          && ownerAfter == ownerBefore + expectedShare;
+          && ownerAfter == get(ownerRef).data.get('orbs', 0) + (isGold ? 625 : 250);
       }
 
       function isPremiumOwnerCredit() {
