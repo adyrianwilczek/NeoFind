@@ -663,10 +663,15 @@ function renderNativeShop(state) {
   document.getElementById("nativeShopPremium").classList.toggle("hidden", !(state && state.premium));
   document.getElementById("nativeShopPremiumPrice").textContent = state && state.premiumPrice ? Number(state.premiumPrice).toLocaleString() + " Orbs" : "1000 Orbs";
   const premiumButton = document.getElementById("nativeShopBuyPremium");
-  premiumButton.disabled = !(state && state.ok && state.signedIn) || !!(state && state.premium);
-  premiumButton.textContent = state && state.premium ? "Already active" : "Buy Premium";
-
-  const discount = state && state.premium ? 50 : (state && state.discountUses > 0 ? state.discountPercent : 0);
+  premiumButton.disabled = !(state && state.ok && state.signedIn) || !!(state && (state.premium || state.gold));
+  premiumButton.textContent = state && state.premium ? "Already active" : state && state.gold ? "Gold active" : "Buy Premium";
+  document.getElementById("nativeShopPlan").textContent = "Current plan: " + (state && state.plan === "gold" ? "◆ Gold" : state && state.plan === "premium" ? "◆ Premium" : "Free");
+  document.body.classList.toggle("neo-gold-active", !!(state && state.gold));
+  const goldButton=document.getElementById("nativeShopBuyGold");
+  goldButton.disabled=!(state&&state.ok&&state.signedIn)||!!(state&&(state.premium||state.gold));
+  goldButton.textContent=state&&state.gold?"Already active":state&&state.premium?"Premium active":"Buy Gold";
+  document.getElementById("nativeShopGoldPrice").textContent="2500 Orbs";
+  const discount = state && (state.premium || state.gold) ? 50 : (state && state.discountUses > 0 ? state.discountPercent : 0);
   const prices = {normal:25,rare:50,epic:100,neofind:200};
   Object.entries(nativeShopPrices).forEach(([type,node]) => {
     const price = Math.ceil(prices[type] * (100-discount)/100);
@@ -784,6 +789,7 @@ document.getElementById("nativeShopBuyPremium").addEventListener("click", async 
     await refreshNativeShop();
   }
 });
+document.getElementById("nativeShopBuyGold").addEventListener("click",async()=>{const button=document.getElementById("nativeShopBuyGold");button.disabled=true;setNativeShopStatus("Processing Gold purchase…");const result=await window.neoBrowser.buyShopGold();if(result&&result.ok){setNativeShopStatus("Gold activated for 30 days. "+result.ownerShareOrbs+" Orbs were credited to the NeoFind owner.");await refreshNativeShop();}else{setNativeShopStatus(result&&result.message||"Gold purchase failed.",true);await refreshNativeShop();}});
 document.getElementById("nativeShopRedeem").addEventListener("click", async () => {
   const input = document.getElementById("nativeShopCode");
   const button = document.getElementById("nativeShopRedeem");
