@@ -790,26 +790,27 @@ service cloud.firestore {
       }
 
       function isPremiumPurchase() {
-        let premiumBase = resource.data.get('premiumUntil', 0) > nowMs()
-          ? resource.data.get('premiumUntil', 0)
-          : nowMs();
+        let isGold = request.resource.data.get('plan', '') == 'gold';
+        let expectedCost = isGold ? 2500 : 1000;
+        let expectedShare = isGold ? 625 : 250;
+        let activeUntil = isGold ? request.resource.data.get('goldUntil', 0) : request.resource.data.get('premiumUntil', 0);
+        let previousUntil = isGold ? resource.data.get('goldUntil', 0) : resource.data.get('premiumUntil', 0);
+        let planBase = previousUntil > nowMs() ? previousUntil : nowMs();
         let ownerData = get(/databases/$(database)/documents/config/owner).data;
         let ownerUid = ownerData.get('uid', '');
         let ownerRef = /databases/$(database)/documents/users/$(ownerUid);
         let ownerBefore = get(ownerRef).data.get('orbs', 0);
         let ownerAfter = getAfter(ownerRef).data.get('orbs', 0);
-
-        return ownerUid is string
-          && ownerUid.size() > 0
-          && ownerUid != userId
-          && changedKeys().hasOnly(['orbs', 'premiumUntil', 'email'])
-          && orbsValid()
-          && oldOrbs() - newOrbs() == 1000
-          && request.resource.data.premiumUntil is int
-          && request.resource.data.premiumUntil > nowMs()
-          && request.resource.data.premiumUntil <= premiumBase + 30 * 86400000 + 600000
-          // Wymagaj równoczesnego dopisania 25% ceny do konta właściciela.
-          && ownerAfter == ownerBefore + 250;
+        return ownerUid is string && ownerUid.size() > 0 && ownerUid != userId
+          && changedKeys().hasOnly(['orbs','premiumUntil','premium','goldUntil','gold','plan','email'])
+          && orbsValid() && oldOrbs() - newOrbs() == expectedCost
+          && request.resource.data.plan == (isGold ? 'gold' : 'premium')
+          && request.resource.data.get('premium', false) == !isGold
+          && request.resource.data.get('gold', false) == isGold
+          && activeUntil is int && activeUntil > nowMs()
+          && activeUntil <= planBase + 30 * 86400000 + 600000
+          && (isGold ? request.resource.data.get('premiumUntil', 0) == 0 : request.resource.data.get('goldUntil', 0) == 0)
+          && ownerAfter == ownerBefore + expectedShare;
       }
 
       function isPremiumOwnerCredit() {
@@ -818,20 +819,18 @@ service cloud.firestore {
         let buyerRef = /databases/$(database)/documents/users/$(request.auth.uid);
         let buyerBefore = get(buyerRef).data;
         let buyerAfter = getAfter(buyerRef).data;
-        let buyerPremiumBase = buyerBefore.get('premiumUntil', 0) > nowMs()
-          ? buyerBefore.get('premiumUntil', 0)
-          : nowMs();
-
-        return isLoggedIn()
-          && ownerUid is string
-          && ownerUid == userId
-          && request.auth.uid != userId
+        let isGold = buyerAfter.get('plan', '') == 'gold';
+        let expectedCost = isGold ? 2500 : 1000;
+        let expectedShare = isGold ? 625 : 250;
+        let buyerUntil = isGold ? buyerAfter.get('goldUntil', 0) : buyerAfter.get('premiumUntil', 0);
+        return isLoggedIn() && ownerUid is string && ownerUid == userId && request.auth.uid != userId
           && changedKeys().hasOnly(['orbs'])
-          && request.resource.data.get('orbs', 0) == resource.data.get('orbs', 0) + 250
-          && buyerBefore.get('orbs', 0) - buyerAfter.get('orbs', 0) == 1000
-          && buyerAfter.get('premiumUntil', 0) is int
-          && buyerAfter.get('premiumUntil', 0) > nowMs()
-          && buyerAfter.get('premiumUntil', 0) <= buyerPremiumBase + 30 * 86400000 + 600000;
+          && request.resource.data.get('orbs', 0) == resource.data.get('orbs', 0) + expectedShare
+          && buyerBefore.get('orbs', 0) - buyerAfter.get('orbs', 0) == expectedCost
+          && buyerAfter.get('plan', '') in ['premium','gold']
+          && buyerUntil is int && buyerUntil > nowMs()
+          && buyerUntil <= nowMs() + 30 * 86400000 + 600000
+          && (isGold ? buyerAfter.get('premiumUntil', 0) == 0 : buyerAfter.get('goldUntil', 0) == 0);
       }
 
       allow read: if isAdmin() || isOwner(userId);
@@ -912,17 +911,17 @@ service cloud.firestore {
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.email == request.auth.token.email
           && request.resource.data.item is string
-          && request.resource.data.itemType in ['chest', 'premium']
+          && request.resource.data.itemType in ['chest', 'premium', 'gold']
           && request.resource.data.costOrbs is int
           && (
-            request.resource.data.itemType == 'premium'
+            request.resource.data.itemType in ['premium', 'gold']
             ? !request.resource.data.get('ticketUsed', false)
             : request.resource.data.get('ticketUsed', false) is bool
               && request.resource.data.get('discountPercent', 0) is int
               && request.resource.data.get('originalCostOrbs', request.resource.data.costOrbs) is int
           )
           && (
-            request.resource.data.itemType == 'premium'
+            request.resource.data.itemType in ['premium', 'gold']
             ? request.resource.data.costOrbs > 0
             : (
               request.resource.data.get('ticketUsed', false) == true
@@ -931,12 +930,11 @@ service cloud.firestore {
             )
           )
           && (
-            request.resource.data.itemType != 'premium'
-            || (
-              request.resource.data.costOrbs == 1000
-              && request.resource.data.ownerShareOrbs == 250
-              && request.resource.data.ownerEmail == 'adrian.wilczek@hotmail.com'
-            )
+            (request.resource.data.itemType == 'premium'
+            ? (request.resource.data.costOrbs == 1000 && request.resource.data.ownerShareOrbs == 250 && request.resource.data.ownerEmail == 'adrian.wilczek@hotmail.com')
+            : request.resource.data.itemType == 'gold'
+              ? (request.resource.data.costOrbs == 2500 && request.resource.data.ownerShareOrbs == 625 && request.resource.data.ownerEmail == 'adrian.wilczek@hotmail.com')
+              : true)
           )
           && request.resource.data.purchasedAtMs is int
           && request.resource.data.purchasedAt == request.time;
