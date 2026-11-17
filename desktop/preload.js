@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld("neoBrowser", {
   buyShopChest: (type) => ipcRenderer.invoke("shop:buy-chest", type),
   spinShopSlotMachine: () => ipcRenderer.invoke("shop:spin-slot-machine"),
   buyShopPremium: () => ipcRenderer.invoke("shop:buy-premium"),
+  buyShopGold: () => ipcRenderer.invoke("shop:buy-gold"),
   redeemShopCode: (code) => ipcRenderer.invoke("shop:redeem-code", code),
   openShopSignIn: () => ipcRenderer.invoke("shop:open-sign-in"),
   getTransferDeviceInfo: () => ipcRenderer.invoke("transfer:get-device-info"),
