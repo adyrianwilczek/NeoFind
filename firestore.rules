@@ -807,6 +807,13 @@ service cloud.firestore {
           && request.resource.data.plan == (isGold ? 'gold' : 'premium')
           && request.resource.data.get('premium', false) == !isGold
           && request.resource.data.get('gold', false) == isGold
+          && (isGold
+            ? !(resource.data.get('plan', '') == 'premium'
+                ? resource.data.get('premiumUntil', 0) > nowMs()
+                : (resource.data.get('premium', false) == true || resource.data.get('premiumUntil', 0) > nowMs()))
+            : !(resource.data.get('plan', '') == 'gold'
+                ? resource.data.get('goldUntil', 0) > nowMs()
+                : (resource.data.get('gold', false) == true || resource.data.get('goldUntil', 0) > nowMs())))
           && activeUntil is int && activeUntil > nowMs()
           && activeUntil <= planBase + 30 * 86400000 + 600000
           && (isGold ? request.resource.data.get('premiumUntil', 0) == 0 : request.resource.data.get('goldUntil', 0) == 0)
