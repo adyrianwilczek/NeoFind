@@ -1437,7 +1437,7 @@ async function getNativeShopState() {
       const totalXp = Math.max(0, Math.floor(Number(data.totalXp || 0)));
       let level = 0, spentXp = 0, nextLevelXp = 25;
       while (totalXp >= spentXp + nextLevelXp && level < 100000) { spentXp += nextLevelXp; level++; nextLevelXp *= 2; }
-      const levelRank = String(data.levelRank || (level >= 100001 ? "Infinity" : level >= 25001 ? "Impossible" : level >= 10001 ? "Multiverse" : level >= 5001 ? "Insane" : level >= 2001 ? "Godly" : level >= 1501 ? "Hyper" : level >= 1001 ? "Legendary" : level >= 751 ? "Super" : level >= 501 ? "Diamond" : level >= 251 ? "Obsidian" : level >= 101 ? "Platinum" : level >= 51 ? "Gold" : level >= 31 ? "Pearl" : level >= 21 ? "Amethyst" : level >= 16 ? "Ruby" : level >= 11 ? "Emerald" : level >= 7 ? "Silver" : level >= 4 ? "Bronze" : "Unranked"));
+      const levelRank = (level >= 100001 ? "Infinity" : level >= 25001 ? "Impossible" : level >= 10001 ? "Multiverse" : level >= 5001 ? "Insane" : level >= 2001 ? "Godly" : level >= 1501 ? "Hyper" : level >= 1001 ? "Legendary" : level >= 751 ? "Super" : level >= 501 ? "Diamond" : level >= 251 ? "Obsidian" : level >= 101 ? "Platinum" : level >= 51 ? "Gold" : level >= 31 ? "Pearl" : level >= 21 ? "Amethyst" : level >= 16 ? "Ruby" : level >= 11 ? "Emerald" : level >= 7 ? "Silver" : level >= 4 ? "Bronze" : "Unranked");
       return {
         ok:true, signedIn:true, email:String(user.email || "NeoFind account"),
         levelData:{level,xp:totalXp-spentXp,nextLevelXp,totalXp,rank:levelRank},
