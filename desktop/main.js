@@ -1521,7 +1521,7 @@ async function buyNativeShopChest(type) {
         }, {merge:true});
         transaction.set(purchaseRef, {
           purchaseId:purchaseRef.id, uid:user.uid,
-          email:String(user.email || "").trim().toLowerCase(),
+          email:String(user.email || "").trim(),
           item:labels[type], itemType:"chest", costOrbs:chargedOrbs,
           originalCostOrbs:prices[type], ticketUsed:usedTicket, discountPercent,
           purchasedAt:firebase.firestore.FieldValue.serverTimestamp(), purchasedAtMs
@@ -1586,7 +1586,7 @@ async function buyNativeShopPremium() {
     const result = await executeShopBridge(`(async () => {
       const user = auth.currentUser;
       if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
-      const price = typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000;
+      const price = 1000;
       const ownerEmail = "adrian.wilczek@hotmail.com";
       const ownerShare = Math.floor(price * 0.25);
       const ownerConfigRef = db.collection("config").doc("owner");
@@ -1612,7 +1612,7 @@ async function buyNativeShopPremium() {
         transaction.set(userRef,{orbs:current-price,premium:true,plan:"premium",premiumUntil:until,gold:false,goldUntil:0},{merge:true});
         transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
         transaction.set(receiptRef,{
-          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim().toLowerCase(),
+          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim(),
           item:"Premium (30 days)",itemType:"premium",costOrbs:price,
           ownerShareOrbs:ownerShare,ownerEmail,
           purchasedAt:firebase.firestore.FieldValue.serverTimestamp(),purchasedAtMs
@@ -1666,7 +1666,7 @@ async function buyNativeShopGold() {
         transaction.set(userRef,{orbs:current-price,premium:false,premiumUntil:0,gold:true,plan:"gold",goldUntil:until},{merge:true});
         transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
         transaction.set(receiptRef,{
-          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim().toLowerCase(),
+          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim(),
           item:"Gold (30 days)",itemType:"gold",costOrbs:price,
           ownerShareOrbs:ownerShare,ownerEmail,
           purchasedAt:firebase.firestore.FieldValue.serverTimestamp(),purchasedAtMs
