@@ -1346,7 +1346,25 @@ const languageText = {
   "Normal Chest": ["Zwykła skrzynia", "Cofre normal"],
   "Rare Chest": ["Rzadka skrzynia", "Cofre raro"],
   "Epic Chest": ["Epicka skrzynia", "Cofre épico"],
-  "NeoFind Chest": ["Skrzynia NeoFind", "Cofre NeoFind"] 
+  "NeoFind Chest": ["Skrzynia NeoFind", "Cofre NeoFind"],
+  "Normal: ": ["Zwykłe: ", "Normal: "],
+  "Rare: ": ["Rzadkie: ", "Raros: "],
+  "Epic: ": ["Epickie: ", "Épicos: "],
+  "NeoFind: ": ["NeoFind: ", "NeoFind: "],
+  " used today": [" wykorzystano dzisiaj", " usados hoy"],
+  "Already active": ["Już aktywne", "Ya está activo"],
+  "Premium active": ["Premium aktywne", "Premium activo"],
+  "Gold active": ["Gold aktywne", "Gold activo"],
+  "Buy Premium": ["Kup Premium", "Comprar Premium"],
+  "Buy Gold": ["Kup Gold", "Comprar Gold"],
+  "Current plan: ": ["Obecny plan: ", "Plan actual: "],
+  "Not enough Orbs for Premium.": ["Za mało Orbs na Premium.", "No tienes suficientes Orbs para Premium."],
+  "Not enough Orbs for Gold.": ["Za mało Orbs na Gold.", "No tienes suficientes Orbs para Gold."],
+  "Premium activated for 30 days. ": ["Premium aktywowane na 30 dni. ", "Premium activado durante 30 días. "],
+  "Gold activated for 30 days. ": ["Gold aktywowane na 30 dni. ", "Gold activado durante 30 días. "],
+  "This code has already been redeemed.": ["Ten kod został już wykorzystany.", "Este código ya se ha canjeado."],
+  "Code redeemed!": ["Kod aktywowany!", "¡Código canjeado!"],
+  "Invalid or inactive code.": ["Nieprawidłowy lub nieaktywny kod.", "Código no válido o inactivo."]
 };
 const languageAttributeRecords = new WeakMap();
 const languageTextRecords = new WeakMap();
