@@ -1390,38 +1390,19 @@ async function awardNativeXp(event, customEventId) {
     const eventId = customEventId || (oneTime.includes(event) ? event + "_once" : daily.includes(event) ? event + "_" + new Date().toISOString().slice(0,10) : event + "_" + crypto.randomUUID());
     const source = `(async () => {
       try {
-        if (typeof auth === "undefined" || typeof db === "undefined") return {awarded:false,reason:"XP_SERVICE_UNAVAILABLE"};
-        if (!window.__neoXpAuthResolved) {
-          await new Promise(resolve => {
-            const unsubscribe = auth.onAuthStateChanged(() => {
-              window.__neoXpAuthResolved = true;
-              try { unsubscribe(); } catch {}
-              resolve();
-            });
-          });
-        }
+        if (typeof auth === "undefined" || !auth.currentUser) return {awarded:false,reason:"NOT_SIGNED_IN"};
         const user = auth.currentUser;
-        if (!user) return {awarded:false,reason:"NOT_SIGNED_IN"};
-        const reward = ${rewards[event]};
-        const userRef = db.collection("users").doc(user.uid);
-        const eventRef = userRef.collection("xpEvents").doc(${JSON.stringify(eventId)});
-        const result = await db.runTransaction(async tx => {
-          const [userSnap,eventSnap] = await Promise.all([tx.get(userRef),tx.get(eventRef)]);
-          if (eventSnap.exists) return {awarded:false,reason:"ALREADY_CLAIMED"};
-          if (!userSnap.exists) throw new Error("USER_PROFILE_MISSING");
-          const data = userSnap.data() || {};
-          const totalXp = Math.max(0,Math.floor(Number(data.totalXp || 0))) + reward;
-          let level=0,spent=0,next=25;
-          while(totalXp >= spent + next && level < 100000){spent += next;level++;next *= 2;}
-          const rank = level>=100001?"Infinity":level>=25001?"Impossible":level>=10001?"Multiverse":level>=5001?"Insane":level>=2001?"Godly":level>=1501?"Hyper":level>=1001?"Legendary":level>=751?"Super":level>=501?"Diamond":level>=251?"Obsidian":level>=101?"Platinum":level>=51?"Gold":level>=31?"Pearl":level>=21?"Amethyst":level>=16?"Ruby":level>=11?"Emerald":level>=7?"Silver":level>=4?"Bronze":"Unranked";
-          tx.set(eventRef,{event:${JSON.stringify(event)},points:reward,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
-          tx.update(userRef,{totalXp,level,levelXp:totalXp-spent,levelNextXp:next,levelRank:rank,xpLastEventId:eventRef.id,xpUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()});
-          return {awarded:true,gained:reward,totalXp,level};
+        const token = await user.getIdToken();
+        const response = await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/awardXp", {
+          method:"POST", headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+          body:JSON.stringify({event:${JSON.stringify(event)},eventId:${JSON.stringify(eventId)}})
         });
-        return result;
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok !== true) return {awarded:false,reason:data.error || "XP_REQUEST_FAILED"};
+        return {awarded:data.awarded===true,gained:Number(data.gained||0),totalXp:Number(data.totalXp||0),level:Number(data.level||0),reason:data.reason||""};
       } catch(error) {
-        console.warn("NeoFind XP transaction failed:",error && error.message || error);
-        return {awarded:false,reason:error && error.code === "permission-denied" ? "XP_RULES_NOT_PUBLISHED" : "XP_REQUEST_FAILED"};
+        console.warn("NeoFind XP Cloud Function failed:",error && error.message || error);
+        return {awarded:false,reason:"XP_SERVICE_UNAVAILABLE"};
       }
     })()`;
     const result = await executeShopBridge(source);
@@ -1481,59 +1462,25 @@ async function getNativeShopState() {
   }
 }
 async function buyNativeShopChest(type) {
-  const prices = { normal:25, rare:50, epic:100, neofind:200 };
-  const labels = { normal:"Normal Chest", rare:"Rare Chest", epic:"Epic Chest", neofind:"NeoFind Chest" };
-  if (!Object.prototype.hasOwnProperty.call(prices, type)) return { ok:false, message:"Unknown chest type." };
+  const allowed = new Set(["normal","rare","epic","neofind"]);
+  if (!allowed.has(String(type))) return {ok:false,message:"Unknown chest type."};
   try {
     const result = await executeShopBridge(`(async () => {
       const user = auth.currentUser;
-      if (!user) return { ok:false, signedIn:false, message:"Sign in to NeoFind first." };
-      const type = ${JSON.stringify(type)};
-      const prices = ${JSON.stringify(prices)};
-      const labels = ${JSON.stringify(labels)};
-      const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
-      const purchasedAtMs = Date.now();
-      let usedTicket = false, chargedOrbs = prices[type], discountPercent = 0;
-      await db.runTransaction(async transaction => {
-        const ref = db.collection("users").doc(user.uid);
-        const snap = await transaction.get(ref);
-        const data = snap.exists ? snap.data() : {};
-        const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-        const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
-        const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
-        const availableDiscount = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
-        const premiumActive = data.plan === "premium" ? Number(data.premiumUntil || 0) > Date.now() : data.plan === "gold" ? Number(data.goldUntil || 0) > Date.now() : (data.premium === true || Number(data.premiumUntil || 0) > Date.now() || Number(data.goldUntil || 0) > Date.now());
-        const premiumDiscount = premiumActive ? 50 : 0;
-        const useGiftDiscount = discountUses > 0 && availableDiscount > premiumDiscount;
-        const inventory = Object.assign({normal:0,rare:0,epic:0,neofind:0}, data.chestInventory || {});
-        inventory[type] = Math.max(0, Number(inventory[type] || 0)) + 1;
-        if (tickets > 0) { usedTicket = true; chargedOrbs = 0; }
-        else {
-          discountPercent = Math.max(premiumDiscount, useGiftDiscount ? availableDiscount : 0);
-          chargedOrbs = Math.ceil(prices[type] * (100 - discountPercent) / 100);
-          if (current < chargedOrbs) throw new Error("NOT_ENOUGH_ORBS");
-        }
-        transaction.set(ref, {
-          orbs:current-chargedOrbs, chestInventory:inventory,
-          lastShopPurchaseId:purchaseRef.id,
-          ...(usedTicket ? {shopTicketUses:tickets-1} : {}),
-          ...(!usedTicket && useGiftDiscount ? {shopDiscountUses:discountUses-1} : {})
-        }, {merge:true});
-        transaction.set(purchaseRef, {
-          purchaseId:purchaseRef.id, uid:user.uid,
-          email:String(user.email || "").trim(),
-          item:labels[type], itemType:"chest", costOrbs:chargedOrbs,
-          originalCostOrbs:prices[type], ticketUsed:usedTicket, discountPercent,
-          purchasedAt:firebase.firestore.FieldValue.serverTimestamp(), purchasedAtMs
-        });
+      if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
+      const token = await user.getIdToken();
+      const response = await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction", {
+        method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+        body:JSON.stringify({action:"buy_chest",type:${JSON.stringify(type)}})
       });
-      return {ok:true, item:labels[type], costOrbs:chargedOrbs, originalCostOrbs:prices[type], ticketUsed:usedTicket, discountPercent, purchaseId:purchaseRef.id};
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok !== true) return {ok:false,message:data.error==="NOT_ENOUGH_ORBS"?"Not enough Orbs for this chest.":data.error||"Purchase failed."};
+      return data;
     })()`);
     if (result && result.ok) await awardNativeXp("browser_chest_" + type);
     return result;
-  } catch (error) {
-    const message = String(error && error.message || error);
-    return { ok:false, message:message.includes("NOT_ENOUGH_ORBS") ? "Not enough Orbs for this chest." : message.slice(0,300) };
+  } catch(error) {
+    return {ok:false,message:String(error && error.message || error).slice(0,300)};
   }
 }
 
@@ -1612,7 +1559,7 @@ async function buyNativeShopPremium() {
         transaction.set(userRef,{orbs:current-price,premium:true,plan:"premium",premiumUntil:until,gold:false,goldUntil:0},{merge:true});
         transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
         transaction.set(receiptRef,{
-          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim(),
+          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||""),
           item:"Premium (30 days)",itemType:"premium",costOrbs:price,
           ownerShareOrbs:ownerShare,ownerEmail,
           purchasedAt:firebase.firestore.FieldValue.serverTimestamp(),purchasedAtMs
@@ -1666,7 +1613,7 @@ async function buyNativeShopGold() {
         transaction.set(userRef,{orbs:current-price,premium:false,premiumUntil:0,gold:true,plan:"gold",goldUntil:until},{merge:true});
         transaction.update(ownerRef,{orbs:firebase.firestore.FieldValue.increment(ownerShare)});
         transaction.set(receiptRef,{
-          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||"").trim(),
+          purchaseId:receiptRef.id,uid:user.uid,email:String(user.email||""),
           item:"Gold (30 days)",itemType:"gold",costOrbs:price,
           ownerShareOrbs:ownerShare,ownerEmail,
           purchasedAt:firebase.firestore.FieldValue.serverTimestamp(),purchasedAtMs
@@ -1691,13 +1638,28 @@ async function buyNativeShopGold() {
   }
 }
 async function redeemNativeShopCode(code) {
-  const normalized = String(code || "").trim().toUpperCase();
+  const normalized = String(code || "").trim();
   if (!normalized || normalized.length > 100) return { status:"invalid" };
   try {
+    if (normalized.toLowerCase() === "checkmate26") {
+      return await executeShopBridge(`(async () => {
+        const user = auth.currentUser;
+        if (!user) return {status:"not_logged"};
+        const token = await user.getIdToken();
+        const response = await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction", {
+          method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},
+          body:JSON.stringify({action:"redeem_coupon",code:"checkmate26"})
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.ok !== true) return {status:data.error==="COUPON_ALREADY_USED"?"already":data.error==="INVALID_COUPON"?"invalid":"error",message:data.error||"Coupon could not be redeemed."};
+        return {status:"redeemed",discountPercent:25};
+      })()`);
+    }
+    const normalizedGift = normalized.toUpperCase();
     return await executeShopBridge(`(async () => {
       if (!auth.currentUser) return {status:"not_logged"};
       if (typeof redeemCode !== "function") return {status:"unavailable"};
-      const result = await redeemCode(${JSON.stringify(normalized)});
+      const result = await redeemCode(${JSON.stringify(normalizedGift)});
       return {status:result.status,orbs:result.orbs||0,premiumDays:result.premiumDays||0,shopTicketUses:result.shopTicketUses||0,discountPercent:result.discountPercent||0};
     })()`);
   } catch (error) {
