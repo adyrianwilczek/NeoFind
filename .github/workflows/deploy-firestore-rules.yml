@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - "firestore.rules"
+      - "functions/**"
+      - "firebase.json"
       - ".github/workflows/deploy-firestore-rules.yml"
 
 permissions:
@@ -28,5 +30,5 @@ jobs:
           node-version: 20
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
-      - name: Deploy Firestore rules only
-        run: firebase deploy --only firestore:rules --project neofind-f8213 --non-interactive
+      - name: Deploy Firestore rules and Cloud Functions
+        run: firebase deploy --only firestore:rules,functions --project neofind-f8213 --non-interactive
