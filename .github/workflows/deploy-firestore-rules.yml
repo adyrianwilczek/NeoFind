@@ -30,5 +30,8 @@ jobs:
           node-version: 20
       - name: Install Firebase CLI
         run: npm install --global firebase-tools
-      - name: Deploy Firestore rules and Cloud Functions
-        run: firebase deploy --only firestore:rules,functions --project neofind-f8213 --non-interactive
+      - name: Deploy Cloud Functions (XP and Shop)
+        run: firebase deploy --only functions --project neofind-f8213 --non-interactive
+      - name: Deploy Firestore rules
+        continue-on-error: true
+        run: firebase deploy --only firestore:rules --project neofind-f8213 --non-interactive
