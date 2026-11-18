@@ -425,14 +425,36 @@ const historyStoreKey = "neofind.importedHistory";
 const browserThemeKey = "neofind.browserTheme";
 const themeSelect = document.getElementById("browserTheme");
 const newTabBackgroundKey = "neofind.newTabBackground";
-function applyBrowserTheme(theme) {
+const goldOnlyBrowserThemes = new Set(["gold","oceanic","dream","hologram"]);
+let browserGoldThemeAccess = false;
+let preferredBrowserTheme = localStorage.getItem(browserThemeKey) || "midnight";
+function applyBrowserTheme(theme, persist = true) {
   const allowed = ["midnight","ocean","purple","light","aurora","nord","lavender","rose","sunset","ember","forest","sakura","paper","cyber","space","matrix","prism","neon","candy","galaxy","lava","ice","gold","oceanic","dream","hologram"];
-  const value = allowed.includes(theme) ? theme : "midnight";
+  const requested = allowed.includes(theme) ? theme : "midnight";
+  const locked = goldOnlyBrowserThemes.has(requested) && !browserGoldThemeAccess;
+  const value = locked ? "midnight" : requested;
   document.body.dataset.theme = value;
   themeSelect.value = value;
-  try { localStorage.setItem(browserThemeKey, value); } catch {}
+  Array.from(themeSelect.options).forEach(option => {
+    option.disabled = goldOnlyBrowserThemes.has(option.value) && !browserGoldThemeAccess;
+  });
+  if (persist && !locked) {
+    preferredBrowserTheme = value;
+    try { localStorage.setItem(browserThemeKey, value); } catch {}
+  }
 }
-applyBrowserTheme(localStorage.getItem(browserThemeKey) || "midnight");
+function setBrowserGoldThemeAccess(active) {
+  browserGoldThemeAccess = active === true;
+  Array.from(themeSelect.options).forEach(option => {
+    option.disabled = goldOnlyBrowserThemes.has(option.value) && !browserGoldThemeAccess;
+  });
+  if (browserGoldThemeAccess && goldOnlyBrowserThemes.has(preferredBrowserTheme)) {
+    applyBrowserTheme(preferredBrowserTheme, false);
+  } else if (!browserGoldThemeAccess && goldOnlyBrowserThemes.has(themeSelect.value)) {
+    applyBrowserTheme("midnight", false);
+  }
+}
+applyBrowserTheme(preferredBrowserTheme, false);
 themeSelect.addEventListener("change", () => applyBrowserTheme(themeSelect.value));
 const backgroundChoiceButtons = Array.from(document.querySelectorAll("[data-bg-choice]"));
 function applyNewTabBackground(name) {
@@ -619,6 +641,9 @@ const slotChestSvg={normal:'<svg viewBox="0 0 64 64"><path d="M9 25 14 12h36l5 1
 const slotOrbSvg='<svg viewBox="0 0 100 100"><defs><radialGradient id="slotOrbGradient" cx="30%" cy="25%"><stop stop-color="#fff"/><stop offset=".2" stop-color="#b9faff"/><stop offset=".6" stop-color="#438cff"/><stop offset="1" stop-color="#172caa"/></radialGradient></defs><circle cx="50" cy="50" r="39" fill="url(#slotOrbGradient)" stroke="#8ceaff" stroke-width="3"/><ellipse cx="37" cy="31" rx="12" ry="7" fill="#fff" opacity=".75"/></svg>';
 const slotMachineSymbols={orbs:{svg:slotOrbSvg,label:"ORBS"},normal:{svg:slotChestSvg.normal,label:"NORMAL"},rare:{svg:slotChestSvg.rare,label:"RARE"},epic:{svg:slotChestSvg.epic,label:"EPIC"},neofind:{svg:slotChestSvg.neofind,label:"NEOFIND"},blank:{svg:'<span class="slot-empty-mark">?</span>',label:"EMPTY"}};
 let nativeShopState = null;
+window.neoBrowser.getShopState().then(state => {
+  setBrowserGoldThemeAccess(!!(state && state.ok && state.signedIn && state.gold));
+}).catch(() => setBrowserGoldThemeAccess(false));
 function setNativeShopStatus(message, error=false) {
   nativeShopStatus.textContent = message;
   nativeShopStatus.style.color = error ? "#ff9292" : "";
@@ -651,6 +676,7 @@ function renderNativeLevel(data){
 }
 function renderNativeShop(state) {
   nativeShopState = state;
+  setBrowserGoldThemeAccess(!!(state && state.ok && state.signedIn && state.gold));
   renderNativeLevel(state && state.levelData);
   nativeShopSignIn.classList.toggle("hidden", !!(state && state.signedIn));
   document.getElementById("nativeShopAccount").textContent = state && state.signedIn ? state.email : "Not signed in";
