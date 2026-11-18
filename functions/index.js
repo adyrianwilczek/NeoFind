@@ -201,3 +201,108 @@ exports.awardXp = onRequest(
     }
   }
 );
+
+
+// Native Browser Shop actions are processed with Admin SDK so the balance,
+// inventory and receipt are committed together and cannot partially succeed.
+exports.shopAction = onRequest(
+  { region: "us-central1", cors: true, maxInstances: 20 },
+  async (req, res) => {
+    if (req.method !== "POST") return res.status(405).json({ ok: false, error: "METHOD_NOT_ALLOWED" });
+    try {
+      const authorization = String(req.headers.authorization || "");
+      if (!authorization.startsWith("Bearer ")) return res.status(401).json({ ok: false, error: "UNAUTHENTICATED" });
+      const decoded = await getAuth().verifyIdToken(authorization.slice(7));
+      const uid = decoded.uid;
+      const action = String(req.body?.action || "");
+      const userRef = db.collection("users").doc(uid);
+
+      if (action === "redeem_coupon") {
+        const code = String(req.body?.code || "").trim().toLowerCase();
+        if (code !== "checkmate26") return res.status(400).json({ ok: false, error: "INVALID_COUPON" });
+        const claimRef = userRef.collection("shopCouponClaims").doc("checkmate26");
+        const result = await db.runTransaction(async tx => {
+          const [userSnap, claimSnap] = await Promise.all([tx.get(userRef), tx.get(claimRef)]);
+          if (!userSnap.exists) throw new Error("USER_PROFILE_MISSING");
+          if (claimSnap.exists) return { ok: false, error: "COUPON_ALREADY_USED" };
+          const data = userSnap.data() || {};
+          const oldUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
+          const oldPercent = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
+          tx.set(userRef, {
+            shopDiscountPercent: Math.max(oldPercent, 25),
+            shopDiscountUses: oldUses + 1,
+            lastShopCoupon: "checkmate26"
+          }, { merge: true });
+          tx.create(claimRef, {
+            uid, code: "checkmate26", discountPercent: 25,
+            redeemedAt: FieldValue.serverTimestamp()
+          });
+          return { ok: true, discountPercent: 25, discountUses: oldUses + 1 };
+        });
+        return res.status(200).json(result);
+      }
+
+      if (action === "buy_chest") {
+        const type = String(req.body?.type || "");
+        const prices = { normal: 25, rare: 50, epic: 100, neofind: 200 };
+        const labels = { normal: "Normal Chest", rare: "Rare Chest", epic: "Epic Chest", neofind: "NeoFind Chest" };
+        if (!Object.prototype.hasOwnProperty.call(prices, type)) return res.status(400).json({ ok: false, error: "INVALID_ITEM" });
+        const receiptRef = userRef.collection("purchaseReceipts").doc();
+        const purchasedAtMs = Date.now();
+        const result = await db.runTransaction(async tx => {
+          const snap = await tx.get(userRef);
+          if (!snap.exists) throw new Error("USER_PROFILE_MISSING");
+          const data = snap.data() || {};
+          const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
+          const tickets = Math.max(0, Math.floor(Number(data.shopTicketUses || 0)));
+          const discountUses = Math.max(0, Math.floor(Number(data.shopDiscountUses || 0)));
+          const storedDiscount = Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0))));
+          const now = Date.now();
+          const premiumActive = data.plan === "premium"
+            ? Number(data.premiumUntil || 0) > now
+            : data.plan === "gold"
+              ? Number(data.goldUntil || 0) > now
+              : (data.premium === true || Number(data.premiumUntil || 0) > now || Number(data.goldUntil || 0) > now);
+          const premiumDiscount = premiumActive ? 50 : 0;
+          const useGiftDiscount = discountUses > 0 && storedDiscount > premiumDiscount;
+          const usedTicket = tickets > 0;
+          const discountPercent = usedTicket ? 0 : Math.max(premiumDiscount, useGiftDiscount ? storedDiscount : 0);
+          const costOrbs = usedTicket ? 0 : Math.ceil(prices[type] * (100 - discountPercent) / 100);
+          if (current < costOrbs) throw new Error("NOT_ENOUGH_ORBS");
+          const inventory = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
+          inventory[type] = Math.max(0, Math.floor(Number(inventory[type] || 0))) + 1;
+          tx.set(userRef, {
+            orbs: current - costOrbs,
+            chestInventory: inventory,
+            lastShopPurchaseId: receiptRef.id,
+            ...(usedTicket ? { shopTicketUses: tickets - 1 } : {}),
+            ...(!usedTicket && useGiftDiscount ? { shopDiscountUses: discountUses - 1 } : {})
+          }, { merge: true });
+          tx.create(receiptRef, {
+            purchaseId: receiptRef.id, uid,
+            email: String(decoded.email || ""),
+            item: labels[type], itemType: "chest",
+            costOrbs, originalCostOrbs: prices[type],
+            ticketUsed: usedTicket, discountPercent,
+            purchasedAt: FieldValue.serverTimestamp(), purchasedAtMs
+          });
+          return {
+            ok: true, item: labels[type], costOrbs,
+            originalCostOrbs: prices[type], ticketUsed: usedTicket,
+            discountPercent, purchaseId: receiptRef.id,
+            orbs: current - costOrbs, inventory
+          };
+        });
+        return res.status(200).json(result);
+      }
+
+      return res.status(400).json({ ok: false, error: "UNKNOWN_ACTION" });
+    } catch (error) {
+      console.error("shopAction failed:", error);
+      const message = String(error && error.message || error);
+      const known = message === "NOT_ENOUGH_ORBS" ? "NOT_ENOUGH_ORBS"
+        : message === "USER_PROFILE_MISSING" ? "USER_PROFILE_MISSING" : "SHOP_ACTION_FAILED";
+      return res.status(400).json({ ok: false, error: known });
+    }
+  }
+);
