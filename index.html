@@ -937,6 +937,7 @@ button:focus-visible, input:focus-visible, a:focus-visible {
 }
 .chat-actions { display:flex; gap:2px; margin-top:3px; padding-right:4px; }
 .chat-img { max-width:200px; max-height:180px; border-radius:10px; cursor:pointer; display:block; }
+.neo-emoji-tabs{display:flex;gap:6px}.neo-emoji-tab{border:1px solid rgba(0,242,254,.22);background:rgba(255,255,255,.05);color:rgba(220,255,250,.8);border-radius:8px;padding:5px 12px;cursor:pointer}.neo-emoji-tab.active{background:rgba(0,242,254,.16);border-color:rgba(0,242,254,.55);color:#fff}.neo-emoji-grid{display:flex;flex-wrap:wrap;align-items:center;gap:5px;max-height:180px;overflow-y:auto}.neo-emoji-grid span{cursor:pointer;font-size:20px;line-height:1.5}.neo-emoji-choice{width:42px;height:42px;display:grid;place-items:center;border:1px solid transparent;background:rgba(255,255,255,.04);border-radius:9px;cursor:pointer}.neo-emoji-choice:hover{background:rgba(0,242,254,.13);border-color:rgba(0,242,254,.35)}.neo-emoji-choice img{width:32px;height:32px;object-fit:contain}.neo-custom-emoji{width:34px;height:34px;object-fit:contain;vertical-align:middle;margin:0 2px}
 #chatInput {
     width:calc(100% - 20px);
     margin:8px 10px;
@@ -2878,7 +2879,7 @@ Search. Connect. Discover.
         </div>
         <div id="chatMessages"></div>
         <div id="chatTypingIndicator"></div>
-        <div id="emojiPicker" style="display:none; flex-wrap:wrap; gap:4px; padding:8px; background:rgba(30,40,50,0.95); border-radius:12px; margin:4px 0;">
+        <div id="emojiPicker" style="display:none; flex-direction:column; gap:8px; padding:8px; background:rgba(30,40,50,0.97); border-radius:12px; margin:4px 0;"><div class="neo-emoji-tabs"><button type="button" class="neo-emoji-tab active" onclick="showEmojiTab('standard')">Emoji</button><button type="button" class="neo-emoji-tab" onclick="showEmojiTab('neofind')">NeoFind</button></div><div id="standardEmojiGrid" class="neo-emoji-grid">
 <span onclick="insertEmoji('😀')" style="cursor:pointer; font-size:20px;">😀</span>
 <span onclick="insertEmoji('😁')" style="cursor:pointer; font-size:20px;">😁</span>
 <span onclick="insertEmoji('😂')" style="cursor:pointer; font-size:20px;">😂</span>
@@ -2975,7 +2976,20 @@ Search. Connect. Discover.
 <span onclick="insertEmoji('👎')" style="cursor:pointer; font-size:20px;">👎</span>
 <span onclick="insertEmoji('👏')" style="cursor:pointer; font-size:20px;">👏</span>
 <span onclick="insertEmoji('🙏')" style="cursor:pointer; font-size:20px;">🙏</span>
-</div>
+</div><div id="neoEmojiGrid" class="neo-emoji-grid" style="display:none;"><button type="button" class="neo-emoji-choice" title=":firework:" onclick="insertNeoEmoji('firework')"><img src="/assets/neofind-emojis/firework.svg" alt=":firework:"></button>
+<button type="button" class="neo-emoji-choice" title=":web:" onclick="insertNeoEmoji('web')"><img src="/assets/neofind-emojis/web.svg" alt=":web:"></button>
+<button type="button" class="neo-emoji-choice" title=":crown:" onclick="insertNeoEmoji('crown')"><img src="/assets/neofind-emojis/crown.svg" alt=":crown:"></button>
+<button type="button" class="neo-emoji-choice" title=":dev:" onclick="insertNeoEmoji('dev')"><img src="/assets/neofind-emojis/dev.svg" alt=":dev:"></button>
+<button type="button" class="neo-emoji-choice" title=":check:" onclick="insertNeoEmoji('check')"><img src="/assets/neofind-emojis/check.svg" alt=":check:"></button>
+<button type="button" class="neo-emoji-choice" title=":orb:" onclick="insertNeoEmoji('orb')"><img src="/assets/neofind-emojis/orb.svg" alt=":orb:"></button>
+<button type="button" class="neo-emoji-choice" title=":code:" onclick="insertNeoEmoji('code')"><img src="/assets/neofind-emojis/code.svg" alt=":code:"></button>
+<button type="button" class="neo-emoji-choice" title=":hello:" onclick="insertNeoEmoji('hello')"><img src="/assets/neofind-emojis/hello.svg" alt=":hello:"></button>
+<button type="button" class="neo-emoji-choice" title=":no:" onclick="insertNeoEmoji('no')"><img src="/assets/neofind-emojis/no.svg" alt=":no:"></button>
+<button type="button" class="neo-emoji-choice" title=":yes:" onclick="insertNeoEmoji('yes')"><img src="/assets/neofind-emojis/yes.svg" alt=":yes:"></button>
+<button type="button" class="neo-emoji-choice" title=":reset:" onclick="insertNeoEmoji('reset')"><img src="/assets/neofind-emojis/reset.svg" alt=":reset:"></button>
+<button type="button" class="neo-emoji-choice" title=":file:" onclick="insertNeoEmoji('file')"><img src="/assets/neofind-emojis/file.svg" alt=":file:"></button>
+<button type="button" class="neo-emoji-choice" title=":download:" onclick="insertNeoEmoji('download')"><img src="/assets/neofind-emojis/download.svg" alt=":download:"></button>
+<button type="button" class="neo-emoji-choice" title=":more:" onclick="insertNeoEmoji('more')"><img src="/assets/neofind-emojis/more.svg" alt=":more:"></button></div></div>
         <div id="chatInputRow">
             <input type="file" id="chatFileInput" accept="image/*" style="display:none" onchange="uploadChatImage(this)">
             <button id="voiceBtn" onclick="toggleRecording()" style="padding:6px 8px; border-radius:20px; flex-shrink:0; opacity:0.6; color:rgba(200,240,235,0.6);" title="Voice message">
@@ -6591,7 +6605,7 @@ function renderChatMessages(snapshot, chatId) {
     ? `<audio controls src="${escapeHtml(msg.url || '')}" style="max-width:200px; border-radius:10px;"></audio>`
     : msg.imageUrl
         ? `<img src="${escapeHtml(msg.imageUrl)}" class="chat-img" onclick="window.open(this.src,'_blank')">`
-            : escapeHtml(msg.text || '').replace(':)', '🙂').replace(':D', '😄').replace(':(', '😢').replace(';)', '😉').replace('xD', '😂').replace('<3', '❤️').replace(':|', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job').replace('@Adrian_dev', '@Owner').replace('/shrug', '¯\_(ツ)_/¯');
+            : renderNeoChatText(msg.text || '');)', '😉').replace('xD', '😂').replace('<3', '❤️').replace(':|', '😕').replace('gg', '👍 gg').replace('lol', '😂').replace('noob', 'good job').replace('@Adrian_dev', '@Owner').replace('/shrug', '¯\_(ツ)_/¯');
 
         let tick = "";
         if(isMe && msg.date){
@@ -7931,6 +7945,10 @@ async function toggleRecording(){
     }
 }
 
+const NEO_CHAT_EMOJI_NAMES=new Set(["firework","web","crown","dev","check","orb","code","hello","no","yes","reset","file","download","more"]);
+function renderNeoChatText(rawText){let html=escapeHtml(String(rawText||'')).replace(':)','🙂').replace(':D','😄').replace(':(','😢').replace(';)','😉').replace('xD','😂').replace('<3','❤️').replace(':|','😕').replace('gg','👍 gg').replace('lol','😂').replace('noob','good job').replace('@Adrian_dev','@Owner').replace('/shrug','¯\\_(ツ)_/¯');return html.replace(/:([a-z]+):/g,(match,name)=>NEO_CHAT_EMOJI_NAMES.has(name)?'<img class="neo-custom-emoji" src="/assets/neofind-emojis/'+name+'.svg" alt=":'+name+':" title=":'+name+':">':match);}
+function showEmojiTab(tab){const a=document.getElementById("standardEmojiGrid"),b=document.getElementById("neoEmojiGrid");if(!a||!b)return;a.style.display=tab==="standard"?"flex":"none";b.style.display=tab==="neofind"?"flex":"none";document.querySelectorAll(".neo-emoji-tab").forEach(x=>x.classList.toggle("active",x.textContent.trim()===(tab==="standard"?"Emoji":"NeoFind")));}
+function insertNeoEmoji(name){if(NEO_CHAT_EMOJI_NAMES.has(name))insertEmoji(':'+name+':');}
 // przycisk emoji w czacie
 function toggleEmojiPicker() {
     const picker = document.getElementById("emojiPicker");
@@ -7939,8 +7957,12 @@ function toggleEmojiPicker() {
 
 function insertEmoji(emoji) {
     const input = document.getElementById("chatInput");
-    input.value += emoji;
+    const start = Number.isInteger(input.selectionStart) ? input.selectionStart : input.value.length;
+    const end = Number.isInteger(input.selectionEnd) ? input.selectionEnd : input.value.length;
+    input.value = input.value.slice(0,start) + emoji + input.value.slice(end);
+    const caret = start + emoji.length;
     input.focus();
+    try { input.setSelectionRange(caret,caret); } catch {}
 }
 
 // animowane did you know

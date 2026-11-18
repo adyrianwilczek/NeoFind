@@ -68,7 +68,7 @@ function calculateLevel(totalXp) {
   let xpIntoLevel = safeTotal;
   let xpForNextLevel = 25;
 
-  while (xpIntoLevel >= xpForNextLevel && level < 100000) {
+  while (xpIntoLevel >= xpForNextLevel && level < 100001) {
     xpIntoLevel -= xpForNextLevel;
     level += 1;
     xpForNextLevel *= 2;

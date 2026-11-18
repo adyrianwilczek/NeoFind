@@ -1362,6 +1362,22 @@ async function ensureShopBridge() {
       if (attempt === 39) throw new Error("NeoFind account services did not finish loading.");
       await new Promise(resolve => setTimeout(resolve, 500));
     }
+    await wc.executeJavaScript(`window.__neoShopWaitForAuth = function(timeoutMs) {
+      return new Promise(resolve => {
+        if (typeof auth === "undefined" || !auth || typeof auth.onAuthStateChanged !== "function") return resolve(null);
+        let settled = false, unsubscribe = null;
+        const finish = user => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          try { if (unsubscribe) unsubscribe(); } catch {}
+          resolve(user || null);
+        };
+        const timer = setTimeout(() => finish(auth.currentUser || null), Math.max(1000, Number(timeoutMs) || 15000));
+        try { unsubscribe = auth.onAuthStateChanged(user => finish(user)); if (auth.currentUser) finish(auth.currentUser); }
+        catch (error) { finish(null); }
+      });
+    };`);
     return wc;
   })();
   try { return await shopBridgeReady; }
@@ -1369,6 +1385,8 @@ async function ensureShopBridge() {
 }
 async function executeShopBridge(source) {
   const wc = await ensureShopBridge();
+  // Wait for Firebase to restore the persisted account before XP/shop operations.
+  await wc.executeJavaScript(`window.__neoShopWaitForAuth(15000)`);
   return wc.executeJavaScript(source);
 }
 async function awardNativeXp(event, customEventId) {
@@ -1417,15 +1435,6 @@ async function awardNativeXp(event, customEventId) {
 async function getNativeShopState() {
   try {
     return await executeShopBridge(`(async () => {
-      await new Promise(resolve => {
-        if (typeof auth === "undefined") return resolve();
-        if (window.__neoShopAuthResolved) return resolve();
-        const unsubscribe = auth.onAuthStateChanged(() => {
-          window.__neoShopAuthResolved = true;
-          try { unsubscribe(); } catch {}
-          resolve();
-        });
-      });
       const user = auth.currentUser;
       if (!user) return { ok:true, signedIn:false };
       const snap = await db.collection("users").doc(user.uid).get();
@@ -1436,7 +1445,7 @@ async function getNativeShopState() {
       const gold = data.plan === "gold" ? goldUntil > Date.now() : (data.plan !== "premium" && goldUntil > Date.now());
       const totalXp = Math.max(0, Math.floor(Number(data.totalXp || 0)));
       let level = 0, spentXp = 0, nextLevelXp = 25;
-      while (totalXp >= spentXp + nextLevelXp && level < 100000) { spentXp += nextLevelXp; level++; nextLevelXp *= 2; }
+      while (totalXp >= spentXp + nextLevelXp && level < 100001) { spentXp += nextLevelXp; level++; nextLevelXp *= 2; }
       const levelRank = (level >= 100001 ? "Infinity" : level >= 25001 ? "Impossible" : level >= 10001 ? "Multiverse" : level >= 5001 ? "Insane" : level >= 2001 ? "Godly" : level >= 1501 ? "Hyper" : level >= 1001 ? "Legendary" : level >= 751 ? "Super" : level >= 501 ? "Diamond" : level >= 251 ? "Obsidian" : level >= 101 ? "Platinum" : level >= 51 ? "Gold" : level >= 31 ? "Pearl" : level >= 21 ? "Amethyst" : level >= 16 ? "Ruby" : level >= 11 ? "Emerald" : level >= 7 ? "Silver" : level >= 4 ? "Bronze" : "Unranked");
       return {
         ok:true, signedIn:true, email:String(user.email || "NeoFind account"),
