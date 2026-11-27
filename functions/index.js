@@ -263,10 +263,15 @@ exports.shopAction = onRequest(
             : data.plan === "gold"
               ? Number(data.goldUntil || 0) > now
               : (data.premium === true || Number(data.premiumUntil || 0) > now || Number(data.goldUntil || 0) > now);
+          // Black Friday promotion: 20% off from Nov 27 through Nov 30, 2026 (UTC).
+          const promoNow = new Date();
+          const promoStart = Date.UTC(2026, 10, 27, 0, 0, 0);
+          const promoEnd = Date.UTC(2026, 11, 1, 0, 0, 0);
+          const blackFridayDiscount = promoNow.getTime() >= promoStart && promoNow.getTime() < promoEnd ? 20 : 0;
           const premiumDiscount = premiumActive ? 50 : 0;
-          const useGiftDiscount = discountUses > 0 && storedDiscount > premiumDiscount;
+          const useGiftDiscount = discountUses > 0 && storedDiscount > Math.max(premiumDiscount, blackFridayDiscount);
           const usedTicket = tickets > 0;
-          const discountPercent = usedTicket ? 0 : Math.max(premiumDiscount, useGiftDiscount ? storedDiscount : 0);
+          const discountPercent = usedTicket ? 0 : Math.max(premiumDiscount, blackFridayDiscount, useGiftDiscount ? storedDiscount : 0);
           const costOrbs = usedTicket ? 0 : Math.ceil(prices[type] * (100 - discountPercent) / 100);
           if (current < costOrbs) throw new Error("NOT_ENOUGH_ORBS");
           const inventory = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
