@@ -676,6 +676,8 @@ function renderNativeLevel(data){
 }
 function renderNativeShop(state) {
   nativeShopState = state;
+  const blackFridayBanner = document.getElementById("nativeShopBlackFridayBanner");
+  if (blackFridayBanner) blackFridayBanner.hidden = !(state && Number(state.blackFridayDiscount || 0) > 0);
   setBrowserGoldThemeAccess(!!(state && state.ok && state.signedIn && state.gold));
   renderNativeLevel(state && state.levelData);
   nativeShopSignIn.classList.toggle("hidden", !!(state && state.signedIn));
