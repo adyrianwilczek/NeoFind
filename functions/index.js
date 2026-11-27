@@ -211,11 +211,21 @@ exports.shopAction = onRequest(
   async (req, res) => {
     if (req.method !== "POST") return res.status(405).json({ ok: false, error: "METHOD_NOT_ALLOWED" });
     try {
+      const action = String(req.body?.action || "");
+      // Public storefronts can be viewed without signing in. All management,
+      // purchase and account actions still require a verified Firebase token.
+      if (action === "shop_public_view") {
+        const shopId = String(req.body?.shopId || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+        if (!/^[A-Z0-9]{6}$/.test(shopId)) return res.status(400).json({ ok: false, error: "INVALID_SHOP_ID" });
+        const shopSnap = await db.collection("shops").doc(shopId).get();
+        if (!shopSnap.exists) return res.status(404).json({ ok: false, error: "SHOP_NOT_FOUND" });
+        const data = shopSnap.data() || {};
+        return res.status(200).json({ ok: true, shop: { id: shopId, name: data.name || "NeoFind Shop", description: data.description || "", logoUrl: data.logoUrl || "", backgroundColor: data.backgroundColor || "#111827", layout: data.layout || "grid", products: (data.products || []).filter(p => Number(p.stock || 0) > 0).map(p => ({ id: p.id, name: p.name, icon: p.icon, price: p.price, stock: p.stock, type: p.type })) } });
+      }
       const authorization = String(req.headers.authorization || "");
       if (!authorization.startsWith("Bearer ")) return res.status(401).json({ ok: false, error: "UNAUTHENTICATED" });
       const decoded = await getAuth().verifyIdToken(authorization.slice(7));
       const uid = decoded.uid;
-      const action = String(req.body?.action || "");
       const userRef = db.collection("users").doc(uid);
 
       if (action === "redeem_coupon") {
@@ -280,15 +290,6 @@ exports.shopAction = onRequest(
           return { id: doc.id, name: String(data.name || "NeoFind Shop"), productCount: Number(data.productCount || (data.products || []).length || 0), productLimit: Number(data.productLimit || 25), earningsOrbs: Number(data.earningsOrbs || 0), buyersCount: Number(data.buyersCount || 0), createdAtMs: Number(data.createdAtMs || 0) };
         }).sort((a,b) => b.createdAtMs - a.createdAtMs);
         return res.status(200).json({ ok: true, shops });
-      }
-
-      if (action === "shop_public_view") {
-        const shopId = String(req.body?.shopId || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
-        if (!/^[A-Z0-9]{6}$/.test(shopId)) return res.status(400).json({ ok: false, error: "INVALID_SHOP_ID" });
-        const shopSnap = await db.collection("shops").doc(shopId).get();
-        if (!shopSnap.exists) return res.status(404).json({ ok: false, error: "SHOP_NOT_FOUND" });
-        const data = shopSnap.data() || {};
-        return res.status(200).json({ ok: true, shop: { id: shopId, name: data.name || "NeoFind Shop", description: data.description || "", logoUrl: data.logoUrl || "", backgroundColor: data.backgroundColor || "#111827", layout: data.layout || "grid", products: (data.products || []).filter(p => Number(p.stock || 0) > 0).map(p => ({ id: p.id, name: p.name, icon: p.icon, price: p.price, stock: p.stock, type: p.type })) } });
       }
 
       if (action === "shop_manage") {
