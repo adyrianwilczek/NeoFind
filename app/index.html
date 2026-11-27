@@ -8865,6 +8865,97 @@ function triggerCustomLockScreen(userEmail, blockReason) {
 </style>
 
 
+
+<script id="neoCustomShopRouter">
+(function(){
+  "use strict";
+  const API="https://us-central1-neofind-f8213.cloudfunctions.net/shopAction";
+  const params=new URLSearchParams(location.search);
+  const rawPage=String(params.get("p")||"").toLowerCase();
+  const embeddedId=(rawPage.match(/shop\\/id=([a-z0-9]{6})/i)||[])[1]||"";
+  const page=rawPage.startsWith("shop/")?"shop":rawPage;
+  const shopId=String(params.get("id")||embeddedId).toUpperCase();
+  const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const style=`
+    #neoBlackFridaySiteBanner{position:sticky;top:0;z-index:99990;display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(100deg,#092b43,#29204a);border-bottom:1px solid #00d9f4;color:#fff;font:700 13px Arial,sans-serif;box-shadow:0 5px 22px #0005}
+    #neoBlackFridaySiteBanner strong{color:#8fffd0;font-size:16px;letter-spacing:1px}
+    #neoBlackFridaySiteBanner a{color:#9cefff;text-decoration:underline}
+    #neoCustomShopRoot{max-width:1120px;margin:32px auto;padding:24px;color:#f5fbff;font-family:Arial,sans-serif}
+    #neoCustomShopRoot .ncs-card{background:#101b2c;border:1px solid #ffffff20;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 12px 35px #0003}
+    #neoCustomShopRoot h1,#neoCustomShopRoot h2,#neoCustomShopRoot h3{margin-top:0}
+    #neoCustomShopRoot .ncs-muted{color:#aabbd0}
+    #neoCustomShopRoot .ncs-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    #neoCustomShopRoot input,#neoCustomShopRoot select,#neoCustomShopRoot textarea{box-sizing:border-box;width:100%;max-width:100%;padding:11px 13px;border:1px solid #ffffff25;border-radius:9px;background:#081321;color:#fff;margin:5px 0 12px}
+    #neoCustomShopRoot label{display:block;color:#b9d3e7;font-size:13px}
+    #neoCustomShopRoot button,#neoCustomShopRoot .ncs-button{border:0;border-radius:9px;padding:11px 16px;background:linear-gradient(100deg,#00bcd4,#4f8dff);color:#06121e;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block}
+    #neoCustomShopRoot button:disabled{opacity:.45;cursor:not-allowed}
+    #neoCustomShopRoot .ncs-secondary{background:#26364b;color:#e8f4ff}
+    #neoCustomShopRoot .ncs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    #neoCustomShopRoot .ncs-product{background:#0b1524;border:1px solid #ffffff1b;border-radius:13px;padding:16px}
+    #neoCustomShopRoot .ncs-product-icon{font-size:34px}
+    #neoCustomShopRoot .ncs-status{min-height:22px;color:#9cefff}
+    #neoCustomShopRoot .ncs-shop-head{padding:24px;border-radius:16px;background:var(--shop-bg,#111827);border:1px solid #ffffff30}
+    @media(max-width:600px){#neoCustomShopRoot{padding:12px;margin:12px auto}#neoCustomShopRoot .ncs-card{padding:14px}}
+  `;
+  const styleNode=document.createElement("style");styleNode.textContent=style;document.head.appendChild(styleNode);
+  const banner=document.createElement("div");banner.id="neoBlackFridaySiteBanner";banner.innerHTML='<strong>BLACK FRIDAY · 20% OFF</strong><span>27–30 November 2026</span><a href="/app/">Visit NeoFind Shop</a>';document.body.prepend(banner);
+  function mount(title,html){
+    document.body.innerHTML='<div id="neoBlackFridaySiteBanner"><strong>BLACK FRIDAY · 20% OFF</strong><span>27–30 November 2026</span><a href="/app/">NeoFind</a></div><main id="neoCustomShopRoot"><p class="ncs-muted">NEOFIND MARKETPLACE</p>'+html+'</main>';
+    document.title=title+" | NeoFind";
+  }
+  async function call(action,data={},needsAuth=true){
+    const user=typeof auth!=="undefined"&&auth?auth.currentUser:null;
+    const headers={"Content-Type":"application/json"};
+    if(needsAuth){if(!user)throw new Error("Zaloguj się na konto NeoFind, aby wykonać tę czynność.");headers.Authorization="Bearer "+await user.getIdToken();}
+    const response=await fetch(API,{method:"POST",headers,body:JSON.stringify({action,...data})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||result.ok!==true)throw new Error(result.error||"Nie udało się wykonać operacji.");
+    return result;
+  }
+  function status(message,error){const node=document.querySelector("#ncsStatus");if(node){node.textContent=message;node.style.color=error?"#ff9999":"#9cefff";}}
+  async function waitForUser(){
+    if(typeof auth==="undefined"||!auth)return null;
+    if(auth.currentUser)return auth.currentUser;
+    return new Promise(resolve=>{let done=false;const timer=setTimeout(()=>finish(null),12000);const unsub=auth.onAuthStateChanged(user=>finish(user));function finish(user){if(done)return;done=true;clearTimeout(timer);try{unsub();}catch{}resolve(user||null);}});
+  }
+  async function manager(){
+    mount("My Shops",'<div class="ncs-row" style="justify-content:space-between"><div><h1>My NeoFind Shops</h1><p class="ncs-muted">Create and manage your own storefronts.</p></div><a class="ncs-button ncs-secondary" href="/app/">Back to NeoFind</a></div><section class="ncs-card"><h2>Create a shop</h2><p class="ncs-muted">Free: 25 products · Premium: 75 · Gold: 150</p><button id="ncsCreate">Create shop</button><p id="ncsStatus" class="ncs-status" role="status">Checking your account…</p></section><section class="ncs-card"><h2>Your stores</h2><div id="ncsList" class="ncs-grid">Loading…</div></section><section id="ncsEditor"></section>');
+    const user=await waitForUser();
+    if(!user){status("Sign in to NeoFind, then reopen My Shops.",true);document.querySelector("#ncsList").textContent="Sign-in required.";return;}
+    async function loadList(){
+      try{const result=await call("shop_list_mine");const box=document.querySelector("#ncsList");box.innerHTML=result.shops.length?result.shops.map(s=>'<article class="ncs-product"><h3>'+esc(s.name)+'</h3><p class="ncs-muted">ID: '+esc(s.id)+' · '+s.productCount+'/'+s.productLimit+' products</p><p>'+Number(s.earningsOrbs||0).toLocaleString()+' Orbs earned · '+Number(s.buyersCount||0)+' buyers</p><div class="ncs-row"><button data-edit-shop="'+esc(s.id)+'">Manage</button><button class="ncs-secondary" data-copy-shop="'+esc(s.id)+'">Copy link</button></div></article>').join(""):'<p class="ncs-muted">You have not created a shop yet.</p>';
+        box.querySelectorAll("[data-edit-shop]").forEach(b=>b.onclick=()=>editor(b.dataset.editShop));
+        box.querySelectorAll("[data-copy-shop]").forEach(b=>b.onclick=async()=>{const url=location.origin+"/?p=shop/id="+b.dataset.copyShop;try{await navigator.clipboard.writeText(url);status("Store link copied.");}catch{status(url);}});
+      }catch(e){status(e.message,true);}
+    }
+    document.querySelector("#ncsCreate").onclick=async()=>{const b=document.querySelector("#ncsCreate");b.disabled=true;try{const r=await call("create_shop");status("Shop created: "+r.shopId+" · "+r.productLimit+" product slots.");await loadList();await editor(r.shopId);}catch(e){status(e.message,true);}finally{b.disabled=false;}};
+    async function editor(id){
+      const host=document.querySelector("#ncsEditor");host.innerHTML='<section class="ncs-card"><h2>Loading shop '+esc(id)+'…</h2></section>';
+      try{
+        const r=await call("shop_manage",{shopId:id,operation:"get_console"});const s=r.shop,p=s.products||[],inv=r.inventory||{};
+        host.innerHTML='<section class="ncs-card"><div class="ncs-row" style="justify-content:space-between"><div><h2>Manage '+esc(s.name)+'</h2><p class="ncs-muted">ID: '+esc(id)+' · '+p.length+'/'+s.productLimit+' products</p></div><a class="ncs-button ncs-secondary" target="_blank" rel="noopener" href="/?p=shop/id='+encodeURIComponent(id)+'">Open storefront</a></div><div class="ncs-grid"><div><label>Store name<input id="ncsName" maxlength="40" value="'+esc(s.name)+'"></label><label>Description<textarea id="ncsDescription" maxlength="240">'+esc(s.description||"")+'</textarea></label></div><div><label>Logo URL<input id="ncsLogo" maxlength="500" value="'+esc(s.logoUrl||"")+'"></label><label>Background colour<input id="ncsColor" type="color" value="'+esc(/^#[0-9a-f]{6}$/i.test(s.backgroundColor||"")?s.backgroundColor:"#111827")+'"></label><label>Layout<select id="ncsLayout"><option value="grid" '+(s.layout==="grid"?"selected":"")+'>Grid</option><option value="list" '+(s.layout==="list"?"selected":"")+'>List</option></select></label></div></div><button id="ncsSaveSettings">Save store settings</button><hr style="border-color:#ffffff20;margin:22px 0"><h3>Add product</h3><p class="ncs-muted">Inventory: Normal '+(inv.normal||0)+' · Rare '+(inv.rare||0)+' · Epic '+(inv.epic||0)+' · NeoFind '+(inv.neofind||0)+'</p><div class="ncs-grid"><label>Product name<input id="ncsProductName" maxlength="40" placeholder="Product name"></label><label>Icon / emoji<input id="ncsProductIcon" maxlength="12" value="🎁"></label><label>Type<select id="ncsProductType"><option value="normal">Normal</option><option value="rare">Rare</option><option value="epic">Epic</option><option value="neofind">NeoFind</option></select></label><label>Price (Orbs)<input id="ncsProductPrice" type="number" min="1" max="1000000" value="25"></label><label>Stock<input id="ncsProductStock" type="number" min="1" max="100000" value="1"></label></div><button id="ncsAddProduct">Add from inventory</button><h3 style="margin-top:24px">Products</h3><div class="ncs-grid">'+(p.length?p.map(x=>'<article class="ncs-product"><div class="ncs-product-icon">'+esc(x.icon)+'</div><strong>'+esc(x.name)+'</strong><p>'+esc(x.type)+' · '+Number(x.price).toLocaleString()+' Orbs · Stock: '+Number(x.stock||0)+'</p><button class="ncs-secondary" data-withdraw="'+esc(x.id)+'">Remove and return stock</button></article>').join(""):'<p class="ncs-muted">No products yet.</p>')+'</div><p id="ncsStatus" class="ncs-status" role="status"></p></section>';
+        document.querySelector("#ncsSaveSettings").onclick=async()=>{try{await call("shop_manage",{shopId:id,operation:"settings",settings:{name:document.querySelector("#ncsName").value,description:document.querySelector("#ncsDescription").value,logoUrl:document.querySelector("#ncsLogo").value,backgroundColor:document.querySelector("#ncsColor").value,layout:document.querySelector("#ncsLayout").value}});status("Store settings saved.");await loadList();}catch(e){status(e.message,true);}};
+        document.querySelector("#ncsAddProduct").onclick=async()=>{try{await call("shop_manage",{shopId:id,operation:"add_product",product:{name:document.querySelector("#ncsProductName").value,icon:document.querySelector("#ncsProductIcon").value,type:document.querySelector("#ncsProductType").value,price:Number(document.querySelector("#ncsProductPrice").value),stock:Number(document.querySelector("#ncsProductStock").value)}});status("Product added from your chest inventory.");await editor(id);await loadList();}catch(e){status(e.message,true);}};
+        host.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(!confirm("Remove this product and return its remaining stock to your inventory?"))return;try{await call("shop_manage",{shopId:id,operation:"withdraw_product",productId:b.dataset.withdraw});status("Product removed and stock returned.");await editor(id);await loadList();}catch(e){status(e.message,true);}});
+      }catch(e){host.innerHTML='<section class="ncs-card"><p class="ncs-status">'+esc(e.message)+'</p></section>';}
+    }
+    await loadList();
+  }
+  async function storefront(id){
+    mount("NeoFind Shop",'<a class="ncs-button ncs-secondary" href="/app/">← NeoFind</a><section id="ncsStore" class="ncs-card">Loading storefront…</section><p id="ncsStatus" class="ncs-status" role="status"></p>');
+    const host=document.querySelector("#ncsStore");
+    try{
+      const r=await call("shop_public_view",{shopId:id},false),s=r.shop;
+      host.style.background=s.backgroundColor||"#111827";
+      host.innerHTML='<header class="ncs-shop-head"><div class="ncs-row">'+(s.logoUrl?'<img src="'+esc(s.logoUrl)+'" alt="" style="width:64px;height:64px;object-fit:contain;border-radius:12px">':'')+'<div><p class="ncs-muted">NEOFIND VERIFIED STOREFRONT</p><h1>'+esc(s.name)+'</h1><p>'+esc(s.description||"")+'</p><small>Store ID: '+esc(s.id)+'</small></div></div></header><h2 style="margin-top:24px">Products</h2><div class="ncs-grid">'+(s.products.length?s.products.map(p=>'<article class="ncs-product"><div class="ncs-product-icon">'+esc(p.icon)+'</div><h3>'+esc(p.name)+'</h3><p>'+Number(p.price).toLocaleString()+' Orbs · '+Number(p.stock)+' in stock</p><button data-buy-product="'+esc(p.id)+'">Buy</button></article>').join(""):'<p class="ncs-muted">This shop has no products in stock.</p>')+'</div>';
+      host.querySelectorAll("[data-buy-product]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{const result=await call("shop_purchase",{shopId:id,productId:b.dataset.buyProduct});status("Purchased "+result.productName+" for "+result.cost+" Orbs. Chest added to your inventory.");await storefront(id);}catch(e){status(e.message,true);b.disabled=false;}});
+    }catch(e){host.textContent=e.message;}
+  }
+  if(page==="shops"){manager();}
+  else if(page==="shop"){if(/^[A-Z0-9]{6}$/.test(shopId))storefront(shopId);else mount("Shop not found",'<section class="ncs-card"><h1>Invalid shop link</h1><p>Store IDs contain exactly six letters or numbers.</p></section>');}
+  else if(!page){banner.innerHTML='<strong>BLACK FRIDAY · 20% OFF</strong><span>27–30 November 2026</span><a href="/app/?p=shops">Manage your shops</a>';}
+})();
+</script>
 </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
