@@ -8872,7 +8872,7 @@ function triggerCustomLockScreen(userEmail, blockReason) {
   const API="https://us-central1-neofind-f8213.cloudfunctions.net/shopAction";
   const params=new URLSearchParams(location.search);
   const rawPage=String(params.get("p")||"").toLowerCase();
-  const embeddedId=(rawPage.match(/shop\\/id=([a-z0-9]{6})/i)||[])[1]||"";
+  const embeddedId=(rawPage.match(/shop\/id=([a-z0-9]{6})/i)||[])[1]||"";
   const page=rawPage.startsWith("shop/")?"shop":rawPage;
   const shopId=String(params.get("id")||embeddedId).toUpperCase();
   const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
