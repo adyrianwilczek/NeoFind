@@ -273,6 +273,15 @@ exports.shopAction = onRequest(
         return res.status(200).json(result);
       }
 
+      if (action === "shop_list_mine") {
+        const snap = await db.collection("shops").where("ownerUid", "==", uid).get();
+        const shops = snap.docs.map(doc => {
+          const data = doc.data() || {};
+          return { id: doc.id, name: String(data.name || "NeoFind Shop"), productCount: Number(data.productCount || (data.products || []).length || 0), productLimit: Number(data.productLimit || 25), earningsOrbs: Number(data.earningsOrbs || 0), buyersCount: Number(data.buyersCount || 0), createdAtMs: Number(data.createdAtMs || 0) };
+        }).sort((a,b) => b.createdAtMs - a.createdAtMs);
+        return res.status(200).json({ ok: true, shops });
+      }
+
       if (action === "shop_public_view") {
         const shopId = String(req.body?.shopId || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
         if (!/^[A-Z0-9]{6}$/.test(shopId)) return res.status(400).json({ ok: false, error: "INVALID_SHOP_ID" });
