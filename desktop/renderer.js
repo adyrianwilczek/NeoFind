@@ -697,7 +697,7 @@ function renderNativeShop(state) {
   goldButton.disabled=!(state&&state.ok&&state.signedIn)||!!(state&&(state.premium||state.gold));
   goldButton.textContent=state&&state.gold?"Already active":state&&state.premium?"Premium active":"Buy Gold";
   document.getElementById("nativeShopGoldPrice").textContent="2500 Orbs";
-  const discount = state && (state.premium || state.gold) ? 50 : (state && state.discountUses > 0 ? state.discountPercent : 0);
+  const discount = state && (state.premium || state.gold) ? 50 : Math.max(Number(state && state.blackFridayDiscount || 0), Number(state && state.discountUses > 0 ? state.discountPercent : 0));
   const prices = {normal:25,rare:50,epic:100,neofind:200};
   Object.entries(nativeShopPrices).forEach(([type,node]) => {
     const price = Math.ceil(prices[type] * (100-discount)/100);
