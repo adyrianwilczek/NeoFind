@@ -13167,18 +13167,11 @@ async function ownerGrantChest() {
 // Scheduled Premium promotions use the visitor's local calendar date.
 // October offer: 13–19 October 2026, 25% off. Black Friday: 23–30 November 2026, 50% off.
 function getNeoFindPremiumPromo(now = Date.now()) {
-    const birthdayStart = new Date(2026, 9, 13, 0, 0, 0, 0).getTime();
-    const birthdayEnd = new Date(2026, 9, 20, 0, 0, 0, 0).getTime();
-    if (now >= birthdayStart && now < birthdayEnd) {
-        return { active: true, price: 750, oldPrice: 1000, discount: 25, eyebrow: "NEOFIND OCTOBER SALE", dates: "13–19 October 2026" };
-    }
-
-    const blackFridayStart = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
+    const blackFridayStart = new Date(2026, 10, 27, 0, 0, 0, 0).getTime();
     const blackFridayEnd = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
     if (now >= blackFridayStart && now < blackFridayEnd) {
-        return { active: true, price: 500, oldPrice: 1000, discount: 50, eyebrow: "NEOFIND BLACK FRIDAY", dates: "23–30 November 2026" };
+        return { active: true, price: 800, oldPrice: 1000, discount: 20, eyebrow: "NEOFIND BLACK FRIDAY", dates: "27–30 November 2026" };
     }
-
     return { active: false, price: 1000, oldPrice: 1000, discount: 0, eyebrow: "", dates: "" };
 }
 
