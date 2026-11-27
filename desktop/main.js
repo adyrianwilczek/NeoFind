@@ -1356,7 +1356,7 @@ async function ensureShopBridge() {
     for (let attempt = 0; attempt < 40; attempt++) {
       if (wc.isDestroyed()) throw new Error("Shop session closed.");
       try {
-        const ready = await wc.executeJavaScript(`(() => typeof auth !== "undefined" && typeof db !== "undefined" && typeof firebase !== "undefined" && typeof redeemCode === "function")()`);
+        const ready = await wc.executeJavaScript(`(() => typeof auth !== "undefined" && typeof db !== "undefined" && typeof firebase !== "undefined" && !!auth && !!db)()`);
         if (ready) break;
       } catch {}
       if (attempt === 39) throw new Error("NeoFind account services did not finish loading.");
