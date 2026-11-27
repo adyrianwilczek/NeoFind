@@ -1455,6 +1455,7 @@ async function getNativeShopState() {
         slotMachineUses:Number(data.slotMachineDay || -1) === Math.floor(Date.now()/86400000) ? Math.max(0,Math.floor(Number(data.slotMachineUses || 0))) : 0,
         slotMachineLimit:(premium || gold) ? 5 : 1,
         premiumPrice:typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000,
+        blackFridayDiscount:(Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1)) ? 20 : 0,
         tickets:Math.max(0, Math.floor(Number(data.shopTicketUses || 0))),
         discountPercent:Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0)))),
         discountUses:Math.max(0, Math.floor(Number(data.shopDiscountUses || 0))),
