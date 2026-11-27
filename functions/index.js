@@ -2,6 +2,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const crypto = require("crypto");
 
 initializeApp();
 const db = getFirestore();
@@ -238,6 +239,36 @@ exports.shopAction = onRequest(
             redeemedAt: FieldValue.serverTimestamp()
           });
           return { ok: true, discountPercent: 25, discountUses: oldUses + 1 };
+        });
+        return res.status(200).json(result);
+      }
+
+      if (action === "create_shop") {
+        const result = await db.runTransaction(async tx => {
+          const snap = await tx.get(userRef);
+          if (!snap.exists) throw new Error("USER_PROFILE_MISSING");
+          const data = snap.data() || {};
+          const now = Date.now();
+          const plan = String(data.plan || "free").toLowerCase();
+          const premiumActive = plan === "premium" && Number(data.premiumUntil || 0) > now;
+          const goldActive = plan === "gold" && Number(data.goldUntil || 0) > now;
+          const freeEligible = data.shopCreateEligible === true;
+          if (!premiumActive && !goldActive && !freeEligible) throw new Error("SHOP_CREATE_NOT_ELIGIBLE");
+          const limit = goldActive ? 150 : premiumActive ? 75 : 25;
+          const shopId = crypto.randomBytes(3).toString("hex").toUpperCase();
+          const shopRef = db.collection("shops").doc(shopId);
+          const shopSnap = await tx.get(shopRef);
+          if (shopSnap.exists) throw new Error("SHOP_ID_COLLISION");
+          tx.create(shopRef, {
+            id: shopId, ownerUid: uid, ownerEmail: String(decoded.email || ""),
+            plan: goldActive ? "gold" : premiumActive ? "premium" : "free",
+            productLimit: limit, productCount: 0, name: "My NeoFind Shop",
+            description: "", logoUrl: "", backgroundColor: "#111827",
+            layout: "grid", products: [], createdAt: FieldValue.serverTimestamp(),
+            createdAtMs: now, updatedAt: FieldValue.serverTimestamp(),
+            buyersCount: 0, earningsOrbs: 0
+          });
+          return { ok: true, shopId, url: "https://neofind.pl/?p=shop/id=" + shopId, productLimit: limit };
         });
         return res.status(200).json(result);
       }
