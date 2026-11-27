@@ -273,6 +273,99 @@ exports.shopAction = onRequest(
         return res.status(200).json(result);
       }
 
+      if (action === "shop_public_view") {
+        const shopId = String(req.body?.shopId || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+        if (!/^[A-Z0-9]{6}$/.test(shopId)) return res.status(400).json({ ok: false, error: "INVALID_SHOP_ID" });
+        const shopSnap = await db.collection("shops").doc(shopId).get();
+        if (!shopSnap.exists) return res.status(404).json({ ok: false, error: "SHOP_NOT_FOUND" });
+        const data = shopSnap.data() || {};
+        return res.status(200).json({ ok: true, shop: { id: shopId, name: data.name || "NeoFind Shop", description: data.description || "", logoUrl: data.logoUrl || "", backgroundColor: data.backgroundColor || "#111827", layout: data.layout || "grid", products: (data.products || []).filter(p => Number(p.stock || 0) > 0).map(p => ({ id: p.id, name: p.name, icon: p.icon, price: p.price, stock: p.stock, type: p.type })) } });
+      }
+
+      if (action === "shop_manage") {
+        const shopId = String(req.body?.shopId || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+        const operation = String(req.body?.operation || "");
+        const shopRef = db.collection("shops").doc(shopId);
+        if (!/^[A-Z0-9]{6}$/.test(shopId)) return res.status(400).json({ ok: false, error: "INVALID_SHOP_ID" });
+        const result = await db.runTransaction(async tx => {
+          const [shopSnap, userSnap] = await Promise.all([tx.get(shopRef), tx.get(userRef)]);
+          if (!shopSnap.exists || !userSnap.exists) throw new Error("SHOP_NOT_FOUND");
+          const shop = shopSnap.data() || {}, user = userSnap.data() || {};
+          if (shop.ownerUid !== uid) throw new Error("SHOP_NOT_OWNER");
+          const currentProducts = Array.isArray(shop.products) ? shop.products : [];
+          const inventory = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, user.chestInventory || {});
+          if (operation === "settings") {
+            const settings = req.body?.settings || {};
+            const name = String(settings.name || shop.name || "").trim().slice(0, 40);
+            const description = String(settings.description || "").trim().slice(0, 240);
+            const backgroundColor = /^#[0-9A-Fa-f]{6}$/.test(settings.backgroundColor || "") ? settings.backgroundColor : (shop.backgroundColor || "#111827");
+            const layout = ["grid","list"].includes(settings.layout) ? settings.layout : "grid";
+            const logoUrl = String(settings.logoUrl || "").trim().slice(0, 500);
+            tx.update(shopRef, { name, description, backgroundColor, layout, logoUrl, updatedAt: FieldValue.serverTimestamp() });
+            return { ok: true, settings: { name, description, backgroundColor, layout, logoUrl } };
+          }
+          if (operation === "add_product") {
+            const p = req.body?.product || {};
+            const name = String(p.name || "").trim().slice(0, 40);
+            const type = String(p.type || "");
+            const icon = String(p.icon || "").trim().slice(0, 12);
+            const price = Math.max(1, Math.min(1000000, Math.floor(Number(p.price) || 0)));
+            const stock = Math.max(1, Math.min(100000, Math.floor(Number(p.stock) || 0)));
+            if (!name || !["normal","rare","epic","neofind"].includes(type) || !icon || !price) throw new Error("INVALID_PRODUCT");
+            if (currentProducts.length >= Number(shop.productLimit || 25)) throw new Error("SHOP_PRODUCT_LIMIT");
+            if (Number(inventory[type] || 0) < stock) throw new Error("NOT_ENOUGH_INVENTORY");
+            const id = crypto.randomBytes(5).toString("hex");
+            const products = [...currentProducts, { id, name, type, icon, price, stock, createdAtMs: Date.now() }];
+            inventory[type] -= stock;
+            tx.update(shopRef, { products, productCount: products.length, updatedAt: FieldValue.serverTimestamp() });
+            tx.set(userRef, { chestInventory: inventory }, { merge: true });
+            return { ok: true, product: products[products.length - 1], inventory };
+          }
+          if (operation === "withdraw_product") {
+            const productId = String(req.body?.productId || "");
+            const product = currentProducts.find(p => p.id === productId);
+            if (!product) throw new Error("PRODUCT_NOT_FOUND");
+            inventory[product.type] = Math.max(0, Number(inventory[product.type] || 0)) + Math.max(0, Number(product.stock || 0));
+            const products = currentProducts.filter(p => p.id !== productId);
+            tx.update(shopRef, { products, productCount: products.length, updatedAt: FieldValue.serverTimestamp() });
+            tx.set(userRef, { chestInventory: inventory }, { merge: true });
+            return { ok: true, inventory, products };
+          }
+          if (operation === "get_console") return { ok: true, shop: { ...shop, products: currentProducts }, inventory };
+          throw new Error("UNKNOWN_SHOP_OPERATION");
+        });
+        return res.status(200).json(result);
+      }
+
+      if (action === "shop_purchase") {
+        const shopId = String(req.body?.shopId || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+        const productId = String(req.body?.productId || "");
+        const shopRef = db.collection("shops").doc(shopId);
+        const buyerReceiptRef = userRef.collection("shopReceipts").doc();
+        const result = await db.runTransaction(async tx => {
+          const [shopSnap, buyerSnap] = await Promise.all([tx.get(shopRef), tx.get(userRef)]);
+          if (!shopSnap.exists || !buyerSnap.exists) throw new Error("SHOP_NOT_FOUND");
+          const shop = shopSnap.data() || {}, buyer = buyerSnap.data() || {};
+          const products = Array.isArray(shop.products) ? shop.products : [];
+          const product = products.find(p => p.id === productId);
+          if (!product || Number(product.stock || 0) <= 0) throw new Error("PRODUCT_OUT_OF_STOCK");
+          const cost = Math.max(1, Math.floor(Number(product.price) || 0));
+          const balance = Math.max(0, Math.floor(Number(buyer.orbs || 0)));
+          if (balance < cost) throw new Error("NOT_ENOUGH_ORBS");
+          const updatedProducts = products.map(p => p.id === productId ? { ...p, stock: Number(p.stock || 0) - 1 } : p);
+          const sellerRef = db.collection("users").doc(String(shop.ownerUid));
+          const sellerSnap = await tx.get(sellerRef);
+          if (!sellerSnap.exists) throw new Error("SHOP_OWNER_MISSING");
+          const seller = sellerSnap.data() || {};
+          tx.update(userRef, { orbs: balance - cost, chestInventory: { ...(buyer.chestInventory || {}), [product.type]: Math.max(0, Number((buyer.chestInventory || {})[product.type] || 0)) + 1 } });
+          tx.update(sellerRef, { orbs: Math.max(0, Number(seller.orbs || 0)) + cost });
+          tx.update(shopRef, { products: updatedProducts, buyersCount: Number(shop.buyersCount || 0) + 1, earningsOrbs: Number(shop.earningsOrbs || 0) + cost, updatedAt: FieldValue.serverTimestamp() });
+          tx.create(buyerReceiptRef, { shopId, productId, productName: product.name, itemType: product.type, price: cost, buyerUid: uid, sellerUid: shop.ownerUid, purchasedAt: FieldValue.serverTimestamp() });
+          return { ok: true, productName: product.name, cost, orbsRemaining: balance - cost };
+        });
+        return res.status(200).json(result);
+      }
+
       if (action === "buy_chest") {
         const type = String(req.body?.type || "");
         const prices = { normal: 25, rare: 50, epic: 100, neofind: 200 };
@@ -337,7 +430,7 @@ exports.shopAction = onRequest(
       console.error("shopAction failed:", error);
       const message = String(error && error.message || error);
       const known = message === "NOT_ENOUGH_ORBS" ? "NOT_ENOUGH_ORBS"
-        : message === "USER_PROFILE_MISSING" ? "USER_PROFILE_MISSING" : "SHOP_ACTION_FAILED";
+        : message === "USER_PROFILE_MISSING" ? "USER_PROFILE_MISSING" : message.startsWith("SHOP_") || ["INVALID_PRODUCT","NOT_ENOUGH_INVENTORY","PRODUCT_NOT_FOUND","PRODUCT_OUT_OF_STOCK","NOT_ENOUGH_ORBS","UNKNOWN_SHOP_OPERATION","SHOP_OWNER_MISSING"].includes(message) ? message : "SHOP_ACTION_FAILED";
       return res.status(400).json({ ok: false, error: known });
     }
   }
