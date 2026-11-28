@@ -1495,7 +1495,7 @@ async function buyNativeShopChest(type) {
 }
 
 
-async function sendNativeChestGift(type, recipientEmail, message) {
+async function sendNativeChestGift(type, recipientEmail, message, purchase) {
   const allowed = new Set(["normal","rare","epic","neofind"]);
   if (!allowed.has(String(type))) return {ok:false,message:"Unknown chest type."};
   try {
@@ -1503,7 +1503,7 @@ async function sendNativeChestGift(type, recipientEmail, message) {
       const user=auth.currentUser;
       if(!user)return {ok:false,signedIn:false,message:"Sign in first."};
       const token=await user.getIdToken();
-      const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_chest",type:${JSON.stringify(type)},recipientEmail:${JSON.stringify(String(recipientEmail||"").trim())},message:${JSON.stringify(String(message||"").slice(0,200))}})});
+      const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_chest",type:${JSON.stringify(type)},recipientEmail:${JSON.stringify(String(recipientEmail||"").trim())},message:${JSON.stringify(String(message||"").slice(0,200))},purchase:${JSON.stringify(!!purchase)})}});
       const data=await response.json().catch(()=>({}));
       if(!response.ok||data.ok!==true)return {ok:false,message:data.error==="RECIPIENT_NOT_FOUND"?"NeoFind account not found.":data.error==="GIFT_CHEST_NOT_OWNED"?"You do not have this chest in your inventory.":data.error==="CANNOT_GIFT_SELF"?"You cannot gift yourself.":data.error||"Gift failed."};
       return data;
