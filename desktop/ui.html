@@ -161,6 +161,16 @@
         <article class="native-shop-item"><div class="native-shop-item-icon chest-icon chest-icon-neofind"><svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="chest-neofind" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#a6ffff"/><stop offset="1" stop-color="#08c9c9"/></linearGradient></defs><path d="M9 25 14 12h36l5 13v27H9Z" fill="url(#chest-neofind)" stroke="#a6ffff" stroke-width="2.5"/><path d="M9 27h46v10H9z" fill="#08c9c9" stroke="#a6ffff" stroke-width="2"/><path d="M27 27h10v15H27z" fill="#172235" stroke="#a6ffff" stroke-width="2"/><path d="M18 12V9h28v3" fill="none" stroke="#a6ffff" stroke-width="2.5"/></svg></div><div><h3>NeoFind Chest</h3><p>Special NeoFind rewards</p><strong id="nativeShopPriceNeofind">200 Orbs</strong></div><button type="button" data-shop-buy="neofind" class="primary-button">Buy</button></article>
       </div>
       <div class="native-shop-inventory"><strong>Your chest inventory</strong><span id="nativeShopInventory">Loading…</span></div>
+      <section id="nativeChestGifting" class="native-shop-redeem" style="margin-top:16px">
+        <div><h2>Send a chest gift</h2><p>Send one chest from your inventory to another NeoFind account. Message optional.</p></div>
+        <div class="native-shop-code-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px">
+          <select id="nativeGiftChestType" class="settings-select"><option value="normal">Normal Chest</option><option value="rare">Rare Chest</option><option value="epic">Epic Chest</option><option value="neofind">NeoFind Chest</option></select>
+          <input id="nativeGiftRecipient" class="settings-select" maxlength="254" type="email" placeholder="Recipient account email">
+        </div>
+        <textarea id="nativeGiftMessage" class="settings-select" maxlength="200" rows="2" placeholder="Optional gift message (200 characters max)" style="width:100%;margin:8px 0"></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="nativeGiftSend" class="primary-button" type="button">Send gift</button><button id="nativeGiftInboxRefresh" class="secondary-button" type="button">Refresh gift inbox</button></div>
+        <div id="nativeGiftInbox" style="margin-top:12px"></div>
+      </section>
       <div class="native-shop-redeem"><div><h2>Gift codes</h2><p>Redeem a code for Orbs, Premium, Shop Tickets or a discount.</p></div><div class="native-shop-code-row"><input id="nativeShopCode" class="settings-select" maxlength="100" autocomplete="off" spellcheck="false" placeholder="Enter gift code"><button id="nativeShopRedeem" class="primary-button" type="button">Redeem</button></div></div>
       <p id="nativeShopStatus" class="import-status" role="status">Connecting to your NeoFind account…</p>
       <div id="nativeShopSignIn" class="native-shop-signin hidden"><span>Sign in to NeoFind to use your balance and redeem codes.</span><button id="nativeShopSignInButton" class="primary-button" type="button">Open sign in</button></div>
