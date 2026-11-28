@@ -13195,6 +13195,16 @@ function updateNeoFindBlackFridayPromo() {
         ? promo.dates + " · " + promo.discount + "% off · Premium for 30 days"
         : "";
     if (button) button.textContent = "Buy Premium (" + promo.price + " Orbs)";
+    const chestPromoActive = Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1);
+    document.querySelectorAll(".orb-chest-buy").forEach(chestButton => {
+        const match = String(chestButton.getAttribute("onclick") || "").match(/buyOrbChest\(['"]([a-z]+)['"]\)/);
+        if (!match) return;
+        const def = ORB_CHEST_DEFINITIONS && ORB_CHEST_DEFINITIONS[match[1]];
+        const priceNode = chestButton.querySelector("small");
+        if (!def || !priceNode) return;
+        const discounted = chestPromoActive ? Math.ceil(def.price * 0.8) : def.price;
+        priceNode.textContent = chestPromoActive ? discounted + " Orbs · -20%" : def.price + " Orbs";
+    });
 }
 window.updateNeoFindBlackFridayPromo = updateNeoFindBlackFridayPromo;
 if (document.readyState === "loading") {
