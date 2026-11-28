@@ -812,6 +812,7 @@ document.getElementById("nativeGiftSend").addEventListener("click",async()=>{
   if(result&&result.ok){document.getElementById("nativeGiftRecipient").value="";document.getElementById("nativeGiftMessage").value="";await refreshNativeShop();}
 });
 document.getElementById("nativeGiftInboxRefresh").addEventListener("click",refreshNativeChestGiftInbox);
+document.getElementById("nativeGiftPurchase").addEventListener("change",()=>{document.getElementById("nativeGiftSend").textContent=document.getElementById("nativeGiftPurchase").checked?"Buy & send gift":"Send from inventory";});
 async function refreshNativeShop() {
   setNativeShopStatus("Syncing your NeoFind account…");
   const state = await window.neoBrowser.getShopState();
