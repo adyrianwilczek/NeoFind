@@ -383,7 +383,7 @@ exports.shopAction = onRequest(
         const purchase = req.body?.purchase === true;
         const allowed = new Set(["normal","rare","epic","neofind"]);
         const prices = {normal:25,rare:50,epic:100,neofind:200};
-        if (!allowed.has(type) || !email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({ok:false,error:"INVALID_GIFT"});
+        if (!allowed.has(type) || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ok:false,error:"INVALID_GIFT"});
         if (email === String(decoded.email || "").toLowerCase()) return res.status(400).json({ok:false,error:"CANNOT_GIFT_SELF"});
         const recipientQuery = await db.collection("users").where("email","==",email).limit(2).get();
         if (recipientQuery.empty) return res.status(404).json({ok:false,error:"RECIPIENT_NOT_FOUND"});
