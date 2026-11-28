@@ -1454,7 +1454,7 @@ async function getNativeShopState() {
         premium, gold, plan:gold ? "gold" : premium ? "premium" : "free", premiumUntil, goldUntil, goldPrice:2500,
         slotMachineUses:Number(data.slotMachineDay || -1) === Math.floor(Date.now()/86400000) ? Math.max(0,Math.floor(Number(data.slotMachineUses || 0))) : 0,
         slotMachineLimit:(premium || gold) ? 5 : 1,
-        premiumPrice:typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000,
+        premiumPrice:(Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1)) ? 800 : (typeof getNeoFindPremiumOrbPrice === "function" ? getNeoFindPremiumOrbPrice() : 1000),
         blackFridayDiscount:(Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1)) ? 20 : 0,
         tickets:Math.max(0, Math.floor(Number(data.shopTicketUses || 0))),
         discountPercent:Math.max(0, Math.min(90, Math.floor(Number(data.shopDiscountPercent || 0)))),
@@ -1583,7 +1583,7 @@ async function buyNativeShopPremium() {
     const result = await executeShopBridge(`(async () => {
       const user = auth.currentUser;
       if (!user) return {ok:false,signedIn:false,message:"Sign in to NeoFind first."};
-      const price = 1000;
+      const price = (Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1)) ? 800 : 1000;
       const ownerEmail = "adrian.wilczek@hotmail.com";
       const ownerShare = Math.floor(price * 0.25);
       const ownerConfigRef = db.collection("config").doc("owner");
