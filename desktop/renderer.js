@@ -815,6 +815,7 @@ async function openNativeShop() {
   nativeShopOverlay.classList.remove("hidden");
   window.neoSetModalOpen("native-shop", true);
   await refreshNativeShop();
+  await refreshNativeChestGiftInbox();
 }
 document.getElementById("sideShop").addEventListener("click", openNativeShop);
 document.getElementById("closeNativeShop").addEventListener("click", closeNativeShop);
