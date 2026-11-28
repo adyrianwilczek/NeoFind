@@ -380,7 +380,9 @@ exports.shopAction = onRequest(
         const type = String(req.body?.type || "");
         const email = String(req.body?.recipientEmail || "").trim().toLowerCase().slice(0, 254);
         const message = String(req.body?.message || "").trim().slice(0, 200);
+        const purchase = req.body?.purchase === true;
         const allowed = new Set(["normal","rare","epic","neofind"]);
+        const prices = {normal:25,rare:50,epic:100,neofind:200};
         if (!allowed.has(type) || !email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({ok:false,error:"INVALID_GIFT"});
         if (email === String(decoded.email || "").toLowerCase()) return res.status(400).json({ok:false,error:"CANNOT_GIFT_SELF"});
         const recipientQuery = await db.collection("users").where("email","==",email).limit(2).get();
@@ -388,20 +390,35 @@ exports.shopAction = onRequest(
         if (recipientQuery.size !== 1) return res.status(409).json({ok:false,error:"RECIPIENT_AMBIGUOUS"});
         const recipientUid = recipientQuery.docs[0].id;
         const giftRef = db.collection("chestGifts").doc();
+        const receiptRef = userRef.collection("purchaseReceipts").doc();
         const result = await db.runTransaction(async tx => {
           const senderSnap = await tx.get(userRef);
           if (!senderSnap.exists) throw new Error("USER_PROFILE_MISSING");
           const sender = senderSnap.data() || {};
           const inventory = Object.assign({normal:0,rare:0,epic:0,neofind:0},sender.chestInventory || {});
-          if (Number(inventory[type] || 0) < 1) throw new Error("GIFT_CHEST_NOT_OWNED");
-          inventory[type] = Math.max(0,Math.floor(Number(inventory[type] || 0))) - 1;
-          tx.update(userRef,{chestInventory:inventory});
+          let costOrbs=0,discountPercent=0,source="inventory";
+          if(purchase){
+            const now=Date.now();
+            const premiumActive=sender.plan==="premium"?Number(sender.premiumUntil||0)>now:sender.plan==="gold"?Number(sender.goldUntil||0)>now:(sender.premium===true||Number(sender.premiumUntil||0)>now||Number(sender.goldUntil||0)>now);
+            const blackFriday=(now>=Date.UTC(2026,10,27)&&now<Date.UTC(2026,11,1))?20:0;
+            discountPercent=Math.max(premiumActive?50:0,blackFriday);
+            costOrbs=Math.ceil(prices[type]*(100-discountPercent)/100);
+            const balance=Math.max(0,Math.floor(Number(sender.orbs||0)));
+            if(balance<costOrbs)throw new Error("NOT_ENOUGH_ORBS");
+            tx.update(userRef,{orbs:balance-costOrbs});
+            source="purchase";
+            tx.create(receiptRef,{purchaseId:receiptRef.id,uid,email:String(decoded.email||""),item:({normal:'Normal Chest Gift',rare:'Rare Chest Gift',epic:'Epic Chest Gift',neofind:'NeoFind Chest Gift'})[type],itemType:"chest_gift",costOrbs,originalCostOrbs:prices[type],discountPercent,recipientEmail:email,purchasedAt:FieldValue.serverTimestamp(),purchasedAtMs:now});
+          }else{
+            if(Number(inventory[type]||0)<1)throw new Error("GIFT_CHEST_NOT_OWNED");
+            inventory[type]=Math.max(0,Math.floor(Number(inventory[type]||0)))-1;
+            tx.update(userRef,{chestInventory:inventory});
+          }
           tx.create(giftRef,{
-            giftId:giftRef.id, senderUid:uid, senderEmail:String(decoded.email || ""),
-            recipientUid, recipientEmail:email, type, message,
-            status:"pending", createdAt:FieldValue.serverTimestamp(), createdAtMs:Date.now()
+            giftId:giftRef.id,senderUid:uid,senderEmail:String(decoded.email||""),
+            recipientUid,recipientEmail:email,type,message,status:"pending",source,costOrbs,discountPercent,
+            createdAt:FieldValue.serverTimestamp(),createdAtMs:Date.now()
           });
-          return {ok:true,giftId:giftRef.id,inventory};
+          return {ok:true,giftId:giftRef.id,costOrbs,discountPercent,source,inventory};
         });
         return res.status(200).json(result);
       }
