@@ -168,7 +168,7 @@
           <input id="nativeGiftRecipient" class="settings-select" maxlength="254" type="email" placeholder="Recipient account email">
         </div>
         <textarea id="nativeGiftMessage" class="settings-select" maxlength="200" rows="2" placeholder="Optional gift message (200 characters max)" style="width:100%;margin:8px 0"></textarea>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><button id="nativeGiftSend" class="primary-button" type="button">Send gift</button><button id="nativeGiftInboxRefresh" class="secondary-button" type="button">Refresh gift inbox</button></div>
+        <label style="display:flex;align-items:center;gap:8px;margin:6px 0 10px"><input id="nativeGiftPurchase" type="checkbox" checked style="width:auto;margin:0"><span>Buy a new chest as the gift (otherwise use inventory)</span></label><div id="nativeGiftPriceNote" style="font-size:12px;opacity:.8;margin-bottom:8px">Prices: 25 / 50 / 100 / 200 Orbs · Black Friday discount applies</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="nativeGiftSend" class="primary-button" type="button">Buy & send gift</button><button id="nativeGiftInboxRefresh" class="secondary-button" type="button">Refresh gift inbox</button></div>
         <div id="nativeGiftInbox" style="margin-top:12px"></div>
       </section>
       <div class="native-shop-redeem"><div><h2>Gift codes</h2><p>Redeem a code for Orbs, Premium, Shop Tickets or a discount.</p></div><div class="native-shop-code-row"><input id="nativeShopCode" class="settings-select" maxlength="100" autocomplete="off" spellcheck="false" placeholder="Enter gift code"><button id="nativeShopRedeem" class="primary-button" type="button">Redeem</button></div></div>
