@@ -12788,6 +12788,9 @@ async function buyOrbChest(type) {
         return;
     }
 
+    const blackFridayActive = Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1);
+    const discountPercent = blackFridayActive ? 20 : 0;
+    const finalPrice = blackFridayActive ? Math.ceil(def.price * 0.8) : def.price;
     try {
         const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
         const purchasedAtMs = Date.now();
@@ -12796,13 +12799,13 @@ async function buyOrbChest(type) {
             const snap = await transaction.get(ref);
             const data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            if (current < def.price) throw new Error("NOT_ENOUGH_ORBS");
+            if (current < finalPrice) throw new Error("NOT_ENOUGH_ORBS");
 
             const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
             inv[type] = Math.max(0, Number(inv[type] || 0)) + 1;
 
             transaction.set(ref, {
-                orbs: current - def.price,
+                orbs: current - finalPrice,
                 chestInventory: inv
             }, { merge: true });
             transaction.set(purchaseRef, {
@@ -12811,13 +12814,15 @@ async function buyOrbChest(type) {
                 email: String(user.email || "").trim().toLowerCase(),
                 item: def.label,
                 itemType: "chest",
-                costOrbs: def.price,
+                costOrbs: finalPrice,
+                originalCostOrbs: def.price,
+                discountPercent,
                 purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 purchasedAtMs
             });
         });
 
-        userOrbs = Math.max(0, userOrbs - def.price);
+        userOrbs = Math.max(0, userOrbs - finalPrice);
         localStorage.setItem("userOrbs", userOrbs);
         const orbCountEl = document.getElementById("userOrbsCount");
         if (orbCountEl) orbCountEl.textContent = userOrbs;
@@ -12828,11 +12833,13 @@ async function buyOrbChest(type) {
             purchaseId: purchaseRef.id,
             purchasedAtMs,
             item: def.label,
-            costOrbs: def.price,
+            costOrbs: finalPrice,
+            originalCostOrbs: def.price,
+            discountPercent,
             email: String(user.email || "").trim().toLowerCase()
         }, () => openOrbChestModal(type));
     } catch (e) {
-        if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + def.price + ".");
+        if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + finalPrice + ".");
         else {
             console.error("Chest purchase failed:", e);
             alert("Could not buy this chest.");
