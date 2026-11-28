@@ -13181,8 +13181,10 @@ function updateNeoFindBlackFridayPromo() {
         const def = ORB_CHEST_DEFINITIONS && ORB_CHEST_DEFINITIONS[match[1]];
         const priceNode = chestButton.querySelector("small");
         if (!def || !priceNode) return;
-        const discounted = chestPromoActive ? Math.ceil(def.price * 0.8) : def.price;
-        priceNode.textContent = chestPromoActive ? discounted + " Orbs · -20%" : def.price + " Orbs";
+        const premiumChestDiscount = typeof isPremiumActive === "function" && isPremiumActive() ? 50 : 0;
+        const activeChestDiscount = Math.max(premiumChestDiscount, chestPromoActive ? 20 : 0);
+        const discounted = Math.ceil(def.price * (100-activeChestDiscount)/100);
+        priceNode.textContent = activeChestDiscount ? discounted + " Orbs · -" + activeChestDiscount + "%" : def.price + " Orbs";
         let giftButton=chestButton.parentElement.querySelector(".neo-chest-gift-button");
         if(!giftButton){giftButton=document.createElement("button");giftButton.type="button";giftButton.className="neo-chest-gift-button";giftButton.textContent="Gift";giftButton.style.cssText="margin:5px;padding:8px 12px;border-radius:8px;border:1px solid #00d9f4;background:#12243a;color:#9cefff;font-weight:800;cursor:pointer";chestButton.insertAdjacentElement("afterend",giftButton);}
         giftButton.onclick=()=>openNeoFindChestGiftModal(match[1]);
