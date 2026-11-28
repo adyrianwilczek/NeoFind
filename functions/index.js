@@ -517,7 +517,7 @@ exports.shopAction = onRequest(
       console.error("shopAction failed:", error);
       const message = String(error && error.message || error);
       const known = message === "NOT_ENOUGH_ORBS" ? "NOT_ENOUGH_ORBS"
-        : message === "USER_PROFILE_MISSING" ? "USER_PROFILE_MISSING" : message.startsWith("SHOP_") || ["INVALID_PRODUCT","NOT_ENOUGH_INVENTORY","PRODUCT_NOT_FOUND","PRODUCT_OUT_OF_STOCK","NOT_ENOUGH_ORBS","UNKNOWN_SHOP_OPERATION","SHOP_OWNER_MISSING"].includes(message) ? message : "SHOP_ACTION_FAILED";
+        : message === "USER_PROFILE_MISSING" ? "USER_PROFILE_MISSING" : message.startsWith("SHOP_") || ["INVALID_PRODUCT","NOT_ENOUGH_INVENTORY","PRODUCT_NOT_FOUND","PRODUCT_OUT_OF_STOCK","NOT_ENOUGH_ORBS","UNKNOWN_SHOP_OPERATION","SHOP_OWNER_MISSING","GIFT_CHEST_NOT_OWNED","CANNOT_GIFT_SELF","GIFT_NOT_FOUND","GIFT_NOT_YOURS","GIFT_ALREADY_CLAIMED","INVALID_GIFT"].includes(message) ? message : "SHOP_ACTION_FAILED";
       return res.status(400).json({ ok: false, error: known });
     }
   }
