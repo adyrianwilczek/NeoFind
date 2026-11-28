@@ -1495,6 +1495,46 @@ async function buyNativeShopChest(type) {
 }
 
 
+async function sendNativeChestGift(type, recipientEmail, message) {
+  const allowed = new Set(["normal","rare","epic","neofind"]);
+  if (!allowed.has(String(type))) return {ok:false,message:"Unknown chest type."};
+  try {
+    return await executeShopBridge(`(async () => {
+      const user=auth.currentUser;
+      if(!user)return {ok:false,signedIn:false,message:"Sign in first."};
+      const token=await user.getIdToken();
+      const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_chest",type:${JSON.stringify(type)},recipientEmail:${JSON.stringify(String(recipientEmail||"").trim())},message:${JSON.stringify(String(message||"").slice(0,200))}})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||data.ok!==true)return {ok:false,message:data.error==="RECIPIENT_NOT_FOUND"?"NeoFind account not found.":data.error==="GIFT_CHEST_NOT_OWNED"?"You do not have this chest in your inventory.":data.error==="CANNOT_GIFT_SELF"?"You cannot gift yourself.":data.error||"Gift failed."};
+      return data;
+    })()`);
+  }catch(error){return {ok:false,message:String(error&&error.message||error).slice(0,250)}}
+}
+async function getNativeChestGiftInbox() {
+  try {
+    return await executeShopBridge(`(async()=>{
+      const user=auth.currentUser;if(!user)return {ok:false,signedIn:false};
+      const token=await user.getIdToken();
+      const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_inbox"})});
+      const data=await response.json().catch(()=>({}));
+      return response.ok&&data.ok===true?data:{ok:false,message:data.error||"Inbox unavailable."};
+    })()`);
+  }catch(error){return {ok:false,message:String(error&&error.message||error).slice(0,250)}}
+}
+async function claimNativeChestGift(giftId) {
+  try {
+    const result=await executeShopBridge(`(async()=>{
+      const user=auth.currentUser;if(!user)return {ok:false,signedIn:false};
+      const token=await user.getIdToken();
+      const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"claim_chest_gift",giftId:${JSON.stringify(String(giftId||""))}})});
+      const data=await response.json().catch(()=>({}));
+      return response.ok&&data.ok===true?data:{ok:false,message:data.error||"Claim failed."};
+    })()`);
+    if(result&&result.ok)await refreshNativeShop();
+    return result;
+  }catch(error){return {ok:false,message:String(error&&error.message||error).slice(0,250)}}
+}
+
 async function spinNativeShopSlotMachine() {
   const symbols = ["orbs","normal","rare","epic","neofind","blank"];
   try {
