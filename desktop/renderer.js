@@ -705,6 +705,11 @@ function renderNativeShop(state) {
     const price = Math.ceil(prices[type] * (100-discount)/100);
     node.textContent = state && state.tickets > 0 ? "0 Orbs · Shop Ticket" : price.toLocaleString() + " Orbs" + (discount ? " · -" + discount + "%" : "");
   });
+  const giftPurchaseToggle=document.getElementById("nativeGiftPurchase");
+  const giftSendButton=document.getElementById("nativeGiftSend");
+  const giftPriceNote=document.getElementById("nativeGiftPriceNote");
+  if(giftSendButton)giftSendButton.textContent=giftPurchaseToggle&&giftPurchaseToggle.checked?"Buy & send gift":"Send from inventory";
+  if(giftPriceNote)giftPriceNote.textContent="Prices: "+[25,50,100,200].map(p=>Math.ceil(p*(100-discount)/100)).join(" / ")+" Orbs · "+(discount?"-"+discount+"% discount":"standard prices");
   const inventory = state && state.signedIn ? state.inventory || {} : {};
   document.getElementById("nativeShopInventory").textContent = state && state.signedIn
     ? ["Normal: "+(inventory.normal||0),"Rare: "+(inventory.rare||0),"Epic: "+(inventory.epic||0),"NeoFind: "+(inventory.neofind||0)].join(" · ")
@@ -800,8 +805,9 @@ document.getElementById("nativeGiftSend").addEventListener("click",async()=>{
   const button=document.getElementById("nativeGiftSend");
   if(!email){setNativeShopStatus("Enter the recipient's NeoFind account email.",true);return;}
   button.disabled=true;setNativeShopStatus("Sending chest gift…");
-  const result=await window.neoBrowser.sendChestGift(type,email,message);
-  setNativeShopStatus(result&&result.ok?"Gift sent successfully.":result&&result.message||"Could not send gift.",!(result&&result.ok));
+  const purchase=document.getElementById("nativeGiftPurchase").checked;
+  const result=await window.neoBrowser.sendChestGift(type,email,message,purchase);
+  setNativeShopStatus(result&&result.ok?(purchase?"Gift purchased and sent for "+Number(result.costOrbs||0).toLocaleString()+" Orbs.":"Gift sent from inventory.") : result&&result.message||"Could not send gift.",!(result&&result.ok));
   button.disabled=false;
   if(result&&result.ok){document.getElementById("nativeGiftRecipient").value="";document.getElementById("nativeGiftMessage").value="";await refreshNativeShop();}
 });
