@@ -376,6 +376,66 @@ exports.shopAction = onRequest(
         return res.status(200).json(result);
       }
 
+      if (action === "gift_chest") {
+        const type = String(req.body?.type || "");
+        const email = String(req.body?.recipientEmail || "").trim().toLowerCase().slice(0, 254);
+        const message = String(req.body?.message || "").trim().slice(0, 200);
+        const allowed = new Set(["normal","rare","epic","neofind"]);
+        if (!allowed.has(type) || !email || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return res.status(400).json({ok:false,error:"INVALID_GIFT"});
+        if (email === String(decoded.email || "").toLowerCase()) return res.status(400).json({ok:false,error:"CANNOT_GIFT_SELF"});
+        const recipientQuery = await db.collection("users").where("email","==",email).limit(2).get();
+        if (recipientQuery.empty) return res.status(404).json({ok:false,error:"RECIPIENT_NOT_FOUND"});
+        if (recipientQuery.size !== 1) return res.status(409).json({ok:false,error:"RECIPIENT_AMBIGUOUS"});
+        const recipientUid = recipientQuery.docs[0].id;
+        const giftRef = db.collection("chestGifts").doc();
+        const result = await db.runTransaction(async tx => {
+          const senderSnap = await tx.get(userRef);
+          if (!senderSnap.exists) throw new Error("USER_PROFILE_MISSING");
+          const sender = senderSnap.data() || {};
+          const inventory = Object.assign({normal:0,rare:0,epic:0,neofind:0},sender.chestInventory || {});
+          if (Number(inventory[type] || 0) < 1) throw new Error("GIFT_CHEST_NOT_OWNED");
+          inventory[type] = Math.max(0,Math.floor(Number(inventory[type] || 0))) - 1;
+          tx.update(userRef,{chestInventory:inventory});
+          tx.create(giftRef,{
+            giftId:giftRef.id, senderUid:uid, senderEmail:String(decoded.email || ""),
+            recipientUid, recipientEmail:email, type, message,
+            status:"pending", createdAt:FieldValue.serverTimestamp(), createdAtMs:Date.now()
+          });
+          return {ok:true,giftId:giftRef.id,inventory};
+        });
+        return res.status(200).json(result);
+      }
+
+      if (action === "gift_inbox") {
+        const snap = await db.collection("chestGifts").where("recipientUid","==",uid).where("status","==","pending").limit(50).get();
+        const gifts = snap.docs.map(doc => {
+          const d=doc.data()||{};
+          return {giftId:doc.id,type:String(d.type||""),message:String(d.message||""),senderEmail:String(d.senderEmail||"").replace(/^(.).+(@.+)$/,"$1***$2"),createdAtMs:Number(d.createdAtMs||0)};
+        }).sort((a,b)=>b.createdAtMs-a.createdAtMs);
+        return res.status(200).json({ok:true,gifts});
+      }
+
+      if (action === "claim_chest_gift") {
+        const giftId=String(req.body?.giftId||"").trim().slice(0,128);
+        if(!giftId) return res.status(400).json({ok:false,error:"INVALID_GIFT"});
+        const giftRef=db.collection("chestGifts").doc(giftId);
+        const result=await db.runTransaction(async tx=>{
+          const [giftSnap,userSnap]=await Promise.all([tx.get(giftRef),tx.get(userRef)]);
+          if(!giftSnap.exists||!userSnap.exists)throw new Error("GIFT_NOT_FOUND");
+          const gift=giftSnap.data()||{},user=userSnap.data()||{};
+          if(gift.recipientUid!==uid)throw new Error("GIFT_NOT_YOURS");
+          if(gift.status!=="pending")throw new Error("GIFT_ALREADY_CLAIMED");
+          const type=String(gift.type||"");
+          if(!["normal","rare","epic","neofind"].includes(type))throw new Error("INVALID_GIFT");
+          const inventory=Object.assign({normal:0,rare:0,epic:0,neofind:0},user.chestInventory||{});
+          inventory[type]=Math.max(0,Math.floor(Number(inventory[type]||0)))+1;
+          tx.update(userRef,{chestInventory:inventory});
+          tx.update(giftRef,{status:"claimed",claimedAt:FieldValue.serverTimestamp(),claimedBy:uid});
+          return {ok:true,type,message:String(gift.message||""),inventory};
+        });
+        return res.status(200).json(result);
+      }
+
       if (action === "buy_chest") {
         const type = String(req.body?.type || "");
         const prices = { normal: 25, rare: 50, epic: 100, neofind: 200 };
