@@ -1724,7 +1724,7 @@ ipcMain.handle("xp:award-browser-action", (_event, xpEvent) => {
   return allowed.has(String(xpEvent)) ? awardNativeXp(String(xpEvent)) : {awarded:false,reason:"INVALID_EVENT"};
 });
 ipcMain.handle("shop:buy-chest", (_event, type) => buyNativeShopChest(type));
-ipcMain.handle("shop:gift-chest", (_event, type, email, message) => sendNativeChestGift(type, email, message));
+ipcMain.handle("shop:gift-chest", (_event, type, email, message, purchase) => sendNativeChestGift(type, email, message, purchase));
 ipcMain.handle("shop:gift-inbox", () => getNativeChestGiftInbox());
 ipcMain.handle("shop:claim-gift", (_event, giftId) => claimNativeChestGift(giftId));
 ipcMain.handle("shop:spin-slot-machine", () => spinNativeShopSlotMachine());
