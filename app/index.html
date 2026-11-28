@@ -12780,6 +12780,38 @@ function showNeoPurchaseReceipt(receipt, onClose) {
     close.textContent = "Close receipt";
 }
 
+function openNeoFindChestGiftModal(type){
+    const labels={normal:"Normal Chest",rare:"Rare Chest",epic:"Epic Chest",neofind:"NeoFind Chest"};
+    if(!labels[type])return;
+    let overlay=document.getElementById("neoChestGiftModal");
+    if(!overlay){
+      overlay=document.createElement("div");overlay.id="neoChestGiftModal";
+      overlay.style.cssText="position:fixed;inset:0;z-index:1000001;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,7,18,.75);backdrop-filter:blur(8px)";
+      overlay.innerHTML='<section style="width:min(440px,95vw);background:#101b2c;color:#f5fbff;border:1px solid #00d9f4;border-radius:16px;padding:20px;box-shadow:0 20px 70px #0008;font-family:Arial,sans-serif"><h2 style="margin-top:0">Gift '+labels[type]+'</h2><p style="color:#aabbd0">Buy this chest and send it directly to another NeoFind account. Message optional.</p><label style="display:block;margin:10px 0">Recipient email<input id="neoChestGiftEmail" type="email" maxlength="254" style="display:block;box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border-radius:8px;background:#071321;color:#fff;border:1px solid #ffffff30"></label><label style="display:block;margin:10px 0">Message (optional)<textarea id="neoChestGiftMessage" maxlength="200" rows="3" style="display:block;box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border-radius:8px;background:#071321;color:#fff;border:1px solid #ffffff30"></textarea></label><div id="neoChestGiftStatus" style="min-height:20px;color:#9cefff"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button id="neoChestGiftCancel" type="button" style="padding:10px 14px;border:0;border-radius:8px;background:#26364b;color:white">Cancel</button><button id="neoChestGiftSend" type="button" style="padding:10px 14px;border:0;border-radius:8px;background:linear-gradient(100deg,#00bcd4,#4f8dff);font-weight:bold">Buy & send gift</button></div></section>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display="flex";
+    const email=document.getElementById("neoChestGiftEmail"),message=document.getElementById("neoChestGiftMessage"),status=document.getElementById("neoChestGiftStatus"),send=document.getElementById("neoChestGiftSend");
+    email.value="";message.value="";status.textContent="";
+    document.getElementById("neoChestGiftCancel").onclick=()=>overlay.remove();
+    send.onclick=async()=>{
+      const user=typeof auth!=="undefined"&&auth?auth.currentUser:null;
+      if(!user){status.textContent="Please sign in first.";return;}
+      if(!email.value.trim()){status.textContent="Enter recipient email.";return;}
+      send.disabled=true;status.textContent="Sending gift…";
+      try{
+        const token=await user.getIdToken();
+        const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_chest",type,purchase:true,recipientEmail:email.value.trim(),message:message.value.trim()})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok||!data.ok)throw new Error(data.error||"Gift purchase failed.");
+        status.textContent="Gift sent! Charged "+data.costOrbs+" Orbs"+(data.discountPercent?" ( -"+data.discountPercent+"% discount)":"")+".";
+        await loadOrbChestInventory();
+        if(typeof loadUserOrbs==="function")await loadUserOrbs();
+        setTimeout(()=>overlay.remove(),1200);
+      }catch(error){status.textContent=error.message||"Gift purchase failed.";send.disabled=false;}
+    };
+    overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+}
 async function buyOrbChest(type) {
     const user = auth.currentUser;
     const def = ORB_CHEST_DEFINITIONS[type];
@@ -13204,6 +13236,9 @@ function updateNeoFindBlackFridayPromo() {
         if (!def || !priceNode) return;
         const discounted = chestPromoActive ? Math.ceil(def.price * 0.8) : def.price;
         priceNode.textContent = chestPromoActive ? discounted + " Orbs · -20%" : def.price + " Orbs";
+        let giftButton=chestButton.parentElement.querySelector(".neo-chest-gift-button");
+        if(!giftButton){giftButton=document.createElement("button");giftButton.type="button";giftButton.className="neo-chest-gift-button";giftButton.textContent="Gift";giftButton.style.cssText="margin:5px;padding:8px 12px;border-radius:8px;border:1px solid #00d9f4;background:#12243a;color:#9cefff;font-weight:800;cursor:pointer";chestButton.insertAdjacentElement("afterend",giftButton);}
+        giftButton.onclick=()=>openNeoFindChestGiftModal(match[1]);
     });
 }
 window.updateNeoFindBlackFridayPromo = updateNeoFindBlackFridayPromo;
