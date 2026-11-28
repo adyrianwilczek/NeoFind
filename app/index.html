@@ -12598,6 +12598,10 @@ function renderOrbChestInventory() {
         chestItem("rare", "🎁", "Rare Chest") +
         chestItem("epic", "💎", "Epic Chest") +
         chestItem("neofind", "🌌", "NeoFind Chest");
+        + '<button type="button" id="neoChestGiftInboxButton" style="margin-left:7px;padding:5px 8px;border-radius:7px;border:1px solid #9b51e0;background:#25143a;color:#fff;cursor:pointer">🎁 Gifts</button>';
+
+    const inboxButton=document.getElementById("neoChestGiftInboxButton");
+    if(inboxButton)inboxButton.onclick=openNeoFindChestGiftInbox;
 
     // Use delegated clicks so inventory buttons keep working after every re-render.
     if (!el.dataset.chestClickBound) {
