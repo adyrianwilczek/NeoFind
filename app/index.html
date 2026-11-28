@@ -2562,7 +2562,7 @@ NOTE! Do not share the key with anyone.
         </div>
 
         <section id="neoProfileBrowserSection" style="margin:20px auto;padding:18px;max-width:900px;text-align:left;border:1px solid rgba(0,242,254,.28);border-radius:16px;background:rgba(8,18,32,.55);">
-            <h4 style="margin:0 0 8px;">NeoFind Browser</h4>
+            <h4 style="margin:0 0 8px;">NeoFind Browser <span style="display:inline-block;margin-left:8px;padding:3px 8px;border-radius:7px;background:rgba(0,242,254,.14);border:1px solid rgba(0,242,254,.35);font-size:11px;color:#00f2fe;">v0.1.60</span></h4>
             <p style="font-size:13px;opacity:.8;margin:0 0 14px;">Open the browser's settings to import bookmarks or manage browser data. A website cannot directly change Windows default-app settings.</p>
             <button type="button" onclick="neoProfileOpenDefaultBrowserHelp()">Set NeoFind Browser as default</button>
             <p id="neoProfileBrowserStatus" role="status" style="font-size:12px;opacity:.8;margin:10px 0 0;">For bookmark importing, open NeoFind Browser → Settings → Import.</p>
@@ -2669,7 +2669,7 @@ NOTE! Do not share the key with anyone.
     <div id="neoBlackFridayBanner" style="display:none;max-width:680px;margin:12px auto 16px;padding:14px 16px;border:1px solid rgba(0,242,254,.55);border-radius:14px;background:linear-gradient(120deg,rgba(0,242,254,.12),rgba(155,81,224,.18),rgba(0,0,0,.2));text-align:center;box-shadow:0 0 24px rgba(0,180,255,.10);">
         <div id="neoPromoEyebrow" style="font-size:12px;letter-spacing:2px;font-weight:800;opacity:.8;">NEOFIND SPECIAL OFFER</div>
         <div style="font-size:22px;font-weight:900;margin:5px 0;background:linear-gradient(90deg,#00f2fe,#4facfe,#b879ff);background-clip:text;-webkit-background-clip:text;color:transparent;">Premium: <span id="neoPromoOldPrice" style="text-decoration:line-through;opacity:.65;color:#aaa;-webkit-text-fill-color:#aaa;">1000</span> <span style="-webkit-text-fill-color:#fff;">→</span> <span id="neoPromoNewPrice" style="-webkit-text-fill-color:#7ef0b0;">750 Orbs</span></div>
-        <div id="neoPromoDetails" style="font-size:13px;opacity:.8;">13–19 October 2026 · 25% off · Premium for 30 days</div>
+        <div id="neoPromoDetails" style="font-size:13px;opacity:.8;">27–30 November 2026 · 20% off · Premium for 30 days</div>
     </div>
     <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
         <button id="neoBuyPremiumButton" onclick="buyPremiumWithOrbs()">Buy Premium (1000 Orbs)</button>
@@ -8865,6 +8865,8 @@ function triggerCustomLockScreen(userEmail, blockReason) {
 </style>
 
 
+
+
 </body>`;
 
     // --- TUTAJ JEST DODANE KONFETTI (Wystrzeliwuje raz z lewej i prawej strony ekranu) ---
@@ -12459,6 +12461,37 @@ function weightedOrbChestReward(rewards) {
     return rewards[rewards.length - 1];
 }
 
+async function openNeoFindChestGiftInbox(){
+    const user=typeof auth!=="undefined"&&auth?auth.currentUser:null;
+    if(!user){alert("Sign in to NeoFind to view gifts.");return;}
+    let overlay=document.getElementById("neoChestGiftInboxModal");
+    if(!overlay){
+      overlay=document.createElement("div");overlay.id="neoChestGiftInboxModal";
+      overlay.style.cssText="position:fixed;inset:0;z-index:1000002;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,7,18,.75);backdrop-filter:blur(8px)";
+      overlay.innerHTML='<section style="width:min(520px,96vw);max-height:85vh;overflow:auto;background:#101b2c;color:#f5fbff;border:1px solid #00d9f4;border-radius:16px;padding:20px;font-family:Arial,sans-serif"><h2 style="margin-top:0">Chest Gifts</h2><div id="neoChestGiftInboxList"></div><button id="neoChestGiftInboxClose" type="button" style="margin-top:12px;padding:9px 14px;border:0;border-radius:8px;background:#26364b;color:white">Close</button></section>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display="flex";
+    document.getElementById("neoChestGiftInboxClose").onclick=()=>overlay.remove();
+    const list=document.getElementById("neoChestGiftInboxList");list.textContent="Loading…";
+    try{
+      const token=await user.getIdToken();
+      const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_inbox"})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok||!data.ok)throw new Error(data.error||"Inbox unavailable");
+      list.replaceChildren();
+      if(!data.gifts.length){list.textContent="No pending gifts.";return;}
+      const labels={normal:"Normal Chest",rare:"Rare Chest",epic:"Epic Chest",neofind:"NeoFind Chest"};
+      data.gifts.forEach(g=>{
+        const card=document.createElement("article");card.style.cssText="padding:12px;margin:9px 0;border:1px solid #ffffff25;border-radius:10px;background:#081321";
+        const title=document.createElement("strong");title.textContent=(labels[g.type]||"Chest gift")+" · from "+(g.senderEmail||"NeoFind account");card.appendChild(title);
+        if(g.message){const message=document.createElement("p");message.textContent=g.message;message.style.margin="8px 0";card.appendChild(message);}
+        const claim=document.createElement("button");claim.type="button";claim.textContent="Claim";claim.style.cssText="padding:9px 14px;border:0;border-radius:8px;background:linear-gradient(100deg,#00bcd4,#4f8dff);font-weight:bold";
+        claim.onclick=async()=>{claim.disabled=true;claim.textContent="Claiming…";try{const tok=await user.getIdToken();const resp=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({action:"claim_chest_gift",giftId:g.giftId})});const claimed=await resp.json().catch(()=>({}));if(!resp.ok||!claimed.ok)throw new Error(claimed.error||"Claim failed");await loadOrbChestInventory();card.remove();if(!list.children.length)list.textContent="No pending gifts."; }catch(e){claim.disabled=false;claim.textContent="Claim";alert(e.message||"Claim failed");}};
+        card.appendChild(claim);list.appendChild(card);
+      });
+    }catch(error){list.textContent=error.message||"Inbox unavailable.";}
+}
 function renderOrbChestInventory() {
     const el = document.getElementById("orbChestInventory");
     if (!el) return;
@@ -12475,7 +12508,11 @@ function renderOrbChestInventory() {
         chestItem("normal", "📦", "Normal Chest") +
         chestItem("rare", "🎁", "Rare Chest") +
         chestItem("epic", "💎", "Epic Chest") +
-        chestItem("neofind", "🌌", "NeoFind Chest");
+        chestItem("neofind", "🌌", "NeoFind Chest")
+        + '<button type="button" id="neoChestGiftInboxButton" style="margin-left:7px;padding:5px 8px;border-radius:7px;border:1px solid #9b51e0;background:#25143a;color:#fff;cursor:pointer">🎁 Gifts</button>';
+
+    const inboxButton=document.getElementById("neoChestGiftInboxButton");
+    if(inboxButton)inboxButton.onclick=openNeoFindChestGiftInbox;
 
     // Use delegated clicks so inventory buttons keep working after every re-render.
     if (!el.dataset.chestClickBound) {
@@ -12689,6 +12726,38 @@ function showNeoPurchaseReceipt(receipt, onClose) {
     close.textContent = "Close receipt";
 }
 
+function openNeoFindChestGiftModal(type){
+    const labels={normal:"Normal Chest",rare:"Rare Chest",epic:"Epic Chest",neofind:"NeoFind Chest"};
+    if(!labels[type])return;
+    let overlay=document.getElementById("neoChestGiftModal");
+    if(!overlay){
+      overlay=document.createElement("div");overlay.id="neoChestGiftModal";
+      overlay.style.cssText="position:fixed;inset:0;z-index:1000001;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,7,18,.75);backdrop-filter:blur(8px)";
+      overlay.innerHTML='<section style="width:min(440px,95vw);background:#101b2c;color:#f5fbff;border:1px solid #00d9f4;border-radius:16px;padding:20px;box-shadow:0 20px 70px #0008;font-family:Arial,sans-serif"><h2 style="margin-top:0">Gift '+labels[type]+'</h2><p style="color:#aabbd0">Buy this chest and send it directly to another NeoFind account. Message optional.</p><label style="display:block;margin:10px 0">Recipient email<input id="neoChestGiftEmail" type="email" maxlength="254" style="display:block;box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border-radius:8px;background:#071321;color:#fff;border:1px solid #ffffff30"></label><label style="display:block;margin:10px 0">Message (optional)<textarea id="neoChestGiftMessage" maxlength="200" rows="3" style="display:block;box-sizing:border-box;width:100%;margin-top:5px;padding:10px;border-radius:8px;background:#071321;color:#fff;border:1px solid #ffffff30"></textarea></label><div id="neoChestGiftStatus" style="min-height:20px;color:#9cefff"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px"><button id="neoChestGiftCancel" type="button" style="padding:10px 14px;border:0;border-radius:8px;background:#26364b;color:white">Cancel</button><button id="neoChestGiftSend" type="button" style="padding:10px 14px;border:0;border-radius:8px;background:linear-gradient(100deg,#00bcd4,#4f8dff);font-weight:bold">Buy & send gift</button></div></section>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display="flex";
+    const email=document.getElementById("neoChestGiftEmail"),message=document.getElementById("neoChestGiftMessage"),status=document.getElementById("neoChestGiftStatus"),send=document.getElementById("neoChestGiftSend");
+    email.value="";message.value="";status.textContent="";
+    document.getElementById("neoChestGiftCancel").onclick=()=>overlay.remove();
+    send.onclick=async()=>{
+      const user=typeof auth!=="undefined"&&auth?auth.currentUser:null;
+      if(!user){status.textContent="Please sign in first.";return;}
+      if(!email.value.trim()){status.textContent="Enter recipient email.";return;}
+      send.disabled=true;status.textContent="Sending gift…";
+      try{
+        const token=await user.getIdToken();
+        const response=await fetch("https://us-central1-neofind-f8213.cloudfunctions.net/shopAction",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+token},body:JSON.stringify({action:"gift_chest",type,purchase:true,recipientEmail:email.value.trim(),message:message.value.trim()})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok||!data.ok)throw new Error(data.error||"Gift purchase failed.");
+        status.textContent="Gift sent! Charged "+data.costOrbs+" Orbs"+(data.discountPercent?" ( -"+data.discountPercent+"% discount)":"")+".";
+        if(data.source==="purchase"){userOrbs=Math.max(0,userOrbs-Number(data.costOrbs||0));localStorage.setItem("userOrbs",userOrbs);const balanceNode=document.getElementById("userOrbsCount");if(balanceNode)balanceNode.textContent=String(userOrbs);}
+        await loadOrbChestInventory();
+        setTimeout(()=>overlay.remove(),1200);
+      }catch(error){status.textContent=error.message||"Gift purchase failed.";send.disabled=false;}
+    };
+    overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};
+}
 async function buyOrbChest(type) {
     const user = auth.currentUser;
     const def = ORB_CHEST_DEFINITIONS[type];
@@ -12697,6 +12766,10 @@ async function buyOrbChest(type) {
         return;
     }
 
+    const blackFridayActive = Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1);
+    const premiumDiscount = typeof isPremiumActive === "function" && isPremiumActive() ? 50 : 0;
+    const discountPercent = Math.max(premiumDiscount, blackFridayActive ? 20 : 0);
+    const finalPrice = Math.ceil(def.price * (100 - discountPercent) / 100);
     try {
         const purchaseRef = db.collection("users").doc(user.uid).collection("purchaseReceipts").doc();
         const purchasedAtMs = Date.now();
@@ -12705,13 +12778,13 @@ async function buyOrbChest(type) {
             const snap = await transaction.get(ref);
             const data = snap.exists ? snap.data() : {};
             const current = Math.max(0, Math.floor(Number(data.orbs || 0)));
-            if (current < def.price) throw new Error("NOT_ENOUGH_ORBS");
+            if (current < finalPrice) throw new Error("NOT_ENOUGH_ORBS");
 
             const inv = Object.assign({ normal: 0, rare: 0, epic: 0, neofind: 0 }, data.chestInventory || {});
             inv[type] = Math.max(0, Number(inv[type] || 0)) + 1;
 
             transaction.set(ref, {
-                orbs: current - def.price,
+                orbs: current - finalPrice,
                 chestInventory: inv
             }, { merge: true });
             transaction.set(purchaseRef, {
@@ -12720,13 +12793,15 @@ async function buyOrbChest(type) {
                 email: String(user.email || "").trim().toLowerCase(),
                 item: def.label,
                 itemType: "chest",
-                costOrbs: def.price,
+                costOrbs: finalPrice,
+                originalCostOrbs: def.price,
+                discountPercent,
                 purchasedAt: firebase.firestore.FieldValue.serverTimestamp(),
                 purchasedAtMs
             });
         });
 
-        userOrbs = Math.max(0, userOrbs - def.price);
+        userOrbs = Math.max(0, userOrbs - finalPrice);
         localStorage.setItem("userOrbs", userOrbs);
         const orbCountEl = document.getElementById("userOrbsCount");
         if (orbCountEl) orbCountEl.textContent = userOrbs;
@@ -12737,11 +12812,13 @@ async function buyOrbChest(type) {
             purchaseId: purchaseRef.id,
             purchasedAtMs,
             item: def.label,
-            costOrbs: def.price,
+            costOrbs: finalPrice,
+            originalCostOrbs: def.price,
+            discountPercent,
             email: String(user.email || "").trim().toLowerCase()
         }, () => openOrbChestModal(type));
     } catch (e) {
-        if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + def.price + ".");
+        if (e.message === "NOT_ENOUGH_ORBS") alert("Not enough Orbs! Required: " + finalPrice + ".");
         else {
             console.error("Chest purchase failed:", e);
             alert("Could not buy this chest.");
@@ -13065,18 +13142,12 @@ async function ownerGrantChest() {
 
 
 // Scheduled Premium promotions use the visitor's local calendar date.
-// October offer: 13–19 October 2026, 25% off. Black Friday: 23–30 November 2026, 50% off.
+// Black Friday: 27–30 November 2026, 20% off.
 function getNeoFindPremiumPromo(now = Date.now()) {
-    const birthdayStart = new Date(2026, 9, 13, 0, 0, 0, 0).getTime();
-    const birthdayEnd = new Date(2026, 9, 20, 0, 0, 0, 0).getTime();
-    if (now >= birthdayStart && now < birthdayEnd) {
-        return { active: true, price: 750, oldPrice: 1000, discount: 25, eyebrow: "NEOFIND OCTOBER SALE", dates: "13–19 October 2026" };
-    }
-
-    const blackFridayStart = new Date(2026, 10, 23, 0, 0, 0, 0).getTime();
+    const blackFridayStart = new Date(2026, 10, 27, 0, 0, 0, 0).getTime();
     const blackFridayEnd = new Date(2026, 11, 1, 0, 0, 0, 0).getTime();
     if (now >= blackFridayStart && now < blackFridayEnd) {
-        return { active: true, price: 500, oldPrice: 1000, discount: 50, eyebrow: "NEOFIND BLACK FRIDAY", dates: "23–30 November 2026" };
+        return { active: true, price: 800, oldPrice: 1000, discount: 20, eyebrow: "NEOFIND BLACK FRIDAY", dates: "27–30 November 2026" };
     }
 
     return { active: false, price: 1000, oldPrice: 1000, discount: 0, eyebrow: "", dates: "" };
@@ -13103,6 +13174,21 @@ function updateNeoFindBlackFridayPromo() {
         ? promo.dates + " · " + promo.discount + "% off · Premium for 30 days"
         : "";
     if (button) button.textContent = "Buy Premium (" + promo.price + " Orbs)";
+    const chestPromoActive = Date.now() >= Date.UTC(2026,10,27) && Date.now() < Date.UTC(2026,11,1);
+    document.querySelectorAll(".orb-chest-buy").forEach(chestButton => {
+        const match = String(chestButton.getAttribute("onclick") || "").match(/buyOrbChest\(['"]([a-z]+)['"]\)/);
+        if (!match) return;
+        const def = ORB_CHEST_DEFINITIONS && ORB_CHEST_DEFINITIONS[match[1]];
+        const priceNode = chestButton.querySelector("small");
+        if (!def || !priceNode) return;
+        const premiumChestDiscount = typeof isPremiumActive === "function" && isPremiumActive() ? 50 : 0;
+        const activeChestDiscount = Math.max(premiumChestDiscount, chestPromoActive ? 20 : 0);
+        const discounted = Math.ceil(def.price * (100-activeChestDiscount)/100);
+        priceNode.textContent = activeChestDiscount ? discounted + " Orbs · -" + activeChestDiscount + "%" : def.price + " Orbs";
+        let giftButton=chestButton.parentElement.querySelector(".neo-chest-gift-button");
+        if(!giftButton){giftButton=document.createElement("button");giftButton.type="button";giftButton.className="neo-chest-gift-button";giftButton.textContent="Gift";giftButton.style.cssText="margin:5px;padding:8px 12px;border-radius:8px;border:1px solid #00d9f4;background:#12243a;color:#9cefff;font-weight:800;cursor:pointer";chestButton.insertAdjacentElement("afterend",giftButton);}
+        giftButton.onclick=()=>openNeoFindChestGiftModal(match[1]);
+    });
 }
 window.updateNeoFindBlackFridayPromo = updateNeoFindBlackFridayPromo;
 if (document.readyState === "loading") {
@@ -17126,6 +17212,98 @@ placeFindables();refreshDisplay();
   if(host==="app.neofind.pl" || location.pathname==="/app" || location.pathname.indexOf("/app/")===0 || new URLSearchParams(location.search).get("app")==="1") return;
   document.body.classList.add("neo-marketing-mode");
 })();
+</script>
+<script id="neoCustomShopRouter">
+
+(function(){
+  "use strict";
+  const API="https://us-central1-neofind-f8213.cloudfunctions.net/shopAction";
+  const params=new URLSearchParams(location.search);
+  const rawPage=String(params.get("p")||"").toLowerCase();
+  const embeddedId=(rawPage.match(/shop\/id=([a-z0-9]{6})/i)||[])[1]||"";
+  const page=rawPage.startsWith("shop/")?"shop":rawPage;
+  const shopId=String(params.get("id")||embeddedId).toUpperCase();
+  const esc=value=>String(value==null?"":value).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const style=`
+    #neoBlackFridaySiteBanner{position:sticky;top:0;z-index:99990;display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;background:linear-gradient(100deg,#092b43,#29204a);border-bottom:1px solid #00d9f4;color:#fff;font:700 13px Arial,sans-serif;box-shadow:0 5px 22px #0005}
+    #neoBlackFridaySiteBanner strong{color:#8fffd0;font-size:16px;letter-spacing:1px}
+    #neoBlackFridaySiteBanner a{color:#9cefff;text-decoration:underline}
+    #neoCustomShopRoot{max-width:1120px;margin:32px auto;padding:24px;color:#f5fbff;font-family:Arial,sans-serif}
+    #neoCustomShopRoot .ncs-card{background:#101b2c;border:1px solid #ffffff20;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 12px 35px #0003}
+    #neoCustomShopRoot h1,#neoCustomShopRoot h2,#neoCustomShopRoot h3{margin-top:0}
+    #neoCustomShopRoot .ncs-muted{color:#aabbd0}
+    #neoCustomShopRoot .ncs-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    #neoCustomShopRoot input,#neoCustomShopRoot select,#neoCustomShopRoot textarea{box-sizing:border-box;width:100%;max-width:100%;padding:11px 13px;border:1px solid #ffffff25;border-radius:9px;background:#081321;color:#fff;margin:5px 0 12px}
+    #neoCustomShopRoot label{display:block;color:#b9d3e7;font-size:13px}
+    #neoCustomShopRoot button,#neoCustomShopRoot .ncs-button{border:0;border-radius:9px;padding:11px 16px;background:linear-gradient(100deg,#00bcd4,#4f8dff);color:#06121e;font-weight:800;cursor:pointer;text-decoration:none;display:inline-block}
+    #neoCustomShopRoot button:disabled{opacity:.45;cursor:not-allowed}
+    #neoCustomShopRoot .ncs-secondary{background:#26364b;color:#e8f4ff}
+    #neoCustomShopRoot .ncs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    #neoCustomShopRoot .ncs-product{background:#0b1524;border:1px solid #ffffff1b;border-radius:13px;padding:16px}
+    #neoCustomShopRoot .ncs-product-icon{font-size:34px}
+    #neoCustomShopRoot .ncs-status{min-height:22px;color:#9cefff}
+    #neoCustomShopRoot .ncs-shop-head{padding:24px;border-radius:16px;background:var(--shop-bg,#111827);border:1px solid #ffffff30}
+    @media(max-width:600px){#neoCustomShopRoot{padding:12px;margin:12px auto}#neoCustomShopRoot .ncs-card{padding:14px}}
+  `;
+  const styleNode=document.createElement("style");styleNode.textContent=style;document.head.appendChild(styleNode);
+  const banner=document.createElement("div");banner.id="neoBlackFridaySiteBanner";banner.innerHTML='<strong>BLACK FRIDAY · 20% OFF</strong><span>27–30 November 2026</span><a href="/app/">Visit NeoFind Shop</a>';document.body.prepend(banner);
+  function mount(title,html){
+    document.body.innerHTML='<div id="neoBlackFridaySiteBanner"><strong>BLACK FRIDAY · 20% OFF</strong><span>27–30 November 2026</span><a href="/app/">NeoFind</a></div><main id="neoCustomShopRoot"><p class="ncs-muted">NEOFIND MARKETPLACE</p>'+html+'</main>';
+    document.title=title+" | NeoFind";
+  }
+  async function call(action,data={},needsAuth=true){
+    const user=typeof auth!=="undefined"&&auth?auth.currentUser:null;
+    const headers={"Content-Type":"application/json"};
+    if(needsAuth){if(!user)throw new Error("Zaloguj się na konto NeoFind, aby wykonać tę czynność.");headers.Authorization="Bearer "+await user.getIdToken();}
+    const response=await fetch(API,{method:"POST",headers,body:JSON.stringify({action,...data})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok||result.ok!==true)throw new Error(result.error||"Nie udało się wykonać operacji.");
+    return result;
+  }
+  function status(message,error){const node=document.querySelector("#ncsStatus");if(node){node.textContent=message;node.style.color=error?"#ff9999":"#9cefff";}}
+  async function waitForUser(){
+    if(typeof auth==="undefined"||!auth)return null;
+    if(auth.currentUser)return auth.currentUser;
+    return new Promise(resolve=>{let done=false;const timer=setTimeout(()=>finish(null),12000);const unsub=auth.onAuthStateChanged(user=>finish(user));function finish(user){if(done)return;done=true;clearTimeout(timer);try{unsub();}catch{}resolve(user||null);}});
+  }
+  async function manager(){
+    mount("My Shops",'<div class="ncs-row" style="justify-content:space-between"><div><h1>My NeoFind Shops</h1><p class="ncs-muted">Create and manage your own storefronts.</p></div><a class="ncs-button ncs-secondary" href="/app/">Back to NeoFind</a></div><section class="ncs-card"><h2>Create a shop</h2><p class="ncs-muted">Free: 25 products · Premium: 75 · Gold: 150</p><button id="ncsCreate">Create shop</button><p id="ncsStatus" class="ncs-status" role="status">Checking your account…</p></section><section class="ncs-card"><h2>Your stores</h2><div id="ncsList" class="ncs-grid">Loading…</div></section><section id="ncsEditor"></section>');
+    const user=await waitForUser();
+    if(!user){status("Sign in to NeoFind, then reopen My Shops.",true);document.querySelector("#ncsList").textContent="Sign-in required.";return;}
+    async function loadList(){
+      try{const result=await call("shop_list_mine");const box=document.querySelector("#ncsList");box.innerHTML=result.shops.length?result.shops.map(s=>'<article class="ncs-product"><h3>'+esc(s.name)+'</h3><p class="ncs-muted">ID: '+esc(s.id)+' · '+s.productCount+'/'+s.productLimit+' products</p><p>'+Number(s.earningsOrbs||0).toLocaleString()+' Orbs earned · '+Number(s.buyersCount||0)+' buyers</p><div class="ncs-row"><button data-edit-shop="'+esc(s.id)+'">Manage</button><button class="ncs-secondary" data-copy-shop="'+esc(s.id)+'">Copy link</button></div></article>').join(""):'<p class="ncs-muted">You have not created a shop yet.</p>';
+        box.querySelectorAll("[data-edit-shop]").forEach(b=>b.onclick=()=>editor(b.dataset.editShop));
+        box.querySelectorAll("[data-copy-shop]").forEach(b=>b.onclick=async()=>{const url=location.origin+"/?p=shop/id="+b.dataset.copyShop;try{await navigator.clipboard.writeText(url);status("Store link copied.");}catch{status(url);}});
+      }catch(e){status(e.message,true);}
+    }
+    document.querySelector("#ncsCreate").onclick=async()=>{const b=document.querySelector("#ncsCreate");b.disabled=true;try{const r=await call("create_shop");status("Shop created: "+r.shopId+" · "+r.productLimit+" product slots.");await loadList();await editor(r.shopId);}catch(e){status(e.message,true);}finally{b.disabled=false;}};
+    async function editor(id){
+      const host=document.querySelector("#ncsEditor");host.innerHTML='<section class="ncs-card"><h2>Loading shop '+esc(id)+'…</h2></section>';
+      try{
+        const r=await call("shop_manage",{shopId:id,operation:"get_console"});const s=r.shop,p=s.products||[],inv=r.inventory||{};
+        host.innerHTML='<section class="ncs-card"><div class="ncs-row" style="justify-content:space-between"><div><h2>Manage '+esc(s.name)+'</h2><p class="ncs-muted">ID: '+esc(id)+' · '+p.length+'/'+s.productLimit+' products</p></div><a class="ncs-button ncs-secondary" target="_blank" rel="noopener" href="/?p=shop/id='+encodeURIComponent(id)+'">Open storefront</a></div><div class="ncs-grid"><div><label>Store name<input id="ncsName" maxlength="40" value="'+esc(s.name)+'"></label><label>Description<textarea id="ncsDescription" maxlength="240">'+esc(s.description||"")+'</textarea></label></div><div><label>Logo URL<input id="ncsLogo" maxlength="500" value="'+esc(s.logoUrl||"")+'"></label><label>Background colour<input id="ncsColor" type="color" value="'+esc(/^#[0-9a-f]{6}$/i.test(s.backgroundColor||"")?s.backgroundColor:"#111827")+'"></label><label>Layout<select id="ncsLayout"><option value="grid" '+(s.layout==="grid"?"selected":"")+'>Grid</option><option value="list" '+(s.layout==="list"?"selected":"")+'>List</option></select></label></div></div><button id="ncsSaveSettings">Save store settings</button><hr style="border-color:#ffffff20;margin:22px 0"><h3>Add product</h3><p class="ncs-muted">Inventory: Normal '+(inv.normal||0)+' · Rare '+(inv.rare||0)+' · Epic '+(inv.epic||0)+' · NeoFind '+(inv.neofind||0)+'</p><div class="ncs-grid"><label>Product name<input id="ncsProductName" maxlength="40" placeholder="Product name"></label><label>Icon / emoji<input id="ncsProductIcon" maxlength="12" value="🎁"></label><label>Type<select id="ncsProductType"><option value="normal">Normal</option><option value="rare">Rare</option><option value="epic">Epic</option><option value="neofind">NeoFind</option></select></label><label>Price (Orbs)<input id="ncsProductPrice" type="number" min="1" max="1000000" value="25"></label><label>Stock<input id="ncsProductStock" type="number" min="1" max="100000" value="1"></label></div><button id="ncsAddProduct">Add from inventory</button><h3 style="margin-top:24px">Products</h3><div class="ncs-grid">'+(p.length?p.map(x=>'<article class="ncs-product"><div class="ncs-product-icon">'+esc(x.icon)+'</div><strong>'+esc(x.name)+'</strong><p>'+esc(x.type)+' · '+Number(x.price).toLocaleString()+' Orbs · Stock: '+Number(x.stock||0)+'</p><button class="ncs-secondary" data-withdraw="'+esc(x.id)+'">Remove and return stock</button></article>').join(""):'<p class="ncs-muted">No products yet.</p>')+'</div><p id="ncsStatus" class="ncs-status" role="status"></p></section>';
+        document.querySelector("#ncsSaveSettings").onclick=async()=>{try{await call("shop_manage",{shopId:id,operation:"settings",settings:{name:document.querySelector("#ncsName").value,description:document.querySelector("#ncsDescription").value,logoUrl:document.querySelector("#ncsLogo").value,backgroundColor:document.querySelector("#ncsColor").value,layout:document.querySelector("#ncsLayout").value}});status("Store settings saved.");await loadList();}catch(e){status(e.message,true);}};
+        document.querySelector("#ncsAddProduct").onclick=async()=>{try{await call("shop_manage",{shopId:id,operation:"add_product",product:{name:document.querySelector("#ncsProductName").value,icon:document.querySelector("#ncsProductIcon").value,type:document.querySelector("#ncsProductType").value,price:Number(document.querySelector("#ncsProductPrice").value),stock:Number(document.querySelector("#ncsProductStock").value)}});status("Product added from your chest inventory.");await editor(id);await loadList();}catch(e){status(e.message,true);}};
+        host.querySelectorAll("[data-withdraw]").forEach(b=>b.onclick=async()=>{if(!confirm("Remove this product and return its remaining stock to your inventory?"))return;try{await call("shop_manage",{shopId:id,operation:"withdraw_product",productId:b.dataset.withdraw});status("Product removed and stock returned.");await editor(id);await loadList();}catch(e){status(e.message,true);}});
+      }catch(e){host.innerHTML='<section class="ncs-card"><p class="ncs-status">'+esc(e.message)+'</p></section>';}
+    }
+    await loadList();
+  }
+  async function storefront(id){
+    mount("NeoFind Shop",'<a class="ncs-button ncs-secondary" href="/app/">← NeoFind</a><section id="ncsStore" class="ncs-card">Loading storefront…</section><p id="ncsStatus" class="ncs-status" role="status"></p>');
+    const host=document.querySelector("#ncsStore");
+    try{
+      const r=await call("shop_public_view",{shopId:id},false),s=r.shop;
+      host.style.background=s.backgroundColor||"#111827";
+      host.innerHTML='<header class="ncs-shop-head"><div class="ncs-row">'+(s.logoUrl?'<img src="'+esc(s.logoUrl)+'" alt="" style="width:64px;height:64px;object-fit:contain;border-radius:12px">':'')+'<div><p class="ncs-muted">NEOFIND VERIFIED STOREFRONT</p><h1>'+esc(s.name)+'</h1><p>'+esc(s.description||"")+'</p><small>Store ID: '+esc(s.id)+'</small></div></div></header><h2 style="margin-top:24px">Products</h2><div class="ncs-grid">'+(s.products.length?s.products.map(p=>'<article class="ncs-product"><div class="ncs-product-icon">'+esc(p.icon)+'</div><h3>'+esc(p.name)+'</h3><p>'+Number(p.price).toLocaleString()+' Orbs · '+Number(p.stock)+' in stock</p><button data-buy-product="'+esc(p.id)+'">Buy</button></article>').join(""):'<p class="ncs-muted">This shop has no products in stock.</p>')+'</div>';
+      host.querySelectorAll("[data-buy-product]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{const result=await call("shop_purchase",{shopId:id,productId:b.dataset.buyProduct});status("Purchased "+result.productName+" for "+result.cost+" Orbs. Chest added to your inventory.");await storefront(id);}catch(e){status(e.message,true);b.disabled=false;}});
+    }catch(e){host.textContent=e.message;}
+  }
+  if(page==="shops"){manager();}
+  else if(page==="shop"){if(/^[A-Z0-9]{6}$/.test(shopId))storefront(shopId);else mount("Shop not found",'<section class="ncs-card"><h1>Invalid shop link</h1><p>Store IDs contain exactly six letters or numbers.</p></section>');}
+  else if(!page){banner.innerHTML='<strong>BLACK FRIDAY · 20% OFF</strong><span>27–30 November 2026</span><a href="/app/?p=shops">Manage your shops</a>';}
+})();
+
 </script>
 </body>
 </html>

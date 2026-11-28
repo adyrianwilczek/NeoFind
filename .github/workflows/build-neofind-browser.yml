@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - black-friday-custom-shops
     paths:
       - "desktop/**"
       - ".github/workflows/build-neofind-browser.yml"
@@ -11,6 +12,7 @@ on:
       - "neofind-browser-v*"
   workflow_dispatch:
 
+# Feature-branch builds upload an installer artifact without publishing a release.
 concurrency:
   group: neofind-browser-build
   cancel-in-progress: true

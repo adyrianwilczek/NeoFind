@@ -676,6 +676,8 @@ function renderNativeLevel(data){
 }
 function renderNativeShop(state) {
   nativeShopState = state;
+  const blackFridayBanner = document.getElementById("nativeShopBlackFridayBanner");
+  if (blackFridayBanner) blackFridayBanner.hidden = !(state && Number(state.blackFridayDiscount || 0) > 0);
   setBrowserGoldThemeAccess(!!(state && state.ok && state.signedIn && state.gold));
   renderNativeLevel(state && state.levelData);
   nativeShopSignIn.classList.toggle("hidden", !!(state && state.signedIn));
@@ -697,12 +699,17 @@ function renderNativeShop(state) {
   goldButton.disabled=!(state&&state.ok&&state.signedIn)||!!(state&&(state.premium||state.gold));
   goldButton.textContent=state&&state.gold?"Already active":state&&state.premium?"Premium active":"Buy Gold";
   document.getElementById("nativeShopGoldPrice").textContent="2500 Orbs";
-  const discount = state && (state.premium || state.gold) ? 50 : (state && state.discountUses > 0 ? state.discountPercent : 0);
+  const discount = state && (state.premium || state.gold) ? 50 : Math.max(Number(state && state.blackFridayDiscount || 0), Number(state && state.discountUses > 0 ? state.discountPercent : 0));
   const prices = {normal:25,rare:50,epic:100,neofind:200};
   Object.entries(nativeShopPrices).forEach(([type,node]) => {
     const price = Math.ceil(prices[type] * (100-discount)/100);
     node.textContent = state && state.tickets > 0 ? "0 Orbs · Shop Ticket" : price.toLocaleString() + " Orbs" + (discount ? " · -" + discount + "%" : "");
   });
+  const giftPurchaseToggle=document.getElementById("nativeGiftPurchase");
+  const giftSendButton=document.getElementById("nativeGiftSend");
+  const giftPriceNote=document.getElementById("nativeGiftPriceNote");
+  if(giftSendButton)giftSendButton.textContent=giftPurchaseToggle&&giftPurchaseToggle.checked?"Buy & send gift":"Send from inventory";
+  if(giftPriceNote)giftPriceNote.textContent="Prices: "+[25,50,100,200].map(p=>Math.ceil(p*(100-discount)/100)).join(" / ")+" Orbs · "+(discount?"-"+discount+"% discount":"standard prices");
   const inventory = state && state.signedIn ? state.inventory || {} : {};
   document.getElementById("nativeShopInventory").textContent = state && state.signedIn
     ? ["Normal: "+(inventory.normal||0),"Rare: "+(inventory.rare||0),"Epic: "+(inventory.epic||0),"NeoFind: "+(inventory.neofind||0)].join(" · ")
@@ -770,6 +777,42 @@ slotMachineSpinButton.addEventListener("click",async()=>{
   machine.classList.remove("lever-pulled");slotMachineReels.forEach(node=>node.classList.remove("reel-stopped"));
 });
 
+async function refreshNativeChestGiftInbox() {
+  const box=document.getElementById("nativeGiftInbox");
+  if(!box)return;
+  box.textContent="Loading gifts…";
+  const result=await window.neoBrowser.getChestGiftInbox();
+  box.replaceChildren();
+  if(!result||!result.ok){box.textContent=result&&result.signedIn===false?"Sign in to see gifts.":result&&result.message||"Gift inbox unavailable.";return;}
+  if(!result.gifts||!result.gifts.length){box.textContent="No pending gifts.";return;}
+  result.gifts.forEach(gift=>{
+    const card=document.createElement("article");
+    card.style.cssText="padding:12px;margin:8px 0;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(0,0,0,.12)";
+    const heading=document.createElement("strong");
+    const labels={normal:"Normal Chest",rare:"Rare Chest",epic:"Epic Chest",neofind:"NeoFind Chest"};
+    heading.textContent=(labels[gift.type]||"Chest gift")+" · from "+(gift.senderEmail||"NeoFind user");
+    card.appendChild(heading);
+    if(gift.message){const msg=document.createElement("p");msg.textContent=gift.message;msg.style.margin="8px 0";card.appendChild(msg);}
+    const claim=document.createElement("button");claim.type="button";claim.className="primary-button";claim.textContent="Claim gift";
+    claim.addEventListener("click",async()=>{claim.disabled=true;const res=await window.neoBrowser.claimChestGift(gift.giftId);setNativeShopStatus(res&&res.ok?"Gift claimed!":res&&res.message||"Could not claim gift.",!(res&&res.ok));await refreshNativeShop();await refreshNativeChestGiftInbox();});
+    card.appendChild(claim);box.appendChild(card);
+  });
+}
+document.getElementById("nativeGiftSend").addEventListener("click",async()=>{
+  const type=document.getElementById("nativeGiftChestType").value;
+  const email=document.getElementById("nativeGiftRecipient").value.trim();
+  const message=document.getElementById("nativeGiftMessage").value.trim();
+  const button=document.getElementById("nativeGiftSend");
+  if(!email){setNativeShopStatus("Enter the recipient's NeoFind account email.",true);return;}
+  button.disabled=true;setNativeShopStatus("Sending chest gift…");
+  const purchase=document.getElementById("nativeGiftPurchase").checked;
+  const result=await window.neoBrowser.sendChestGift(type,email,message,purchase);
+  setNativeShopStatus(result&&result.ok?(purchase?"Gift purchased and sent for "+Number(result.costOrbs||0).toLocaleString()+" Orbs.":"Gift sent from inventory.") : result&&result.message||"Could not send gift.",!(result&&result.ok));
+  button.disabled=false;
+  if(result&&result.ok){document.getElementById("nativeGiftRecipient").value="";document.getElementById("nativeGiftMessage").value="";await refreshNativeShop();}
+});
+document.getElementById("nativeGiftInboxRefresh").addEventListener("click",refreshNativeChestGiftInbox);
+document.getElementById("nativeGiftPurchase").addEventListener("change",()=>{document.getElementById("nativeGiftSend").textContent=document.getElementById("nativeGiftPurchase").checked?"Buy & send gift":"Send from inventory";});
 async function refreshNativeShop() {
   setNativeShopStatus("Syncing your NeoFind account…");
   const state = await window.neoBrowser.getShopState();
@@ -779,6 +822,7 @@ async function openNativeShop() {
   nativeShopOverlay.classList.remove("hidden");
   window.neoSetModalOpen("native-shop", true);
   await refreshNativeShop();
+  await refreshNativeChestGiftInbox();
 }
 document.getElementById("sideShop").addEventListener("click", openNativeShop);
 document.getElementById("closeNativeShop").addEventListener("click", closeNativeShop);
