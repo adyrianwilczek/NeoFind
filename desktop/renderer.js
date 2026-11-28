@@ -772,6 +772,40 @@ slotMachineSpinButton.addEventListener("click",async()=>{
   machine.classList.remove("lever-pulled");slotMachineReels.forEach(node=>node.classList.remove("reel-stopped"));
 });
 
+async function refreshNativeChestGiftInbox() {
+  const box=document.getElementById("nativeGiftInbox");
+  if(!box)return;
+  box.textContent="Loading gifts…";
+  const result=await window.neoBrowser.getChestGiftInbox();
+  box.replaceChildren();
+  if(!result||!result.ok){box.textContent=result&&result.signedIn===false?"Sign in to see gifts.":result&&result.message||"Gift inbox unavailable.";return;}
+  if(!result.gifts||!result.gifts.length){box.textContent="No pending gifts.";return;}
+  result.gifts.forEach(gift=>{
+    const card=document.createElement("article");
+    card.style.cssText="padding:12px;margin:8px 0;border:1px solid rgba(255,255,255,.16);border-radius:10px;background:rgba(0,0,0,.12)";
+    const heading=document.createElement("strong");
+    const labels={normal:"Normal Chest",rare:"Rare Chest",epic:"Epic Chest",neofind:"NeoFind Chest"};
+    heading.textContent=(labels[gift.type]||"Chest gift")+" · from "+(gift.senderEmail||"NeoFind user");
+    card.appendChild(heading);
+    if(gift.message){const msg=document.createElement("p");msg.textContent=gift.message;msg.style.margin="8px 0";card.appendChild(msg);}
+    const claim=document.createElement("button");claim.type="button";claim.className="primary-button";claim.textContent="Claim gift";
+    claim.addEventListener("click",async()=>{claim.disabled=true;const res=await window.neoBrowser.claimChestGift(gift.giftId);setNativeShopStatus(res&&res.ok?"Gift claimed!":res&&res.message||"Could not claim gift.",!(res&&res.ok));await refreshNativeShop();await refreshNativeChestGiftInbox();});
+    card.appendChild(claim);box.appendChild(card);
+  });
+}
+document.getElementById("nativeGiftSend").addEventListener("click",async()=>{
+  const type=document.getElementById("nativeGiftChestType").value;
+  const email=document.getElementById("nativeGiftRecipient").value.trim();
+  const message=document.getElementById("nativeGiftMessage").value.trim();
+  const button=document.getElementById("nativeGiftSend");
+  if(!email){setNativeShopStatus("Enter the recipient's NeoFind account email.",true);return;}
+  button.disabled=true;setNativeShopStatus("Sending chest gift…");
+  const result=await window.neoBrowser.sendChestGift(type,email,message);
+  setNativeShopStatus(result&&result.ok?"Gift sent successfully.":result&&result.message||"Could not send gift.",!(result&&result.ok));
+  button.disabled=false;
+  if(result&&result.ok){document.getElementById("nativeGiftRecipient").value="";document.getElementById("nativeGiftMessage").value="";await refreshNativeShop();}
+});
+document.getElementById("nativeGiftInboxRefresh").addEventListener("click",refreshNativeChestGiftInbox);
 async function refreshNativeShop() {
   setNativeShopStatus("Syncing your NeoFind account…");
   const state = await window.neoBrowser.getShopState();
